@@ -13,8 +13,8 @@ import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPa
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { OutputPass } from '../vendor/three/examples/jsm/postprocessing/OutputPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611041839';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611041839';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611042055';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611042055';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -158,6 +158,32 @@ export class World {
   /* the neighbouring cells of the acinus: faint on the map; clearer in the dive (k 0 … 1) */
   /* the neighbouring cells of the bunch: faint in the game (k = 0), clear in the intro's view of the whole bunch (k = 1) */
   acinus(k) { (this.W.acinusMats || []).forEach(([m, a, b]) => { m.opacity = a + (b - a) * k; }); }
+
+  /* the way in (k 0 … 1): the membrane at the base drawn bigger, as two layers of lipids with carrier proteins
+     (cellbuild.js), in place of the base's thin film; the front of the base is cut away too, so that its two layers show
+     in section. A smooth change both ways (Daniel, 4 Nov 2026: no glitches as things appear) */
+  wayIn(on, ms = 1200) {
+    const B = this.W.bilayer; if (!B) return Promise.resolve();
+    const to = on ? 1 : 0, from = this.wayK || 0;
+    if (from === to && !this.wayGo) { B.group.visible = !!to; return Promise.resolve(); }
+    const go = this.wayGo = {}, t0 = performance.now(), dur = this.still ? 0 : ms * Math.abs(to - from);
+    const paint = k => {
+      this.wayK = k; B.group.visible = k > 0.001;
+      CUT.uBase.value = k; CUT.uCutY.value = 0.45 + (-2.5 - 0.45) * k;
+      B.mats.forEach(([m, top]) => { m.opacity = k * top; m.depthWrite = k > 0.95; });
+      B.fluid.material.uniforms.uOpacity.value = 0.55 * k;
+      this.kick();
+    };
+    return new Promise(res => {
+      const step = () => {
+        if (this.wayGo !== go) return res();
+        const t = dur ? Math.min(1, (performance.now() - t0) / dur) : 1;
+        paint(from + (to - from) * ease(t));
+        if (t < 1) requestAnimationFrame(step); else { this.wayGo = null; res(); }
+      };
+      step();
+    });
+  }
 
   /* ---------- the cell you know (Year 7: membrane, cytoplasm, nucleus, mitochondria, ribosomes) and the rest ----------
      simple(true) hides every structure beyond the Year 7 list; reveal(key) shows one again (play.js names each). */

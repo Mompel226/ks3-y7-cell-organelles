@@ -5,17 +5,17 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611041839';
-import { Names } from './names.js?v=202611041839';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611041839';
-import { makePlay } from './play.js?v=202611041839';
-import { setStill, wait } from './actors.js?v=202611041839';
-import { state } from './state.js?v=202611041839';
-import { ICON } from './icons.js?v=202611041839';
-import { openLens } from './lens.js?v=202611041839';
-import { intro } from './intro.js?v=202611041839';
-import { sound } from './sound.js?v=202611041839';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611041839';
+import { World, MAP_VIEW } from '../world/world.js?v=202611042055';
+import { Names } from './names.js?v=202611042055';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611042055';
+import { makePlay } from './play.js?v=202611042055';
+import { setStill, wait } from './actors.js?v=202611042055';
+import { state } from './state.js?v=202611042055';
+import { ICON } from './icons.js?v=202611042055';
+import { openLens } from './lens.js?v=202611042055';
+import { intro } from './intro.js?v=202611042055';
+import { sound } from './sound.js?v=202611042055';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611042055';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -39,14 +39,15 @@ world.solids = [world.W.nucleus.outerEnv, ...WG.rer.children.filter(m => m.name.
 
 /* ---------- each place's look and its name on the map ---------- */
 function looks() {
-  /* before the map (the start), every place is simply there to see: nothing sleeps yet */
-  const map = state.done('arrive');
-  MAPPED.forEach(id => world.setPlace(id, !map ? 'idle' : state.done(id) ? 'done' : state.awake(id) ? 'open' : 'sleep', { instant: !looks.ran }));
+  /* before the map (the start), every place is simply there to see: nothing sleeps yet. Done (✦) is the jobs AND every
+     check right (state.complete) */
+  const map = state.complete('arrive');
+  MAPPED.forEach(id => world.setPlace(id, !map ? 'idle' : state.complete(id) ? 'done' : state.awake(id) ? 'open' : 'sleep', { instant: !looks.ran }));
   looks.ran = true;
 }
 function mapNames() {
   names.set(MAPPED.map(id => {
-    const P = world.P[id], awake = state.awake(id), done = state.done(id);
+    const P = world.P[id], awake = state.awake(id), done = state.complete(id);
     return {
       key: id, spots: P.spots, own: P.groups.map(g => WG[g]).filter(Boolean).concat(id === 'nucleolus' ? [world.W.nucleus.group] : []),
       cls: done ? 'is-done' : awake ? 'is-open' : 'is-asleep',
@@ -79,9 +80,12 @@ let busy = false;
 async function go(id) {
   if (busy) return;
   if (id === 'final') { openFinal(); return; }
-  if (!id) { busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
+  if (id !== 'test') $('#test').hidden = true;
+  if (!id) { world.wayIn(false); busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
   if (id !== 'test' && !state.awake(id)) { quest.openMap(); quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))); return; }
   busy = true; names.set([]); play.reset();
+  /* the way in shows its membrane bigger, as two layers of lipids (world.wayIn); every other place, the thin film */
+  world.wayIn(id === 'wayin');
   /* a pupil may do the mitochondria again (more energy), or the way in (more glucose and oxygen) */
   if (id === 'mito' && state.done('mito') && state.has('glucose') && state.has('oxygen')) state.setStep('mito', 0), state.get().done.mito = false, state.save();
   if (id === 'wayin' && state.done('wayin') && !state.has('glucose')) state.setStep('wayin', 0), state.get().done.wayin = false, state.save();
@@ -109,6 +113,8 @@ function toast(html) {
   setTimeout(() => t.classList.add('out'), 3200); setTimeout(() => t.remove(), 3900);
 }
 state.on(() => { if (!quest.cur) mapNames(); });
+/* a place finished (its jobs and every check right): what it gave wakes the next places now */
+document.addEventListener('place-complete', () => { looks(); if (!quest.cur) mapNames(); });
 /* the final check closed: the list of places says how it went */
 document.addEventListener('final-closed', () => { if (!quest.cur && state.done('arrive')) quest.openMap(); });
 
@@ -123,7 +129,7 @@ async function test() {
     <text id="clock" x="300" y="292" text-anchor="middle" font-size="22" fill="#C9D4E0"></text></svg>
     <figcaption>Starch solution in two wells of a spotting tile. Iodine solution turns blue-black when starch is present.</figcaption></figure>`;
   const liq = id => $(`#${id} .liq`, box);
-  await quest.openPlace('test', async (name) => {
+  const fin = quest.openPlace('test', async (name) => {
     if (name === 'wells') {
       const a = h('button', { type: 'button', class: 'btn' }, 'Add saliva to well A'), b = h('button', { type: 'button', class: 'btn' }, 'Add water to well B');
       quest.step.do.append(a, b);
@@ -157,6 +163,9 @@ async function test() {
       if (quest.session === s0) state.use('saliva');      /* never used up by a test the pupil left */
     }
   });
+  await fin;
+  /* the win, once every check of the test is right too: the mission is complete only then */
+  if (!(await quest.whenComplete('test'))) return;
   /* the win: the whole journey, in the order the cell made it */
   const path = [['mrna', 'copy of the gene'], ['chain', 'ribosome'], ['amylase', 'rough ER'], ['packed', 'Golgi apparatus'], ['top', 'microtubules'], ['saliva', 'exocytosis']];
   const end = h('div', { class: 'win', role: 'status' }, `<div class="win__star">${ICON.star}</div><p class="win__t">Mission complete</p>
@@ -183,13 +192,16 @@ async function start() {
   looks();
   /* a final check started and not finished: straight back to it (the game under it shows the answers) */
   if (finalOpen()) openFinal();
-  if (!state.done('arrive')) {
-    if (!state.step('arrive')) await intro(world); else sound.allowMusic();      /* no intro: the pupil is in 3D already */
-    world.simple(true);
+  if (!state.complete('arrive')) {
+    if (!state.step('arrive') && !state.done('arrive')) await intro(world); else sound.allowMusic();   /* no intro: the pupil is in 3D already */
+    if (!state.done('arrive')) world.simple(true);
     setInset();
+    /* its end is its checks; when every one is right, "Go to the map" leads on (quest.finishPanel) */
     await quest.openPlace('arrive', (name) => play.run(name));
     looks();
-  } else sound.allowMusic();
+    return;
+  }
+  sound.allowMusic();
   go(null);
 }
 start();

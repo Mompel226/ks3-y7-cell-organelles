@@ -6,12 +6,12 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611041839';
-import { state, COST } from './state.js?v=202611041839';
-import { sound } from './sound.js?v=202611041839';
-import { finalLine } from './final.js?v=202611041839';
-import { HAS_LENS } from './lens.js?v=202611041839';
-import { simpleCard } from './simplecard.js?v=202611041839';
+import { ICON } from './icons.js?v=202611042055';
+import { state, COST } from './state.js?v=202611042055';
+import { sound } from './sound.js?v=202611042055';
+import { finalLine } from './final.js?v=202611042055';
+import { HAS_LENS } from './lens.js?v=202611042055';
+import { simpleCard } from './simplecard.js?v=202611042055';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -53,9 +53,16 @@ export class Quest {
     const sc = this.w.project(p), s = this.w.size;
     const R = s.w - (this.w.inset.right || 0) - G, B = s.h - (this.w.inset.bottom || 0) - G;
     let x = Math.max(G - l, Math.min(R - r, sc.x)), y = Math.max(G - tp, Math.min(B - bt, sc.y));
-    /* never under the box at the top left (energy, the bag, the word bank): below it instead */
-    const k = this.keep;
-    if (k && x + r > k.l - 6 && x + l < k.r + 6 && y + bt > k.t - 6 && y + tp < k.b + 6) y = Math.min(B - bt, k.b + 8 - tp);
+    /* never under the box at the top left (energy, the bag, the word bank), nor on a name on the world: the nearest free
+       place beside, below or above what it touches (on a phone the names stand close together: a button pushed below
+       one only met the next) */
+    const keeps = this.keeps || [], hit = (px, py) => keeps.some(k => px + r > k.l - 6 && px + l < k.r + 6 && py + bt > k.t - 6 && py + tp < k.b + 6);
+    if (hit(x, y)) {
+      const fits = ([px, py]) => px + l >= G && px + r <= R && py + tp >= G && py + bt <= B && !hit(px, py);
+      const near = keeps.flatMap(k => [[x, k.b + 8 - tp], [x, k.t - 8 - bt], [k.r + 8 - l, y], [k.l - 8 - r, y]]).filter(fits)
+        .sort((a, b) => Math.hypot(a[0] - x, a[1] - y) - Math.hypot(b[0] - x, b[1] - y))[0];
+      if (near) { x = near[0]; y = near[1]; }
+    }
     o.x = x; o.y = y; o.box = { l: x + l, r: x + r, t: y + tp, b: y + bt };
     o.on = sc.inFront; o.isEdge = Math.abs(x - sc.x) > 0.5 || Math.abs(y - sc.y) > 0.5;
   }
@@ -64,11 +71,11 @@ export class Quest {
      none touch (a crowded phone: seven buttons in a narrow strip needed sideways steps); one moved off its point is
      drawn dashed */
   spread() {
-    const on = this.hots.filter(o => o.on && o.box), s = this.w.size, G = 10, k = this.keep;
+    const on = this.hots.filter(o => o.on && o.box), s = this.w.size, G = 10, keeps = this.keeps || [];
     const B = s.h - (this.w.inset.bottom || 0) - G, Rt = s.w - (this.w.inset.right || 0) - G;
     const touch = (a, b) => b.l < a.r + 4 && b.r > a.l - 4 && b.t < a.b + 4 && b.b > a.t - 4;
     const fits = (b, dx, dy) => b.l + dx >= G && b.r + dx <= Rt && b.t + dy >= G && b.b + dy <= B &&
-      !(k && b.r + dx > k.l - 6 && b.l + dx < k.r + 6 && b.b + dy > k.t - 6 && b.t + dy < k.b + 6);
+      !keeps.some(k => b.r + dx > k.l - 6 && b.l + dx < k.r + 6 && b.b + dy > k.t - 6 && b.t + dy < k.b + 6);
     const shift = (o, dx, dy) => { o.x += dx; o.y += dy; o.box.l += dx; o.box.r += dx; o.box.t += dy; o.box.b += dy; o.isEdge = true; };
     /* the smallest step that takes box b clear of box a */
     const steps = (a, b) => [[0, a.b + 6 - b.t], [0, a.t - 6 - b.b], [a.r + 6 - b.l, 0], [a.l - 6 - b.r, 0]].sort((x, y) => Math.abs(x[0]) + Math.abs(x[1]) - Math.abs(y[0]) - Math.abs(y[1]));
@@ -93,8 +100,9 @@ export class Quest {
   }
   loop() {
     if (this.hots.length) {
-      const hud = document.querySelector('.hud'), L = this.hotsEl.getBoundingClientRect(), r = hud && hud.getBoundingClientRect();
-      this.keep = r && r.width ? { l: r.left - L.left, r: r.right - L.left, t: r.top - L.top, b: r.bottom - L.top } : null;
+      const L = this.hotsEl.getBoundingClientRect(), box = el => { const r = el.getBoundingClientRect(); return r.width ? { l: r.left - L.left, r: r.right - L.left, t: r.top - L.top, b: r.bottom - L.top } : null; };
+      /* what a button keeps off: the box at the top left, and the names on the world (the way in names its parts) */
+      this.keeps = [document.querySelector('.hud'), ...document.querySelectorAll('#names.on .nm')].filter(Boolean).map(box).filter(Boolean);
       this.w.camera.updateMatrixWorld(); this.hots.forEach(o => this.place1(o)); this.spread(); this.hots.forEach(o => { if (o.box) this.paint(o); });
     }
     requestAnimationFrame(this.loop);
@@ -130,13 +138,13 @@ export class Quest {
     this.w.setPlaceLook && this.w.setPlaceLook();
     const list = MAPPED.concat(['test']).filter(id => STORY[id]);
     const row = id => {
-      const P = STORY[id], awake = state.awake(id), done = state.done(id), miss = state.missing(id);
-      const needs = miss.map(n => n.indexOf('in-') === 0 ? 'enter the nucleus first' : (ITEMS[n] ? ITEMS[n].name : n));
+      const P = STORY[id], awake = state.awake(id), done = state.complete(id), miss = state.missing(id);
+      const needs = miss.map(needName);
       return `<li class="pl ${done ? 'is-done' : awake ? 'is-open' : 'is-asleep'}"><button type="button" data-go="${id}" ${awake ? '' : 'aria-disabled="true"'}>
         <span class="pl__n">${esc(P.title)}</span>
-        <span class="pl__s">${done ? '✦ done' : awake ? (state.step(id) ? 'continue' : 'awake: go there') : 'asleep · needs ' + needs.map(esc).join(', ')}</span></button></li>`;
+        <span class="pl__s">${done ? '✦ done' : state.done(id) ? 'answer its checks to finish' : awake ? (state.step(id) ? 'continue' : 'awake: go there') : 'asleep · needs ' + needs.map(esc).join(', ')}</span></button></li>`;
     };
-    const left = list.filter(id => !state.done(id)).length;
+    const left = list.filter(id => !state.complete(id)).length;
     /* the final check is not a place in the cell: always there, it needs the code from the end of the journey */
     const fin = `<li class="pl pl--final"><button type="button" data-go="final"><span class="pl__n">✦ Final check</span><span class="pl__s">${esc(finalLine())}</span></button></li>`;
     this.setPanel(`<div class="qp qp--map">
@@ -149,7 +157,9 @@ export class Quest {
     $$('[data-go]', this.panel).forEach(b => b.addEventListener('click', () => { if (b.getAttribute('aria-disabled') !== 'true') this.onPlace(b.dataset.go); else this.whyAsleep(b.dataset.go, b); }));
   }
   whyAsleep(id, near) {
-    const miss = state.missing(id).map(n => n.indexOf('in-') === 0 ? 'Enter the nucleus first: the nucleolus is inside it.' : `You need <b>${esc(ITEMS[n].name)}</b> (from ${esc(STORY[giver(n)] ? STORY[giver(n)].title : 'another place')}).`);
+    const miss = state.missing(id).map(n => n.indexOf('in-') === 0 ? 'Enter the nucleus first: the nucleolus is inside it.'
+      : n.indexOf('checks:') === 0 ? `Answer every check at <b>${esc(STORY[n.slice(7)].title)}</b> first: that finishes it.`
+      : `You need <b>${esc(ITEMS[n].name)}</b> (from ${esc(STORY[giver(n)] ? STORY[giver(n)].title : 'another place')}).`);
     const t = h('div', { class: 'asleep', role: 'note' }, `<b>${esc(STORY[id].title)} ${isAre(id)} asleep.</b> ${miss.join(' ')}`);
     $$('.asleep', this.panel).forEach(x => x.remove());
     (near && near.closest('li') || this.panel.firstChild).appendChild(t);
@@ -185,7 +195,7 @@ export class Quest {
     for (let i = from; i < P.steps.length; i++) {
       if (my !== this.session) return;
       const li = ol.children[i]; li.hidden = false; li.classList.remove('is-later'); li.classList.add('is-now');
-      this.scrollTo(li);
+      this.scrollTo(li, i === from);                               /* the panel just opened: no scrolling to watch */
       this.step = { li, do: $('.step__do', li), say: $('.step__say', li), i };
       const ok = await run(P.steps[i].play, i, () => my === this.session);
       if (my !== this.session || ok === false) return;
@@ -197,27 +207,55 @@ export class Quest {
     if (P.task) R.L.done(P.task);
     this.finishPanel(id, true);
   }
+  /* the end of a place: first its checks, then, when every one is right, the place is done (✦): its message, a "Did you
+     know?", the real thing, and the way to the map (Daniel, 4 Nov 2026: "You have to complete the questions. It's like
+     completing a game"). The first place has no way to the map before that: nothing is awake yet. */
   finishPanel(id, fresh) {
     const P = STORY[id], end = $('.qp__end', this.panel); if (!end) return;
-    const qs = Object.keys(window.QS).filter(k => window.QS[k].part === P.part);
+    const qs = state.checks(id), my = this.session, first = id === 'arrive';
     end.hidden = false;
-    end.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
-      ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
-      ${HAS_LENS(id) ? `<button type="button" class="qp__real">🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}</button>` : ''}
-      <p class="qp__k">Check what you learned</p>
+    end.innerHTML = `<p class="qp__k">Check what you learned</p>
+      <p class="qp__todo" role="status"></p>
       ${qs.map(q => `<div class="q" data-q="${q}"></div>`).join('')}
-      <div class="qp__nav"><button type="button" class="qp__mapbtn">← Back to the map</button></div>`;
+      <div class="qp__won"></div>
+      <div class="qp__nav"${first ? ' hidden' : ''}><button type="button" class="qp__mapbtn">← Back to the map</button></div>`;
     R.terms(end);
     $$('.q', end).forEach(b => window.REVchecks.draw(b));
     $('.qp__mapbtn', end).addEventListener('click', () => this.onPlace(null));
-    const rb = $('.qp__real', end); if (rb) rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
+    const todo = $('.qp__todo', end), won = $('.qp__won', end), nav = $('.qp__nav', end);
+    let was = null;
+    const paint = () => {
+      if (my !== this.session || !end.isConnected) { document.removeEventListener('progress', paint); return; }
+      const right = qs.filter(q => state.checkRight(q)).length, all = right === qs.length;
+      todo.hidden = all;
+      todo.innerHTML = `To finish this place, answer every check: <b>${right} of ${qs.length}</b> right.`;
+      if (all === was) return;
+      const now = was === false; was = all;
+      if (!all) return;
+      document.removeEventListener('progress', paint);
+      won.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
+        ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
+        ${HAS_LENS(id) ? `<button type="button" class="qp__real">🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}</button>` : ''}`;
+      R.terms(won);
+      const rb = $('.qp__real', won); if (rb) rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
+      nav.hidden = false; if (first) $('.qp__mapbtn', nav).textContent = 'Go to the map →';
+      /* the place is done now: the map wakes what it gave (main.js), and the pupil sees it at once */
+      if (now) { sound.gain(); document.dispatchEvent(new CustomEvent('place-complete', { detail: id })); this.scrollTo(won); }
+    };
+    paint();
+    if (!was) document.addEventListener('progress', paint);
     if (fresh) this.scrollTo(end);
+  }
+  /* resolves true when a place is done (its jobs and every check), false if the pupil leaves it first */
+  whenComplete(id) {
+    const my = this.session;
+    return new Promise(res => { const f = () => { if (this.session !== my) return res(false); if (state.complete(id)) return res(true); setTimeout(f, 300); }; f(); });
   }
 
   /* only the panel scrolls, never the page (a step or the end comes into view inside it) */
-  scrollTo(el) {
+  scrollTo(el, instant) {
     const p = this.panel, top = el.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - 12;
-    if (top < p.scrollTop || top + Math.min(el.offsetHeight, p.clientHeight - 24) > p.scrollTop + p.clientHeight) p.scrollTo({ top, behavior: R.FAST ? 'auto' : 'smooth' });
+    if (top < p.scrollTop || top + Math.min(el.offsetHeight, p.clientHeight - 24) > p.scrollTop + p.clientHeight) p.scrollTo({ top, behavior: R.FAST || instant ? 'auto' : 'smooth' });
   }
 
   /* ---------- inside a step ---------- */
@@ -231,7 +269,11 @@ export class Quest {
      really happens, then the pupil chooses again */
   choose(opts, right, onWrong) {
     const box = h('div', { class: 'choices' });
-    opts.forEach((t, i) => box.appendChild(h('button', { type: 'button', class: 'choice', 'data-i': i }, `<span class="lt">${'ABC'[i]}</span><span>${t}</span>`)));
+    /* a new order each time they are drawn, so the right one is not always A (memory feedback-questions); data-i keeps
+       each choice's own number */
+    const order = opts.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    order.forEach((i, k) => box.appendChild(h('button', { type: 'button', class: 'choice', 'data-i': i }, `<span class="lt">${'ABC'[k]}</span><span>${opts[i]}</span>`)));
     this.step.do.appendChild(box);
     return new Promise(res => {
       $$('.choice', box).forEach(b => b.addEventListener('click', async () => {
@@ -250,6 +292,11 @@ export class Quest {
     this.bag.classList.add('low');
     return false;
   }
+}
+function needName(n) {
+  if (n.indexOf('in-') === 0) return 'enter the nucleus first';
+  if (n.indexOf('checks:') === 0) return 'the checks at ' + STORY[n.slice(7)].title;
+  return ITEMS[n] ? ITEMS[n].name : n;
 }
 function fact(f) { return `<aside class="fact"><p class="fact__k">✦ Did you know?</p><p>${f.text}</p>${f.src ? `<p class="fact__src">${esc(f.src)}</p>` : ''}</aside>`; }
 /* which place gives an item */

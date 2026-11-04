@@ -12,6 +12,9 @@
      comes with the right answer. The record keeps each option by its place in the list (o0 = the first written).
    - "Show the answers" only after two complete tries. A sorted or ordered answer is kept as the pupil left it and
      marked as one whole: the page never says which piece is wrong.
+   - Shown answers are put in place, but the check is not over: the pupil presses Check (Daniel, 4 Nov 2026: a place is
+     done only when the pupil has "gotten to the correct answers by checking or by tapping the right answer"). Showing
+     them counts as a try on the board ("answers shown"). A check shown before this rule is drawn the same way.
    What is new here: the checks are drawn when a place of the cell is finished (js/game/quest.js calls REVchecks.draw),
    not all at once; every check is registered for the teacher's board from window.QS by js/core.js.
    ============================================================ */
@@ -205,12 +208,19 @@
     function showBtn() {
       if (tries < 2 || $('.show', row)) return;
       const sb = h('button', { class: 'btn ghost show', type: 'button' }, 'Show the answers'); row.insertBefore(sb, say);
-      sb.addEventListener('click', () => { const sh = shownAnswers(); ins.forEach((inp, i) => { inp.value = sh[i]; }); paint(gaps.map(() => true)); ans.put(id, { v: ins.map(i => i.value), shown: 1 }); lock(true); });
+      sb.addEventListener('click', () => { L.check(id, false, ['answers shown']); showAnswers(); sb.remove(); });
     }
-    if (A.ok || A.shown) { paint(rightNow()); if (A.shown) paint(gaps.map(() => true)); lock(!!A.shown); addHint(box, row, id, q, true); return; }
+    /* the answers go into the gaps; the pupil reads them, then presses Check */
+    function showAnswers() {
+      const sh = shownAnswers(); ins.forEach((inp, i) => { inp.value = sh[i]; inp.classList.remove('wrong', 'right'); });
+      ans.put(id, { v: ins.map(i => i.value), shown: 1, marked: 0 });
+      ui.say(say, 'These are the answers. Read them, then press Check.', ''); flState();
+    }
+    if (A.ok) { paint(rightNow()); lock(false); addHint(box, row, id, q, true); return; }
     if (A.marked) paint(rightNow());
     if (tries) ui.status('Try ' + (tries + 1));
-    showBtn(); flState();
+    if (A.shown) showAnswers(); else showBtn();
+    flState();
     addHint(box, row, id, q, false);
     ins.forEach((inp, i) => {
       inp.addEventListener('focus', () => { last = i; });
@@ -258,7 +268,7 @@
         && (groupOf(i) || gaps[i].some(a => canon(a, keepCase) === canon(vals[i], keepCase))));
       if (off >= 0) msg = 'Gap ' + (off + 1) + ' was given its first letter, "' + hinted.get(off) + '": the word in that gap must start with it.';
       ui.say(say, msg, 'no');
-      showBtn(); flState();
+      if (!A.shown) showBtn(); flState();
     }
   }
 
@@ -339,11 +349,18 @@
     function showBtn() {
       if (tries < 2 || $('.show', row)) return;
       const sb = h('button', { class: 'btn ghost show', type: 'button' }, 'Show the answers'); row.insertBefore(sb, say);
-      sb.addEventListener('click', () => { items.forEach((it, i) => { place[i] = it.b; }); layout(); ans.put(id, { place: Object.assign({}, place), shown: 1 }); lock(true); });
+      sb.addEventListener('click', () => { L.check(id, false, ['answers shown']); showAnswers(); sb.remove(); });
     }
-    if (A.ok || A.shown) { lock(!!A.shown); addHint(box, row, id, q, true); return; }
+    /* every card into its box; the pupil looks, then presses Check */
+    function showAnswers() {
+      items.forEach((it, i) => { place[i] = it.b; }); layout(); chips.forEach(x => x.classList.remove('right', 'wrong'));
+      ans.put(id, { place: Object.assign({}, place), shown: 1 });
+      ui.say(say, 'This is where each one goes. Look, then press Check.', '');
+    }
+    if (A.ok) { lock(false); addHint(box, row, id, q, true); return; }
     if (tries) ui.status('Try ' + (tries + 1));
-    showBtn(); addHint(box, row, id, q, false);
+    if (A.shown) showAnswers(); else showBtn();
+    addHint(box, row, id, q, false);
     btn.addEventListener('click', () => {
       if (Object.keys(place).length < items.length) { ui.say(say, 'Put every card in a box first.', 'no'); return; }
       const wrong = items.map((it, i) => place[i] === it.b ? null : it.t + ' → ' + q.bins[place[i]].t).filter(Boolean);
@@ -352,7 +369,7 @@
       if (!wrong.length) { lock(false); return; }
       ui.status('Try ' + (tries + 1));
       ui.say(say, 'Not right yet. Your answer is kept as you left it: think again about each card.', 'no');
-      showBtn();
+      if (!(ans.get(id) || {}).shown) showBtn();
     });
   }
   /* press = choose; press and move = drag (mouse, pen or finger) */
@@ -412,16 +429,17 @@
     function showBtn() {
       if (tries < 2 || $('.show', row)) return;
       const sb = h('button', { class: 'btn ghost show', type: 'button' }, 'Show the order'); row.insertBefore(sb, say);
-      sb.addEventListener('click', () => { ord = q.items.map((_, i) => i); ans.put(id, { ord: ord.slice(), shown: 1 }); lock(true); });
+      sb.addEventListener('click', () => { L.check(id, false, ['answers shown']); ord = q.items.map((_, i) => i); ans.put(id, { ord: ord.slice(), shown: 1 }); draw(); sb.remove(); ui.say(say, 'This is the order. Read it, then press Check.', ''); });
     }
-    if (A.ok || A.shown) { if (A.shown) ord = q.items.map((_, i) => i); lock(!!A.shown); addHint(box, row, id, q, true); return; }
-    draw(); if (tries) ui.status('Try ' + (tries + 1)); showBtn(); addHint(box, row, id, q, false);
+    if (A.ok) { lock(false); addHint(box, row, id, q, true); return; }
+    if (A.shown) ord = q.items.map((_, i) => i);
+    draw(); if (tries) ui.status('Try ' + (tries + 1)); if (A.shown) ui.say(say, 'This is the order. Read it, then press Check.', ''); else showBtn(); addHint(box, row, id, q, false);
     btn.addEventListener('click', () => {
       const ok = ord.every((v, i) => v === i); tries++;
       L.check(id, ok, ok ? [] : ['order ' + ord.map(v => v + 1).join('-')]);
       ans.put(id, { ord: ord.slice(), tries, ok: ok ? 1 : 0 });
       if (ok) { lock(false); return; }
-      ui.status('Try ' + (tries + 1)); ui.say(say, 'Not right yet. Your order is kept as you left it.', 'no'); showBtn();
+      ui.status('Try ' + (tries + 1)); ui.say(say, 'Not right yet. Your order is kept as you left it.', 'no'); if (!(ans.get(id) || {}).shown) showBtn();
     });
   }
 

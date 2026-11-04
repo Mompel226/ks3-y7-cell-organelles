@@ -22,6 +22,8 @@
    mitochondria, cell membrane), The Cell.pdf (cytoplasm = the cytosol and the organelles, not the nucleus) and his
    enzymes and food-test slides (src: 'Y7 Cells'). "nucleus" now has both meanings, the cell's and the atom's (the
    checker allows each word once); "protein" gained what a protein is, keeping its food sentence.
+   4 Nov 2026, evening: diffusion, for the cell game's way in (oxygen and carbon dioxide pass straight through the two
+   layers of lipids; Korean 확산 and Chinese 扩散, the school science words).
    ============================================================ */
 (function () {
   'use strict';
@@ -208,6 +210,7 @@
       { k: 'centrosome',      en: 'centrosome',      ko: '중심체',            zh: '中心体',      d: 'A small structure from which microtubules grow. It has two centrioles: each is a ring of nine groups of short tubes. It has no membrane, so it is not an organelle.' },
       { k: 'exocytosis',      en: 'exocytosis',      ko: '세포외 배출',       zh: '胞吐',        d: 'Releasing substances from a cell: a vesicle joins the cell membrane and opens to the outside (exo = out, cyto = cell).' },
       { k: 'carrier-protein', en: 'carrier protein', ko: '운반체 단백질',     zh: '载体蛋白',    d: 'A protein in the cell membrane that lets one kind of substance, such as glucose, pass through.' },
+      { k: 'diffusion',       en: 'diffusion',       ko: '확산',              zh: '扩散',        d: 'The movement of particles from where there are many of them to where there are fewer, as they move at random. Gases and dissolved substances spread in this way. It needs no energy from the cell.' },
       { k: 'saliva',          en: 'saliva',          ko: '침 (타액)',         zh: '唾液',        src: 'Y7 Cells', d: 'The liquid made by the salivary glands. It is mostly water, with mucus (a slimy substance) and the enzyme amylase.' },
       { k: 'salivary-gland',  en: 'salivary gland',  ko: '침샘',              zh: '唾液腺',      src: 'Y7 Cells', d: 'An organ that makes saliva. You have three large pairs round your mouth.' },
       { k: 'capillary',       en: 'capillary',       ko: '모세 혈관',         zh: '毛细血管',    also: ['capillaries'], d: 'The smallest kind of blood vessel. Its wall is one cell thick, so substances pass between the blood and the cells.' },

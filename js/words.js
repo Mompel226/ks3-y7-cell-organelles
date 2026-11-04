@@ -8,7 +8,7 @@ window.WORD_KEYS = [
   { g: 'The cell you know', w: ['cell', 'cell-membrane', 'membrane', 'cytoplasm', 'cytosol', 'nucleus', 'mitochondria', 'ribosome', 'organelle', 'electron-microscope'] },
   { g: 'Inside the nucleus', w: ['nuclear-envelope', 'nuclear-pore', 'chromosome', 'dna', 'gene', 'mrna', 'nucleolus'] },
   { g: 'Making and releasing a protein', w: ['amino-acid', 'protein', 'enzyme', 'active-site', 'amylase', 'rough-er', 'smooth-er', 'lipid', 'fat', 'golgi', 'vesicle', 'microtubule', 'motor-protein', 'centrosome', 'lysosome', 'exocytosis'] },
-  { g: 'Respiration and the blood', w: ['aerobic-respiration', 'glucose', 'oxygen', 'carbon-dioxide', 'energy', 'carrier-protein', 'capillary', 'red-blood-cell'] },
+  { g: 'Respiration and the blood', w: ['aerobic-respiration', 'glucose', 'oxygen', 'carbon-dioxide', 'energy', 'diffusion', 'carrier-protein', 'capillary', 'red-blood-cell'] },
   { g: 'Saliva and the starch test', w: ['salivary-gland', 'saliva', 'starch', 'iodine', 'control-variable'] }
 ];
 /* the bank as the page reads it: each group's words, from the glossary */

@@ -81,10 +81,13 @@ window.STORY = {
   wayin: {
     part: 2, task: 'game-wayin', title: 'Cell membrane: the way in', kind: 'The cell membrane: part of every cell', y7: true, def: 'cell-membrane',
     needs: [], gives: ['glucose', 'oxygen', 'amino'],
-    intro: 'You are at the base of the cell. The tissue fluid (the liquid round the cells) and a <dfn data-w="capillary">capillary</dfn> full of blood are below its membrane.\nThe cell needs substances from the blood: <dfn data-w="glucose">glucose</dfn> and <dfn data-w="oxygen">oxygen</dfn> for respiration, and <dfn data-w="amino-acid">amino acids</dfn> to make proteins.\nThe <dfn data-w="cell-membrane">cell membrane</dfn> controls what enters and leaves the cell.',
+    intro: 'You are at the base of the cell. Below its membrane are the tissue fluid (the liquid round the cells) and a <dfn data-w="capillary">capillary</dfn> full of blood.\nThe cell needs <dfn data-w="glucose">glucose</dfn> and <dfn data-w="oxygen">oxygen</dfn> for respiration, and <dfn data-w="amino-acid">amino acids</dfn> to make proteins. The blood brings them.\nThe <dfn data-w="cell-membrane">cell membrane</dfn> controls what enters and leaves the cell.',
     steps: [
-      { play: 'gate', text: '<mark class="do">Press each substance that the cell needs, so that it enters the cell.</mark>\nOxygen passes straight through the membrane. Glucose and amino acids pass through <dfn data-w="carrier-protein">carrier proteins</dfn> in it.\nA <dfn data-w="red-blood-cell">red blood cell</dfn> is a whole cell, much too large to pass through the membrane: press it to see.' },
-      { play: 'co2', text: '<dfn data-w="carbon-dioxide">Carbon dioxide</dfn> is a waste product of respiration.\n<mark class="do">Press the carbon dioxide to release it into the blood.</mark>' }
+      { play: 'look', text: 'Here the membrane is drawn about 100 times bigger, so that you can see it: two layers of <dfn data-w="lipid">lipid</dfn> molecules, with proteins in them.\nAbove the membrane is the <b>inside</b> of the cell. Below it is the <b>outside</b>.' },
+      { play: 'oxygen', text: '<dfn data-w="red-blood-cell">Red blood cells</dfn> carry oxygen from your lungs. Here, the cells use oxygen, so the red blood cells release it.\n<mark class="do">Press a red blood cell.</mark>' },
+      { play: 'carriers', text: 'Glucose and amino acids are dissolved in the plasma, the liquid part of the blood. They leave the capillary through its thin wall.\n<mark class="do">Press the glucose, then choose how it enters the cell.</mark>' },
+      { play: 'amino', text: 'A <dfn data-w="carrier-protein">carrier protein</dfn> carried the glucose through the membrane. An amino acid is a larger molecule too.\n<mark class="do">Press the amino acid, then choose how it enters the cell.</mark>' },
+      { play: 'co2', text: '<dfn data-w="carbon-dioxide">Carbon dioxide</dfn> is a waste product of respiration. It is a small molecule, like oxygen.\n<mark class="do">Press the carbon dioxide.</mark>' }
     ],
     done: 'You carry glucose, oxygen and amino acids. The <b>mitochondria</b> are awake now.',
     fact: { text: 'A red blood cell is about 7.5 µm across: almost half as wide as this cell. In the narrowest capillaries, red blood cells bend to pass.', src: 'OpenStax, Anatomy and Physiology 2e, 18.2 (open textbook)' }

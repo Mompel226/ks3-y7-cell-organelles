@@ -11,7 +11,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Place | What the pupil does there | What they bring away |
 |---|---|---|
 | The cell you know | the five Year 7 parts lit alone; then everything an electron microscope shows; what an organelle is | the map |
-| Cell membrane: the way in | lets in glucose, oxygen and amino acids from the blood (a red blood cell cannot enter); lets carbon dioxide out | glucose, oxygen, amino acids |
+| Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves, into a red blood cell | glucose, oxygen, amino acids |
 | Mitochondria | splits glucose in the cytoplasm, sends the pieces and oxygen in: aerobic respiration releases energy | energy (the bar) |
 | Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA); chooses how the copy leaves | the copy of the gene |
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
@@ -40,6 +40,10 @@ magical colours and light, and molecules drawn far larger than life (the page sa
 **Checks.** After each place, two or three checks (32 in all): key words typed (a first letter, the word list or a hint
 when stuck, counted as help on the teacher's board), choices with no give-away, sorting and ordering. Every word a check uses
 is explained above it, and every key word can be tapped for its meaning, with Korean and Chinese.
+A place is **done** (✦) only when its jobs are done **and** every one of its checks is right (Daniel: "It's like
+completing a game. So you have to do the actions, but also complete the questions"); only then does what it gave wake the
+next places, and the list of places says "answer its checks to finish" until then. Answers shown after two tries are put
+in place, but the pupil still presses Check (it counts as help on the board).
 
 **The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
 made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of
@@ -100,14 +104,18 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
 - After changing a check or a game's id: `node tools/make-questions.mjs` (writes `data/questions.json`, which the teacher's
   board reads), then `node tools/stamp.mjs` (one version for `version.txt`, every `?v=` of the page and of its own modules).
 - `node tools/playthrough.mjs` plays the whole game in headless Chrome as a pupil would, place by place (wrong choices
-  first), and reports what is done, the board's record and any console error; it needs the estate served on
+  first), answers every place's checks in the panel, and reports what is done, the board's record and any console error; it needs the estate served on
   127.0.0.1:8799; `--w 375 --h 812 --mobile` plays it on a phone. `node tools/sweep.mjs` marks every check wrong, then right,
   and reads the board's record; `node tools/questions-check.mjs` checks the checks' data (no give-away option, every typed
   word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes.
   The playthrough also fails if, after any press, two names or buttons on the world overlap or one is under the corner
   box or the panel, and, in the intro, if the corner's buttons cannot be pressed or cover the card or the picture.
-  `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale, and refuses if a label would
-  touch a part or another label. `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
+  `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
+  seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
+  refuses if a label would touch a part or another label. `node tools/frames.mjs --out <folder>` films the intro's three
+  moves frame by frame and lays them out on sheets (`--w 390 --h 844 --mobile 1`: a phone), so a glitch of a few frames
+  shows; `node tools/look.mjs --place <id> --out <folder>` photographs one place step by step (`--film 1`: a sheet of
+  frames for every press). `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
   The final check: its questions and answers are `tools/final.master.mjs` (never published); `node tools/make-final.mjs`
   writes `js/final-data.js` from it (only fingerprints of the answers; `--check` proves every answer still marks right),
   `node tools/final-overlap.mjs` proves no run of six words is shared with the game, `python3 tools/cell-svg.py` draws the
@@ -117,7 +125,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   After changing a question: `make-final`, `final-overlap`, `make-questions`, then `stamp`.
   The sound: `python3 tools/music.py` makes the three pieces small and sets their loudness (`--check` measures it:
   −24 LUFS each), `python3 tools/sounds.py` makes the game's nine sounds from the VCSL recordings and tunes them; the
-  downloaded originals are in `tools/sound-src/`. `node tools/sound-check.mjs` presses Sound for real (19: the music
+  downloaded originals are in `tools/sound-src/`. `node tools/sound-check.mjs` presses Sound for real (20: the music
   only after ✦ Dive in, the pieces in turn, heard and never clipping), served by `node tools/serve.mjs`, which, like
   GitHub Pages, lets a piece be jumped through; `node tools/record-music.mjs` records a minute of it to listen to.
   `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. `tools/real-em.py` cut the electron micrographs

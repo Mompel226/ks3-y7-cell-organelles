@@ -73,7 +73,9 @@ function addWorldPos(sh) {
 }
 
 /* the front of the cell is cut away (like LadyofHats' drawing) so that the inside shows; uCutZ moves the cut */
-export const CUT = { uCutZ: { value: 0.25 }, uCutY: { value: 0.45 }, uTime: { value: 0 } };
+export const CUT = { uCutZ: { value: 0.25 }, uCutY: { value: 0.45 }, uTime: { value: 0 }, uBase: { value: 0 } };
+/* uBase (0 … 1): at the way in, the thin film of the base fades where the membrane is drawn bigger, as two layers of
+   lipids (cellbuild.js, the bilayer; world.wayIn) */
 
 export function magicStandard(params, fx = {}) {
   const m = new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.42, metalness: 0.0, envMapIntensity: 0.9 }, params));
@@ -108,12 +110,14 @@ export function membraneMat(opts = {}) {
   const u = m.userData.u = { uEdge: { value: new THREE.Color(opts.edge || 0xbff6ff) }, uSleep: { value: 0 }, uLit: { value: 0 }, uCutOn: { value: opts.cut === false ? 0 : 1 } };
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, u);
-    sh.uniforms.uCutZ = CUT.uCutZ; sh.uniforms.uCutY = CUT.uCutY; sh.uniforms.uTime = CUT.uTime;
+    sh.uniforms.uCutZ = CUT.uCutZ; sh.uniforms.uCutY = CUT.uCutY; sh.uniforms.uTime = CUT.uTime; sh.uniforms.uBase = CUT.uBase;
     addWorldPos(sh);
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uCutZ; uniform float uCutY; uniform float uTime; uniform vec3 uEdge; uniform float uSleep; uniform float uLit; uniform float uCutOn;')
+      .replace('#include <common>', '#include <common>\nuniform float uCutZ; uniform float uCutY; uniform float uTime; uniform vec3 uEdge; uniform float uSleep; uniform float uLit; uniform float uCutOn; uniform float uBase;')
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-        if (uCutOn > 0.5 && vWPos.z > uCutZ && vWPos.y > uCutY) discard;`)
+        if (uCutOn > 0.5 && vWPos.z > uCutZ && vWPos.y > uCutY) discard;
+        float baseK = uCutOn * uBase * step(vWPos.y, 0.12) * step(-2.6, vWPos.z);
+        if (baseK > 0.98) discard;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         {
           float nv = clamp(abs(dot(normal, normalize(vViewPosition))), 0.0, 1.0);
@@ -121,7 +125,8 @@ export function membraneMat(opts = {}) {
           totalEmissiveRadiance += uEdge * fr * 0.5;
           float edge = uCutOn * (1.0 - smoothstep(0.0, 0.22, abs(vWPos.z - uCutZ))) * step(uCutY, vWPos.y);
           totalEmissiveRadiance += uEdge * edge * 1.5;
-          diffuseColor.a = max(diffuseColor.a, edge * 0.9);
+          diffuseColor.a = max(diffuseColor.a, edge * 0.9) * (1.0 - baseK);
+          totalEmissiveRadiance *= 1.0 - baseK;
           float shimmer = 0.5 + 0.5 * sin(vWPos.y * 1.3 + vWPos.x * 0.7 + uTime * 0.6);
           totalEmissiveRadiance += uEdge * 0.06 * shimmer;
           totalEmissiveRadiance *= (1.0 + uLit);

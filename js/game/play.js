@@ -5,8 +5,8 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611041839';
-import { state, COST, RESPIRE } from './state.js?v=202611041839';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611042055';
+import { state, COST, RESPIRE } from './state.js?v=202611042055';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const R = window.REV;
@@ -19,7 +19,10 @@ export function makePlay(world, quest) {
   /* a button's own handler (b.done.then(async …)) may be waiting when the pupil leaves: its stop is expected, not an error */
   addEventListener('unhandledrejection', e => { if (e.reason === STALE) e.preventDefault(); });
   const live = (p, s = quest.session) => { const q = p.then(v => { if (quest.session !== s) throw STALE; return v; }); q.catch(() => {}); return q; };
-  const tween = (o, opts) => live(tween0(o, opts));
+  /* a token that bobs while it waits stops bobbing when it moves: the bob set its height every frame, so before
+     4 Nov 2026 a bobbing molecule could never rise or fall (it never visibly crossed the membrane) */
+  const unbob = o => { if (o && o.userData) o.userData.bob = null; };
+  const tween = (o, opts) => { unbob(o); return live(tween0(o, opts)); };
   const wait = ms => live(wait0(ms));
   let kept = [], props = {};
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
@@ -36,7 +39,11 @@ export function makePlay(world, quest) {
     return cam.position.clone().addScaledVector(f, d).addScaledVector(r, dx).addScaledVector(u, dy);
   };
   const depthTo = (p, back = 0.8) => world.camera.position.distanceTo(p) - back;
-  const bob = (o, k = 0.08) => { const y0 = o.position.y, ph = Math.random() * 6; W.anim.push(function f(t) { if (!o.parent) { W.anim.splice(W.anim.indexOf(f), 1); return; } o.position.y = y0 + k * Math.sin(t * 1.4 + ph); o.rotation.y += 0.005; }); };
+  const bob = (o, k = 0.08) => {
+    const y0 = o.position.y, ph = Math.random() * 6;
+    const f = t => { if (!o.parent || o.userData.bob !== f) { W.anim.splice(W.anim.indexOf(f), 1); return; } o.position.y = y0 + k * Math.sin(t * 1.4 + ph); o.rotation.y += 0.005; };
+    o.userData.bob = f; W.anim.push(f);
+  };
   /* a button on a part, pressed once (the step goes on); the energy check, when a job costs energy */
   const press = async (at, label, opts = {}) => {
     for (;;) {
@@ -46,57 +53,148 @@ export function makePlay(world, quest) {
     }
   };
 
-  /* ---------------- the way in ---------------- */
-  const WAY = world.P.wayin.center;
-  async function gate() {
-    await fly(world.P.wayin.view.pos, world.P.wayin.view.at);
-    const want = { glucose: 2, oxygen: 2, amino: 1 }, got = { glucose: 0, oxygen: 0, amino: 0 };
-    const spots = [V(-6.6, -1.1, 0.4), V(-5.6, -1.5, 1.4), V(-4.2, -1.2, 0.6), V(-3.2, -1.6, 1.6), V(-5.2, -1.0, -0.6), V(-3.9, -1.3, -1.4)];
-    const kinds = ['glucose', 'oxygen', 'amino', 'glucose', 'oxygen', 'amino'];
-    const label = { glucose: 'glucose', oxygen: 'oxygen', amino: 'amino acids' };
-    let left = 5;
-    await new Promise(done => {
-      kinds.forEach((k, i) => {
-        const t = keep(token(k, 0.36)); t.position.copy(spots[i]); bob(t);
-        if (k === 'amino') { const b2 = token('amino', 0.3); b2.position.set(0.3, 0.15, 0); b2.children[0].material = b2.children[0].material.clone(); b2.children[0].material.color.setHex(AMINO_COLORS[1]); t.add(b2); }
-        const b = quest.hot(() => t.position.clone().add(V(0, -0.55, 0)), label[k], { cls: 'tok', side: 'b' });
-        b.done.then(async () => {
-          b.remove();
-          if (got[k] >= want[k]) { quest.say(`You have enough ${label[k]}.`); return; }
-          got[k]++; left--;
-          const gateP = V(t.position.x, 0.02, t.position.z);
-          /* a ring for the carrier protein; oxygen passes straight through the membrane, so it has none */
-          const door = k === 'oxygen' ? null : keep(new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.06, 8, 24), new THREE.MeshBasicMaterial({ color: 0xffe39a })));
-          if (door) { door.rotation.x = Math.PI / 2; door.position.copy(gateP); }
-          if (k !== 'oxygen') quest.say('A <b>carrier protein</b> carries it through the membrane.');
-          else quest.say('Oxygen passes straight through the membrane.');
-          await tween(t, { to: gateP, ms: 900 });
-          await tween(t, { to: gateP.clone().add(V(0, 1.4, 0)), ms: 700 });
-          burst(scene, t.position, { color: 0xffe39a, n: 30, r: 0.5 });
-          await quest.gain(k, t.position);
-          drop(t); drop(door);
-          if (!left) done();
-        });
-      });
-      const rbc = keep(token('rbc', 1)); rbc.position.set(-4.4, -3.9, -3.3); bob(rbc, 0.15);
-      const rb = quest.hot(() => rbc.position.clone().add(V(0, 1.1, 0)), 'red blood cell', { cls: 'tok', side: 't' });
-      const tryRbc = () => rb.done.then(async () => {
-        quest.say('A red blood cell is a <b>whole cell</b>, about 7.5 µm across: much too large to pass through the membrane. It stays in the blood and carries oxygen.', 'no');
-        const p0 = rbc.position.clone();
-        await tween(rbc, { to: p0.clone().add(V(0, 2.4, 1.2)), ms: 700 }); await tween(rbc, { to: p0, ms: 700 });
-      });
-      tryRbc();
+  /* ---------------- the way in: the membrane at the base, drawn bigger (cellbuild.js, the bilayer) ----------------
+     Daniel, 4 Nov 2026: "you should still see an in and an out … the oxygen should come from the red blood cells, and the
+     carbon dioxide should go to the red blood cells … small non-polar molecules being able to diffuse in, while the large
+     polar molecules are transported". So the membrane shows its two layers of lipids, with the inside (the cytoplasm)
+     above and the outside (the tissue fluid, then the capillary) below, named on the picture; each press has a reason:
+     a red blood cell releases oxygen, which passes straight between the lipids; glucose and an amino acid each choose their
+     way in (the lipids stop them; each passes through its own carrier protein); carbon dioxide leaves, into a red blood
+     cell. In KS3 words: small and larger molecules (not "polar"). */
+  const BL = W.bilayer, BLD = W.blood, WV = world.P.wayin.view;
+  const curve = pts => new THREE.CatmullRomCurve3(pts);
+  const jit = (k = 0.18) => (Math.random() - 0.5) * 2 * k;
+  /* the names of the way in, each on a level line that ends on its part: inside, the membrane, outside, the blood */
+  const wayNames = () => (quest.names.items[0] || {}).key === 'w-in' ? null : quest.names.set([
+    { key: 'w-in', free: true, small: '<span class="nm__t">Inside: the cytoplasm</span>', html: '<span class="nm__t">Inside the cell:<br>the cytoplasm</span>', spots: [V(-3.7, 1.55, 0.12), V(-3.3, 1.7, 0.12), V(-3.7, 1.3, 0.12), V(1.9, 1.3, 0.12)] },
+    { key: 'w-mem', free: true, small: '<span class="nm__t">Cell membrane</span>', html: '<span class="nm__t">Cell membrane:<br>two layers of lipids</span>', spots: [V(-3.7, 0, 0.2), V(-3.4, 0, 0.2), V(-4.0, 0, 0.2), V(1.9, 0, 0.2)] },
+    { key: 'w-out', free: true, small: '<span class="nm__t">Outside: the tissue fluid</span>', html: '<span class="nm__t">Outside the cell:<br>the tissue fluid</span>', spots: [V(-3.7, -1.3, 0.1), V(-3.4, -1.2, 0.1), V(1.9, -1.25, 0.1)] },
+    { key: 'w-cap', free: true, small: '<span class="nm__t">Capillary (blood)</span>', html: '<span class="nm__t">Capillary,<br>with blood</span>', spots: [V(-3.5, -3.0, -0.7), V(-3.8, -3.3, -0.9), V(1.7, -3.0, -0.7)] }
+  ], [document.querySelector('.hud')], { l: V(-4.7, 0, 0.25), r: V(2.4, 0, 0.25) });
+  /* each step starts in the place's view; already there, no flight (the names stay, never a flicker) */
+  async function wayFly() {
+    world.wayIn(true);
+    if (world.camera.position.distanceTo(V(...WV.pos)) > 0.05 || world.controls.target.distanceTo(V(...WV.at)) > 0.05) await fly(WV.pos, WV.at);
+    wayNames();
+  }
+  async function look() { await wayFly(); await quest.next(); }
+  /* the red blood cells move to the right, along the capillary: the one a little left of the middle stays in view longest */
+  const pickRbc = (x = -2.2, ahead = 3.5) => {
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < BLD.n; i++) { const p = BLD.rbcAt(i, BLD.t || 0); if (p.x > x + 0.6 || p.x < x - ahead) continue; const d = Math.abs(p.x - x); if (d < bd) { bd = d; best = i; } }
+    if (bd === Infinity) for (let i = 0; i < BLD.n; i++) { const d = Math.abs(BLD.rbcAt(i, BLD.t || 0).x - x); if (d < bd) { bd = d; best = i; } }
+    return best;
+  };
+  /* a molecule follows a moving point (a red blood cell) and reaches it */
+  const follow = (o, target, ms, opts = {}) => live(new Promise(res => {
+    unbob(o);
+    const p0 = o.position.clone(), s0 = o.scale.x, t0 = performance.now();
+    const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), e = k * k * (3 - 2 * k);
+      o.position.lerpVectors(p0, target(), e); if (opts.scale != null) o.scale.setScalar(s0 + (opts.scale - s0) * e); world.kick && world.kick();
+      if (k < 1) requestAnimationFrame(f); else res(); };
+    f();
+  }));
+  async function oxygen() {
+    await wayFly();
+    let ri = pickRbc();
+    const rbcPoint = () => { let p = BLD.rbcAt(ri, BLD.t || 0); if (p.x > 1.4) { ri = pickRbc(); p = BLD.rbcAt(ri, BLD.t || 0); } return p.add(V(0, 0.6, 2.2)); };
+    await press(rbcPoint, 'red blood cell', { cls: 'tok', side: 't' });
+    /* two oxygen molecules leave the red blood cell, cross the thin wall of the capillary and the tissue fluid, and pass
+       straight between the lipids into the cytoplasm, each by its own wandering way */
+    const from = BLD.rbcAt(ri, BLD.t || 0).add(V(0, 0.6, 2.2)), xs = [-0.75, -0.05];
+    const ox = xs.map((x, i) => { const t = keep(token('oxygen', 0.32)); t.position.copy(from).add(V(i ? 0.35 : -0.35, 0, 0)); return t; });
+    burst(scene, from, { color: 0xff9aa2, n: 30, r: 0.55 });
+    quest.say('The red blood cell releases oxygen.');
+    await Promise.all(ox.map((t, i) => {
+      const x = xs[i], a = t.position.clone();
+      return tween(t, { path: curve([a, V((a.x + x) / 2 + jit(), -2.1, -0.2), V(x + jit(), -1.25, 0.06), V(x, -0.6, 0.12), V(x, 0, 0.14), V(x + jit(0.1), 0.45, 0.12), V(x + jit(), 0.68, 0.12)]), ms: R.FAST ? 0 : 4200 + i * 500 });
+    }));
+    quest.say('Oxygen is a small molecule: it passes straight through the two layers of lipids. It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.', 'ok');
+    await quest.gain('oxygen', ox[0].position, 2); ox.forEach(drop);
+  }
+  /* a carrier protein rocks, open to the outside (k = -1) or to the inside (k = 1) */
+  const rock = (C, k, ms = 600) => live(new Promise(res => {
+    const a0 = C.halves[0].rotation.z, a1 = 0.26 * k, t0 = performance.now();
+    const f = () => { const e = R.FAST || !ms ? 1 : Math.min(1, (performance.now() - t0) / ms), a = a0 + (a1 - a0) * e * e * (3 - 2 * e);
+      C.halves[0].rotation.z = a; C.halves[1].rotation.z = -a; world.kick && world.kick(); if (e < 1) requestAnimationFrame(f); else res(); };
+    f();
+  }));
+  /* one molecule through a carrier protein: into its open side, the protein rocks, and out of its other side */
+  async function viaCarrier(C, t) {
+    const z = C.at.z + 0.1;
+    await tween(t, { to: V(C.at.x, -0.7, z), ms: 700 });
+    await tween(t, { to: V(C.at.x, -0.05, z), ms: 600 });
+    await rock(C, 1, 700);
+    await tween(t, { to: V(C.at.x, 0.66, z), ms: 600 });
+    rock(C, -1, 700);
+    await tween(t, { to: V(C.at.x + jit(0.3), 0.68, 0.12), ms: 600 });
+  }
+  /* a larger molecule meets the lipids beside a carrier, and stays outside: what really happens (memory
+     bench-sims-show-the-truth) */
+  async function bump(t, x) {
+    const p0 = t.position.clone();
+    await tween(t, { to: V(x, -0.5, 0.12), ms: 800 });
+    await tween(t, { to: V(x, -0.62, 0.12), ms: 220 });
+    await tween(t, { to: V(x, -0.5, 0.12), ms: 220 });
+    await tween(t, { to: p0, ms: 800 });
+  }
+  /* molecules dissolved in the plasma leave the capillary through its thin wall, into the tissue fluid */
+  async function fromBlood(kind, n, x0, size, second) {
+    const ts = [];
+    for (let i = 0; i < n; i++) {
+      const t = keep(token(kind, size)); t.position.set(x0 - 0.5 + i * 1.0, -2.5, -0.6);
+      if (second) { const b2 = token('amino', size * 0.85); b2.position.set(size * 0.9, size * 0.4, 0); b2.children[0].material = b2.children[0].material.clone(); b2.children[0].material.color.setHex(AMINO_COLORS[1]); t.add(b2); }
+      ts.push(t);
+    }
+    await Promise.all(ts.map((t, i) => tween(t, { path: curve([t.position.clone(), V(t.position.x + jit(0.2), -1.9, -0.25), V(x0 - 0.45 + i * 0.9, -1.15, 0.06)]), ms: R.FAST ? 0 : 1700 + i * 250 })));
+    ts.forEach(t => bob(t, 0.04));
+    return ts;
+  }
+  async function carriers() {
+    await wayFly();
+    const C = BL.carriers.glucose; await rock(C, -1, 0);
+    const g = await fromBlood('glucose', 2, C.at.x, 0.22);
+    await press(() => g[0].position.clone().add(V(0, -0.3, 0)), 'glucose', { cls: 'tok', side: 'b' });
+    await quest.choose(['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
+      quest.say('Glucose is a larger molecule: the two layers of lipids stop it.', 'no');
+      await bump(g[0], C.at.x + 0.95);
     });
-    quest.say('');
+    quest.say('A <dfn data-w="carrier-protein">carrier protein</dfn> lets glucose pass through the membrane.', 'ok');
+    for (const t of g) await viaCarrier(C, t);
+    await quest.gain('glucose', g[0].position, 2); g.forEach(drop);
+  }
+  async function amino() {
+    await wayFly();
+    const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([rock(C, -1, 0), rock(G, -1, 0)]);
+    const [a] = await fromBlood('amino', 1, C.at.x - 0.4, 0.28, true);
+    await press(() => a.position.clone().add(V(0, -0.32, 0)), 'amino acid', { cls: 'tok', side: 'b' });
+    await quest.choose(['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
+      if (i === 1) {
+        quest.say('The carrier protein for glucose lets only glucose pass through. Each kind of carrier protein lets only one kind of substance pass through.', 'no');
+        const p0 = a.position.clone();
+        await tween(a, { to: V(G.at.x, -0.74, G.at.z + 0.1), ms: 1100 });
+        await tween(a, { to: V(G.at.x, -0.84, G.at.z + 0.1), ms: 240 });
+        await tween(a, { to: p0, ms: 1100 });
+      } else {
+        quest.say('An amino acid is a larger molecule: the two layers of lipids stop it.', 'no');
+        await bump(a, C.at.x - 0.95);
+      }
+    });
+    quest.say('Its own carrier protein lets the amino acid pass through.', 'ok');
+    await viaCarrier(C, a);
+    await quest.gain('amino', a.position); drop(a);
   }
   async function co2() {
-    const t = keep(token('co2', 0.36)); t.position.copy(WAY).add(V(0.6, 1.3, 0.6)); bob(t);
-    await press(() => t.position.clone().add(V(0, 0.55, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
-    await tween(t, { to: V(t.position.x, 0, t.position.z), ms: 800 });
-    await tween(t, { to: V(t.position.x - 0.5, -3.0, t.position.z - 2.2), ms: 1300 });
+    await wayFly();
+    const t = keep(token('co2', 0.34)); t.position.set(0.3, 0.7, 0.14); bob(t, 0.03);
+    await press(() => t.position.clone().add(V(0, 0.3, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
+    /* straight between the lipids, out through the tissue fluid, then into a red blood cell as it passes */
+    await tween(t, { path: curve([t.position.clone(), V(0.25 + jit(0.1), 0.42, 0.13), V(0.3, 0, 0.14), V(0.25, -0.6, 0.12), V(0.4 + jit(), -1.3, 0.04), V(0.5, -2.0, -0.3)]), ms: R.FAST ? 0 : 2600 });
+    const ri = pickRbc(t.position.x, 4.5);
+    await follow(t, () => BLD.rbcAt(ri, BLD.t || 0).add(V(0, 0.2, 1.0)), R.FAST ? 0 : 2200, { scale: 0.35 });
     drop(t);
-    quest.say('Carbon dioxide leaves into the blood, which carries it to the lungs.', 'ok');
-    await quest.next('Back to the map');
+    quest.say('Carbon dioxide passes straight through the two layers of lipids, into the blood. The blood carries it to your lungs, in the red blood cells and in the plasma.', 'ok');
+    await quest.next('Check what you learned');
   }
 
   /* ---------------- mitochondria ---------------- */
@@ -691,7 +789,7 @@ export function makePlay(world, quest) {
   async function organelles() { await quest.next(); }
   async function mission() { await quest.next('Go to the map'); }
 
-  const ACT = { gate, co2, split, feed, respire, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
+  const ACT = { look, oxygen, carriers, amino, co2, split, feed, respire, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
     assemble, translate, where, dock, grow, cut, fold, bud, lipid, layer, join, through, sortgame, package: packageIt, grab, maze, smell, fuse, flatten,
     simple, full, organelles, mission };
   return {

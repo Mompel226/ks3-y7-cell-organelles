@@ -17,7 +17,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611041839';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611042055';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -165,7 +165,7 @@ const qAlong = (dir) => new THREE.Quaternion().setFromUnitVectors(new THREE.Vect
 /* each place's camera view (pos) and what it looks at (at): defined first, so that nothing big is placed in front of
    them (the mitochondria are placed away from every line of sight) */
 export const VIEWS = {
-  wayin:    { pos: [-7.2, 3.0, 7.6], at: [-4.8, -0.7, -0.8] },
+  wayin:    { pos: [-1.4, 1.5, 15.6], at: [-1.4, -0.1, -0.2] },   /* from the front: the membrane across the middle, inside above, the blood below */
   nucleus:  { pos: [1.2, 6.8, 9.6], at: [0, 5.2, -0.2] },
   nucleolus:{ pos: [1.6, 7.3, 4.6], at: [0.55, 5.5, 0.5] },
   mito:     { pos: [4.6, 8.0, 5.0], at: [3.95, 7.35, 1.35] },
@@ -229,18 +229,24 @@ export function buildCell(scene) {
 
   /* ---------- the floor of the world: the base of the cell, and below it the blood ---------- */
   const below = add('blood', new THREE.Group());
-  const lamina = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), new THREE.MeshBasicMaterial({ color: 0x3a6f86, transparent: true, opacity: 0.16, depthWrite: false }));
-  lamina.rotation.x = -Math.PI / 2; lamina.position.y = -0.28; below.add(lamina);
-  const capPath = new THREE.CatmullRomCurve3([new THREE.Vector3(-26, -5.4, -9), new THREE.Vector3(-9, -4.4, -4.6), new THREE.Vector3(0, -4.3, -3.6), new THREE.Vector3(9, -4.4, -4.2), new THREE.Vector3(26, -5.5, -8.5)]);
-  const capWall = new THREE.Mesh(new THREE.TubeGeometry(capPath, 160, 3.05, 40, false), magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5 }, { rim: 0xff8aa0, rimK: 0.8 }));
+  /* the capillary runs under the base of the cell, about 1.4 µm below its membrane (the tissue fluid between), its front
+     just behind the front cut, so that the way in shows it from the front */
+  const capPath = new THREE.CatmullRomCurve3([new THREE.Vector3(-26, -6.0, -8.5), new THREE.Vector3(-9, -4.9, -3.4), new THREE.Vector3(0, -4.8, -2.9), new THREE.Vector3(9, -4.9, -3.4), new THREE.Vector3(26, -6.0, -8.0)]);
+  /* the blood keeps its colours far away too (the fog darkened it to black beads in the intro's view of the bunch) */
+  const capWall = new THREE.Mesh(new THREE.TubeGeometry(capPath, 160, 3.05, 40, false), magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5, fog: false }, { rim: 0xff8aa0, rimK: 0.8 }));
   capWall.renderOrder = 1; below.add(capWall);
   /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary */
   const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.6 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
   for (let i = 24; i >= 0; i--) { const v = rbcProfile[i]; rbcProfile.push(new THREE.Vector2(v.x, -v.y)); }
   const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x * 0.82), v.y)), 36);
-  const rbcMat = magicStandard({ color: 0xb02838, roughness: 0.4 }, { rim: 0xff6f80, rimK: 0.35 });
+  /* red from every side, also far away and against the light (they looked black in the intro's view, 4 Nov 2026) */
+  const rbcMat = magicStandard({ color: 0xc0303f, emissive: 0x6a0d1a, emissiveIntensity: 0.55, roughness: 0.4, fog: false }, { rim: 0xff7b8a, rimK: 0.45 });
   const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
+  /* where red blood cell i is at time t (the way in: oxygen leaves one, carbon dioxide goes into one) */
+  const rbcAt = (i, t, out = new THREE.Vector3()) => { const u = (((t * 0.012 + i / 9) % 1) + 1) % 1; return out.copy(capPath.getPointAt(u)).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1))); };
+  W.blood = { path: capPath, rbcAt, n: 9, radius: 3.05 };
   W.anim.push((t) => {
+    W.blood.t = t;
     const o = new THREE.Object3D();
     for (let i = 0; i < 9; i++) {
       const u = (((t * 0.012 + i / 9) % 1) + 1) % 1;
@@ -251,6 +257,67 @@ export function buildCell(scene) {
     }
     rbcs.instanceMatrix.needsUpdate = true;
   });
+  /* ---------- the way in, made bigger: the membrane at the base as two layers of lipids, with carrier proteins ----------
+     Daniel, 4 Nov 2026: "you don't really see a membrane … you should still see an in and an out … a phospholipid
+     bilayer, and then you should see the small non-polar molecules being able to diffuse in, while the large polar
+     molecules are transported through channels". Shown only at the way in (world.wayIn), where it takes the place of the
+     thin film of the base, across the front of the base (the cut at the front shows its two layers): each lipid a head
+     (towards the water on each side: the cytoplasm above, the tissue fluid below) and two tails (towards the middle), the
+     colours of the lipid the smooth ER makes (actors.js). Drawn about 100 times bigger than life, like the molecules of the
+     game; two carrier proteins in its front row: one for glucose (teal), one for amino acids (violet). Its own random
+     numbers, so that the rest of the world stays exactly as it was. */
+  const bil = add('bilayer', new THREE.Group()); bil.visible = false;
+  const Rb = rng(31), rb = (a, b) => a + (b - a) * Rb();
+  const LIP = { step: 0.19, head: 0.085, y: 0.3, tail: 0.2, zBack: -2.6 };
+  /* the base's outline where the film is replaced (the film is flat there, below 0.12 µm), and the front cut */
+  const inBase = (x, z) => Math.pow(Math.abs(x) / 6.3, 3) + Math.pow(Math.abs(z) / 5.3, 3) < 1 && z <= CUT.uCutZ.value - 0.04 && z >= LIP.zBack;
+  const CARRIERS = { glucose: new THREE.Vector3(-1.75, 0, -0.08), amino: new THREE.Vector3(1.25, 0, -0.08) };
+  const clear = (x, z) => Object.values(CARRIERS).every(c => Math.abs(x - c.x) > 0.5 || Math.abs(z - c.z) > 0.45);
+  const lipids = [];
+  for (let z = CUT.uCutZ.value - 0.06; z >= LIP.zBack; z -= LIP.step * 0.87) {
+    const row = Math.round((CUT.uCutZ.value - z) / (LIP.step * 0.87));
+    for (let x = -6.3 + (row % 2) * LIP.step / 2; x <= 6.3; x += LIP.step) {
+      if (!inBase(x, z) || !clear(x, z)) continue;
+      for (const side of [1, -1]) lipids.push({ x: x + rb(-0.02, 0.02), z: z + rb(-0.02, 0.02), side, a: rb(0, 6.283), w: rb(-0.03, 0.03) });
+    }
+  }
+  const headMat = magicStandard({ color: 0xff9ac8, emissive: 0x5c1a3c, emissiveIntensity: 0.5, roughness: 0.45, transparent: true, opacity: 0 }, { rim: 0xffd2e8, rimK: 0.5 });
+  const tailMat = magicStandard({ color: 0xffd8a8, emissive: 0x4a3614, emissiveIntensity: 0.35, roughness: 0.6, transparent: true, opacity: 0 });
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(LIP.head, 10, 8), headMat, lipids.length);
+  const tails = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.022, 0.018, LIP.tail, 5, 1), tailMat, lipids.length * 2);
+  {
+    const o = new THREE.Object3D();
+    lipids.forEach((L, i) => {
+      o.rotation.set(0, 0, 0); o.scale.setScalar(1);
+      o.position.set(L.x, L.side * LIP.y + L.w, L.z); o.updateMatrix(); heads.setMatrixAt(i, o.matrix);
+      for (let k = 0; k < 2; k++) {
+        const dx = Math.cos(L.a) * 0.034 * (k ? 1 : -1), dz = Math.sin(L.a) * 0.034 * (k ? 1 : -1);
+        o.position.set(L.x + dx, L.side * (LIP.y - LIP.head - LIP.tail / 2 + 0.02) + L.w, L.z + dz);
+        o.rotation.set(dz * 1.6, 0, -dx * 1.6 * L.side); o.updateMatrix(); tails.setMatrixAt(i * 2 + k, o.matrix);
+      }
+    });
+    heads.instanceMatrix.needsUpdate = true; tails.instanceMatrix.needsUpdate = true;
+    heads.computeBoundingSphere(); tails.computeBoundingSphere();
+  }
+  heads.name = 'lipid-heads'; tails.name = 'lipid-tails'; bil.add(heads, tails);
+  /* a carrier protein: two halves round a way through, which rock to open on one side, then on the other */
+  const carrier = (key, color, emissive) => {
+    const g = new THREE.Group(); g.position.copy(CARRIERS[key]); g.name = 'carrier-' + key;
+    const m = magicStandard({ color, emissive, emissiveIntensity: 0.55, roughness: 0.35, transparent: true, opacity: 0 }, { rim: 0xffffff, rimK: 0.45 });
+    const halves = [-1, 1].map(sd => {
+      const pv = new THREE.Group(); const b = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), m);
+      b.scale.set(0.21, 0.56, 0.36); b.position.x = sd * 0.205; pv.add(b); g.add(pv); return pv;
+    });
+    bil.add(g);
+    return { group: g, halves, mat: m, at: CARRIERS[key] };
+  };
+  const carriers = { glucose: carrier('glucose', 0x3fd6b0, 0x0e5a48), amino: carrier('amino', 0xa58cff, 0x3a2a8a) };
+  /* the tissue fluid: faint motes in the narrow space between the membrane and the capillary */
+  const fluid = sparkles({ count: 140, size: 0.05, color: 0xbfeee0, drift: 0.08, opacity: 0.55, sample: (v) => v.set(rb(-6, 5), rb(-1.6, -0.5), rb(-2.6, 0.2)) });
+  fluid.name = 'tissue-fluid'; bil.add(fluid);
+  /* [material, its opacity when shown]: a carrier is a little clear, so the molecule inside it shows */
+  W.bilayer = { group: bil, mats: [[headMat, 1], [tailMat, 1], [carriers.glucose.mat, 0.6], [carriers.amino.mat, 0.6]], fluid, carriers, top: LIP.y + LIP.head, bottom: -(LIP.y + LIP.head), zBack: LIP.zBack };
+
   /* a nerve ending beside the base of the cell (for the signal at the end: smelling food sends a message) */
   const nervePath = new THREE.CatmullRomCurve3([new THREE.Vector3(13, -0.4, -5.5), new THREE.Vector3(9.5, 1.0, -4.6), new THREE.Vector3(7.35, 2.0, -4.0), new THREE.Vector3(7.2, 3.0, -6.2), new THREE.Vector3(8.8, 3.8, -11)]);
   const nerve = new THREE.Mesh(new THREE.TubeGeometry(nervePath, 120, 0.22, 12, false), magicStandard({ color: 0xd9c27a, roughness: 0.4 }, { rim: PAL.nerve, rimK: 0.9 }));
@@ -603,12 +670,12 @@ export function places(W) {
   const golgiSpots = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; golgiSpots.push(G0.clone().add(new THREE.Vector3(Math.cos(a) * 1.8, 0.4 + (i % 3) * 0.3, Math.sin(a) * 1.3))); }
   const trackSpots = W.tracks.slice(0, 12).flatMap(t => [t.curve.getPointAt(0.3), t.curve.getPointAt(0.5), t.curve.getPointAt(0.7)]);
   const exitSpots = W.granules.filter(g => g.p.y > 13).map(g => g.p.clone());
-  const wayInSpots = []; for (let i = 0; i < 16; i++) wayInSpots.push(new THREE.Vector3(-6.4 + (i % 8) * 0.42, 0.15, -1.6 + Math.floor(i / 8) * 0.9));
+  const wayInSpots = []; for (let i = 0; i < 16; i++) wayInSpots.push(new THREE.Vector3(-3.8 + (i % 8) * 0.7, 0.15, -1.6 + Math.floor(i / 8) * 0.9));
   /* free ribosomes, and the ribosomes on the rough ER (they are ribosomes too): more rows for the name */
   const riboSpots = W.freeRibosomes.filter((f, i) => i % 6 === 0 && f.p.z > -1.5).slice(0, 60).map(f => f.p.clone())
     .concat(W.rer.ribosomes.filter((f, i) => i % 40 === 0 && f.p.z > 0.5).map(f => f.p.clone()));
   const P = {
-    wayin:    { name: 'Cell membrane: the way in', center: new THREE.Vector3(-4.8, 0.35, -0.8), hit: 2.4, spots: wayInSpots, view: VIEWS.wayin, mist: 2.8, groups: ['blood'] },
+    wayin:    { name: 'Cell membrane: the way in', center: new THREE.Vector3(-1.0, 0.25, -0.9), hit: 2.4, spots: wayInSpots, view: VIEWS.wayin, mist: 2.8, groups: ['blood'] },
     nucleus:  { name: 'Nucleus', center: N0.clone(), hit: 3.1, spots: nucSpots, view: VIEWS.nucleus, mist: 3.6, groups: ['nucleus'] },
     nucleolus:{ name: 'Nucleolus', center: N0.clone().add(new THREE.Vector3(0.55, 0.55, 0.8)), hit: 1.0, spots: [N0.clone().add(new THREE.Vector3(0.55, 1.2, 0.95)), N0.clone().add(new THREE.Vector3(1.2, 0.55, 1.0)), N0.clone().add(new THREE.Vector3(-0.1, 0.55, 1.1))], view: VIEWS.nucleolus, mist: 1.2, groups: [] },
     mito:     { name: 'Mitochondria', center: hero.clone(), hit: 1.6, spots: [hero.clone().add(new THREE.Vector3(0.2, 0.9, 0.3)), hero.clone().add(new THREE.Vector3(0, -0.8, 0.3)), hero.clone().add(new THREE.Vector3(0.5, 0, 0.3))], view: VIEWS.mito, mist: 2.2, groups: ['mitochondria'] },

@@ -17,9 +17,21 @@ export class Names {
     world.on('still', () => this.show());
     world.on('resize', () => { if (!world.moving) this.show(); });
   }
-  /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press }];
-     keepOut: elements on the world (the bag, the tools) that no name may cover */
-  set(list, keepOut) { this.items = list; if (keepOut) this.keepOut = keepOut; if (!this.w.moving) this.show(); }
+  /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
+     free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
+     name stands on its part) }];
+     keepOut: elements on the world (the bag, the tools) that no name may cover;
+     frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in) */
+  set(list, keepOut, frame) {
+    this.items = list; this.frame = frame || null;
+    if (keepOut) {
+      this.keepOut = keepOut;
+      /* a box that grows (the bag fills as the pupil gains items) never ends up over a name: the names are placed again */
+      this.ro = this.ro || new ResizeObserver(() => { if (this.items.length && !this.w.moving && this.layer.classList.contains('on')) this.show(); });
+      keepOut.forEach(e => e && this.ro.observe(e));
+    }
+    if (!this.w.moving) this.show();
+  }
   hide() { this.layer.classList.remove('on'); }
   visible(p, own) {
     const cam = this.w.camera, d = p.clone().sub(cam.position), len = d.length();
@@ -40,7 +52,7 @@ export class Names {
     const right = s.w - (W.inset.right || 0), bottom = s.h - (W.inset.bottom || 0);
     const GAP = s.w < 700 ? 8 : 10;                 /* names on one side stand at least this far apart */
     /* the cell's edges on screen, at the height of its middle: names stand just outside them */
-    const midL = W.project(new THREE.Vector3(-7.4, 7, 0)), midR = W.project(new THREE.Vector3(7.4, 7, 0));
+    const midL = W.project(this.frame ? this.frame.l : new THREE.Vector3(-7.4, 7, 0)), midR = W.project(this.frame ? this.frame.r : new THREE.Vector3(7.4, 7, 0));
     const cx = (midL.x + midR.x) / 2;
     const colL = Math.max(8, Math.min(midL.x - 6, cx - 40)), colR = Math.min(right - 8, Math.max(midR.x + 6, cx + 40));
     const lr = this.layer.getBoundingClientRect();
@@ -68,7 +80,7 @@ export class Names {
     };
     const cand = made.map(m => {
       const pts = m.it.spots.map(p => ({ p, sc: W.project(p) })).filter(o => o.sc.inFront && o.sc.x > 6 && o.sc.x < right - 6 && o.sc.y > 20 && o.sc.y < bottom - 10);
-      return { m, pts: pts.filter(o => this.visible(o.p, m.it.own)) };
+      return { m, pts: pts.filter(o => m.it.free || this.visible(o.p, m.it.own)) };
     });
     /* the names with the fewest choices first */
     const order = cand.filter(c => c.pts.length).sort((a, b) => a.pts.length - b.pts.length);
@@ -116,7 +128,7 @@ export class Names {
     const cand = this.items.map(it => {
       const el = document.createElement(it.press ? 'button' : 'span');
       el.className = 'nm nm--on ' + (it.cls || ''); if (it.press) el.type = 'button';
-      el.innerHTML = it.html || it.text; el.style.visibility = 'hidden'; this.layer.appendChild(el);
+      el.innerHTML = it.small || it.html || it.text; el.style.visibility = 'hidden'; this.layer.appendChild(el);
       const r = el.getBoundingClientRect();
       const pts = it.spots.map(p => W.project(p)).filter(sc => sc.inFront && sc.x > 0 && sc.x < right && sc.y > 0 && sc.y < bottom);
       return { it, el, w: r.width, h: r.height, pts };
