@@ -1,0 +1,34 @@
+{
+ "composer": "Scott Buckley",
+ "licence": "CC BY 4.0",
+ "target_lufs": -24.0,
+ "pieces": [
+  {
+   "file": "music-the-distant-sun.m4a",
+   "title": "The Distant Sun",
+   "seconds": 224.4,
+   "lufs": -31.8,
+   "gain": 2.4547,
+   "page": "https://www.scottbuckley.com.au/library/the-distant-sun/",
+   "credit": "'The Distant Sun' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au"
+  },
+  {
+   "file": "music-adrift-among-infinite-stars.m4a",
+   "title": "Adrift Among Infinite Stars",
+   "seconds": 405.2,
+   "lufs": -15.0,
+   "gain": 0.3548,
+   "page": "https://www.scottbuckley.com.au/library/adrift-among-infinite-stars/",
+   "credit": "'Adrift Among Infinite Stars' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au"
+  },
+  {
+   "file": "music-penumbra.m4a",
+   "title": "Penumbra",
+   "seconds": 449.8,
+   "lufs": -15.4,
+   "gain": 0.3715,
+   "page": "https://www.scottbuckley.com.au/library/penumbra/",
+   "credit": "'Penumbra' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au"
+  }
+ ]
+}

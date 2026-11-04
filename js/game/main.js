@@ -5,17 +5,17 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611041630';
-import { Names } from './names.js?v=202611041630';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611041630';
-import { makePlay } from './play.js?v=202611041630';
-import { setStill, wait } from './actors.js?v=202611041630';
-import { state } from './state.js?v=202611041630';
-import { ICON } from './icons.js?v=202611041630';
-import { openLens } from './lens.js?v=202611041630';
-import { intro } from './intro.js?v=202611041630';
-import { sound } from './sound.js?v=202611041630';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611041630';
+import { World, MAP_VIEW } from '../world/world.js?v=202611041839';
+import { Names } from './names.js?v=202611041839';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611041839';
+import { makePlay } from './play.js?v=202611041839';
+import { setStill, wait } from './actors.js?v=202611041839';
+import { state } from './state.js?v=202611041839';
+import { ICON } from './icons.js?v=202611041839';
+import { openLens } from './lens.js?v=202611041839';
+import { intro } from './intro.js?v=202611041839';
+import { sound } from './sound.js?v=202611041839';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611041839';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -63,13 +63,16 @@ world.on('woke', id => { toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} awak
 
 /* ---------- 🔈 Sound (off until pressed) and ⛶ Full screen ---------- */
 /* every Sound button (the tools' one, and the intro card's: during the intro the tools are under it) says the same */
-const paintSound = () => $$('[data-sound]').forEach(b => { b.setAttribute('aria-pressed', String(sound.on)); b.textContent = sound.on ? '🔊 Sound on' : '🔈 Sound off'; });
+/* on a phone only the icon shows (the words stay, for a screen reader: .tool__w) */
+const paintSound = () => $$('[data-sound]').forEach(b => { b.setAttribute('aria-pressed', String(sound.on)); b.innerHTML = sound.on ? '🔊<span class="tool__w"> Sound on</span>' : '🔈<span class="tool__w"> Sound off</span>'; });
 document.addEventListener('click', e => { if (e.target.closest('[data-sound]')) { sound.set(!sound.on); paintSound(); } });
-document.addEventListener('sound-paint', paintSound); paintSound();
+paintSound();
 const fb = $('#btnFull');
 if (!document.fullscreenEnabled) fb.hidden = true;
 fb.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else stage.requestFullscreen().catch(() => {}); });
-document.addEventListener('fullscreenchange', () => { fb.textContent = document.fullscreenElement ? '⛶ Leave full screen' : '⛶ Full screen'; setTimeout(setInset, 100); });
+document.addEventListener('fullscreenchange', () => { fb.innerHTML = document.fullscreenElement ? '⛶<span class="tool__w"> Leave full screen</span>' : '⛶<span class="tool__w"> Full screen</span>'; setTimeout(setInset, 100); });
+/* the music waits for the dive into the 3D cell (sound.js) */
+document.addEventListener('cellgame:dive', () => sound.allowMusic());
 
 /* ---------- going to a place, or back to the map ---------- */
 let busy = false;
@@ -181,12 +184,12 @@ async function start() {
   /* a final check started and not finished: straight back to it (the game under it shows the answers) */
   if (finalOpen()) openFinal();
   if (!state.done('arrive')) {
-    if (!state.step('arrive')) await intro(world);
+    if (!state.step('arrive')) await intro(world); else sound.allowMusic();      /* no intro: the pupil is in 3D already */
     world.simple(true);
     setInset();
     await quest.openPlace('arrive', (name) => play.run(name));
     looks();
-  }
+  } else sound.allowMusic();
   go(null);
 }
 start();

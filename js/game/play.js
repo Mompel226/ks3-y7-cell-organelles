@@ -5,8 +5,8 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611041630';
-import { state, COST, RESPIRE } from './state.js?v=202611041630';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611041839';
+import { state, COST, RESPIRE } from './state.js?v=202611041839';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const R = window.REV;

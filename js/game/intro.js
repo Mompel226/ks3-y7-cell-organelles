@@ -14,9 +14,12 @@
           have there, and the rest of the drawing fades; the 3D bunch, seen from the front, stands exactly behind it; the
           drawn bunch fades into it; then the camera turns slowly round it, so the pupil sees that it is the same bunch, in 3D.
    Real proportions are kept where they are shown; the pictures are credited on the picture.
+   The corner's tools (Word bank, Sound, Full screen) stand above the intro from its first step, with room kept for them
+   (stage.is-intro; Daniel, 4 Nov 2026: "I would like to be able to full screen since the beginning"); the card has no
+   Sound button of its own. The press on ✦ Dive in lets the music start (cellgame:dive → sound.allowMusic).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MAP_VIEW } from '../world/world.js?v=202611041630';
+import { MAP_VIEW } from '../world/world.js?v=202611041839';
 const R = window.REV, { $, h } = R;
 
 const STEPS = [
@@ -24,7 +27,7 @@ const STEPS = [
     credit: 'Blausen Medical, Medical gallery of Blausen Medical 2014, WikiJournal of Medicine 1(2), CC BY 3.0',
     text: 'Your mouth is always a little wet: <b>saliva</b>.\nMost of it is made by three pairs of large <dfn data-w="salivary-gland">salivary glands</dfn>, round your mouth.',
     zoom: [0.47, 0.42, 3.2] },                     /* the gland the camera goes into, as parts of the picture's width and height */
-  { svg: 'img/intro/gland.svg?v=202611041630',
+  { svg: 'img/intro/gland.svg?v=202611041839',
     credit: 'Drawing made for this page, to scale: the bar is 20 µm.',
     text: 'Inside a gland, the cells sit in small round bunches. Each bunch surrounds a tiny tube.\nThe cells make saliva. It flows along these tubes, the <b>ducts</b>, into your mouth.',
     bunch: { id: 'A4', x: 680, y: 330, r: 66 } },  /* the middle bunch, in the drawing's own units (tools/gland-svg.py) */
@@ -57,7 +60,7 @@ function turn(world, d0, d1, yaw, pitch, ms) {
 
 export function intro(world) {
   return new Promise(async done => {
-    const box = $('#intro'); box.hidden = false;
+    const box = $('#intro'), stage = $('#stage'); box.hidden = false; stage.classList.add('is-intro');
     /* the drawing of step 2, fetched while the pupil reads step 1 */
     const drawings = {};
     STEPS.filter(S => S.svg).forEach(S => { drawings[S.svg] = fetch(S.svg).then(r => r.ok ? r.text() : '').catch(() => ''); });
@@ -70,10 +73,11 @@ export function intro(world) {
     const fig = $('.intro__pic', box), layers = $('.intro__layers', box), cap = $('figcaption', box), cardEl = $('.intro__card', box);
     const card = i => {
       const S = STEPS[i], last = i === STEPS.length - 1;
-      cardEl.innerHTML = `<div class="intro__top"><p class="intro__n">${i + 1} of ${STEPS.length}</p><button type="button" class="intro__snd" data-sound></button></div><div class="intro__t">${paras(S.text)}</div><button type="button" class="btn next pulse">${last ? '✦ Dive in' : 'Next step →'}</button>`;
-      cardEl.classList.remove('is-going'); R.terms(cardEl); document.dispatchEvent(new Event('sound-paint'));
+      cardEl.innerHTML = `<p class="intro__n">${i + 1} of ${STEPS.length}</p><div class="intro__t">${paras(S.text)}</div><button type="button" class="btn next pulse">${last ? '✦ Dive in' : 'Next step →'}</button>`;
+      cardEl.classList.remove('is-going'); R.terms(cardEl);
       const b = $('.btn', cardEl); b.focus({ preventScroll: true });
-      return new Promise(r => b.addEventListener('click', () => { cardEl.classList.add('is-going'); r(); }, { once: true }));
+      /* the dive: the music may start, inside this press (a browser starts sound only from a press) */
+      return new Promise(r => b.addEventListener('click', () => { cardEl.classList.add('is-going'); if (last) document.dispatchEvent(new Event('cellgame:dive')); r(); }, { once: true }));
     };
     const layer = async S => {
       const el = h('div', { class: 'intro__layer' });
@@ -136,7 +140,7 @@ export function intro(world) {
     world.flyTo(MAP_VIEW, { ms: 5200, isMap: true });
     fade(world, R.FAST ? 0 : 3200);
     await later(700);
-    box.hidden = true; box.classList.remove('out', 'is-world'); box.innerHTML = '';
+    box.hidden = true; box.classList.remove('out', 'is-world'); box.innerHTML = ''; stage.classList.remove('is-intro');
     world.controls.enabled = true;
     done();
   });

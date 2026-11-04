@@ -18,8 +18,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/app.css?v=202611041630">
-<link rel="stylesheet" href="css/game.css?v=202611041630">
+<link rel="stylesheet" href="css/app.css?v=202611041839">
+<link rel="stylesheet" href="css/game.css?v=202611041839">
 <!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
 <script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
 </head>
@@ -45,8 +45,8 @@
     <div class="bag" id="bag" aria-live="polite"></div>
     <div class="tools">
       <button class="wbbtn" id="wbBtn" type="button" aria-expanded="false" aria-controls="wb">Word bank <span class="lang"></span></button>
-      <button class="tool" id="btnSound" type="button" aria-pressed="false" data-sound>🔈 Sound off</button>
-      <button class="tool" id="btnFull" type="button">⛶ Full screen</button>
+      <button class="tool" id="btnSound" type="button" aria-pressed="false" data-sound>🔈<span class="tool__w"> Sound off</span></button>
+      <button class="tool" id="btnFull" type="button">⛶<span class="tool__w"> Full screen</span></button>
     </div>
   </div>
   <aside class="quest" id="quest" aria-label="Your quest"></aside>
@@ -81,7 +81,7 @@
       <p>You are inside one cell of a salivary gland. Your mission: make the enzyme amylase and release it from the cell.</p>
       <p>In this game, each place of the cell does one job. A place wakes when you carry what it needs, so you can choose the order of some places. Every step waits for you.</p>
       <p>After each place, check what you learned: a first letter, the word list or a hint is there if you are stuck.</p>
-      <p>🔈 Sound: press it for gentle music while you read, a chime when a place wakes and a sparkle when you collect something.</p>
+      <p>🔈 Sound, at the top left: music for your journey from the moment you dive in, by the film composer Scott Buckley, and soft sounds when a place wakes or you collect something.</p>
     </div>
     <div>
       <h3>For the teacher</h3>
@@ -95,20 +95,21 @@
 <footer>
   <p><b>Y7 Biology practical: cell structures and organelles</b> · Something wrong, or a suggestion? Please contact me: <a href="mailto:dmompelriera@nlcsjeju.kr">dmompelriera@nlcsjeju.kr</a></p>
   <p>Checked against Daniel's Year 7 Cells lessons (slides and knowledge organiser) and the research named in each "Did you know?". The 3D cell was made for this page, after LadyofHats' public-domain <i>Animal cell structure</i>. Diagrams: domdomegg (CC BY 4.0) and LadyofHats (public domain), Wikimedia Commons. Electron micrographs: Janelia Research Campus, OpenOrganelle, dataset jrc_hela-2 (CC BY 4.0), and Louisa Howard, Dartmouth College (public domain). three.js (MIT).</p>
+  <p>Music: <a href="https://www.scottbuckley.com.au/library/the-distant-sun/" target="_blank" rel="noopener">'The Distant Sun'</a>, <a href="https://www.scottbuckley.com.au/library/adrift-among-infinite-stars/" target="_blank" rel="noopener">'Adrift Among Infinite Stars'</a> and <a href="https://www.scottbuckley.com.au/library/penumbra/" target="_blank" rel="noopener">'Penumbra'</a> by Scott Buckley, released under CC-BY 4.0, <a href="https://www.scottbuckley.com.au" target="_blank" rel="noopener">www.scottbuckley.com.au</a> (made smaller for this page, and each set to the same loudness). Sounds: the Versilian Community Sample Library, Versilian Studios (CC0).</p>
   <p>Code: AGPL-3.0. Teaching material: CC BY-NC-SA 4.0: free for teaching, not for selling.</p>
 </footer>
 
 <script src="https://accounts.google.com/gsi/client?hl=en-GB" async defer></script>
-<script src="js/config.js?v=202611041630"></script>
-<script src="js/signin.js?v=202611041630"></script>
-<script src="js/lesson.js?v=202611041630"></script>
-<script src="js/glossary.js?v=202611041630"></script>
-<script src="js/words.js?v=202611041630"></script>
-<script src="js/story.js?v=202611041630"></script>
-<script src="js/questions.js?v=202611041630"></script>
-<script src="js/final-data.js?v=202611041630"></script>
-<script src="js/core.js?v=202611041630"></script>
-<script src="js/checks.js?v=202611041630"></script>
-<script type="module" src="js/game/main.js?v=202611041630"></script>
+<script src="js/config.js?v=202611041839"></script>
+<script src="js/signin.js?v=202611041839"></script>
+<script src="js/lesson.js?v=202611041839"></script>
+<script src="js/glossary.js?v=202611041839"></script>
+<script src="js/words.js?v=202611041839"></script>
+<script src="js/story.js?v=202611041839"></script>
+<script src="js/questions.js?v=202611041839"></script>
+<script src="js/final-data.js?v=202611041839"></script>
+<script src="js/core.js?v=202611041839"></script>
+<script src="js/checks.js?v=202611041839"></script>
+<script type="module" src="js/game/main.js?v=202611041839"></script>
 </body>
 </html>

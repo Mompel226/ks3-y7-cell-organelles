@@ -51,8 +51,10 @@ then see their score and which questions were not right, never the answers. The 
 only their scrambled fingerprints, so a pupil cannot read them out of it. A pupil must be signed in to start it; the
 teacher's board then has every answer, the score and the time it took.
 
-**Sound.** Off until the pupil presses 🔈 Sound (in the game or on the intro's card): then gentle music for reading,
-made in the page (slow chords, a harp and a bell, never the same twice), and a chime or a sparkle when something happens.
+**Sound.** Off until the pupil presses 🔈 Sound (top left, from the first screen, with ⛶ Full screen; on a phone, as two
+small icons): a chime at once, then, from the moment they dive into the 3D cell and never before, music for the
+journey: three pieces by the film composer Scott Buckley, played in turn (Daniel: "more like a space journey … it needs
+to make you goosebumps"); and soft sounds of real instruments when something happens.
 
 **For the teacher.** A pupil signed in with their school Google account has every check and every finished place saved for
 their teacher, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the
@@ -61,7 +63,7 @@ computer. Progress is kept in the browser, so a pupil can stop and carry on late
 **Made by** Dr Daniel Mompel Riera, NLCS Jeju. Something wrong, or a suggestion? dmompelriera@nlcsjeju.kr
 
 **Licence.** Code: AGPL-3.0 (`LICENSE`). Teaching material: CC BY-NC-SA 4.0 (`LICENSE-CONTENT`): free for teaching, not for
-selling. Third-party pictures keep their own licences (below).
+selling. Third-party pictures, music and sounds keep their own licences (below).
 
 ## Pictures and data from other people
 
@@ -75,6 +77,8 @@ selling. Third-party pictures keep their own licences (below).
 | one cell, for the final check's two label questions | made for this page (`tools/cell-svg.py`), in the game's colours | the page's own |
 | electron micrographs | see `img/real/CREDITS.md` | CC BY 4.0 and public domain |
 | the real cell in 3D | Janelia Research Campus, OpenOrganelle *jrc_hela-2* (Xu et al. 2021, *Nature* 599:147; Heinrich et al. 2021, *Nature* 599:141), made into a model by the Foundations hub | CC BY 4.0 |
+| the music | Scott Buckley: 'The Distant Sun', 'Adrift Among Infinite Stars' and 'Penumbra', released under CC-BY 4.0, [www.scottbuckley.com.au](https://www.scottbuckley.com.au) (made smaller, each set to the same loudness: `tools/music.py`) | CC BY 4.0 |
+| the game's sounds (bells, rubbed glasses, wind chimes, a harp note) | Versilian Community Sample Library (VCSL), Versilian Studios, [github.com/sgossner/VCSL](https://github.com/sgossner/VCSL) (`tools/sounds.py`, each note tuned) | CC0 |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
 
 <details><summary>Behind the scenes</summary>
@@ -101,7 +105,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   and reads the board's record; `node tools/questions-check.mjs` checks the checks' data (no give-away option, every typed
   word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes.
   The playthrough also fails if, after any press, two names or buttons on the world overlap or one is under the corner
-  box or the panel. `node tools/sound-check.mjs` presses Sound for real and checks the music starts, goes on and stops.
+  box or the panel, and, in the intro, if the corner's buttons cannot be pressed or cover the card or the picture.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale, and refuses if a label would
   touch a part or another label. `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
   The final check: its questions and answers are `tools/final.master.mjs` (never published); `node tools/make-final.mjs`
@@ -111,6 +115,11 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `node tools/final-check.mjs` takes the check end to end in headless Chrome (a made-up pupil, a stand-in labs script:
   the code, nothing marked before Finish, a reload, all right, all wrong, a mix, one go, a phone and the keyboard).
   After changing a question: `make-final`, `final-overlap`, `make-questions`, then `stamp`.
+  The sound: `python3 tools/music.py` makes the three pieces small and sets their loudness (`--check` measures it:
+  −24 LUFS each), `python3 tools/sounds.py` makes the game's nine sounds from the VCSL recordings and tunes them; the
+  downloaded originals are in `tools/sound-src/`. `node tools/sound-check.mjs` presses Sound for real (19: the music
+  only after ✦ Dive in, the pieces in turn, heard and never clipping), served by `node tools/serve.mjs`, which, like
+  GitHub Pages, lets a piece be jumped through; `node tools/record-music.mjs` records a minute of it to listen to.
   `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. `tools/real-em.py` cut the electron micrographs
   from the OpenOrganelle data (with the Foundations hub's reader).
 </details>

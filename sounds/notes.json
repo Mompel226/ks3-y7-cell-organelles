@@ -1,0 +1,68 @@
+{
+ "source": "Versilian Community Sample Library (VCSL), Versilian Studios, CC0 1.0: github.com/sgossner/VCSL",
+ "notes": {
+  "harp-G3": {
+   "kind": "harp",
+   "midi": 55,
+   "cents": -8.5,
+   "from": "KSHarp_G3_mf1.wav",
+   "seconds": 4.2
+  },
+  "glass-Ds4": {
+   "kind": "glass",
+   "midi": 75,
+   "cents": 22.5,
+   "from": "glass1_D#4_Slow_1_Main.wav",
+   "seconds": 12.0
+  },
+  "glass-Fs4": {
+   "kind": "glass",
+   "midi": 78,
+   "cents": -16.7,
+   "from": "glass2_F#4_Slow_1_Main.wav",
+   "seconds": 12.0
+  },
+  "glass-As4": {
+   "kind": "glass",
+   "midi": 82,
+   "cents": 57.9,
+   "from": "glass3_A#4_Slow_1_Main.wav",
+   "seconds": 12.0
+  },
+  "glass-D5": {
+   "kind": "glass",
+   "midi": 86,
+   "cents": 5.4,
+   "from": "glass4_D5_Slow_2_Main.wav",
+   "seconds": 11.74
+  },
+  "glock-C6": {
+   "kind": "glock",
+   "midi": 96,
+   "cents": 15.4,
+   "from": "glock_medium_C6_01.wav",
+   "seconds": 3.2
+  },
+  "glock-G5": {
+   "kind": "glock",
+   "midi": 91,
+   "cents": 11.9,
+   "from": "glock_medium_G5_01.wav",
+   "seconds": 3.2
+  },
+  "chimes-up": {
+   "kind": "chimes",
+   "midi": null,
+   "cents": 0.0,
+   "from": "windchimes_slowAsc1.wav",
+   "seconds": 6.5
+  },
+  "chimes-down": {
+   "kind": "chimes",
+   "midi": null,
+   "cents": 0.0,
+   "from": "windchimes_slowDesc1.wav",
+   "seconds": 6.5
+  }
+ }
+}

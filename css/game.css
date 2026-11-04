@@ -222,9 +222,12 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .intro__pic figcaption{font-size:13px;color:#B9B5E8;margin-top:6px}
 .intro__card{grid-column:2;background:var(--qp-bg);color:var(--qp-ink);border-radius:20px;border:1.5px solid rgba(255,210,122,.6);padding:20px 22px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
 .intro__n{font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent);margin:0 0 8px}
-.intro__top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.intro__snd{font:800 14px/1 var(--sans);color:var(--qp-ink2);background:none;border:1.5px solid var(--qp-rule);border-radius:999px;padding:6px 11px;cursor:pointer;flex:none}
-.intro__snd[aria-pressed="true"]{color:var(--qp-accent);border-color:var(--qp-accent)}
+/* the corner's tools (Word bank, Sound, Full screen) work from the first step: above the intro, with room kept for them;
+   nothing is carried yet, so the bag waits (Daniel, 4 Nov 2026) */
+.stage.is-intro .hud{z-index:40;max-width:none}
+.stage.is-intro .tools{flex-wrap:nowrap}                 /* one row, so the room kept above the picture is enough */
+.stage.is-intro .bag{display:none}
+.stage.is-intro .intro{padding-top:68px}
 .intro__t{font-size:19px;line-height:1.55;margin:0 0 14px}
 @media (max-width:860px){
   /* the card first, at the top of the picture: on a phone the foot of the stage is below the first screen */
@@ -233,6 +236,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   .intro__pic{grid-row:2}
   .intro.is-world{grid-template-columns:1fr;grid-template-rows:auto 1fr;align-items:start;background:linear-gradient(0deg,rgba(11,15,42,0) 50%,rgba(11,15,42,.6))}
   .intro__t{font-size:17.5px}
+  .stage.is-intro .intro{padding-top:58px}
 }
 
 /* ---------- See the real thing ---------- */
@@ -293,7 +297,8 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   .eyebrow{font-size:12px}
   .by{font-size:14.5px}
   .timing{display:none}
-  .tool{display:none}
+  .tool{padding:8px 10px}                            /* a phone: the icon only (its words stay for a screen reader) */
+  .tool__w{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .stage{height:calc(100svh - 16px);min-height:560px;margin:0 6px 14px}
 }
 
