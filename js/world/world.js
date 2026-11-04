@@ -13,8 +13,8 @@ import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPa
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { OutputPass } from '../vendor/three/examples/jsm/postprocessing/OutputPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611041337';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611041337';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611041630';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611041630';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -156,7 +156,8 @@ export class World {
   light(id, on) { Object.values(this.P).forEach(p => { p.litTo = (p.id === id && on) ? 1 : 0; }); }
 
   /* the neighbouring cells of the acinus: faint on the map; clearer in the dive (k 0 … 1) */
-  acinus(k) { const m = this.W.acinusMat; if (m) { m.opacity = 0.065 + 0.22 * k; m.userData.u.uLit.value = 0.8 * k; } }
+  /* the neighbouring cells of the bunch: faint in the game (k = 0), clear in the intro's view of the whole bunch (k = 1) */
+  acinus(k) { (this.W.acinusMats || []).forEach(([m, a, b]) => { m.opacity = a + (b - a) * k; }); }
 
   /* ---------- the cell you know (Year 7: membrane, cytoplasm, nucleus, mitochondria, ribosomes) and the rest ----------
      simple(true) hides every structure beyond the Year 7 list; reveal(key) shows one again (play.js names each). */
@@ -214,7 +215,9 @@ export class World {
   setMoving(on) { if (this.moving === on) return; this.moving = on; this.emit(on ? 'moving' : 'still'); }
 
   /* the side panel or the bottom sheet covers part of the picture: the picture's middle moves to the free part */
-  setInset({ right = 0, bottom = 0 }) { this.inset = { right, bottom }; this.resize(); }
+  setInset({ right = 0, bottom = 0, top = 0 }) { this.inset = { right, bottom, top }; this.resize(); }
+  /* how many pixels one micrometre covers at a distance from the camera (the intro matches its drawing to the 3D) */
+  pxPerUnit(dist = 1) { return (this.fullH / 2) / (dist * Math.tan(this.camera.fov * Math.PI / 360)); }
   resize() {
     const el = this.canvas.parentElement, w = Math.max(1, el.clientWidth), h = Math.max(1, el.clientHeight);
     this.size = { w, h };
@@ -222,15 +225,17 @@ export class World {
     this.composer.setSize(w, h);
     const pr = this.renderer.getPixelRatio();
     this.bloom.resolution.set(Math.round(w * pr / 2), Math.round(h * pr / 2));
-    const R = Math.min(this.inset.right, w * 0.5), B = Math.min(this.inset.bottom, h * 0.6);
+    const R = Math.min(this.inset.right, w * 0.5), B = Math.min(this.inset.bottom, h * 0.6), T = Math.min(this.inset.top || 0, h * 0.6);
     const cam = this.camera;
     if (R > 0) { cam.aspect = (w + R) / h; cam.setViewOffset(w + R, h, R, 0, w, h); }
     else if (B > 0) { cam.aspect = w / (h + B); cam.setViewOffset(w, h + B, 0, B, w, h); }
+    else if (T > 0) { cam.aspect = w / (h + T); cam.setViewOffset(w, h + T, 0, 0, w, h); }      /* the free part below a card */
     else { cam.aspect = w / h; cam.clearViewOffset(); }
     /* the free part of the picture (beside the panel, or above it on a phone) shows at least 19° above and below its middle
        and 20° to each side, at any size: on a laptop that is the 38° view the places were made for; on a phone, where the
        free part is small and narrow, the view widens, so a place's parts stay in view (a fixed 52° showed only 17° across) */
-    const fw = Math.max(1, w - R), fh = Math.max(1, h - B), H = B > 0 ? h + B : h, rad = Math.PI / 180;
+    const fw = Math.max(1, w - R), fh = Math.max(1, h - B - T), H = B > 0 ? h + B : T > 0 ? h + T : h, rad = Math.PI / 180;
+    this.fullH = H;
     const k = Math.max(Math.tan(19 * rad) / (fh / 2), Math.tan(20 * rad) / (fw / 2));
     cam.fov = 2 * Math.atan(k * H / 2) / rad;
     cam.updateProjectionMatrix();

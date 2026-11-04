@@ -5,16 +5,17 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611041337';
-import { Names } from './names.js?v=202611041337';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611041337';
-import { makePlay } from './play.js?v=202611041337';
-import { setStill, wait } from './actors.js?v=202611041337';
-import { state } from './state.js?v=202611041337';
-import { ICON } from './icons.js?v=202611041337';
-import { openLens } from './lens.js?v=202611041337';
-import { intro } from './intro.js?v=202611041337';
-import { sound } from './sound.js?v=202611041337';
+import { World, MAP_VIEW } from '../world/world.js?v=202611041630';
+import { Names } from './names.js?v=202611041630';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611041630';
+import { makePlay } from './play.js?v=202611041630';
+import { setStill, wait } from './actors.js?v=202611041630';
+import { state } from './state.js?v=202611041630';
+import { ICON } from './icons.js?v=202611041630';
+import { openLens } from './lens.js?v=202611041630';
+import { intro } from './intro.js?v=202611041630';
+import { sound } from './sound.js?v=202611041630';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611041630';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -29,7 +30,7 @@ setStill(R.FAST);
 const names = new Names(world, $('#names'));
 const quest = new Quest({ world, names, panel: $('#quest'), hots: $('#hots'), bag: $('#bag'), onPlace: go });
 const play = makePlay(world, quest);
-window.CELLGAME = { world, quest, state, go };
+window.CELLGAME = { world, quest, state, go, sound };
 
 /* ---------- what is solid (names behind it are hidden) ---------- */
 const WG = world.W.groups;
@@ -61,9 +62,10 @@ world.on('press', id => { if (!id || quest.cur) return; go(id); });
 world.on('woke', id => { toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} awake.`); sound.wake(); });
 
 /* ---------- 🔈 Sound (off until pressed) and ⛶ Full screen ---------- */
-const sb = $('#btnSound');
-const paintSound = () => { sb.setAttribute('aria-pressed', String(sound.on)); sb.textContent = sound.on ? '🔊 Sound on' : '🔈 Sound'; };
-sb.addEventListener('click', () => { sound.set(!sound.on); paintSound(); }); paintSound();
+/* every Sound button (the tools' one, and the intro card's: during the intro the tools are under it) says the same */
+const paintSound = () => $$('[data-sound]').forEach(b => { b.setAttribute('aria-pressed', String(sound.on)); b.textContent = sound.on ? '🔊 Sound on' : '🔈 Sound off'; });
+document.addEventListener('click', e => { if (e.target.closest('[data-sound]')) { sound.set(!sound.on); paintSound(); } });
+document.addEventListener('sound-paint', paintSound); paintSound();
 const fb = $('#btnFull');
 if (!document.fullscreenEnabled) fb.hidden = true;
 fb.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else stage.requestFullscreen().catch(() => {}); });
@@ -73,6 +75,7 @@ document.addEventListener('fullscreenchange', () => { fb.textContent = document.
 let busy = false;
 async function go(id) {
   if (busy) return;
+  if (id === 'final') { openFinal(); return; }
   if (!id) { busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
   if (id !== 'test' && !state.awake(id)) { quest.openMap(); quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))); return; }
   busy = true; names.set([]); play.reset();
@@ -103,6 +106,8 @@ function toast(html) {
   setTimeout(() => t.classList.add('out'), 3200); setTimeout(() => t.remove(), 3900);
 }
 state.on(() => { if (!quest.cur) mapNames(); });
+/* the final check closed: the list of places says how it went */
+document.addEventListener('final-closed', () => { if (!quest.cur && state.done('arrive')) quest.openMap(); });
 
 /* ---------- the test: amylase on starch, in a spotting tile ---------- */
 async function test() {
@@ -153,11 +158,16 @@ async function test() {
   const path = [['mrna', 'copy of the gene'], ['chain', 'ribosome'], ['amylase', 'rough ER'], ['packed', 'Golgi apparatus'], ['top', 'microtubules'], ['saliva', 'exocytosis']];
   const end = h('div', { class: 'win', role: 'status' }, `<div class="win__star">${ICON.star}</div><p class="win__t">Mission complete</p>
     <p>You made amylase in a cell of a salivary gland, released it, and it digested starch.</p>
+    <div class="win__code"><p>Your code for the final check</p><p class="win__c">${esc(await finalCode())}</p>
+      <p>Write it down. You need it to start the final check: press <b>✦ Final check</b> in the list of places, then type your code.</p></div>
     <ol class="win__path">${path.map(([i, t]) => `<li>${ICON[i]}<span>${t}</span></li>`).join('')}</ol>
-    <button type="button" class="btn">Back to the cell</button>`);
+    <div class="win__acts"><button type="button" class="btn" data-back>Back to the cell</button><button type="button" class="btn ghost" data-final>✦ Final check</button></div>`);
   box.appendChild(end);
+  /* the code must be seen: the box scrolls to the card (below the tile), the page does not move */
+  box.scrollTo({ top: Math.max(0, end.offsetTop - 12), behavior: R.FAST ? 'auto' : 'smooth' });
   sound.wake();
-  $('.btn', end).addEventListener('click', () => { box.hidden = true; go(null); });
+  $('[data-back]', end).addEventListener('click', () => { box.hidden = true; go(null); });
+  $('[data-final]', end).addEventListener('click', async () => { box.hidden = true; await go(null); openFinal({ focusCode: true }); });
 }
 
 /* ---------- See the real thing ---------- */
@@ -168,6 +178,8 @@ async function start() {
   await wait(R.FAST ? 0 : 300);
   $('#loading').hidden = true;
   looks();
+  /* a final check started and not finished: straight back to it (the game under it shows the answers) */
+  if (finalOpen()) openFinal();
   if (!state.done('arrive')) {
     if (!state.step('arrive')) await intro(world);
     world.simple(true);

@@ -24,7 +24,9 @@ export class Names {
   visible(p, own) {
     const cam = this.w.camera, d = p.clone().sub(cam.position), len = d.length();
     this.ray.set(cam.position, d.normalize()); this.ray.far = len + 0.05;
-    const hits = this.ray.intersectObjects(this.w.solids, true);
+    /* a part hidden from view (the Year 7 cell hides the rest) blocks nothing */
+    const shown = o => { for (let x = o; x; x = x.parent) if (!x.visible) return false; return true; };
+    const hits = this.ray.intersectObjects(this.w.solids, true).filter(h => shown(h.object));
     if (!hits.length) return true;
     const h = hits[0];
     if (h.distance > len - 0.35) return true;

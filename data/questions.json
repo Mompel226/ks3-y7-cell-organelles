@@ -49,6 +49,11 @@
   {
    "n": 12,
    "title": "Does your amylase work?"
+  },
+  {
+   "n": 13,
+   "title": "Final check",
+   "test": 1
   }
  ],
  "groups": [],
@@ -524,6 +529,335 @@
     "More starch was made from the sugar that the saliva contains.",
     "The amylase had changed the orange-brown iodine into starch.",
     "The water in saliva diluted the starch until no colour could form."
+   ]
+  },
+  {
+   "id": "fc-begin",
+   "part": 13,
+   "title": "Final check: started (its time is counted from here)",
+   "short": "start",
+   "kind": "task"
+  },
+  {
+   "id": "fc-01",
+   "part": 13,
+   "title": "Final check 1: The job of the Golgi apparatus",
+   "short": "F1",
+   "kind": "mcq",
+   "opts": [
+    "It copies the amylase gene.",
+    "It packages the amylase into vesicles.",
+    "It sends the amylase back to the nucleus.",
+    "It joins the amino acids of amylase."
+   ]
+  },
+  {
+   "id": "fc-02",
+   "part": 13,
+   "title": "Final check 2: The job of the nucleus",
+   "short": "F2",
+   "kind": "mcq",
+   "opts": [
+    "It moves the vesicles of amylase to the duct.",
+    "It holds the DNA and controls what the cell does.",
+    "It releases the energy that the cell uses for work.",
+    "It makes the lipids that new membranes need."
+   ]
+  },
+  {
+   "id": "fc-03",
+   "part": 13,
+   "title": "Final check 3: The path of the copy of the gene",
+   "short": "F3",
+   "kind": "mcq",
+   "opts": [
+    "Through a nuclear pore, then to the Golgi apparatus",
+    "Through the cell membrane, then to the duct",
+    "Through a nuclear pore, then to a ribosome",
+    "Through a nuclear pore, then to a mitochondrion"
+   ]
+  },
+  {
+   "id": "fc-04",
+   "part": 13,
+   "title": "Final check 4: Why the nucleolus is not an organelle",
+   "short": "F4",
+   "kind": "mcq",
+   "opts": [
+    "It is too small to be an organelle.",
+    "A light microscope cannot show it.",
+    "It has no membrane of its own.",
+    "It has no specific job."
+   ]
+  },
+  {
+   "id": "fc-05",
+   "part": 13,
+   "title": "Final check 5: At a ribosome",
+   "short": "F5",
+   "kind": "mcq",
+   "opts": [
+    "Energy is released from glucose.",
+    "Lipids are made for new membranes.",
+    "The DNA of a gene is copied.",
+    "Amino acids are joined in a chain."
+   ]
+  },
+  {
+   "id": "fc-06",
+   "part": 13,
+   "title": "Final check 6: Where amylase gets its shape",
+   "short": "F6",
+   "kind": "mcq",
+   "opts": [
+    "inside a mitochondrion",
+    "inside the rough ER",
+    "in the saliva in your mouth",
+    "inside the nucleus"
+   ]
+  },
+  {
+   "id": "fc-07",
+   "part": 13,
+   "title": "Final check 7: Mitochondria",
+   "short": "F7",
+   "kind": "mcq",
+   "opts": [
+    "They make new energy, and then they store it in glucose.",
+    "Aerobic respiration in them releases energy from glucose.",
+    "Using light, they make glucose from carbon dioxide and water.",
+    "They join amino acids together, so they make amylase."
+   ]
+  },
+  {
+   "id": "fc-08",
+   "part": 13,
+   "title": "Final check 8: How oxygen enters",
+   "short": "F8",
+   "kind": "mcq",
+   "opts": [
+    "A red blood cell carries it through the membrane.",
+    "It enters the cell through a nuclear pore.",
+    "It passes straight through the cell membrane.",
+    "It arrives inside a vesicle from the duct."
+   ]
+  },
+  {
+   "id": "fc-09",
+   "part": 13,
+   "title": "Final check 9: The smooth ER makes",
+   "short": "F9",
+   "kind": "mcq",
+   "opts": [
+    "proteins",
+    "lipids",
+    "mRNA",
+    "DNA"
+   ]
+  },
+  {
+   "id": "fc-10",
+   "part": 13,
+   "title": "Final check 10: What microtubules do",
+   "short": "F10",
+   "kind": "mcq",
+   "opts": [
+    "They are tracks: vesicles are carried along them.",
+    "They release energy from glucose for the cell.",
+    "They make the copies of genes that the ribosomes read.",
+    "They fold the amylase chain into its shape."
+   ]
+  },
+  {
+   "id": "fc-11",
+   "part": 13,
+   "title": "Final check 11: Exocytosis",
+   "short": "F11",
+   "kind": "mcq",
+   "opts": [
+    "A vesicle joins the membrane, and its contents leave.",
+    "A vesicle forms round substances outside the cell.",
+    "Amylase passes through carrier proteins in the membrane.",
+    "The cell membrane bursts, so the amylase leaves."
+   ]
+  },
+  {
+   "id": "fc-12",
+   "part": 13,
+   "title": "Final check 12: The starch test",
+   "short": "F12",
+   "kind": "mcq",
+   "opts": [
+    "A stays orange-brown, and B turns blue-black.",
+    "A turns blue-black, and B stays orange-brown.",
+    "Both wells stay orange-brown.",
+    "Both wells turn blue-black."
+   ]
+  },
+  {
+   "id": "fc-m1",
+   "part": 13,
+   "title": "Final check 13: Not organelles",
+   "short": "F13",
+   "kind": "all",
+   "gaps": [
+    "a microtubule",
+    "the Golgi apparatus",
+    "a mitochondrion",
+    "the centrosome",
+    "a ribosome"
+   ]
+  },
+  {
+   "id": "fc-m2",
+   "part": 13,
+   "title": "Final check 14: From the blood",
+   "short": "F14",
+   "kind": "all",
+   "gaps": [
+    "carbon dioxide",
+    "starch",
+    "amino acids",
+    "red blood cells",
+    "glucose"
+   ]
+  },
+  {
+   "id": "fc-m3",
+   "part": 13,
+   "title": "Final check 15: Where amylase goes",
+   "short": "F15",
+   "kind": "all",
+   "gaps": [
+    "the rough ER",
+    "the Golgi apparatus",
+    "a mitochondrion",
+    "the nucleus",
+    "the nucleolus"
+   ]
+  },
+  {
+   "id": "fc-m4",
+   "part": 13,
+   "title": "Final check 16: In the nucleus",
+   "short": "F16",
+   "kind": "all",
+   "gaps": [
+    "The mRNA for a protein is made.",
+    "The parts of ribosomes are made.",
+    "Amylase gets its shape.",
+    "Lipids are made.",
+    "Amino acids are joined."
+   ]
+  },
+  {
+   "id": "fc-l1-1",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 1",
+   "short": "F17.1",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l1-2",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 2",
+   "short": "F17.2",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l1-3",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 3",
+   "short": "F17.3",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l1-4",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 4",
+   "short": "F17.4",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l1-5",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 5",
+   "short": "F17.5",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l1-6",
+   "part": 13,
+   "title": "Final check 17: Label the cell (1), number 6",
+   "short": "F17.6",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-1",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 1",
+   "short": "F18.1",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-2",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 2",
+   "short": "F18.2",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-3",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 3",
+   "short": "F18.3",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-4",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 4",
+   "short": "F18.4",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-5",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 5",
+   "short": "F18.5",
+   "kind": "label"
+  },
+  {
+   "id": "fc-l2-6",
+   "part": 13,
+   "title": "Final check 18: Label the cell (2), number 6",
+   "short": "F18.6",
+   "kind": "label"
+  },
+  {
+   "id": "fc-order",
+   "part": 13,
+   "title": "Final check 19: A new vesicle of amylase",
+   "short": "F19",
+   "kind": "order",
+   "gaps": [
+    "place 1",
+    "place 2",
+    "place 3",
+    "place 4",
+    "place 5",
+    "place 6"
+   ]
+  },
+  {
+   "id": "fc-sort",
+   "part": 13,
+   "title": "Final check 20: Nucleus or cytoplasm?",
+   "short": "F20",
+   "kind": "sort",
+   "gaps": [
+    "inside the nucleus",
+    "in the cytoplasm"
    ]
   }
  ]

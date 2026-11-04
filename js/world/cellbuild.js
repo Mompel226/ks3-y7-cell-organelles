@@ -17,7 +17,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611041337';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611041630';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -194,30 +194,38 @@ export function buildCell(scene) {
   cytoGlow.renderOrder = 1; membrane.add(cytoGlow);
   W.membraneMesh = mem;
 
-  /* the acinus: neighbouring cells, their tops meeting round the lumen above this cell */
+  /* the acinus: the neighbouring cells, packed side by side with this one round the same lumen, in a ring in its
+     plane: a slice of the bunch, as a section through a gland shows it and as the intro's drawing does. (Daniel, 4 Nov
+     2026: cells spread over a sphere behind this one looked "more like orbitals of an atom rather than cells close to
+     each other".) Each is drawn as a cell: a soft body, its nucleus near its base, vesicles near its top, by the lumen. */
   const acinus = add('acinus', new THREE.Group());
   const nGeo = cellShellGeometry({ segU: 56, segV: 44, bulge: 0.3 });
-  const nMat = membraneMat({ cut: false, opacity: 0.065, color: 0x7fa8ef, edge: 0x6f8cff });
-  W.acinusMat = nMat;
-  const nNucMat = magicStandard({ color: PAL.nucleus, transparent: true, opacity: 0.35, depthWrite: false }, { rim: 0x9d8cff, rimK: 0.8 });
-  const nNucGeo = new THREE.SphereGeometry(2.8, 24, 16);
-  const ico = new THREE.IcosahedronGeometry(1, 0).attributes.position;
-  const dirs = []; for (let i = 0; i < ico.count; i++) { const d = new THREE.Vector3().fromBufferAttribute(ico, i).normalize(); if (!dirs.some(x => x.distanceTo(d) < 1e-3)) dirs.push(d); }
-  /* rotate the set so one direction points straight down (this cell), then stand a cell on every other one */
-  const down = new THREE.Vector3(0, -1, 0), qTo = new THREE.Quaternion().setFromUnitVectors(dirs[0], down);
-  dirs.map(d => d.clone().applyQuaternion(qTo)).forEach((d, k) => {
-    if (d.distanceTo(down) < 0.05) return;
-    if (d.z > 0.2) return;                                        /* the front of the acinus is open too, like the cell */
-    const g = new THREE.Group();
-    const q = new THREE.Quaternion().setFromUnitVectors(down, d);
+  /* peach cells with purple nuclei, as in the intro's drawing of the bunches, so the bunch in 3D is that bunch */
+  const nMat = magicStandard({ color: 0xf2b28c, emissive: 0x5a2a14, emissiveIntensity: 0.25, roughness: 0.6, transparent: true, opacity: 0.14, depthWrite: false }, { rim: 0xffe3cc, rimK: 0.9 });
+  const nNucMat = magicStandard({ color: 0x6f55cc, transparent: true, opacity: 0.22, depthWrite: false }, { rim: 0xb7a8ff, rimK: 0.7 });
+  const nGranMat = magicStandard({ color: 0xffc94a, emissive: 0x8a5a00, emissiveIntensity: 0.6, transparent: true, opacity: 0.25, depthWrite: false }, { rim: 0xfff1c8, rimK: 0.6 });
+  /* [material, its opacity in the game, its opacity in the intro's view of the whole bunch]: world.acinus(k) */
+  W.acinusMats = [[nMat, 0.14, 0.62], [nNucMat, 0.22, 0.9], [nGranMat, 0.25, 0.95]];
+  const nNucGeo = new THREE.SphereGeometry(2.8, 24, 16), nGranGeo = new THREE.SphereGeometry(0.45, 10, 8);
+  const RING = 7, Zax = new THREE.Vector3(0, 0, 1), mx = new THREE.Matrix4();
+  /* its own random numbers, so the rest of the world (built after it from R) stays exactly as before: the old bunch took
+     one number of R for each of its six cells, and so does this one */
+  const Rn = rng(17), rn = (a, b) => a + (b - a) * Rn();
+  for (let k = 1; k < RING; k++) {
+    R();
+    const g = new THREE.Group(), q = new THREE.Quaternion().setFromAxisAngle(Zax, k * 2 * Math.PI / RING);
     const cell = new THREE.Mesh(nGeo, nMat); cell.renderOrder = 1;
-    const nuc = new THREE.Mesh(nNucGeo, nNucMat); nuc.position.set(0, 5, 0); nuc.scale.set(1, 0.9, 1);
-    g.add(cell, nuc);
-    g.position.copy(CELL.lumen).add(new THREE.Vector3(0, -CELL.lumen.y, 0).applyQuaternion(q));
-    g.quaternion.copy(q);
-    g.rotateY(rr(0, 6.28));
+    const nuc = new THREE.Mesh(nNucGeo, nNucMat); nuc.position.set(rn(-0.7, 0.7), rn(4.4, 5.6), rn(-0.6, 0.6)); nuc.scale.set(1, 0.9, 1); nuc.renderOrder = 1;
+    const gr = new THREE.InstancedMesh(nGranGeo, nGranMat, 14); gr.renderOrder = 1;
+    for (let i = 0; i < 14; i++) {
+      const y = rn(12.4, 15.3), f = rAt(y) * Math.sqrt(Rn()) * 0.6, a = rn(0, 6.283);
+      gr.setMatrixAt(i, mx.makeTranslation(f * CELL.ax * Math.cos(a), y, f * CELL.az * Math.sin(a)));
+    }
+    g.add(cell, nuc, gr);
+    /* turned round the lumen in this cell's plane: its top meets the others' at the lumen, its sides touch its neighbours' */
+    g.position.copy(CELL.lumen).add(new THREE.Vector3(0, -CELL.lumen.y, 0).applyQuaternion(q)); g.quaternion.copy(q);
     acinus.add(g);
-  });
+  }
 
   /* ---------- the floor of the world: the base of the cell, and below it the blood ---------- */
   const below = add('blood', new THREE.Group());

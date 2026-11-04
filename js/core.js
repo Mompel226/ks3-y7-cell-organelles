@@ -42,10 +42,26 @@
   function qDone(id) { const x = (L0.record ? L0.record() : { q: {} }).q[id], r = x && x.r[x.r.length - 1]; return !!(r && !r.e && (r.s === 'f' || r.s === '1' || r.s === 'd')); }
 
   /* ---------------- the list of questions for the teacher's board ---------------- */
+  /* the final check (js/game/final.js, from js/final-data.js): one square per mark, and fc-begin, when it started. Only
+     what the page already shows: the options in the file's own order (a wrong one is o<n>), never which is right */
+  function finalRows(part) {
+    const F = window.FINAL; if (!F) return [];
+    const rows = [{ id: 'fc-begin', part, title: 'Final check: started (its time is counted from here)', short: 'start', kind: 'task' }];
+    F.qs.forEach((q, k) => {
+      const n = 'F' + (k + 1), base = { part, title: `Final check ${k + 1}: ${q.title}`, short: n };
+      if (q.kind === 'one') rows.push(Object.assign({ id: q.id }, base, { kind: 'mcq', opts: q.opts.slice() }));
+      else if (q.kind === 'all') rows.push(Object.assign({ id: q.id }, base, { kind: 'all', gaps: q.opts.slice() }));
+      else if (q.kind === 'label') q.h.forEach((_, i) => rows.push({ id: q.id + '-' + (i + 1), part, title: `Final check ${k + 1}: ${q.title}, number ${i + 1}`, short: n + '.' + (i + 1), kind: 'label' }));
+      else if (q.kind === 'order') rows.push(Object.assign({ id: q.id }, base, { kind: 'order', gaps: q.items.map((_, i) => 'place ' + (i + 1)) }));
+      else if (q.kind === 'sort') rows.push(Object.assign({ id: q.id }, base, { kind: 'sort', gaps: q.bins.slice() }));
+    });
+    return rows;
+  }
   function manifest() {
     const PARTS = window.PARTS || [], QS = window.QS || {}, TASKS = window.TASKS || {};
     const qs = [];
     PARTS.forEach(p => {
+      if (p.test) { finalRows(p.n).forEach(r => qs.push(r)); return; }
       Object.keys(TASKS).filter(id => TASKS[id].part === p.n).forEach(id => qs.push({ id, part: p.n, title: TASKS[id].title, short: 'game', kind: 'task' }));
       Object.keys(QS).filter(id => QS[id].part === p.n).forEach(id => {
         const q = QS[id], r = { id, part: q.part, title: q.title, short: q.short, kind: q.kind };
@@ -55,7 +71,7 @@
         qs.push(r);
       });
     });
-    return { id: (window.PRACTICAL_CONFIG || {}).id, v: 1, parts: PARTS.map(p => ({ n: p.n, title: p.title })), groups: [], questions: qs };
+    return { id: (window.PRACTICAL_CONFIG || {}).id, v: 1, parts: PARTS.map(p => Object.assign({ n: p.n, title: p.title }, p.test ? { test: 1 } : {})), groups: [], questions: qs };
   }
 
   /* ---------------- ☀ Bright / ☾ Dark (biology.theme, the site's own key) ---------------- */

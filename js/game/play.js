@@ -5,8 +5,8 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611041337';
-import { state, COST, RESPIRE } from './state.js?v=202611041337';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611041630';
+import { state, COST, RESPIRE } from './state.js?v=202611041630';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const R = window.REV;
@@ -634,29 +634,59 @@ export function makePlay(world, quest) {
   async function flatten() { await quest.next('Back to the map'); }
 
   /* ---------------- the start (simple, full, the mission) ---------------- */
+  /* the names in the first place are laid out as the map's are (names.js): each on ONE level line that ends on its part,
+     names a row apart and never over one another (Daniel's rule, memory label-lines-never-cross), several spots per
+     part so every name finds a free row; they show while the camera is still */
+  const spotsOf = (g, n = 8) => {
+    const pts = [], m = new THREE.Matrix4(); if (!g) return pts; g.updateMatrixWorld(true);
+    g.traverse(o => {
+      if (pts.length >= n || !o.isMesh) return;
+      if (o.isInstancedMesh) { const k = Math.max(1, Math.floor(o.count / n)); for (let i = 0; i < o.count && pts.length < n; i += k) { o.getMatrixAt(i, m); pts.push(new THREE.Vector3().setFromMatrixPosition(m).applyMatrix4(o.matrixWorld)); } }
+      else pts.push(o.getWorldPosition(new THREE.Vector3()));
+    });
+    return pts;
+  };
+  const nameOf = (key, text, spots, own, cls = '') => ({ key, text, html: `<span class="nm__t">${text}</span>`, cls, spots: spots.filter(Boolean), own: own.filter(Boolean) });
+  const HUD = () => [document.querySelector('.hud')];
   async function simple() {
     world.simple(true);
-    const five = [[V(-6.2, 9.5, 0.2), 'cell membrane'], [V(-3.0, 12.6, 1.0), 'cytoplasm'], [V(0, 5.0, 2.7), 'nucleus'], [W.mito.hero.position.clone(), 'mitochondria'], [W.freeRibosomes[0].p.clone(), 'ribosomes']];
-    const tags = five.map(([p, t]) => { const b = quest.hot(p, t, { cls: 'tag y7', side: 'c' }); b.el.disabled = true; return b; });
+    const G = W.groups, P = world.P;
+    quest.names.set([
+      nameOf('membrane', 'cell membrane', [V(-6.2, 9.5, 0.2), V(6.1, 9.2, 0.2), V(-6.7, 5.2, 0.6), V(6.6, 5.0, 0.6), V(-5.4, 12.6, 0.3), V(5.3, 12.4, 0.3)], [G.membrane], 'is-y7'),
+      nameOf('cytoplasm', 'cytoplasm', [V(-3.0, 12.6, 1.0), V(3.0, 12.2, 1.2), V(-3.8, 9.0, 1.8), V(3.8, 8.6, 1.8), V(-2.2, 14.0, 0.8)], [G.cytosol], 'is-y7'),
+      nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group], 'is-y7'),
+      nameOf('mito', 'mitochondria', P.mito.spots.concat(spotsOf(G.mitochondria, 8)), [G.mitochondria], 'is-y7'),
+      nameOf('ribo', 'ribosomes', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 40).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7')
+    ], HUD());
     await quest.next();
-    tags.forEach(t => t.remove());
+    quest.names.set([]);
   }
-  /* each structure an electron microscope shows appears in turn, named where it is */
+  /* each structure an electron microscope shows appears in turn, and its name joins the others */
   async function full() {
     const b = quest.hot(() => V(0, 10.5, 3), 'Show everything', { side: 'c', cls: 'big' });
     await b.done; b.remove();
-    const show = [['rer', 'rough ER', world.P.rer.center], ['nucleus-inside', 'nucleolus and chromosomes', world.P.nucleolus.center], ['ser', 'smooth ER', world.P.ser.center],
-      ['golgi', 'Golgi apparatus', world.P.golgi.center], ['granules', 'vesicles', world.P.exit.center], ['microtubules', 'microtubules', world.P.tracks.center],
-      ['lysosomes', 'lysosomes', V(-2.9, 10.6, -0.6)], ['centrosome', 'centrosome', V(0.1, 14.55, -1.1)], ['apex', 'the duct, at the top of the cell', V(0, 16.6, 0)]];
-    const tags = [];
-    for (const [k, t, p] of show) {
+    const G = W.groups, P = world.P;
+    const show = [
+      ['rer', P.rer.center, [nameOf('rer', 'rough ER', P.rer.spots, [G.rer])]],
+      ['nucleus-inside', P.nucleolus.center, [nameOf('nucleolus', 'nucleolus', P.nucleolus.spots, [N.group]),
+        nameOf('chromosomes', 'chromosomes', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group])]],
+      ['ser', P.ser.center, [nameOf('ser', 'smooth ER', P.ser.spots, [G.ser])]],
+      ['golgi', P.golgi.center, [nameOf('golgi', 'Golgi apparatus', P.golgi.spots, [G.golgi])]],
+      ['granules', P.exit.center, [nameOf('vesicles', 'vesicles', W.granules.slice(0, 40).filter((g, i) => i % 4 === 0).map(g => g.p.clone()), [G.granules])]],
+      ['microtubules', P.tracks.center, [nameOf('tracks', 'microtubules', P.tracks.spots, [G.microtubules])]],
+      ['lysosomes', V(-2.9, 10.6, -0.6), [nameOf('lysosomes', 'lysosomes', [V(-2.9, 10.6, -0.6)].concat(spotsOf(G.lysosomes, 8)), [G.lysosomes])]],
+      ['centrosome', V(0.1, 14.55, -1.1), [nameOf('centrosome', 'centrosome', [V(0.1, 14.55, -1.1)].concat(spotsOf(G.centrosome, 4)), [G.centrosome])]],
+      ['apex', V(0, 16.6, 0), [nameOf('duct', 'the duct', [V(0, 16.6, 0), V(-0.9, 16.3, 0.4), V(0.9, 16.3, 0.4)].concat(spotsOf(G.apex, 6)), [G.apex])]]
+    ];
+    const list = [];
+    for (const [k, p, items] of show) {
       world.reveal(k); burst(scene, p, { n: 36, r: 0.8 });
-      const tg = quest.hot(p, t, { cls: 'tag', side: 'c' }); tg.el.disabled = true; tags.push(tg);
+      list.push(...items); quest.names.set(list.slice(), HUD());
       await wait(700);
     }
     world.simple(false);
     await quest.next();
-    tags.forEach(t => t.remove());
+    quest.names.set([]);
   }
   async function organelles() { await quest.next(); }
   async function mission() { await quest.next('Go to the map'); }

@@ -5,13 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="author" content="Dr Daniel Mompel Riera">
 <meta name="description" content="Year 7 Biology: a 3D game inside a real kind of cell. Explore its organelles and structures, make the enzyme amylase and release it from the cell, with checks as you go.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Y7 Biology practical: cell structures and organelles">
+<meta property="og:description" content="Year 7 Biology: a 3D game inside a real kind of cell. Explore its organelles and structures, make the enzyme amylase and release it from the cell, with checks as you go.">
+<meta property="og:image" content="https://nlcsbiology.com/ks3-y7-cell-organelles/preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Y7 Biology practical: cell structures and organelles, as it opens">
+<meta name="twitter:card" content="summary_large_image">
 <title>Y7 Biology practical: cell structures and organelles</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23221C55'/><path d='M16 4.5c6 0 10.5 5.2 10.5 12.2S22 28 16 28 5.5 23.7 5.5 16.7 10 4.5 16 4.5z' fill='none' stroke='%23FFD27A' stroke-width='2.2'/><circle cx='16' cy='19.5' r='4.6' fill='%238F7CFF'/><circle cx='16.8' cy='19' r='1.4' fill='%23E36FB0'/><rect x='9' y='9.5' width='2.4' height='6' rx='1.2' fill='%23F07A45'/><rect x='20.6' y='8.6' width='2.4' height='6' rx='1.2' fill='%23F07A45'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/app.css?v=202611041337">
-<link rel="stylesheet" href="css/game.css?v=202611041337">
+<link rel="stylesheet" href="css/app.css?v=202611041630">
+<link rel="stylesheet" href="css/game.css?v=202611041630">
 <!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
 <script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
 </head>
@@ -37,7 +45,7 @@
     <div class="bag" id="bag" aria-live="polite"></div>
     <div class="tools">
       <button class="wbbtn" id="wbBtn" type="button" aria-expanded="false" aria-controls="wb">Word bank <span class="lang"></span></button>
-      <button class="tool" id="btnSound" type="button" aria-pressed="false">🔈 Sound</button>
+      <button class="tool" id="btnSound" type="button" aria-pressed="false" data-sound>🔈 Sound off</button>
       <button class="tool" id="btnFull" type="button">⛶ Full screen</button>
     </div>
   </div>
@@ -48,6 +56,7 @@
   <div class="loading" id="loading"><div class="loading__orb"></div><p>Shrinking you to the size of a protein…</p></div>
   <noscript><p>This game needs JavaScript to draw the cell.</p></noscript>
 </main>
+<div class="final" id="final" hidden></div>
 
 <aside class="wb" id="wb" hidden aria-labelledby="wb-h" data-lang="all">
   <div class="wb__top">
@@ -69,11 +78,16 @@
   <div class="about__grid">
     <div>
       <h3>For pupils</h3>
-      <p>You are inside one cell of a salivary gland. Your mission: make the enzyme amylase and release it from the cell. Each place of the cell does one job. A place wakes when you carry what it needs, so you can choose the order of some places. Every step waits for you. After each place, check what you learned: a first letter, the word list or a hint is there if you are stuck.</p>
+      <p>You are inside one cell of a salivary gland. Your mission: make the enzyme amylase and release it from the cell.</p>
+      <p>In this game, each place of the cell does one job. A place wakes when you carry what it needs, so you can choose the order of some places. Every step waits for you.</p>
+      <p>After each place, check what you learned: a first letter, the word list or a hint is there if you are stuck.</p>
+      <p>🔈 Sound: press it for gentle music while you read, a chime when a place wakes and a sparkle when you collect something.</p>
     </div>
     <div>
       <h3>For the teacher</h3>
-      <p>A pupil signed in with their school Google account has every check and every finished place saved for you, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the computer. The world shows the true shapes and places of the parts of a salivary gland cell; the colours and the light are made magical, and molecules are drawn much larger than they are. "See the real thing" shows real diagrams and electron micrographs.</p>
+      <p>A pupil signed in with their school Google account has every check and every finished place saved for you, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the computer.</p>
+      <p>The world shows the true shapes and places of the parts of a salivary gland cell; the colours and the light are made magical, and molecules are drawn much larger than they are.</p>
+      <p>"See the real thing" shows real diagrams, electron micrographs and a real cell in 3D.</p>
     </div>
   </div>
 </section>
@@ -85,15 +99,16 @@
 </footer>
 
 <script src="https://accounts.google.com/gsi/client?hl=en-GB" async defer></script>
-<script src="js/config.js?v=202611041337"></script>
-<script src="js/signin.js?v=202611041337"></script>
-<script src="js/lesson.js?v=202611041337"></script>
-<script src="js/glossary.js?v=202611041337"></script>
-<script src="js/words.js?v=202611041337"></script>
-<script src="js/story.js?v=202611041337"></script>
-<script src="js/questions.js?v=202611041337"></script>
-<script src="js/core.js?v=202611041337"></script>
-<script src="js/checks.js?v=202611041337"></script>
-<script type="module" src="js/game/main.js?v=202611041337"></script>
+<script src="js/config.js?v=202611041630"></script>
+<script src="js/signin.js?v=202611041630"></script>
+<script src="js/lesson.js?v=202611041630"></script>
+<script src="js/glossary.js?v=202611041630"></script>
+<script src="js/words.js?v=202611041630"></script>
+<script src="js/story.js?v=202611041630"></script>
+<script src="js/questions.js?v=202611041630"></script>
+<script src="js/final-data.js?v=202611041630"></script>
+<script src="js/core.js?v=202611041630"></script>
+<script src="js/checks.js?v=202611041630"></script>
+<script type="module" src="js/game/main.js?v=202611041630"></script>
 </body>
 </html>

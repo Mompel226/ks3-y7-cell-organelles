@@ -41,6 +41,19 @@ magical colours and light, and molecules drawn far larger than life (the page sa
 when stuck, counted as help on the teacher's board), choices with no give-away, sorting and ordering. Every word a check uses
 is explained above it, and every key word can be tapped for its meaning, with Korean and Chinese.
 
+**The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
+made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of
+places, opens with that code: 20 questions, 30 marks, about 15 minutes. Twelve have one right answer, four ask for every
+right answer, two ask for the names of six numbered parts of a drawing of the cell, one puts in order what happens to a
+new vesicle of amylase and one sorts structures into the nucleus or the cytoplasm. Every question is new (none shares a
+run of six words with the game), and none gives another away. There is no help and nothing is marked until the pupil finishes; they have one go, and
+then see their score and which questions were not right, never the answers. The right answers are not in the page,
+only their scrambled fingerprints, so a pupil cannot read them out of it. A pupil must be signed in to start it; the
+teacher's board then has every answer, the score and the time it took.
+
+**Sound.** Off until the pupil presses 🔈 Sound (in the game or on the intro's card): then gentle music for reading,
+made in the page (slow chords, a harp and a bell, never the same twice), and a chime or a sparkle when something happens.
+
 **For the teacher.** A pupil signed in with their school Google account has every check and every finished place saved for
 their teacher, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the
 computer. Progress is kept in the browser, so a pupil can stop and carry on later.
@@ -58,7 +71,8 @@ selling. Third-party pictures keep their own licences (below).
 | the Year 7 diagram | domdomegg, *Simple diagram of animal cell*, Wikimedia Commons (ribosomes added by the Cells Lab) | CC BY 4.0 |
 | the detailed diagram | LadyofHats (Mariana Ruiz), *Animal cell structure en.svg*, Wikimedia Commons; names, lines and flagellum taken off | public domain |
 | the head with its salivary glands | Blausen Medical, *Medical gallery of Blausen Medical 2014*, WikiJournal of Medicine 1(2) | CC BY 3.0 |
-| inside a salivary gland | NIH BioArt Source 656, *Mouth submandibular gland* (NIAID) | CC BY 4.0 |
+| inside a salivary gland | made for this page, to scale (`tools/gland-svg.py`) | the page's own |
+| one cell, for the final check's two label questions | made for this page (`tools/cell-svg.py`), in the game's colours | the page's own |
 | electron micrographs | see `img/real/CREDITS.md` | CC BY 4.0 and public domain |
 | the real cell in 3D | Janelia Research Campus, OpenOrganelle *jrc_hela-2* (Xu et al. 2021, *Nature* 599:147; Heinrich et al. 2021, *Nature* 599:141), made into a model by the Foundations hub | CC BY 4.0 |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
@@ -74,7 +88,8 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   world is the same at every load), `magic.js` the materials and light, `world.js` the renderer, the camera's flights and
   what a pupil points at. `js/game/` is the game: `state.js` (what a pupil carries, which places are awake), `quest.js` (the
   panel and the buttons that stand on the parts), `play.js` (every step of every place), `names.js` (names on level lines,
-  shown only when the camera is still), `intro.js` (the dive), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing).
+  shown only when the camera is still), `intro.js` (the dive), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing), `final.js` (the final check: the code, the
+  questions one at a time, marking at the end, the result).
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
   question list); `js/signin.js`, `js/lesson.js` and `js/glossary.js` are copies of the Biology Hub's shared files, made by
   `node tools/practicals-sync.mjs` in the workspace: never edit them here. A new word goes into the shared KS3 glossary first.
@@ -85,7 +100,17 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   127.0.0.1:8799; `--w 375 --h 812 --mobile` plays it on a phone. `node tools/sweep.mjs` marks every check wrong, then right,
   and reads the board's record; `node tools/questions-check.mjs` checks the checks' data (no give-away option, every typed
   word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes.
-  `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
+  The playthrough also fails if, after any press, two names or buttons on the world overlap or one is under the corner
+  box or the panel. `node tools/sound-check.mjs` presses Sound for real and checks the music starts, goes on and stops.
+  `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale, and refuses if a label would
+  touch a part or another label. `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
+  The final check: its questions and answers are `tools/final.master.mjs` (never published); `node tools/make-final.mjs`
+  writes `js/final-data.js` from it (only fingerprints of the answers; `--check` proves every answer still marks right),
+  `node tools/final-overlap.mjs` proves no run of six words is shared with the game, `python3 tools/cell-svg.py` draws the
+  cell for the label questions and refuses if a line does not end on its part, crosses a part or comes near another, and
+  `node tools/final-check.mjs` takes the check end to end in headless Chrome (a made-up pupil, a stand-in labs script:
+  the code, nothing marked before Finish, a reload, all right, all wrong, a mix, one go, a phone and the keyboard).
+  After changing a question: `make-final`, `final-overlap`, `make-questions`, then `stamp`.
   `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. `tools/real-em.py` cut the electron micrographs
   from the OpenOrganelle data (with the Foundations hub's reader).
 </details>

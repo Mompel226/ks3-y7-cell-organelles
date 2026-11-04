@@ -6,13 +6,16 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611041337';
-import { state, COST } from './state.js?v=202611041337';
-import { sound } from './sound.js?v=202611041337';
-import { HAS_LENS } from './lens.js?v=202611041337';
-import { simpleCard } from './simplecard.js?v=202611041337';
+import { ICON } from './icons.js?v=202611041630';
+import { state, COST } from './state.js?v=202611041630';
+import { sound } from './sound.js?v=202611041630';
+import { finalLine } from './final.js?v=202611041630';
+import { HAS_LENS } from './lens.js?v=202611041630';
+import { simpleCard } from './simplecard.js?v=202611041630';
 
 const R = window.REV, { $, $$, h, esc } = R;
+/* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
+const paras = t => String(t).split('\n').map(x => `<p>${x}</p>`).join('');
 const STORY = window.STORY, ITEMS = window.ITEMS;
 const MAPPED = ['wayin', 'nucleus', 'nucleolus', 'mito', 'ribosome', 'ser', 'rer', 'golgi', 'tracks', 'exit'];
 
@@ -32,7 +35,7 @@ export class Quest {
     const el = h('button', { type: 'button', class: 'hot3__b', 'aria-label': aria || label.replace(/<[^>]+>/g, '') }, (icon ? ICON[icon] || '' : '') + `<span>${label}</span>`);
     wrap.appendChild(el); this.hotsEl.appendChild(wrap);
     const o = { el, wrap, at, side, alive: true };
-    o.done = new Promise(res => { el.addEventListener('click', () => { if (o.alive) res(o); }); });
+    o.done = new Promise(res => { el.addEventListener('click', () => { if (o.alive) { sound.tap(); res(o); } }); });
     o.remove = () => { o.alive = false; wrap.remove(); this.hots = this.hots.filter(x => x !== o); };
     this.hots.push(o); this.place1(o); if (o.box) this.paint(o);
     return o;
@@ -56,17 +59,31 @@ export class Quest {
     o.x = x; o.y = y; o.box = { l: x + l, r: x + r, t: y + tp, b: y + bt };
     o.on = sc.inFront; o.isEdge = Math.abs(x - sc.x) > 0.5 || Math.abs(y - sc.y) > 0.5;
   }
-  /* buttons held at the edge never cover each other: each one that overlaps an earlier one moves down (or up, at the
-     foot) by the overlap */
+  /* buttons and labels on the world never cover each other (Daniel's rule): of two that touch, one moves the smallest
+     step, down, up, right or left, that keeps it in the free part of the picture and off the corner box; again until
+     none touch (a crowded phone: seven buttons in a narrow strip needed sideways steps); one moved off its point is
+     drawn dashed */
   spread() {
-    const edge = this.hots.filter(o => o.on && o.isEdge && o.box), s = this.w.size, B = s.h - (this.w.inset.bottom || 0) - 10;
-    edge.sort((a, b) => a.box.t - b.box.t);
-    for (let i = 1; i < edge.length; i++) for (let j = 0; j < i; j++) {
-      const a = edge[j].box, o = edge[i], b = o.box;
-      if (b.l < a.r + 4 && b.r > a.l - 4 && b.t < a.b + 4 && b.b > a.t - 4) {
-        let dy = a.b + 6 - b.t; if (b.b + dy > B) dy = a.t - 6 - b.b;
-        o.y += dy; b.t += dy; b.b += dy;
+    const on = this.hots.filter(o => o.on && o.box), s = this.w.size, G = 10, k = this.keep;
+    const B = s.h - (this.w.inset.bottom || 0) - G, Rt = s.w - (this.w.inset.right || 0) - G;
+    const touch = (a, b) => b.l < a.r + 4 && b.r > a.l - 4 && b.t < a.b + 4 && b.b > a.t - 4;
+    const fits = (b, dx, dy) => b.l + dx >= G && b.r + dx <= Rt && b.t + dy >= G && b.b + dy <= B &&
+      !(k && b.r + dx > k.l - 6 && b.l + dx < k.r + 6 && b.b + dy > k.t - 6 && b.t + dy < k.b + 6);
+    const shift = (o, dx, dy) => { o.x += dx; o.y += dy; o.box.l += dx; o.box.r += dx; o.box.t += dy; o.box.b += dy; o.isEdge = true; };
+    /* the smallest step that takes box b clear of box a */
+    const steps = (a, b) => [[0, a.b + 6 - b.t], [0, a.t - 6 - b.b], [a.r + 6 - b.l, 0], [a.l - 6 - b.r, 0]].sort((x, y) => Math.abs(x[0]) + Math.abs(x[1]) - Math.abs(y[0]) - Math.abs(y[1]));
+    for (let pass = 0; pass < 24; pass++) {
+      let moved = false;
+      on.sort((a, b) => a.box.t - b.box.t || a.box.l - b.box.l);
+      for (let i = 0; i < on.length; i++) for (let j = i + 1; j < on.length; j++) {
+        const p = on[i], o = on[j]; if (!touch(p.box, o.box)) continue;
+        moved = true;
+        const mo = steps(p.box, o.box).find(([dx, dy]) => fits(o.box, dx, dy));
+        if (mo) { shift(o, mo[0], mo[1]); continue; }
+        const mp = steps(o.box, p.box).find(([dx, dy]) => fits(p.box, dx, dy));
+        if (mp) shift(p, mp[0], mp[1]); else shift(o, 0, p.box.b + 6 - o.box.t);   /* no room at all: below, even if low */
       }
+      if (!moved) break;
     }
   }
   paint(o) {
@@ -120,11 +137,13 @@ export class Quest {
         <span class="pl__s">${done ? '✦ done' : awake ? (state.step(id) ? 'continue' : 'awake: go there') : 'asleep · needs ' + needs.map(esc).join(', ')}</span></button></li>`;
     };
     const left = list.filter(id => !state.done(id)).length;
+    /* the final check is not a place in the cell: always there, it needs the code from the end of the journey */
+    const fin = `<li class="pl pl--final"><button type="button" data-go="final"><span class="pl__n">✦ Final check</span><span class="pl__s">${esc(finalLine())}</span></button></li>`;
     this.setPanel(`<div class="qp qp--map">
       <p class="qp__eyebrow">Your mission</p>
       <h2 class="qp__title">Make amylase and release it from the cell</h2>
-      <p class="qp__lead">${left ? `Go to a place that is <b>awake</b>. A place that is asleep wakes when you carry what it needs. <mark class="do">Press a glowing place on the cell, or choose one here.</mark>` : 'Every place is done. Well done: you made amylase, released it and tested it.'}</p>
-      <ol class="pls">${list.map(row).join('')}</ol>
+      <div class="qp__lead">${left ? paras('Go to a place that is <b>awake</b>. A place that is asleep wakes when you carry what it needs.\n<mark class="do">Press a glowing place on the cell, or choose one here.</mark>') : paras('Every place is done. Well done: you made amylase, released it and tested it.\n<mark class="do">Then do the ✦ Final check, last in this list, with the code you got at the end of your journey.</mark>')}</div>
+      <ol class="pls">${list.map(row).join('')}${fin}</ol>
       <p class="qp__note">Molecules in this world are drawn thousands of times larger than they are, so that you can see them.</p>
     </div>`);
     $$('[data-go]', this.panel).forEach(b => b.addEventListener('click', () => { if (b.getAttribute('aria-disabled') !== 'true') this.onPlace(b.dataset.go); else this.whyAsleep(b.dataset.go, b); }));
@@ -147,7 +166,7 @@ export class Quest {
       <div class="qp__top">${id === 'arrive' && !state.done('arrive') ? '' : '<button type="button" class="qp__back">← The map</button>'}${P.kind ? `<span class="qp__kind">${esc(P.kind)}</span>` : ''}</div>
       <h2 class="qp__title">${esc(P.title)}</h2>
       ${def ? `<div class="qp__def">${P.y7 ? '<span class="qp__y7">Year 7 must know</span>' : '<span class="qp__x">Explorer: beyond the Year 7 list</span>'}<p><b>${esc(def.en)}:</b> ${esc(defText)}</p></div>` : ''}
-      ${P.intro ? `<p class="qp__intro">${P.intro}</p>` : ''}
+      ${P.intro ? `<div class="qp__intro">${paras(P.intro)}</div>` : ''}
       ${P.figure === 'simple' ? simpleCard() : ''}
       <ol class="steps"></ol>
       <div class="qp__end" hidden></div>
@@ -157,7 +176,7 @@ export class Quest {
     const ol = $('.steps', this.panel);
     const from = state.done(id) ? P.steps.length : state.step(id);
     P.steps.forEach((s, i) => {
-      const li = h('li', { class: 'step' + (i < from ? ' is-done' : i === from ? ' is-now' : ' is-later') }, `<div class="step__t">${s.text}</div><div class="step__do"></div><p class="step__say" aria-live="polite"></p>`);
+      const li = h('li', { class: 'step' + (i < from ? ' is-done' : i === from ? ' is-now' : ' is-later') }, `<div class="step__t">${paras(s.text)}</div><div class="step__do"></div><p class="step__say" aria-live="polite"></p>`);
       if (i > from) li.hidden = true;
       ol.appendChild(li);
     });
@@ -182,7 +201,7 @@ export class Quest {
     const P = STORY[id], end = $('.qp__end', this.panel); if (!end) return;
     const qs = Object.keys(window.QS).filter(k => window.QS[k].part === P.part);
     end.hidden = false;
-    end.innerHTML = `<div class="qp__done">${ICON.star}<p>${P.done}</p></div>
+    end.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
       ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
       ${HAS_LENS(id) ? `<button type="button" class="qp__real">🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}</button>` : ''}
       <p class="qp__k">Check what you learned</p>
