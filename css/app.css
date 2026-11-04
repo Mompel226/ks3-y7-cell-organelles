@@ -1,0 +1,254 @@
+/* Y7 cell game · the page's shared look (4 Nov 2026): the colours, the top bar, the checks, the word bank and the foot,
+   copied from Chemistry revision (practicals/ks3-y7-chemistry-revision/css/app.css), whose checks and word bank this page
+   reuses. The cell world and its panels have their own look: css/game.css. Bright and dark: the computer's setting until
+   the reader chooses (biology.theme, set in <head>). */
+:root{
+  --sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --ink:#141A24; --ink2:#384254; --ink3:#5C6679;
+  --page:#E9EEF3; --sheet:#FFFFFF; --surface:#F4F7FA; --rule:#D6DDE6; --rule2:#C3CCD8;
+  --accent:#0B7A78; --accent-ink:#075C5A; --on-accent:#FFFFFF; --accent-tint:#E2F4F3;
+  --good:#167A3E; --good-tint:#E5F5EA; --do-tint:#FFF1A8; --do-rule:#E0B000; --amber:#9A5B05; --amber-tint:#FDF1DC; --bad:#B42318;
+  --ext:#6B3FD1; --ext-tint:#F2EDFF; --ext-rule:#CDBDF7;
+  --hint:#1F5FBF; --hint-tint:#E8F0FD;
+  --focus:#1F6FEB;
+  /* the pictures */
+  --stage:#EEF3F7; --stage2:#E1E9F0; --grid:#D5DFE8;
+  --glass:#2F4357; --glass-fill:rgba(205,228,247,.38); --shine:rgba(255,255,255,.85);
+  --metal:#5B6573; --metal-2:#8792A1; --bench-edge:#262D37; --label:#1C2633; --label-bg:rgba(255,255,255,.94);
+  --paper:#FBFBF7; --paper-edge:#C9C6B8; --axis:#384254;
+  --shadow:0 1px 2px rgba(20,26,36,.06),0 6px 22px rgba(20,26,36,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDF4; --ink2:#B5BFCD; --ink3:#8F9AAB;
+    --page:#0E1217; --sheet:#161C24; --surface:#1D242E; --rule:#2C3542; --rule2:#3A4555;
+    --accent:#33B7B3; --accent-ink:#6AD3CF; --on-accent:#04201F; --accent-tint:#10302F;
+    --good:#4CC27A; --good-tint:#11301E; --do-tint:rgba(255,214,0,.2); --do-rule:#C9A100; --amber:#E9A23B; --amber-tint:#33240C; --bad:#F2795F;
+    --ext:#A98BFA; --ext-tint:#211A3A; --ext-rule:#4B3A86;
+    --hint:#8AB4F8; --hint-tint:#14223A;
+    --focus:#6EA8FE;
+    --stage:#141B24; --stage2:#1A232E; --grid:#243040;
+    --glass:#AFC7DD; --glass-fill:rgba(120,170,220,.12); --shine:rgba(255,255,255,.35);
+    --metal:#8E99A8; --metal-2:#5F6977; --bench-edge:#05070A; --label:#E8EDF4; --label-bg:rgba(22,28,36,.94);
+    --paper:#E9E7DD; --paper-edge:#9A978A; --axis:#B5BFCD;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 22px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDF4; --ink2:#B5BFCD; --ink3:#8F9AAB;
+  --page:#0E1217; --sheet:#161C24; --surface:#1D242E; --rule:#2C3542; --rule2:#3A4555;
+  --accent:#33B7B3; --accent-ink:#6AD3CF; --on-accent:#04201F; --accent-tint:#10302F;
+  --good:#4CC27A; --good-tint:#11301E; --do-tint:rgba(255,214,0,.2); --do-rule:#C9A100; --amber:#E9A23B; --amber-tint:#33240C; --bad:#F2795F;
+  --ext:#A98BFA; --ext-tint:#211A3A; --ext-rule:#4B3A86;
+  --hint:#8AB4F8; --hint-tint:#14223A;
+  --focus:#6EA8FE;
+  --stage:#141B24; --stage2:#1A232E; --grid:#243040;
+  --glass:#AFC7DD; --glass-fill:rgba(120,170,220,.12); --shine:rgba(255,255,255,.35);
+  --metal:#8E99A8; --metal-2:#5F6977; --bench-edge:#05070A; --label:#E8EDF4; --label-bg:rgba(22,28,36,.94);
+  --paper:#E9E7DD; --paper-edge:#9A978A; --axis:#B5BFCD;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 22px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);font-size:17.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink)}
+button{font-family:inherit}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px}
+sub,sup{line-height:0}
+
+/* ---------- the top ---------- */
+.top{max-width:1480px;margin:0 auto;padding:12px 24px 4px}
+.upbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 8px}
+.up{display:inline-flex;align-items:center;flex:none;white-space:nowrap;min-height:34px;padding:0 16px 0 13px;font:800 14px/1 var(--sans);color:var(--on-accent);background:var(--accent);border-radius:999px;text-decoration:none;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.up:hover,.up:focus-visible{background:var(--accent-ink);color:var(--on-accent)}
+.upbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font:700 14px/1 var(--sans);color:var(--ink2);background:var(--sheet);border:1px solid var(--rule);border-radius:100px;padding:8px 13px;cursor:pointer}
+.pill:hover,.pill:focus-visible{color:var(--ink);border-color:var(--ink3)}
+.lessonbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin:0;flex:1;min-width:0;font-size:15px;line-height:1.35;color:var(--ink2)}
+.lessonbar[hidden]{display:none}
+.lesson__who{font-weight:800;color:var(--ink)}
+.lesson__say.is-no{color:var(--bad)}
+.lesson__t{font-weight:700}
+.lesson__out{font:600 14px/1 var(--sans);color:var(--ink3);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.lesson__msg{flex-basis:100%;color:var(--amber)}
+.lesson__g{display:inline-flex;min-height:32px;align-items:center}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.eyebrow{font:800 13px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink)}
+h1{font:900 clamp(28px,2.7vw,36px)/1.05 var(--sans);margin:2px 0 2px;letter-spacing:-.01em}
+.by{margin:2px 0 0;font-size:16px;color:var(--ink2)}
+.by a{color:var(--ink2)}
+.timing{margin:0;font-size:15px;color:var(--ink3);text-align:right}
+
+/* key words: a faint dotted rule; the meaning opens where you are */
+.term{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted 1.5px;text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent);text-underline-offset:3px;font-weight:800}
+.term:hover{color:var(--accent-ink)}
+.tip{position:absolute;z-index:60;max-width:330px;background:var(--sheet);color:var(--ink);border:1px solid var(--rule2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:10px 12px;font-size:16px;line-height:1.45}
+.tip b{font-weight:900}
+.tip .tr{display:flex;gap:12px;margin-top:6px;padding-top:6px;border-top:1px solid var(--rule);font-size:15px}
+.tip .tr span{color:var(--ink2)}
+.tip .tr i{font-style:normal;font-size:11px;font-weight:800;color:var(--ink3);margin-right:4px}
+/* ---------- checks ---------- */
+.q{border:1px solid var(--rule);border-radius:14px;padding:13px 15px 14px;margin:14px 0;background:var(--sheet)}
+.q.ok{border-color:color-mix(in srgb,var(--good) 55%,transparent)}
+.q__k{display:flex;justify-content:space-between;align-items:center;gap:10px;font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.q__k .st{letter-spacing:0;text-transform:none;font-size:14px;font-weight:800}
+.q.ok .q__k .st{color:var(--good)}
+.q__stem{margin:0 0 10px;font-size:17.5px}
+.q__look{display:flex;gap:8px;align-items:flex-start;margin:0 0 10px;padding:8px 12px;border-left:5px solid var(--do-rule);border-radius:8px;background:var(--do-tint);font-size:16.5px;line-height:1.45;color:var(--ink)}
+.q__look b{color:var(--ink)}
+.q__stem.gapline{line-height:2.3}
+.q__fig{margin:4px 0 12px;line-height:0}
+.q__fig svg{display:block;width:100%;max-width:560px;height:auto;margin:0 auto}
+.q__fig.narrow svg{max-width:420px}
+input.gap{font:700 16px/1.2 var(--sans);color:var(--ink);background:var(--surface);border:1.5px solid var(--rule2);border-radius:8px;padding:5px 8px;min-width:6ch;vertical-align:baseline}
+input.gap:focus{border-color:var(--focus);outline:none;background:var(--sheet)}
+input.gap.right{border-color:var(--good);background:var(--good-tint)}
+input.gap.wrong{border-color:var(--amber);background:var(--amber-tint)}
+input.gap.hinted{border-style:dashed;border-color:var(--hint)}
+input.gap.hinted.right{border-style:solid;border-color:var(--good)}
+input.gap[readonly]{cursor:default}
+.q__wl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding:10px 12px;border:1px dashed var(--hint);border-radius:10px;background:var(--hint-tint)}
+.q__wl-k{font:800 14px/1 var(--sans);color:var(--hint);margin-right:4px}
+.q__wl[hidden]{display:none}
+/* real videos of the changes of state (26 Oct 2026): one row each, the clip beside what it shows and its credit */
+.notefig{margin:14px 0}
+.notefig svg{display:block;width:100%;max-width:640px;height:auto;margin:0 auto}
+.notefig figcaption{font-size:16px;line-height:1.5;margin-top:8px}
+.clips{display:flex;flex-direction:column;gap:12px;margin:14px 0 6px}
+.clips .k3{margin:0}
+.clip{display:flex;gap:14px;align-items:center;margin:0}
+.clip video{flex:none;width:220px;max-width:45%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#111}
+.clip figcaption{font-size:16px;line-height:1.45}
+.clip .credit{display:block;margin-top:4px;font-size:13px;color:var(--ink3)}
+.clip .credit a{color:inherit}
+@media (max-width:600px){.clip{flex-direction:column;align-items:stretch}.clip video{width:100%;max-width:none}}
+.q__wl-x{margin-left:auto;font:800 14px/1 var(--sans);color:var(--hint);background:transparent;border:1px solid color-mix(in srgb,var(--hint) 40%,transparent);border-radius:100px;padding:6px 10px;cursor:pointer}
+.q__wl-x:hover,.q__wl-x:focus-visible{background:var(--surface)}
+.q__wl-w{font:700 16px/1.2 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-radius:8px;padding:4px 10px}
+.q__row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.btn{font:800 16px/1 var(--sans);color:var(--on-accent);background:var(--accent);border:0;border-radius:100px;padding:10px 16px;cursor:pointer}
+.btn:hover{background:var(--accent-ink)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.ghost{color:var(--ink2);background:none;border:1px solid var(--rule)}
+/* help: a first letter for a gap, or a hint (each counts as a try on the teacher's board) */
+.btn.help{color:var(--hint);background:var(--hint-tint);border:1px solid color-mix(in srgb,var(--hint) 40%,transparent)}
+.btn.help:hover{background:color-mix(in srgb,var(--hint) 18%,var(--sheet))}
+.hintbox{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--hint-tint);border:1px solid color-mix(in srgb,var(--hint) 35%,transparent);font-size:16.5px;line-height:1.5}
+.hintbox b{font-weight:900}
+.say{font-size:14.5px;color:var(--ink2)}
+.say.ok{color:var(--good);font-weight:800}
+.say.no{color:var(--amber);font-weight:700}
+.why{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--good-tint);font-size:16.5px;line-height:1.5}
+.why.shown{background:var(--surface)}
+.why b{font-weight:900}
+.opts{display:flex;flex-direction:column;gap:7px;margin:0;padding:0;list-style:none}
+.opts button{display:flex;gap:11px;align-items:flex-start;text-align:left;width:100%;font:600 17px/1.4 var(--sans);color:var(--ink);background:var(--surface);border:1.5px solid var(--rule);border-radius:11px;padding:10px 12px;cursor:pointer}
+.opts button:hover:not([disabled]){border-color:var(--ink3)}
+.opts .lt{flex:none;display:inline-grid;place-items:center;width:25px;height:25px;border-radius:7px;background:var(--sheet);border:1px solid var(--rule2);font:900 14.5px/1 var(--sans);color:var(--ink2);margin-top:-1px}
+.opts button.no{border-color:color-mix(in srgb,var(--amber) 60%,transparent);background:var(--amber-tint);cursor:default}
+.opts button.no .nt{display:block;font-size:14px;font-weight:800;color:var(--amber);margin-top:2px}
+.opts button.yes{border-color:var(--good);background:var(--good-tint);cursor:default}
+.opts button[disabled]{cursor:default}
+/* sort into boxes */
+.tray{display:flex;flex-wrap:wrap;gap:7px;min-height:44px;padding:8px;border:1.5px dashed var(--rule2);border-radius:12px;margin:0 0 10px}
+.tray:empty::before{content:"All placed";font-size:13px;color:var(--ink3);align-self:center;padding:0 4px}
+.bins{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:10px}
+.bin{border:1.5px solid var(--rule);border-radius:12px;background:var(--surface);padding:8px;min-height:110px;cursor:pointer}
+.bin.target{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.bin h4{margin:0 0 6px;font:900 15.5px/1.25 var(--sans);color:var(--ink)}
+.bin h4 small{display:block;font-weight:700;color:var(--ink2);font-size:14.5px}
+.bin .in{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:800 16px/1.15 var(--sans);color:var(--ink);background:var(--sheet);border:1.5px solid var(--rule2);border-radius:100px;padding:8px 12px;cursor:grab;user-select:none;touch-action:none;text-align:left}
+.chip.pic{border-radius:12px;padding:5px 7px 6px;display:inline-flex;flex-direction:column;align-items:center;gap:3px;font-size:14.5px}
+.chip.pic svg{display:block;width:92px;height:92px}
+.chip.sel{border-color:var(--accent);background:var(--accent-tint);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.chip.right{border-color:var(--good);background:var(--good-tint)}
+.chip.wrong{border-color:var(--amber);background:var(--amber-tint)}
+.chip.dragging{opacity:.35}
+.chip.ghost{position:fixed;z-index:80;pointer-events:none;opacity:.95;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+/* labels on a diagram */
+.lab{position:relative;margin:4px auto 10px;max-width:560px;line-height:0}
+.lab svg{display:block;width:100%;height:auto}
+.slot{position:absolute;transform:translate(-50%,-50%);min-width:88px;min-height:34px;padding:4px 6px;border:2px dashed var(--rule2);border-radius:10px;background:color-mix(in srgb,var(--sheet) 90%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1.2}
+.slot .n{font:900 13px/1 var(--sans);color:var(--ink3)}
+.slot.target{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.slot .chip{padding:5px 9px;font-size:14.5px}
+.slot{max-width:24%}                               /* a long label wraps inside its box, never past the picture's edge */
+/* find the faults (25 Oct 2026): a student's graph, with a button over each of its parts */
+.flt{position:relative;margin:4px auto 6px;max-width:560px;line-height:0}
+.flt svg{display:block;width:100%;height:auto}
+.flt .tap{position:absolute;margin:0;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
+.flt .tap:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.flt .tap:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.flt__n{margin:2px 0 6px;font-size:16px;color:var(--ink2)}
+.flt__msg{margin:8px 0 4px;padding:10px 12px;border-radius:10px;font-size:16.5px;line-height:1.5;background:var(--surface);border:1.5px solid var(--rule)}
+.flt__msg:empty{display:none}
+.flt__msg.pen{border-color:#D22F27;border-left-width:6px}
+.flt__msg.no{border-color:var(--amber);background:var(--amber-tint)}
+.flt__msg.good{border-color:color-mix(in srgb,var(--good) 55%,transparent);background:var(--good-tint)}
+.flt__list{margin:8px 0 4px;padding-left:24px;font-size:16px;line-height:1.5}
+.flt__list:empty{display:none}
+.flt__list .nt{color:var(--ink3)}
+/* a written answer, checked against a list */
+.write textarea{width:100%;min-height:118px;font:600 16.5px/1.5 var(--sans);color:var(--ink);background:var(--surface);border:1.5px solid var(--rule2);border-radius:10px;padding:10px 12px;resize:vertical}
+.write textarea:focus{outline:none;border-color:var(--focus);background:var(--sheet)}
+.write .wc{font-size:14px;color:var(--ink3)}
+.write .list{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--rule)}
+.write .list p{margin:0 0 6px;font-size:16px}
+.write .list label{display:flex;gap:10px;align-items:flex-start;padding:6px 4px;font-size:16.5px;line-height:1.45;cursor:pointer;border-radius:8px}
+.write .list label:hover{background:var(--sheet)}
+.write .list input{width:20px;height:20px;margin-top:3px;flex:none;accent-color:var(--good)}
+.write .score{margin-top:6px;font-weight:800;color:var(--good)}
+/* put in order */
+.order{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.order li{display:flex;gap:10px;align-items:center;font-weight:700;font-size:15.5px}
+.order li .n{flex:none;font:900 14px/1 var(--sans);color:var(--ink3);width:18px;text-align:center}
+.order li .oc{flex:1;min-width:0;display:flex;gap:10px;align-items:center;background:var(--surface);border:1.5px solid var(--rule);border-radius:11px;padding:8px 8px 8px 12px;transition:box-shadow .5s}
+.order li .oc.is-moved{box-shadow:0 0 0 3px var(--focus);transition:none}
+.order li .tx{flex:1}
+.order li.right .oc{border-color:var(--good);background:var(--good-tint)}
+.order .mv{display:flex;gap:4px}
+.order .mv button{width:34px;height:34px;border-radius:9px;border:1px solid var(--rule2);background:var(--sheet);color:var(--ink);font:900 16px/1 var(--sans);cursor:pointer}
+.order .mv button[disabled]{opacity:.3;cursor:default}
+table.mini{border-collapse:collapse;font-size:15.5px;margin:0 0 10px}
+table.mini th,table.mini td{padding:5px 10px;border-bottom:1px solid var(--rule);text-align:left}
+table.mini th{font:900 12.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+
+/* ---------- the word bank ---------- */
+.wb{position:fixed;z-index:50;top:0;right:0;bottom:0;width:min(470px,100vw);background:var(--sheet);border-left:1px solid var(--rule);box-shadow:-10px 0 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.wb[hidden]{display:none}
+.wb__top{padding:14px 16px 10px;border-bottom:1px solid var(--rule)}
+.wb__top h2{margin:0;font:900 20px/1.2 var(--sans);display:flex;justify-content:space-between;align-items:center}
+.wb__top p{margin:4px 0 8px;font-size:14.5px;color:var(--ink3)}
+.close-x{border:0;background:var(--surface);color:var(--ink);font-size:20px;line-height:1;border-radius:9px;padding:6px 10px;cursor:pointer}
+.langs{display:flex;gap:5px;flex-wrap:wrap}
+.langs button{font:800 13px/1 var(--sans);color:var(--ink2);background:var(--surface);border:1px solid var(--rule);border-radius:100px;padding:7px 11px;cursor:pointer}
+.langs button[aria-pressed="true"]{color:var(--on-accent);background:var(--accent);border-color:var(--accent)}
+.wb__find{margin-top:8px;width:100%;font:700 16px/1.2 var(--sans);color:var(--ink);background:var(--surface);border:1.5px solid var(--rule2);border-radius:9px;padding:8px 10px}
+.wb__list{overflow-y:auto;padding:4px 16px 20px;flex:1}
+.wb__g{font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);margin:16px 0 6px}
+.wb__item{border-bottom:1px solid var(--rule)}
+.wb__row{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:8px;padding:7px 0;width:100%;font:inherit;font-size:16.5px;color:inherit;text-align:left;background:none;border:0;cursor:pointer;align-items:baseline}
+.wb__row:hover b,.wb__item.open .wb__row b{color:var(--accent-ink)}
+.wb__row b::after{content:" ▸";font-size:.8em;color:var(--ink3)}
+.wb__item.open .wb__row b::after{content:" ▾"}
+.wb__def{margin:0 0 10px;padding:6px 10px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 8px 8px 0;font-size:16px;line-height:1.5;color:var(--ink2)}
+.wb__link{font:inherit;color:var(--accent-ink);background:none;border:0;padding:0;border-bottom:1.5px dotted currentColor;cursor:pointer}
+.wb__link:hover{border-bottom-style:solid}
+.wb__item.flash{animation:wbflash 1.4s ease-out}
+@keyframes wbflash{0%{background:rgba(255,200,0,.35)}100%{background:transparent}}
+.wb__row b{font-weight:800}
+.wb__row span{color:var(--ink2)}
+.wb[data-lang="ko"] .wb__row{grid-template-columns:1.1fr 1fr}
+.wb[data-lang="zh"] .wb__row{grid-template-columns:1.1fr 1fr}
+.wb[data-lang="ko"] .zh,.wb[data-lang="zh"] .ko,.wb[data-lang="en"] .ko,.wb[data-lang="en"] .zh{display:none}
+.wb[data-lang="en"] .wb__row{grid-template-columns:1fr}
+.wb__item.hide{display:none}
+
+/* ---------- the bottom ---------- */
+footer{max-width:1480px;margin:0 auto;padding:6px 24px 40px;font-size:13px;color:var(--ink3);line-height:1.6}
+footer a{color:var(--ink3)}
+noscript p{max-width:760px;margin:20px auto;padding:14px;background:var(--amber-tint);border-radius:12px}
+
+/* ---------------- instructions where the eyes are (Year 7: memory year7-text-and-instructions) ---------------- */
+mark.do{background:var(--do-tint);color:inherit;font-weight:700;border-radius:4px;padding:.04em .18em;-webkit-box-decoration-break:clone;box-decoration-break:clone}

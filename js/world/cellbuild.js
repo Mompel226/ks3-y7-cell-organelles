@@ -1,0 +1,616 @@
+/* ============================================================
+   cellbuild.js — the cell world's structures (4 Nov 2026), in micrometres (µm), y up.
+   ONE salivary gland cell (a serous acinar cell), drawn where things really are in it (histology of the parotid and
+   pancreatic acinar cells; Bolender 1974, J Cell Biol 61:269, for the share of each membrane):
+   - the base sits on the blood side: below its membrane, the tissue fluid and a capillary with red blood cells;
+   - the nucleus is round and low in the cell (basal), with a nucleolus; rough ER fills the base, in curved layers round
+     the nucleus (seen as the basophilic base of the cell on a stained slide);
+   - the Golgi apparatus sits above the nucleus (supranuclear); the secretory vesicles (zymogen granules) crowd the top;
+   - the top of the cell (apical) has short microvilli and faces the lumen, which leads into the duct;
+   - microtubules run from the top of the cell downwards (in such cells most of them point that way);
+   - mitochondria lie among the rest; a little smooth ER (this cell has only a little); a few lysosomes; the
+     centrosome near the top.
+   What is drawn bigger than life, so that it can be seen (the page says so in each place's "See the real thing"):
+   ribosomes (×4), nuclear pores (×1.5, and far fewer), microtubules (×3), the spaces between ER layers (×2–3).
+   Everything else is at its real size for a cell about 16 µm tall. The neighbouring cells of the acinus stand round it,
+   their tops meeting at the lumen. Every random choice uses one seed, so the world is the same at every load.
+   ============================================================ */
+import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
+import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611041337';
+
+/* ---------- small tools ---------- */
+export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(20261104);
+const rr = (a, b) => a + (b - a) * R();
+function hash3(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
+/* smooth value noise, about −1 … 1 */
+export function noise3(x, y, z) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi;
+  const s = t => t * t * (3 - 2 * t), u = s(xf), v = s(yf), w = s(zf);
+  const L = (a, b, t) => a + (b - a) * t;
+  const c = (i, j, k) => hash3(xi + i, yi + j, zi + k);
+  return 2 * L(L(L(c(0, 0, 0), c(1, 0, 0), u), L(c(0, 1, 0), c(1, 1, 0), u), v), L(L(c(0, 0, 1), c(1, 0, 1), u), L(c(0, 1, 1), c(1, 1, 1), u), v), w) - 1;
+}
+function fbm(x, y, z) { return noise3(x, y, z) * 0.6 + noise3(x * 2.1, y * 2.1, z * 2.1) * 0.3 + noise3(x * 4.3, y * 4.3, z * 4.3) * 0.1; }
+/* keep only the triangles a test accepts (a non-indexed copy) */
+function keepTris(geo, keep) {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  const p = g.attributes.position, n = g.attributes.normal, uv = g.attributes.uv;
+  const P = [], Nn = [], U = [];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), m = new THREE.Vector3();
+  for (let i = 0; i < p.count; i += 3) {
+    a.fromBufferAttribute(p, i); b.fromBufferAttribute(p, i + 1); c.fromBufferAttribute(p, i + 2);
+    m.copy(a).add(b).add(c).multiplyScalar(1 / 3);
+    if (!keep(m, a, b, c)) continue;
+    for (let k = 0; k < 3; k++) {
+      P.push(p.getX(i + k), p.getY(i + k), p.getZ(i + k));
+      if (n) Nn.push(n.getX(i + k), n.getY(i + k), n.getZ(i + k));
+      if (uv) U.push(uv.getX(i + k), uv.getY(i + k));
+    }
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  if (n) out.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3));
+  if (uv) out.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2));
+  return out;
+}
+
+/* ---------- the cell's shape: a rounded, tapering column (a wedge of the acinus) ---------- */
+export const CELL = { H: 16.35, ax: 7.4, az: 6.2, n: 3.0, lumen: new THREE.Vector3(0, 17.4, 0) };
+const PROFILE = new THREE.SplineCurve([[0, 0], [0.55, 0], [0.88, 0.16], [1.0, 0.9], [0.965, 3], [0.87, 7], [0.67, 11], [0.43, 14.2], [0.29, 15.6], [0.13, 16.25], [0, CELL.H]].map(p => new THREE.Vector2(p[0], p[1])));
+const PROF = PROFILE.getSpacedPoints(400);
+/* the half-width factor at a height (the side of the cell) */
+const RY = (() => { const t = []; for (let i = 0; i <= 330; i++) { const y = i * 0.05; let best = 0; for (const p of PROF) if (Math.abs(p.y - y) < 0.06) best = Math.max(best, p.x); t.push(best); } return t; })();
+export function rAt(y) { const i = Math.max(0, Math.min(RY.length - 1, Math.round(y / 0.05))); return RY[i]; }
+const se = (c, n) => Math.sign(c) * Math.pow(Math.abs(c), 2 / n);
+/* is a point inside the cell, with a margin (µm) from its membrane? */
+export function inside(p, margin = 0.3) {
+  if (p.y < margin || p.y > CELL.H - margin) return false;
+  const f = rAt(p.y); if (f <= 0) return false;
+  const hx = CELL.ax * f - margin, hz = CELL.az * f - margin;
+  if (hx <= 0 || hz <= 0) return false;
+  return Math.pow(Math.abs(p.x) / hx, CELL.n) + Math.pow(Math.abs(p.z) / hz, CELL.n) < 1;
+}
+function cellShellGeometry({ segU = 128, segV = 120, bulge = 0.16, scale = 1 } = {}) {
+  const pos = [], uv = [], idx = [];
+  const pts = PROFILE.getSpacedPoints(segV);
+  for (let j = 0; j <= segV; j++) {
+    const pr = pts[j];
+    for (let i = 0; i <= segU; i++) {
+      const th = (i / segU) * Math.PI * 2, c = Math.cos(th), s = Math.sin(th);
+      let x = pr.x * CELL.ax * se(c, CELL.n), z = pr.x * CELL.az * se(s, CELL.n), y = pr.y;
+      const b = 1 + bulge * 0.12 * fbm(x * 0.35, y * 0.35, z * 0.35) * Math.min(1, pr.x * 3);
+      x *= b; z *= b;
+      pos.push(x * scale, y * scale, z * scale); uv.push(i / segU, j / segV);
+    }
+  }
+  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
+    const a = j * (segU + 1) + i, b = a + segU + 1;
+    idx.push(a, b, a + 1, b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+/* ---------- a patch of an ellipsoid (an ER layer), with ragged edges and holes ---------- */
+function ellipsoidPatch({ center, radius, scale, elev, keepAz, segU = 150, segV = 60, holes = -2, edgeNoise = 0.18, seed = 0 }) {
+  const pos = [], idx = [], ok = [];
+  for (let j = 0; j <= segV; j++) {
+    const e = elev[0] + (elev[1] - elev[0]) * (j / segV);
+    for (let i = 0; i <= segU; i++) {
+      const az = (i / segU) * Math.PI * 2;
+      const wob = 1 + 0.03 * noise3(i * 0.08 + seed, j * 0.11, seed * 0.7);
+      const x = center.x + radius * scale.x * Math.cos(e) * Math.cos(az) * wob;
+      const y = center.y + radius * scale.y * Math.sin(e) * wob;
+      const z = center.z + radius * scale.z * Math.cos(e) * Math.sin(az) * wob;
+      pos.push(x, y, z);
+      /* how far inside the allowed region (0 at its edge), roughened by noise; plus holes (fenestrations) */
+      const inAz = keepAz(az, e);
+      const n = fbm(x * 0.9 + seed, y * 0.9, z * 0.9);
+      const edge = Math.min((e - elev[0]) / 0.25, (elev[1] - e) / 0.25, inAz);
+      const hole = noise3(x * 2.3 + seed, y * 2.3, z * 2.3) < holes;      /* a few holes in a layer (fenestrations) */
+      ok.push(edge + n * edgeNoise > 0.12 && !hole);
+    }
+  }
+  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
+    const a = j * (segU + 1) + i, b = a + segU + 1;
+    if (ok[a] && ok[b] && ok[a + 1]) idx.push(a, b, a + 1);
+    if (ok[b] && ok[b + 1] && ok[a + 1]) idx.push(b, b + 1, a + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+/* points spread over a mesh's surface (area-weighted), each with its normal */
+function surfacePoints(geo, count, rand = R) {
+  const g = geo.index ? geo.toNonIndexed() : geo, p = g.attributes.position;
+  const areas = [], A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3();
+  let total = 0;
+  for (let i = 0; i < p.count; i += 3) {
+    A.fromBufferAttribute(p, i); B.fromBufferAttribute(p, i + 1); C.fromBufferAttribute(p, i + 2);
+    const a = t1.subVectors(B, A).cross(t2.subVectors(C, A)).length() / 2; total += a; areas.push(total);
+  }
+  const out = [];
+  for (let k = 0; k < count; k++) {
+    const r = rand() * total; let lo = 0, hi = areas.length - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (areas[mid] < r) lo = mid + 1; else hi = mid; }
+    const i = lo * 3; A.fromBufferAttribute(p, i); B.fromBufferAttribute(p, i + 1); C.fromBufferAttribute(p, i + 2);
+    let u = rand(), v = rand(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
+    const pt = new THREE.Vector3().copy(A).addScaledVector(t1.subVectors(B, A), u).addScaledVector(t2.subVectors(C, A), v);
+    const nrm = new THREE.Vector3().subVectors(B, A).cross(new THREE.Vector3().subVectors(C, A)).normalize();
+    out.push({ p: pt, n: nrm });
+  }
+  return out;
+}
+
+function instanced(geo, mat, list, name) {
+  const m = new THREE.InstancedMesh(geo, mat, list.length);
+  const o = new THREE.Object3D();
+  list.forEach((it, i) => {
+    o.position.copy(it.p); o.quaternion.copy(it.q || new THREE.Quaternion()); o.scale.setScalar(it.s || 1);
+    if (it.sv) o.scale.copy(it.sv);
+    o.updateMatrix(); m.setMatrixAt(i, o.matrix);
+  });
+  m.instanceMatrix.needsUpdate = true; m.name = name || ''; m.computeBoundingSphere();
+  return m;
+}
+const qAlong = (dir) => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+
+/* each place's camera view (pos) and what it looks at (at): defined first, so that nothing big is placed in front of
+   them (the mitochondria are placed away from every line of sight) */
+export const VIEWS = {
+  wayin:    { pos: [-7.2, 3.0, 7.6], at: [-4.8, -0.7, -0.8] },
+  nucleus:  { pos: [1.2, 6.8, 9.6], at: [0, 5.2, -0.2] },
+  nucleolus:{ pos: [1.6, 7.3, 4.6], at: [0.55, 5.5, 0.5] },
+  mito:     { pos: [4.6, 8.0, 5.0], at: [3.95, 7.35, 1.35] },
+  ribosome: { pos: [-2.9, 8.6, 9.4], at: [-2.4, 7.7, 2.6] },
+  rer:      { pos: [-7.6, 5.6, 7.2], at: [-3.6, 3.4, 0.6] },
+  ser:      { pos: [-8.6, 9.4, 5.6], at: [-4.6, 7.8, 0.4] },
+  golgi:    { pos: [2.6, 12.2, 6.8], at: [0.4, 10.0, -0.3] },
+  tracks:   { pos: [4.6, 12.8, 7.0], at: [1.4, 11.2, -0.2] },
+  exit:     { pos: [1.8, 18.6, 6.4], at: [0, 15.2, -0.3] }
+};
+const segDist = (p, a, b) => { const ab = b.clone().sub(a), t = Math.max(0, Math.min(1, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)); };
+const SIGHTS = Object.values(VIEWS).map(v => [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
+
+/* ============================================================ the world ============================================================ */
+export function buildCell(scene) {
+  const W = { groups: {}, places: {}, anim: [], hits: [] };
+  const add = (name, obj) => { obj.name = name; W.groups[name] = obj; scene.add(obj); return obj; };
+
+  /* ---------- the cell membrane (cut open at the front) and its neighbours ---------- */
+  const shellGeo = cellShellGeometry();
+  const membrane = add('membrane', new THREE.Group());
+  const mem = new THREE.Mesh(shellGeo, membraneMat());
+  mem.renderOrder = 2; membrane.add(mem);
+  /* the inside of the cell glows faintly (the cytosol), a back-wall light so that the organelles stand out */
+  const cytoGlow = new THREE.Mesh(cellShellGeometry({ segU: 96, segV: 80, scale: 0.985 }), new THREE.MeshBasicMaterial({ color: 0x123e58, transparent: true, opacity: 0.12, side: THREE.BackSide, depthWrite: false }));
+  cytoGlow.renderOrder = 1; membrane.add(cytoGlow);
+  W.membraneMesh = mem;
+
+  /* the acinus: neighbouring cells, their tops meeting round the lumen above this cell */
+  const acinus = add('acinus', new THREE.Group());
+  const nGeo = cellShellGeometry({ segU: 56, segV: 44, bulge: 0.3 });
+  const nMat = membraneMat({ cut: false, opacity: 0.065, color: 0x7fa8ef, edge: 0x6f8cff });
+  W.acinusMat = nMat;
+  const nNucMat = magicStandard({ color: PAL.nucleus, transparent: true, opacity: 0.35, depthWrite: false }, { rim: 0x9d8cff, rimK: 0.8 });
+  const nNucGeo = new THREE.SphereGeometry(2.8, 24, 16);
+  const ico = new THREE.IcosahedronGeometry(1, 0).attributes.position;
+  const dirs = []; for (let i = 0; i < ico.count; i++) { const d = new THREE.Vector3().fromBufferAttribute(ico, i).normalize(); if (!dirs.some(x => x.distanceTo(d) < 1e-3)) dirs.push(d); }
+  /* rotate the set so one direction points straight down (this cell), then stand a cell on every other one */
+  const down = new THREE.Vector3(0, -1, 0), qTo = new THREE.Quaternion().setFromUnitVectors(dirs[0], down);
+  dirs.map(d => d.clone().applyQuaternion(qTo)).forEach((d, k) => {
+    if (d.distanceTo(down) < 0.05) return;
+    if (d.z > 0.2) return;                                        /* the front of the acinus is open too, like the cell */
+    const g = new THREE.Group();
+    const q = new THREE.Quaternion().setFromUnitVectors(down, d);
+    const cell = new THREE.Mesh(nGeo, nMat); cell.renderOrder = 1;
+    const nuc = new THREE.Mesh(nNucGeo, nNucMat); nuc.position.set(0, 5, 0); nuc.scale.set(1, 0.9, 1);
+    g.add(cell, nuc);
+    g.position.copy(CELL.lumen).add(new THREE.Vector3(0, -CELL.lumen.y, 0).applyQuaternion(q));
+    g.quaternion.copy(q);
+    g.rotateY(rr(0, 6.28));
+    acinus.add(g);
+  });
+
+  /* ---------- the floor of the world: the base of the cell, and below it the blood ---------- */
+  const below = add('blood', new THREE.Group());
+  const lamina = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), new THREE.MeshBasicMaterial({ color: 0x3a6f86, transparent: true, opacity: 0.16, depthWrite: false }));
+  lamina.rotation.x = -Math.PI / 2; lamina.position.y = -0.28; below.add(lamina);
+  const capPath = new THREE.CatmullRomCurve3([new THREE.Vector3(-26, -5.4, -9), new THREE.Vector3(-9, -4.4, -4.6), new THREE.Vector3(0, -4.3, -3.6), new THREE.Vector3(9, -4.4, -4.2), new THREE.Vector3(26, -5.5, -8.5)]);
+  const capWall = new THREE.Mesh(new THREE.TubeGeometry(capPath, 160, 3.05, 40, false), magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5 }, { rim: 0xff8aa0, rimK: 0.8 }));
+  capWall.renderOrder = 1; below.add(capWall);
+  /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary */
+  const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.6 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
+  for (let i = 24; i >= 0; i--) { const v = rbcProfile[i]; rbcProfile.push(new THREE.Vector2(v.x, -v.y)); }
+  const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x * 0.82), v.y)), 36);
+  const rbcMat = magicStandard({ color: 0xb02838, roughness: 0.4 }, { rim: 0xff6f80, rimK: 0.35 });
+  const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
+  W.anim.push((t) => {
+    const o = new THREE.Object3D();
+    for (let i = 0; i < 9; i++) {
+      const u = (((t * 0.012 + i / 9) % 1) + 1) % 1;
+      const p = capPath.getPointAt(u), tan = capPath.getTangentAt(u);
+      o.position.copy(p).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1)));
+      o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tan); o.rotateX(0.5 + 0.3 * Math.sin(i + t * 0.4)); o.rotateZ(i);
+      o.updateMatrix(); rbcs.setMatrixAt(i, o.matrix);
+    }
+    rbcs.instanceMatrix.needsUpdate = true;
+  });
+  /* a nerve ending beside the base of the cell (for the signal at the end: smelling food sends a message) */
+  const nervePath = new THREE.CatmullRomCurve3([new THREE.Vector3(13, -0.4, -5.5), new THREE.Vector3(9.5, 1.0, -4.6), new THREE.Vector3(7.35, 2.0, -4.0), new THREE.Vector3(7.2, 3.0, -6.2), new THREE.Vector3(8.8, 3.8, -11)]);
+  const nerve = new THREE.Mesh(new THREE.TubeGeometry(nervePath, 120, 0.22, 12, false), magicStandard({ color: 0xd9c27a, roughness: 0.4 }, { rim: PAL.nerve, rimK: 0.9 }));
+  nerve.name = 'nerve'; nerve.visible = false; below.add(nerve);       /* shown when the signal comes (the way out) */
+  const varicosity = new THREE.Mesh(new THREE.SphereGeometry(0.62, 24, 16), magicStandard({ color: 0xe8d38a }, { rim: PAL.nerve, rimK: 1.0 }));
+  varicosity.position.set(7.05, 2.0, -3.95); varicosity.scale.set(0.7, 0.9, 1.1); varicosity.visible = false; below.add(varicosity);
+  W.nerve = { tube: nerve, end: varicosity, path: nervePath };
+
+  /* ---------- the nucleus: two membranes with pores, a window cut at the front to see inside ---------- */
+  const N0 = new THREE.Vector3(0, 5.0, -0.3), NR = 2.9, NSY = 0.9;
+  const nucleus = add('nucleus', new THREE.Group()); nucleus.position.copy(N0);
+  const winDir = new THREE.Vector3(0.12, 0.38, 0.92).normalize(), winCos = Math.cos(THREE.MathUtils.degToRad(46));
+  const envelope = (r, color, op) => {
+    const m = magicStandard({ color, transparent: true, opacity: op, side: THREE.DoubleSide, roughness: 0.3, depthWrite: op > 0.9 }, { rim: PAL.envelope, rimK: 1.1, rimPow: 2.0 });
+    const geo = keepTris(new THREE.SphereGeometry(r, 120, 80), (mid) => mid.clone().normalize().dot(winDir) < winCos);
+    geo.scale(1, NSY, 1); geo.computeVertexNormals();
+    return new THREE.Mesh(geo, m);
+  };
+  const outerEnv = envelope(NR, PAL.nucleus, 0.92), innerEnv = envelope(NR - 0.07, 0x4f42b8, 0.95);
+  nucleus.add(outerEnv, innerEnv);
+  /* the rim of the window: where the two membranes meet the cut, a soft glowing ring */
+  const rimPts = []; const wb1 = new THREE.Vector3(0, 1, 0).cross(winDir).normalize(), wb2 = winDir.clone().cross(wb1).normalize(), sinW = Math.sqrt(1 - winCos * winCos);
+  for (let i = 0; i <= 160; i++) { const a = i / 160 * Math.PI * 2; const d = winDir.clone().multiplyScalar(winCos).addScaledVector(wb1, sinW * Math.cos(a)).addScaledVector(wb2, sinW * Math.sin(a)); rimPts.push(d.multiplyScalar(NR - 0.035).multiply(new THREE.Vector3(1, NSY, 1))); }
+  const rim = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts, true), 200, 0.06, 8, true), magicStandard({ color: 0xb8a8ff, emissive: 0x5a4bd8, emissiveIntensity: 0.9 }, { rim: 0xe0d8ff, rimK: 1.2 }));
+  nucleus.add(rim);
+  /* nuclear pores: rings through both membranes (about 240 drawn; a real nucleus has thousands, each 0.12 µm across) */
+  const poreList = [];
+  for (let k = 0; k < 900 && poreList.length < 240; k++) {
+    const u = rr(-1, 1), a = rr(0, 6.283), s = Math.sqrt(1 - u * u), d = new THREE.Vector3(s * Math.cos(a), u, s * Math.sin(a));
+    if (d.dot(winDir) > winCos - 0.03) continue;
+    if (poreList.some(p => p.d.distanceTo(d) < 0.12)) continue;
+    const p = d.clone().multiplyScalar(NR).multiply(new THREE.Vector3(1, NSY, 1));
+    poreList.push({ d, p, q: qAlong(d) });
+  }
+  const poreGeo = new THREE.TorusGeometry(0.085, 0.032, 8, 18); poreGeo.rotateX(Math.PI / 2);
+  const poreMat = magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3 }, { rim: 0xfff0c8, rimK: 1.0 });
+  const pores = instanced(poreGeo, poreMat, poreList, 'pores'); nucleus.add(pores);
+  W.pores = poreList.map(p => p.p.clone().add(N0));
+  /* chromatin: in a working cell each chromosome is a long thin thread in its own territory (never an X: chromosomes
+     look like an X only when a cell divides). 14 territories drawn, of the 46; chromosome 1, the largest, is gold */
+  const chromatin = new THREE.Group(); chromatin.name = 'chromatin'; nucleus.add(chromatin);
+  const terrColors = [0xc9b8ff, 0xa995ff, 0xd7c9ff, 0x9c86f5, 0xbfaeff, 0xe2d6ff, 0xae9cf7];
+  W.chromosomes = [];
+  for (let c = 0; c < 14; c++) {
+    let ctr;
+    for (let tries = 0; tries < 60; tries++) {
+      const u = rr(-1, 1), a = rr(0, 6.283), r = rr(0.6, 1.85), s = Math.sqrt(1 - u * u);
+      ctr = new THREE.Vector3(s * Math.cos(a) * r, u * r * NSY, s * Math.sin(a) * r);
+      if (W.chromosomes.every(ch => ch.center.distanceTo(ctr) > 0.95) && ctr.distanceTo(new THREE.Vector3(0.55, 0.55, 0.8)) > 1.1) break;
+    }
+    const pts = []; let p = ctr.clone(); const v = new THREE.Vector3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize();
+    const len = c === 0 ? 150 : 90 + Math.floor(rr(0, 40));
+    for (let i = 0; i < len; i++) {
+      v.add(new THREE.Vector3(rr(-0.9, 0.9), rr(-0.9, 0.9), rr(-0.9, 0.9))).normalize();
+      const back = ctr.clone().sub(p); if (back.length() > 0.65) v.addScaledVector(back.normalize(), 0.6).normalize();
+      p = p.clone().addScaledVector(v, 0.09);
+      const lim = p.clone().multiply(new THREE.Vector3(1, 1 / NSY, 1)); if (lim.length() > NR - 0.25) p.multiplyScalar((NR - 0.25) / lim.length());
+      pts.push(p);
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const gold = c === 0;
+    const mat = magicStandard({ color: gold ? 0xffcf6b : terrColors[c % terrColors.length], emissive: gold ? 0x7a4a00 : 0x2a1f6a, emissiveIntensity: gold ? 0.5 : 0.4, roughness: 0.45 }, { rim: gold ? 0xffe9b0 : 0xd8ceff, rimK: 0.6 });
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, len * 3, gold ? 0.05 : 0.042, 6, false), mat);
+    tube.name = 'chr' + (c + 1); chromatin.add(tube);
+    W.chromosomes.push({ n: c + 1, center: ctr.clone(), curve, mesh: tube });
+  }
+  /* the nucleolus: a dense region with no membrane, where ribosome parts are made */
+  let nolGeo = mergeVertices(new THREE.IcosahedronGeometry(0.7, 5));
+  { const p = nolGeo.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 + 0.16 * fbm(v.x * 2.6, v.y * 2.6, v.z * 2.6) + 0.07 * noise3(v.x * 14, v.y * 14, v.z * 14); p.setXYZ(i, v.x * k, v.y * k, v.z * k); } nolGeo.computeVertexNormals(); }
+  const nucleolus = new THREE.Mesh(nolGeo, magicStandard({ color: 0xb04a92, emissive: 0x3a0a2c, emissiveIntensity: 0.6, roughness: 0.8 }, { rim: 0xff9ad6, rimK: 0.9 }));
+  nucleolus.position.set(0.55, 0.55, 0.8); nucleolus.name = 'nucleolus-body'; nucleus.add(nucleolus);
+  const nolSpark = sparkles({ count: 140, size: 0.05, color: 0xffb3e6, drift: 0.02, sample: (v) => { const u = rr(-1, 1), a = rr(0, 6.28), s = Math.sqrt(1 - u * u), r = 0.5 + rr(0, 0.3); v.set(0.55 + s * Math.cos(a) * r, 0.55 + u * r, 0.8 + s * Math.sin(a) * r); } });
+  nucleus.add(nolSpark);
+  W.nucleus = { group: nucleus, center: N0, r: NR, sy: NSY, winDir, nucleolus, outerEnv, innerEnv };
+
+  /* ---------- rough ER: curved layers round the base of the nucleus, studded with ribosomes ---------- */
+  const rer = add('rer', new THREE.Group());
+  const rerMat = magicStandard({ color: PAL.rer, side: THREE.DoubleSide, roughness: 0.38 }, { rim: 0x8ff5dc, rimK: 0.9, rimPow: 2.0 });
+  const rerSheets = [];
+  const front = Math.PI / 2;                                    /* +z, towards the camera */
+  for (let i = 0; i < 6; i++) {
+    const radius = 3.35 + i * 0.42;
+    const keepAz = (az, e) => {
+      let d = Math.abs(((az - front + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);   /* 0 at the front */
+      const openFront = e > -0.95 ? (d - 0.95) / 0.35 : 9;     /* a window at the front, above the lowest layers */
+      const openTop = (0.2 - e) / 0.2;
+      return Math.min(openFront, 9) + Math.min(0, openTop * 3);
+    };
+    const geo = ellipsoidPatch({ center: N0.clone().add(new THREE.Vector3(0, -0.1, 0)), radius, scale: new THREE.Vector3(1, 0.75, 0.9), elev: [-1.52, 0.22], keepAz, holes: -0.62, seed: i * 3.1 });
+    const keepIn = keepTris(geo, (m) => inside(m, 0.32));
+    keepIn.computeVertexNormals();
+    const sheet = new THREE.Mesh(keepIn, rerMat); sheet.name = 'rer' + i; rer.add(sheet); rerSheets.push(keepIn);
+  }
+  /* ribosomes on the outer face of every layer (the cytosol side), drawn about four times their real 25 nm */
+  const riboGeo = new THREE.IcosahedronGeometry(0.052, 1);
+  const riboMat = magicStandard({ color: 0xffc95e, emissive: 0x9a6410, emissiveIntensity: 0.85, roughness: 0.3 }, { rim: 0xffeab0, rimK: 0.5 });
+  const riboList = [];
+  rerSheets.forEach((g, i) => { surfacePoints(g, i < 3 ? 260 : 950).forEach(({ p, n }) => { for (const sgn of [1, -1]) { if (R() < 0.5) continue; riboList.push({ p: p.clone().addScaledVector(n, sgn * 0.07), s: rr(0.8, 1.2) }); } }); });
+  const rerRibos = instanced(riboGeo, riboMat, riboList, 'rer-ribosomes'); rer.add(rerRibos);
+  W.rer = { sheets: rerSheets, ribosomes: riboList };
+
+  /* ---------- smooth ER: a small net of tubes, joined to the rough ER (this cell has little smooth ER) ---------- */
+  const ser = add('ser', new THREE.Group());
+  const serMat = magicStandard({ color: PAL.ser, transparent: true, opacity: 0.9, roughness: 0.3 }, { rim: 0xd2fff3, rimK: 1.1 });
+  const serStart = new THREE.Vector3(-5.05, 6.15, -0.6);
+  const serCurves = [];
+  const grow = (from, dir, depth) => {
+    if (depth > 3) return;
+    const pts = [from.clone()]; let p = from.clone(), d = dir.clone();
+    for (let i = 0; i < 6; i++) { d.add(new THREE.Vector3(rr(-0.5, 0.5), rr(-0.25, 0.45), rr(-0.5, 0.5))).normalize(); p = p.clone().addScaledVector(d, 0.42); if (!inside(p, 0.5)) break; pts.push(p); }
+    if (pts.length < 3) return;
+    serCurves.push(new THREE.CatmullRomCurve3(pts));
+    const end = pts[pts.length - 1], mid = pts[Math.floor(pts.length / 2)];
+    grow(end, d.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), 0.7), depth + 1);
+    if (depth < 2) grow(mid, d.clone().applyAxisAngle(new THREE.Vector3(1, 0, 0), -1.0), depth + 1);
+  };
+  grow(serStart, new THREE.Vector3(0.1, 1, 0.25), 0); grow(serStart.clone().add(new THREE.Vector3(0.2, 0.3, 1.0)), new THREE.Vector3(0.25, 0.9, 0.3), 1);
+  serCurves.forEach((c, k) => { const t = new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.11, 10, false), serMat); t.name = 'ser' + k; ser.add(t); });
+  const serJoints = serCurves.flatMap(c => [c.points[0], c.points[c.points.length - 1]]).map(p => ({ p, s: 1 }));
+  ser.add(instanced(new THREE.SphereGeometry(0.135, 14, 10), serMat, serJoints, 'ser-joints'));
+  W.ser = { curves: serCurves, start: serStart };
+
+  /* ---------- the Golgi apparatus: a stack of curved flattened sacs above the nucleus ---------- */
+  const G0 = new THREE.Vector3(0.45, 9.55, -0.35);
+  const golgi = add('golgi', new THREE.Group()); golgi.position.copy(G0); golgi.rotation.set(0.18, 0.35, -0.08);
+  const golgiMat = magicStandard({ color: 0xeaa632, roughness: 0.3, metalness: 0.05, emissive: 0x4a2c04, emissiveIntensity: 0.25, side: THREE.DoubleSide }, { rim: 0xffe0a0, rimK: 0.9 });
+  W.golgiSacs = [];
+  for (let k = 0; k < 6; k++) {
+    const rx = 1.75 - k * 0.08, rz = 1.32 - k * 0.05;
+    const geo0 = new THREE.SphereGeometry(1, 72, 24);
+    const p = geo0.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const rr2 = v.x * v.x + v.z * v.z;
+      const th = 0.03 + 0.06 * Math.pow(rr2, 4);                 /* thin in the middle, swollen at the rim */
+      const n = 0.07 * noise3(v.x * 3 + k, v.z * 3, k * 1.3);
+      const x = v.x * rx * (1 + n), z = v.z * rz * (1 + n);
+      const y = v.y * th + 0.55 * (x * x / (rx * rx) + z * z / (rz * rz)) - 0.12;   /* curved: the stack is a shallow bowl */
+      p.setXYZ(i, x, y + k * 0.2, z);
+    }
+    /* small holes near the rim (fenestrations), as in electron micrographs of Golgi sacs */
+    const geo = keepTris(geo0, (m) => { const q = (m.x * m.x) / (rx * rx) + (m.z * m.z) / (rz * rz); return q < 0.5 || noise3(m.x * 4.5 + k * 2, m.z * 4.5, k) > -0.35; });
+    geo.computeVertexNormals();
+    const sac = new THREE.Mesh(geo, golgiMat); sac.name = 'golgi' + k; golgi.add(sac);
+    W.golgiSacs.push(sac);
+  }
+  /* small vesicles at the rims, and three growing secretory vesicles on the top (trans) face */
+  const gvList = [];
+  for (let i = 0; i < 46; i++) { const a = rr(0, 6.283), k = Math.floor(rr(0, 6)); gvList.push({ p: new THREE.Vector3(Math.cos(a) * rr(1.75, 2.1), k * 0.2 + 0.42 + rr(-0.1, 0.1), Math.sin(a) * rr(1.35, 1.65)), s: rr(0.8, 1.2) }); }
+  const vesMat = magicStandard({ color: PAL.vesicle, transparent: true, opacity: 0.85, roughness: 0.15, emissive: 0x2a5a7a, emissiveIntensity: 0.6 }, { rim: 0xe8fbff, rimK: 1.3 });
+  golgi.add(instanced(new THREE.SphereGeometry(0.085, 14, 10), vesMat, gvList, 'golgi-vesicles'));
+  W.golgi = { group: golgi, center: G0 };
+
+  /* ---------- secretory vesicles (zymogen granules) crowd the top of the cell, full of amylase ---------- */
+  const granules = add('granules', new THREE.Group());
+  const grList = [];
+  for (let k = 0; k < 4000 && grList.length < 36; k++) {
+    const p = new THREE.Vector3(rr(-3.2, 3.2), rr(11.5, 15.1), rr(-2.8, 1.8)), r = rr(0.42, 0.56);
+    if (!inside(p, r + 0.35)) continue;
+    if (grList.some(g => g.p.distanceTo(p) < g.r + r + 0.07)) continue;
+    grList.push({ p, r, s: r });
+  }
+  const grMat = magicStandard({ color: PAL.granule, transparent: true, opacity: 0.46, roughness: 0.1, emissive: 0x2a1c06, emissiveIntensity: 0.2, depthWrite: false }, { rim: 0xffefc2, rimK: 0.75, rimPow: 2.2 });
+  const grCoreMat = new THREE.MeshBasicMaterial({ color: 0xd9a650, transparent: true, opacity: 0.45 });
+  const grMesh = instanced(new THREE.SphereGeometry(1, 28, 18), grMat, grList, 'granules'); grMesh.renderOrder = 3;
+  const grCore = instanced(new THREE.IcosahedronGeometry(0.55, 2), grCoreMat, grList.map(g => ({ p: g.p, s: g.r })), 'granule-cores');
+  granules.add(grCore, grMesh);
+  W.granules = grList;
+
+  /* ---------- mitochondria: rods with two membranes, the inner one folded ---------- */
+  const mitos = add('mitochondria', new THREE.Group());
+  const mitoMat = magicStandard({ color: 0xe8743c, roughness: 0.3, emissive: 0x5a1c06, emissiveIntensity: 0.45, transparent: true, opacity: 0.94 }, { rim: 0xffcfa0, rimK: 1.1, stripe: 0xffa45a, stripeK: 0.55 });
+  const mList = [];
+  const okMito = (p, len) => {
+    const q = p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / 0.75, 1 / 0.9));
+    const rr0 = q.length();
+    if (rr0 < 6.0 && p.y < 6.4) return false;                  /* not inside the nucleus or the rough ER */
+    if (p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / NSY, 1)).length() < NR + 0.9) return false;
+    if (p.distanceTo(G0) < 2.6) return false;
+    if (grList.some(g => g.p.distanceTo(p) < g.r + 0.9)) return false;
+    if (p.y > 14.6) return false;
+    if (SIGHTS.some(([a, b]) => segDist(p, a, b) < 1.6 + len / 2)) return false;   /* never in front of a place */
+    return inside(p, 0.75) && inside(p.clone().add(new THREE.Vector3(0, len / 2, 0)), 0.55) && inside(p.clone().add(new THREE.Vector3(0, -len / 2, 0)), 0.55);
+  };
+  for (let k = 0; k < 6000 && mList.length < 17; k++) {
+    const p = new THREE.Vector3(rr(-6.5, 6.5), rr(0.8, 13.5), rr(-5.5, 3.2)), len = rr(1.1, 2.4);
+    if (!okMito(p, len)) continue;
+    if (mList.some(m => m.p.distanceTo(p) < 1.6)) continue;
+    if (Math.abs(p.x - 3.9) < 1.6 && Math.abs(p.y - 7.4) < 1.6) continue;      /* room for the open one */
+    const dir = new THREE.Vector3(rr(-0.45, 0.45), 1, rr(-0.45, 0.45)).normalize();
+    mList.push({ p, len, dir });
+  }
+  mList.forEach((m, i) => {
+    const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.31, m.len, 10, 20), mitoMat);
+    mesh.position.copy(m.p); mesh.quaternion.copy(qAlong(m.dir)); mesh.name = 'mito' + i; mitos.add(mesh);
+  });
+  /* the one you visit: cut open lengthways to show the folded inner membrane (cristae) */
+  const hero = new THREE.Group(); hero.name = 'mito-hero'; hero.position.set(3.95, 7.35, 1.35); hero.quaternion.copy(qAlong(new THREE.Vector3(-0.35, 1, 0.18)));
+  const HL = 2.3, HR = 0.48;
+  const openSide = (m) => m.z < 0.02;
+  const heroOuter = new THREE.Mesh(keepTris(new THREE.CapsuleGeometry(HR, HL, 12, 40), openSide), magicStandard({ color: PAL.mito, side: THREE.DoubleSide, roughness: 0.35, emissive: 0x6a2008, emissiveIntensity: 0.45 }, { rim: 0xffc39a, rimK: 1.1 }));
+  const heroInner = new THREE.Mesh(keepTris(new THREE.CapsuleGeometry(HR - 0.07, HL, 12, 40), openSide), magicStandard({ color: 0xffa060, side: THREE.DoubleSide, roughness: 0.4, emissive: 0x7a3010, emissiveIntensity: 0.5 }, { rim: 0xffd2a8, rimK: 0.8 }));
+  hero.add(heroOuter, heroInner);
+  const cristaMat = magicStandard({ color: 0xff9c50, side: THREE.DoubleSide, roughness: 0.75, envMapIntensity: 0.3, emissive: 0x6a2a08, emissiveIntensity: 0.5 }, { rim: 0xffc890, rimK: 0.4 });
+  /* cristae: shelves folded inwards from the inner membrane, across the rod, from one side and then the other
+     (a ring segment in the back half, which is the half that is kept) */
+  for (let k = 0; k < 9; k++) {
+    const y = -HL / 2 + 0.2 + k * (HL - 0.4) / 8;
+    const left = k % 2 === 0, t0 = left ? 0.42 * Math.PI : 0.08 * Math.PI;
+    const geo = new THREE.RingGeometry(0.07, HR - 0.075, 28, 2, t0, 0.5 * Math.PI);
+    const p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); p.setZ(i, 0.025 * Math.sin(v.x * 14 + k)); }
+    geo.rotateX(-Math.PI / 2); geo.computeVertexNormals();
+    const cr = new THREE.Mesh(geo, cristaMat); cr.position.y = y; hero.add(cr);
+    const cr2 = cr.clone(); cr2.position.y = y + 0.04; hero.add(cr2);           /* each crista is a fold: two membranes */
+  }
+  const matrixGlow = sparkles({ count: 120, size: 0.045, color: 0xffd0a0, drift: 0.02, sample: (v) => { v.set(rr(-0.32, 0.32), rr(-HL / 2, HL / 2), rr(-0.34, 0)); } });
+  hero.add(matrixGlow);
+  mitos.add(hero);
+  W.mito = { hero, list: mList };
+
+  /* ---------- microtubules: from the centrosome near the top of the cell, downwards ---------- */
+  const C0 = new THREE.Vector3(0.1, 14.55, -1.1);
+  const tracks = add('microtubules', new THREE.Group());
+  const railM = railMat();
+  W.tracks = [];
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2 + rr(-0.12, 0.12), spread = rr(1.6, 3.8);
+    const pts = [C0.clone().add(new THREE.Vector3(Math.cos(a) * 0.35, rr(-0.15, 0.15), Math.sin(a) * 0.35))];
+    const targetY = i % 5 === 0 ? rr(1.2, 2.2) : rr(5.6, 8.0);
+    for (let s = 1; s <= 6; s++) {
+      const y = C0.y - (C0.y - targetY) * (s / 6);
+      let r = spread * Math.min(1, 0.35 + s * 0.22);
+      let p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.85 - 0.6);
+      const g = p.clone().sub(G0); g.y *= 1.8; const gl = g.length(); if (gl < 2.35) p.add(g.setY(0).normalize().multiplyScalar(2.35 - gl));
+      const nn = p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / NSY, 1)); const nl = nn.length(); if (nl < NR + 0.45) p.add(nn.normalize().multiplyScalar(NR + 0.45 - nl));
+      let guard = 0; while (!inside(p, 0.4) && guard++ < 20) p.multiply(new THREE.Vector3(0.92, 1, 0.92));
+      pts.push(p);
+    }
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 90, 0.03, 6, false), railM); tube.renderOrder = 4; tube.name = 'mt' + i;
+    tracks.add(tube); W.tracks.push({ curve, mesh: tube });
+  }
+  /* the centrosome: two centrioles at right angles, each a ring of nine triplets of microtubules */
+  const centro = add('centrosome', new THREE.Group()); centro.position.copy(C0);
+  const tripletGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.42, 6);
+  const cenMat = magicStandard({ color: PAL.centriole, roughness: 0.3, emissive: 0x2a3a7a, emissiveIntensity: 0.5 }, { rim: 0xffffff, rimK: 0.9 });
+  [0, 1].forEach(k => {
+    const list = [];
+    for (let i = 0; i < 9; i++) for (let t = 0; t < 3; t++) { const a = i / 9 * Math.PI * 2 + t * 0.075; list.push({ p: new THREE.Vector3(Math.cos(a) * (0.11 - t * 0.015), 0, Math.sin(a) * (0.11 - t * 0.015)), s: 1 }); }
+    const c = instanced(tripletGeo, cenMat, list, 'centriole' + k);
+    if (k) { c.rotation.z = Math.PI / 2; c.position.set(0.26, 0.1, 0); }
+    centro.add(c);
+  });
+
+  /* ---------- lysosomes: a few small sacs near the Golgi ---------- */
+  const lyso = add('lysosomes', new THREE.Group());
+  const lyMat = magicStandard({ color: PAL.lyso, roughness: 0.3, emissive: 0x4a0a28, emissiveIntensity: 0.5 }, { rim: 0xffa8cc, rimK: 1.0 });
+  [[-2.9, 10.6, -0.6], [2.95, 10.1, -1.4], [-2.4, 9.0, 0.9], [3.2, 11.4, 0.4], [-3.3, 11.7, -1.6]].forEach(([x, y, z], i) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(rr(0.2, 0.3), 20, 14), lyMat); m.position.set(x, y, z); m.name = 'lyso' + i; lyso.add(m);
+  });
+
+  /* ---------- free ribosomes in the cytosol, in little spirals (polysomes) ---------- */
+  const freeList = [];
+  for (let k = 0; k < 3000 && freeList.length < 70 * 6; k++) {
+    const c = new THREE.Vector3(rr(-6, 6), rr(1, 14), rr(-5, 3));
+    if (!inside(c, 0.6)) continue;
+    if (c.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / NSY, 1)).length() < NR + 0.3) continue;
+    if (c.distanceTo(G0) < 2.2 || grList.some(g => g.p.distanceTo(c) < g.r + 0.2)) continue;
+    const ax = new THREE.Vector3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize(), b1 = new THREE.Vector3(0, 1, 0).cross(ax).normalize(), b2 = ax.clone().cross(b1);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; freeList.push({ p: c.clone().addScaledVector(b1, Math.cos(a) * 0.16).addScaledVector(b2, Math.sin(a) * 0.16).addScaledVector(ax, i * 0.03), s: rr(0.85, 1.1) }); }
+  }
+  const freeRibo = add('free-ribosomes', instanced(riboGeo, riboMat, freeList, 'free-ribosomes'));
+  W.freeRibosomes = freeList;
+
+  /* ---------- the top of the cell: microvilli into the lumen, and the lumen leading into the duct ---------- */
+  const apex = add('apex', new THREE.Group());
+  const mvList = [];
+  /* the height of the top of the cell at a distance r from its middle */
+  const topY = (r) => { for (let y = CELL.H; y > 14; y -= 0.02) if (rAt(y) * CELL.ax >= r) return y; return 14; };
+  for (let i = 0; i < 34; i++) {
+    const a = rr(0, 6.283), r = Math.sqrt(R()) * 1.75, p = new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r * 0.85);
+    p.y = topY(Math.hypot(p.x, p.z / 0.85)) - 0.08;
+    mvList.push({ p: p.clone().add(new THREE.Vector3(0, 0.24, 0)), s: 1, q: qAlong(new THREE.Vector3(p.x * 0.25, 1, p.z * 0.25)) });
+  }
+  apex.add(instanced(new THREE.CapsuleGeometry(0.045, 0.26, 4, 8), magicStandard({ color: 0xbfefff, transparent: true, opacity: 0.85, roughness: 0.2 }, { rim: 0xe8fbff, rimK: 1.2 }), mvList, 'microvilli'));
+  const lumenPath = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 16.45, 0), new THREE.Vector3(0, 17.4, -0.3), new THREE.Vector3(0.4, 18.4, -3.5), new THREE.Vector3(1.6, 19.4, -9), new THREE.Vector3(3.4, 20.2, -17)]);
+  const lumen = new THREE.Mesh(new THREE.TubeGeometry(lumenPath, 120, 0.85, 24, false), magicStandard({ color: PAL.lumen, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false, roughness: 0.2 }, { rim: 0xc8fff2, rimK: 0.9 }));
+  lumen.renderOrder = 2; apex.add(lumen);
+  const saliva = sparkles({ count: 220, size: 0.07, color: 0xc8fff0, drift: 0.05, sample: (v, i) => { const p = lumenPath.getPointAt((i / 220)); v.set(p.x + rr(-0.5, 0.5), p.y + rr(-0.5, 0.5), p.z + rr(-0.5, 0.5)); } });
+  apex.add(saliva);
+  W.lumen = { path: lumenPath, saliva };
+
+  /* ---------- light: a soft beam falling from the top of the cell, and light rippling over its floor ---------- */
+  const beamGeo = new THREE.CylinderGeometry(1.4, 6.0, 14.5, 48, 1, true); beamGeo.translate(0, 8.4, -0.4);
+  const beam = new THREE.Mesh(beamGeo, new THREE.ShaderMaterial({
+    uniforms: { uTime: CUT.uTime }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vV; void main() { vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform float uTime; varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+      void main() {
+        float face = pow(abs(dot(vN, vV)), 1.6);
+        float streak = 0.55 + 0.45 * sin(vUv.x * 40.0 + uTime * 0.35) * sin(vUv.x * 17.0 - uTime * 0.2);
+        float a = face * streak * smoothstep(0.0, 0.55, vUv.y) * smoothstep(1.0, 0.8, vUv.y) * 0.04;
+        gl_FragColor = vec4(vec3(1.0, 0.93, 0.75) * a, a);
+      }`
+  }));
+  beam.renderOrder = 7; add('beam', beam);
+  const floorGeo = new THREE.CircleGeometry(1, 96); floorGeo.rotateX(-Math.PI / 2); floorGeo.scale(CELL.ax * 0.86, 1, CELL.az * 0.86); floorGeo.translate(0, 0.06, 0);
+  const ripples = new THREE.Mesh(floorGeo, new THREE.ShaderMaterial({
+    uniforms: { uTime: CUT.uTime }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `varying vec3 vP; void main() { vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float uTime; varying vec3 vP;
+      float c(vec2 p) { return sin(p.x * 1.7 + uTime * 0.5) + sin(p.y * 1.9 - uTime * 0.4) + sin((p.x + p.y) * 1.3 + uTime * 0.3); }
+      void main() {
+        vec2 p = vP.xz;
+        float k = pow(0.5 + 0.5 * sin(c(p) * 1.6), 5.0);
+        float edge = 1.0 - smoothstep(0.6, 1.0, length(vec2(p.x / ${(CELL.ax * 0.86).toFixed(2)}, p.y / ${(CELL.az * 0.86).toFixed(2)})));
+        float a = k * edge * 0.16;
+        gl_FragColor = vec4(vec3(0.55, 1.0, 0.92) * a, a);
+      }`
+  }));
+  ripples.renderOrder = 3; add('ripples', ripples);
+
+  /* ---------- the cytosol: it is crowded (about 3 million protein molecules in each µm³; Milo 2013) ---------- */
+  const motes = sparkles({ count: 2600, size: 0.06, colors: [0x9ff3ff, 0xc7f9ff, 0xfff1c2, 0xd6c9ff], drift: 0.08, opacity: 0.55, sample: (v) => { for (let k = 0; k < 40; k++) { v.set(rr(-7, 7), rr(0.4, 16), rr(-6, 6)); if (inside(v, 0.25)) return; } v.set(0, 8, -1); } });
+  add('cytosol', motes);
+  /* golden dust that rises slowly round the cell, and far soft clouds of light (the world beyond the acinus) */
+  const dust = sparkles({ count: 260, size: 0.16, colors: [0xffe6a0, 0xfff4d0, 0xffd27a], drift: 0.35, opacity: 0.8, sample: (v) => { const a = rr(0, 6.283), r = rr(7.5, 14); v.set(Math.cos(a) * r, rr(-2, 20), Math.sin(a) * r * 0.7 - 2); } });
+  W.anim.push((t) => { dust.position.y = ((t * 0.25) % 6) - 3; });
+  add('dust', dust);
+  const nebula = sparkles({ count: 34, size: 34, colors: [0x5a3fb0, 0x1f7f8f, 0x8a3f9a, 0x2a4fb0], drift: 1.5, twinkle: 0.25, opacity: 0.22, sample: (v) => { const a = rr(Math.PI * 0.9, Math.PI * 2.1), r = rr(85, 130); v.set(Math.cos(a) * r, rr(-30, 50), Math.sin(a) * r); } });
+  add('nebula', nebula);
+  /* far light in the tissue round the acinus */
+  const far = sparkles({ count: 700, size: 0.5, colors: [0x6f5bd8, 0x2fb39a, 0x3a7fd0, 0xf0b43a], drift: 0.3, opacity: 0.35, sample: (v) => { const u = rr(-1, 1), a = rr(0, 6.283), s = Math.sqrt(1 - u * u), r = rr(30, 70); v.set(s * Math.cos(a) * r, 10 + u * r * 0.6, s * Math.sin(a) * r); } });
+  add('far', far);
+
+  return W;
+}
+
+/* ============================================================ the places of the game ============================================================
+   Each place: where it is (center), what you can press (hit), the camera's view when you are there (view: pos, at),
+   points on it where its name may stand (spots, several, so names never cross), its mist, and the groups that sleep. */
+export function places(W) {
+  const N0 = W.nucleus.center, G0 = W.golgi.center;
+  const hero = W.mito.hero.position;
+  const ptsOf = (arr) => arr.map(p => p.clone ? p.clone() : new THREE.Vector3(...p));
+  const nucSpots = []; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; nucSpots.push(N0.clone().add(new THREE.Vector3(Math.cos(a) * 2.9, Math.sin(a) * 2.6 * 0.95, 0.9))); }
+  const rerSpots = W.rer.sheets.length ? surfacePoints(W.rer.sheets[5], 40, rng(7)).map(o => o.p).filter(p => p.z > -0.5) : [];
+  const serSpots = W.ser.curves.flatMap(c => c.getPoints(6));
+  const golgiSpots = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; golgiSpots.push(G0.clone().add(new THREE.Vector3(Math.cos(a) * 1.8, 0.4 + (i % 3) * 0.3, Math.sin(a) * 1.3))); }
+  const trackSpots = W.tracks.slice(0, 12).flatMap(t => [t.curve.getPointAt(0.3), t.curve.getPointAt(0.5), t.curve.getPointAt(0.7)]);
+  const exitSpots = W.granules.filter(g => g.p.y > 13).map(g => g.p.clone());
+  const wayInSpots = []; for (let i = 0; i < 16; i++) wayInSpots.push(new THREE.Vector3(-6.4 + (i % 8) * 0.42, 0.15, -1.6 + Math.floor(i / 8) * 0.9));
+  /* free ribosomes, and the ribosomes on the rough ER (they are ribosomes too): more rows for the name */
+  const riboSpots = W.freeRibosomes.filter((f, i) => i % 6 === 0 && f.p.z > -1.5).slice(0, 60).map(f => f.p.clone())
+    .concat(W.rer.ribosomes.filter((f, i) => i % 40 === 0 && f.p.z > 0.5).map(f => f.p.clone()));
+  const P = {
+    wayin:    { name: 'Cell membrane: the way in', center: new THREE.Vector3(-4.8, 0.35, -0.8), hit: 2.4, spots: wayInSpots, view: VIEWS.wayin, mist: 2.8, groups: ['blood'] },
+    nucleus:  { name: 'Nucleus', center: N0.clone(), hit: 3.1, spots: nucSpots, view: VIEWS.nucleus, mist: 3.6, groups: ['nucleus'] },
+    nucleolus:{ name: 'Nucleolus', center: N0.clone().add(new THREE.Vector3(0.55, 0.55, 0.8)), hit: 1.0, spots: [N0.clone().add(new THREE.Vector3(0.55, 1.2, 0.95)), N0.clone().add(new THREE.Vector3(1.2, 0.55, 1.0)), N0.clone().add(new THREE.Vector3(-0.1, 0.55, 1.1))], view: VIEWS.nucleolus, mist: 1.2, groups: [] },
+    mito:     { name: 'Mitochondria', center: hero.clone(), hit: 1.6, spots: [hero.clone().add(new THREE.Vector3(0.2, 0.9, 0.3)), hero.clone().add(new THREE.Vector3(0, -0.8, 0.3)), hero.clone().add(new THREE.Vector3(0.5, 0, 0.3))], view: VIEWS.mito, mist: 2.2, groups: ['mitochondria'] },
+    ribosome: { name: 'Ribosomes', center: new THREE.Vector3(-2.6, 7.6, 2.4), hit: 1.6, spots: riboSpots.length ? riboSpots : [new THREE.Vector3(-2.6, 7.6, 2.4)], view: VIEWS.ribosome, mist: 1.9, groups: ['free-ribosomes'] },
+    rer:      { name: 'Rough ER', center: new THREE.Vector3(-3.8, 3.6, 0.9), hit: 2.4, spots: rerSpots, view: VIEWS.rer, mist: 3.0, groups: ['rer'] },
+    ser:      { name: 'Smooth ER', center: new THREE.Vector3(-4.6, 7.9, -0.1), hit: 1.8, spots: serSpots, view: VIEWS.ser, mist: 2.2, groups: ['ser'] },
+    golgi:    { name: 'Golgi apparatus', center: G0.clone().add(new THREE.Vector3(0, 0.6, 0)), hit: 2.2, spots: golgiSpots, view: VIEWS.golgi, mist: 2.6, groups: ['golgi'] },
+    tracks:   { name: 'Microtubules', center: new THREE.Vector3(1.8, 11.6, 0.4), hit: 2.0, spots: trackSpots, view: VIEWS.tracks, mist: 2.4, groups: ['microtubules'] },
+    exit:     { name: 'Cell membrane: the way out', center: new THREE.Vector3(0, 15.4, 0), hit: 2.0, spots: exitSpots, view: VIEWS.exit, mist: 2.4, groups: ['granules', 'apex'] }
+  };
+  Object.keys(P).forEach(k => { P[k].id = k; P[k].spots = ptsOf(P[k].spots); });
+  return P;
+}

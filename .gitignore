@@ -1,0 +1,6 @@
+.DS_Store
+*-Daniel Mompel Riera*
+
+# The build and check tools and local settings stay on Daniel's computer, not on GitHub (18 Oct 2026)
+/tools/
+/.claude/

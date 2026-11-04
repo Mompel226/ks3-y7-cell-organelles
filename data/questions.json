@@ -1,0 +1,530 @@
+{
+ "id": "ks3-y7-cell-organelles",
+ "v": 1,
+ "parts": [
+  {
+   "n": 1,
+   "title": "Arrive: the cell you know"
+  },
+  {
+   "n": 2,
+   "title": "Cell membrane: the way in"
+  },
+  {
+   "n": 3,
+   "title": "Mitochondria"
+  },
+  {
+   "n": 4,
+   "title": "Nucleus"
+  },
+  {
+   "n": 5,
+   "title": "Nucleolus"
+  },
+  {
+   "n": 6,
+   "title": "Ribosomes"
+  },
+  {
+   "n": 7,
+   "title": "Rough ER"
+  },
+  {
+   "n": 8,
+   "title": "Smooth ER"
+  },
+  {
+   "n": 9,
+   "title": "Golgi apparatus"
+  },
+  {
+   "n": 10,
+   "title": "Microtubules"
+  },
+  {
+   "n": 11,
+   "title": "Cell membrane: the way out"
+  },
+  {
+   "n": 12,
+   "title": "Does your amylase work?"
+  }
+ ],
+ "groups": [],
+ "questions": [
+  {
+   "id": "game-arrive",
+   "part": 1,
+   "title": "Game: met the cell, simple and real",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p1-sort-organelle",
+   "part": 1,
+   "title": "Organelle or not?",
+   "short": "sort",
+   "kind": "sort"
+  },
+  {
+   "id": "p1-gaps-cytoplasm",
+   "part": 1,
+   "title": "What the cytoplasm is",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "nucleus",
+    "cytosol",
+    "organelles"
+   ]
+  },
+  {
+   "id": "p1-q-em",
+   "part": 1,
+   "title": "Why an electron microscope?",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "They are much too small: you need an electron microscope to see them.",
+    "They have no colour, so no stain can ever make them visible to you.",
+    "They move too fast in the cytosol, so the picture is always blurred.",
+    "They are hidden inside the nucleus, behind its two membranes."
+   ]
+  },
+  {
+   "id": "game-wayin",
+   "part": 2,
+   "title": "Game: glucose, oxygen and amino acids entered; carbon dioxide left",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p2-gaps-membrane",
+   "part": 2,
+   "title": "The way in",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "controls",
+    "carrier proteins",
+    "oxygen"
+   ]
+  },
+  {
+   "id": "p2-q-rbc",
+   "part": 2,
+   "title": "The red blood cell",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "It is a whole cell: far too large to pass through the membrane.",
+    "It carries no oxygen, so the cell membrane does not let it pass.",
+    "It is a waste product, so the cell membrane never lets it enter.",
+    "It has no nucleus, so no carrier protein can carry it inside."
+   ]
+  },
+  {
+   "id": "p2-sort-inout",
+   "part": 2,
+   "title": "In or out?",
+   "short": "sort",
+   "kind": "sort"
+  },
+  {
+   "id": "game-mito",
+   "part": 3,
+   "title": "Game: released energy by aerobic respiration",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p3-gaps-mito",
+   "part": 3,
+   "title": "Respiration",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "aerobic",
+    "releases",
+    "oxygen",
+    "water"
+   ]
+  },
+  {
+   "id": "p3-q-energy",
+   "part": 3,
+   "title": "Energy in the cell",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "Respiration releases energy from glucose, and the cell uses it for its work.",
+    "Mitochondria make new energy from nothing, then store it inside glucose.",
+    "Glucose is made from energy in the mitochondria during aerobic respiration.",
+    "The nucleus uses all of the energy, so it needs the most mitochondria."
+   ]
+  },
+  {
+   "id": "p3-q-folds",
+   "part": 3,
+   "title": "The folded membrane",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "The folds give a large surface, where most of the energy is released.",
+    "The folds make the mitochondrion stronger, so it does not burst.",
+    "The folds store glucose, ready for respiration later in the day.",
+    "The folds help the mitochondrion to move quickly through the cytosol."
+   ]
+  },
+  {
+   "id": "game-nucleus",
+   "part": 4,
+   "title": "Game: found the gene and copied it; the copy left the nucleus",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p4-gaps-nucleus",
+   "part": 4,
+   "title": "The nucleus",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "genetic material",
+    "controls",
+    "gene"
+   ]
+  },
+  {
+   "id": "p4-q-copy",
+   "part": 4,
+   "title": "A copy, not the gene",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "The DNA stays in the nucleus: only copies leave, through its pores.",
+    "The DNA is too small to carry the instructions as far as a ribosome.",
+    "The copy is made of protein, so a ribosome can use it immediately.",
+    "The gene is made in the cytoplasm, so it can never enter the nucleus."
+   ]
+  },
+  {
+   "id": "p4-q-thread",
+   "part": 4,
+   "title": "What chromosomes look like",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "Long, thin threads spread through the nucleus",
+    "Short X shapes in a line in the middle of the cell",
+    "Small round balls, one inside each nuclear pore",
+    "Flat sheets folded neatly round the nucleolus"
+   ]
+  },
+  {
+   "id": "game-nucleolus",
+   "part": 5,
+   "title": "Game: built the two ribosome parts",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p5-q-makes",
+   "part": 5,
+   "title": "What the nucleolus makes",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "The two parts of ribosomes, from RNA and proteins",
+    "The copy of the amylase gene, from amino acids",
+    "The membrane of the nucleus, from lipids and sugar",
+    "The energy for the nucleus, from glucose and oxygen"
+   ]
+  },
+  {
+   "id": "p5-gaps-nucleolus",
+   "part": 5,
+   "title": "Not an organelle",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "nucleus",
+    "membrane",
+    "organelle",
+    "nuclear pores"
+   ]
+  },
+  {
+   "id": "game-ribosome",
+   "part": 6,
+   "title": "Game: joined the amino acids; chose the rough ER",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p6-gaps-ribosome",
+   "part": 6,
+   "title": "Making a protein",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "amino acids",
+    "chain",
+    "membrane"
+   ]
+  },
+  {
+   "id": "p6-q-signal",
+   "part": 6,
+   "title": "The signal",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "It takes the ribosome to the rough ER, where proteins that leave the cell are made.",
+    "It makes the nucleus produce a second copy of the amylase gene for the cell.",
+    "It joins the two parts of the ribosome together after they leave the nucleus.",
+    "It gives the ribosome the energy it needs to join the amino acids together."
+   ]
+  },
+  {
+   "id": "p6-q-time",
+   "part": 6,
+   "title": "How long?",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "About 90 seconds",
+    "About 9 seconds",
+    "About 900 seconds",
+    "About 5 seconds"
+   ]
+  },
+  {
+   "id": "game-rer",
+   "part": 7,
+   "title": "Game: made the chain inside the rough ER; folded it",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p7-gaps-rer",
+   "part": 7,
+   "title": "The rough ER",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "ribosomes",
+    "inside",
+    "shape"
+   ]
+  },
+  {
+   "id": "p7-q-much",
+   "part": 7,
+   "title": "So much rough ER",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "It makes a lot of protein, which it releases from the cell.",
+    "It stores a lot of glucose in its rough ER, for respiration.",
+    "It releases most of its energy by respiration in its rough ER.",
+    "It keeps extra copies of all its DNA inside the rough ER."
+   ]
+  },
+  {
+   "id": "p7-q-shape",
+   "part": 7,
+   "title": "The right shape",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "Starch must fit into its active site, or amylase cannot digest it.",
+    "The right shape makes amylase light enough to float in saliva.",
+    "Only the right shape can pass through a pore in the nucleus.",
+    "A folded chain needs less energy than a straight chain to move."
+   ]
+  },
+  {
+   "id": "game-ser",
+   "part": 8,
+   "title": "Game: made lipids for the ER membrane",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p8-q-diff",
+   "part": 8,
+   "title": "Rough or smooth?",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "Rough ER has ribosomes and makes proteins; smooth ER has none and makes lipids.",
+    "Rough ER makes lipids for membranes; smooth ER has ribosomes and makes proteins.",
+    "Rough ER is found inside the nucleus; smooth ER is in the cytoplasm around it.",
+    "Rough ER releases the energy of the cell; smooth ER stores it as glucose."
+   ]
+  },
+  {
+   "id": "p8-gaps-lipid",
+   "part": 8,
+   "title": "Lipids for membrane",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "lipids",
+    "layers",
+    "vesicle"
+   ]
+  },
+  {
+   "id": "game-golgi",
+   "part": 9,
+   "title": "Game: sorted and packaged the proteins",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p9-gaps-golgi",
+   "part": 9,
+   "title": "The Golgi apparatus",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "modifies",
+    "sorts",
+    "packages",
+    "vesicles"
+   ]
+  },
+  {
+   "id": "p9-q-sorting",
+   "part": 9,
+   "title": "Why sort?",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "Each protein works in one place, so it must be sent to the right one.",
+    "Only sorted proteins can be digested by the enzymes in your saliva.",
+    "Sorting gives each protein the energy it needs to fold into its shape.",
+    "A protein that is not sorted becomes a lipid inside the Golgi."
+   ]
+  },
+  {
+   "id": "game-tracks",
+   "part": 10,
+   "title": "Game: steered the vesicle to the top of the cell",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p10-gaps-mt",
+   "part": 10,
+   "title": "The tracks",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "protein",
+    "Motor proteins",
+    "vesicles"
+   ]
+  },
+  {
+   "id": "p10-q-energy",
+   "part": 10,
+   "title": "Why energy?",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "Each step it takes along the microtubule uses energy.",
+    "It must make a new microtubule before it can walk.",
+    "It digests the vesicle, so that the amylase is released.",
+    "It must split every glucose molecule in two first."
+   ]
+  },
+  {
+   "id": "game-exit",
+   "part": 11,
+   "title": "Game: exocytosis after the nerve message",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p11-gaps-exo",
+   "part": 11,
+   "title": "Exocytosis",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "membrane",
+    "exocytosis"
+   ]
+  },
+  {
+   "id": "p11-q-signal",
+   "part": 11,
+   "title": "The signal to release",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "A message from a nerve, when you smell or taste food",
+    "The vesicles become full, so they open by themselves",
+    "Glucose that enters the cell from the blood after a meal",
+    "Starch that enters the cell through the cell membrane"
+   ]
+  },
+  {
+   "id": "p11-q-membrane",
+   "part": 11,
+   "title": "Where the membrane goes",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "It becomes part of the cell membrane.",
+    "It is digested by the amylase inside it.",
+    "It leaves the cell in the saliva, as a bubble.",
+    "It becomes a new ribosome in the cell."
+   ]
+  },
+  {
+   "id": "game-test",
+   "part": 12,
+   "title": "Game: tested the amylase on starch",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p12-order-journey",
+   "part": 12,
+   "title": "The whole journey",
+   "short": "order",
+   "kind": "order"
+  },
+  {
+   "id": "p12-q-control",
+   "part": 12,
+   "title": "The control",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "It is a control: it shows what happens to the starch without saliva.",
+    "It makes the iodine solution darker, so the colours are clearer.",
+    "It gives the amylase more water, so it digests starch faster.",
+    "It cools the spotting tile, so the amylase does not get too hot."
+   ]
+  },
+  {
+   "id": "p12-q-result",
+   "part": 12,
+   "title": "Reading the result",
+   "short": "q2",
+   "kind": "mcq",
+   "opts": [
+    "There was no starch left: the amylase had digested it into sugar.",
+    "More starch was made from the sugar that the saliva contains.",
+    "The amylase had changed the orange-brown iodine into starch.",
+    "The water in saliva diluted the starch until no colour could form."
+   ]
+  }
+ ]
+}

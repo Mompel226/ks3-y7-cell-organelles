@@ -1,0 +1,27 @@
+three.js r185.1, vendored for this page (4 Nov 2026), as on the Foundations hub.
+
+Source: the npm package three@0.185.1, tarball https://registry.npmjs.org/three/-/three-0.185.1.tgz (its sha512 matched
+the registry's integrity line). Licence: MIT, copied unchanged as LICENSE.
+
+Files (the package's own folder tree, so the addons' relative imports still work):
+  build/three.core.min.js
+  build/three.module.min.js
+  examples/jsm/loaders/GLTFLoader.js
+  examples/jsm/controls/OrbitControls.js
+  examples/jsm/utils/BufferGeometryUtils.js
+  examples/jsm/utils/SkeletonUtils.js
+  examples/jsm/libs/meshopt_decoder.module.js
+  examples/jsm/postprocessing/EffectComposer.js
+  examples/jsm/postprocessing/Pass.js
+  examples/jsm/postprocessing/RenderPass.js
+  examples/jsm/postprocessing/ShaderPass.js
+  examples/jsm/postprocessing/MaskPass.js
+  examples/jsm/postprocessing/UnrealBloomPass.js
+  examples/jsm/postprocessing/OutputPass.js
+  examples/jsm/shaders/CopyShader.js
+  examples/jsm/shaders/LuminosityHighPassShader.js
+  examples/jsm/shaders/OutputShader.js
+
+The ONLY change to any file is to its import specifiers: the bare 'three' is rewritten to the relative path of
+build/three.module.min.js, and every specifier gets the query ?v=0.185.1. Nothing is loaded from a CDN.
+To upgrade: node tools/vendor-three.mjs <a newer unpacked package>, then change ?v= everywhere.

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Dr Daniel Mompel Riera">
+<meta name="description" content="Year 7 Biology: a 3D game inside a real kind of cell. Explore its organelles and structures, make the enzyme amylase and release it from the cell, with checks as you go.">
+<title>Y7 Biology practical: cell structures and organelles</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23221C55'/><path d='M16 4.5c6 0 10.5 5.2 10.5 12.2S22 28 16 28 5.5 23.7 5.5 16.7 10 4.5 16 4.5z' fill='none' stroke='%23FFD27A' stroke-width='2.2'/><circle cx='16' cy='19.5' r='4.6' fill='%238F7CFF'/><circle cx='16.8' cy='19' r='1.4' fill='%23E36FB0'/><rect x='9' y='9.5' width='2.4' height='6' rx='1.2' fill='%23F07A45'/><rect x='20.6' y='8.6' width='2.4' height='6' rx='1.2' fill='%23F07A45'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
+<link rel="stylesheet" href="css/app.css?v=202611041337">
+<link rel="stylesheet" href="css/game.css?v=202611041337">
+<!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
+<script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
+</head>
+<body>
+<div class="top">
+  <div class="upbar"><a class="up" href="https://nlcsbiology.com/biology-hub/">← Back to Biology Hub</a><div class="lessonbar" id="lessonBar" hidden></div><span class="upbtns"><button class="pill" id="btnRestart" type="button">↺ Start <span class="lg">the game </span>again</button><button class="pill" id="btnTheme" type="button" hidden></button></span></div>
+  <div class="head">
+    <div>
+      <div class="eyebrow">KS3 Science · Year 7 Biology</div>
+      <h1>Y7 Biology practical: cell structures and organelles</h1>
+      <p class="by">Explore a cell, make an enzyme and release it · Made by <a href="https://github.com/Mompel226" target="_blank" rel="noopener">Dr Daniel Mompel Riera</a> · NLCS Jeju</p>
+    </div>
+    <p class="timing">As long as you need: it saves as you go. About 60 to 90 minutes.</p>
+  </div>
+</div>
+
+<main class="stage" id="stage" aria-label="The cell world">
+  <canvas id="world" aria-label="A cell of a salivary gland, drawn in 3D and cut at the front so that you can see inside. Its places are in the list in the panel."></canvas>
+  <div class="names" id="names"></div>
+  <div class="hots" id="hots"></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="hud">
+    <div class="bag" id="bag" aria-live="polite"></div>
+    <div class="tools">
+      <button class="wbbtn" id="wbBtn" type="button" aria-expanded="false" aria-controls="wb">Word bank <span class="lang"></span></button>
+      <button class="tool" id="btnSound" type="button" aria-pressed="false">🔈 Sound</button>
+      <button class="tool" id="btnFull" type="button">⛶ Full screen</button>
+    </div>
+  </div>
+  <aside class="quest" id="quest" aria-label="Your quest"></aside>
+  <div class="testbox" id="test" hidden></div>
+  <div class="lens" id="lens" hidden></div>
+  <div class="intro" id="intro" hidden></div>
+  <div class="loading" id="loading"><div class="loading__orb"></div><p>Shrinking you to the size of a protein…</p></div>
+  <noscript><p>This game needs JavaScript to draw the cell.</p></noscript>
+</main>
+
+<aside class="wb" id="wb" hidden aria-labelledby="wb-h" data-lang="all">
+  <div class="wb__top">
+    <h2 id="wb-h">Word bank <button class="close-x" id="wbClose" type="button" aria-label="Close the word bank">×</button></h2>
+    <p>Tap a word to see what it means. Words for the answers you type: spelling counts; capitals do not.</p>
+    <div class="langs" role="group" aria-label="Translations">
+      <button type="button" data-l="all" aria-pressed="true">한국어 + 中文</button>
+      <button type="button" data-l="ko" aria-pressed="false" lang="ko">한국어</button>
+      <button type="button" data-l="zh" aria-pressed="false" lang="zh-Hans">中文</button>
+      <button type="button" data-l="en" aria-pressed="false">English only</button>
+    </div>
+    <input class="wb__find" id="wbFind" type="search" placeholder="Find a word (English, 한국어 or 中文)" aria-label="Find a word">
+  </div>
+  <div class="wb__list" id="wbList"></div>
+</aside>
+
+<section class="about" aria-labelledby="about-h">
+  <h2 id="about-h">How the game works</h2>
+  <div class="about__grid">
+    <div>
+      <h3>For pupils</h3>
+      <p>You are inside one cell of a salivary gland. Your mission: make the enzyme amylase and release it from the cell. Each place of the cell does one job. A place wakes when you carry what it needs, so you can choose the order of some places. Every step waits for you. After each place, check what you learned: a first letter, the word list or a hint is there if you are stuck.</p>
+    </div>
+    <div>
+      <h3>For the teacher</h3>
+      <p>A pupil signed in with their school Google account has every check and every finished place saved for you, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the computer. The world shows the true shapes and places of the parts of a salivary gland cell; the colours and the light are made magical, and molecules are drawn much larger than they are. "See the real thing" shows real diagrams and electron micrographs.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><b>Y7 Biology practical: cell structures and organelles</b> · Something wrong, or a suggestion? Please contact me: <a href="mailto:dmompelriera@nlcsjeju.kr">dmompelriera@nlcsjeju.kr</a></p>
+  <p>Checked against Daniel's Year 7 Cells lessons (slides and knowledge organiser) and the research named in each "Did you know?". The 3D cell was made for this page, after LadyofHats' public-domain <i>Animal cell structure</i>. Diagrams: domdomegg (CC BY 4.0) and LadyofHats (public domain), Wikimedia Commons. Electron micrographs: Janelia Research Campus, OpenOrganelle, dataset jrc_hela-2 (CC BY 4.0), and Louisa Howard, Dartmouth College (public domain). three.js (MIT).</p>
+  <p>Code: AGPL-3.0. Teaching material: CC BY-NC-SA 4.0: free for teaching, not for selling.</p>
+</footer>
+
+<script src="https://accounts.google.com/gsi/client?hl=en-GB" async defer></script>
+<script src="js/config.js?v=202611041337"></script>
+<script src="js/signin.js?v=202611041337"></script>
+<script src="js/lesson.js?v=202611041337"></script>
+<script src="js/glossary.js?v=202611041337"></script>
+<script src="js/words.js?v=202611041337"></script>
+<script src="js/story.js?v=202611041337"></script>
+<script src="js/questions.js?v=202611041337"></script>
+<script src="js/core.js?v=202611041337"></script>
+<script src="js/checks.js?v=202611041337"></script>
+<script type="module" src="js/game/main.js?v=202611041337"></script>
+</body>
+</html>
