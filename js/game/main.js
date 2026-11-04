@@ -5,17 +5,18 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611042055';
-import { Names } from './names.js?v=202611042055';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611042055';
-import { makePlay } from './play.js?v=202611042055';
-import { setStill, wait } from './actors.js?v=202611042055';
-import { state } from './state.js?v=202611042055';
-import { ICON } from './icons.js?v=202611042055';
-import { openLens } from './lens.js?v=202611042055';
-import { intro } from './intro.js?v=202611042055';
-import { sound } from './sound.js?v=202611042055';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611042055';
+import { World, MAP_VIEW } from '../world/world.js?v=202611042250';
+import { Names } from './names.js?v=202611042250';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611042250';
+import { makePlay } from './play.js?v=202611042250';
+import { setStill, wait } from './actors.js?v=202611042250';
+import { state } from './state.js?v=202611042250';
+import { ICON } from './icons.js?v=202611042250';
+import { openLens } from './lens.js?v=202611042250';
+import { intro } from './intro.js?v=202611042250';
+import { sound } from './sound.js?v=202611042250';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611042250';
+import { openCopyFilm } from './transcribe.js?v=202611042250';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -184,6 +185,8 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 document.addEventListener('lens', e => openLens(e.detail));
+/* an Explorer film, from a place's end (the nucleus: how a cell copies a gene) */
+document.addEventListener('explore', e => { if (e.detail === 'nucleus') openCopyFilm({ last: 'Close' }); });
 
 /* ---------- start ---------- */
 async function start() {

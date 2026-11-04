@@ -5,8 +5,9 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611042055';
-import { state, COST, RESPIRE } from './state.js?v=202611042055';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611042250';
+import { state, COST, RESPIRE } from './state.js?v=202611042250';
+import { openCopyFilm } from './transcribe.js?v=202611042250';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const R = window.REV;
@@ -54,13 +55,14 @@ export function makePlay(world, quest) {
   };
 
   /* ---------------- the way in: the membrane at the base, drawn bigger (cellbuild.js, the bilayer) ----------------
-     Daniel, 4 Nov 2026: "you should still see an in and an out … the oxygen should come from the red blood cells, and the
-     carbon dioxide should go to the red blood cells … small non-polar molecules being able to diffuse in, while the large
-     polar molecules are transported". So the membrane shows its two layers of lipids, with the inside (the cytoplasm)
-     above and the outside (the tissue fluid, then the capillary) below, named on the picture; each press has a reason:
-     a red blood cell releases oxygen, which passes straight between the lipids; glucose and an amino acid each choose their
-     way in (the lipids stop them; each passes through its own carrier protein); carbon dioxide leaves, into a red blood
-     cell. In KS3 words: small and larger molecules (not "polar"). */
+     Daniel, 4 Nov 2026: "you should still see an in and an out … the oxygen should come from the red blood cells … small
+     non-polar molecules being able to diffuse in, while the large polar molecules are transported". So the membrane shows
+     its two layers of lipids, with the inside (the cytoplasm) above and the outside (the tissue fluid, then the capillary)
+     below, named on the picture; each press has a reason: a red blood cell releases oxygen, which passes straight between
+     the lipids; glucose and an amino acid each choose their way in (the lipids stop them; each passes through its own
+     carrier protein); carbon dioxide leaves, into the PLASMA, between two red blood cells, and flows away with it (Daniel,
+     the same evening: "make sure that it doesn't go inside a red blood cell … Otherwise, it's leading to a
+     misconception"; haemoglobin is kept out: "too complicated"). In KS3 words: small and larger molecules (not "polar"). */
   const BL = W.bilayer, BLD = W.blood, WV = world.P.wayin.view;
   const curve = pts => new THREE.CatmullRomCurve3(pts);
   const jit = (k = 0.18) => (Math.random() - 0.5) * 2 * k;
@@ -188,12 +190,24 @@ export function makePlay(world, quest) {
     await wayFly();
     const t = keep(token('co2', 0.34)); t.position.set(0.3, 0.7, 0.14); bob(t, 0.03);
     await press(() => t.position.clone().add(V(0, 0.3, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
-    /* straight between the lipids, out through the tissue fluid, then into a red blood cell as it passes */
-    await tween(t, { path: curve([t.position.clone(), V(0.25 + jit(0.1), 0.42, 0.13), V(0.3, 0, 0.14), V(0.25, -0.6, 0.12), V(0.4 + jit(), -1.3, 0.04), V(0.5, -2.0, -0.3)]), ms: R.FAST ? 0 : 2600 });
-    const ri = pickRbc(t.position.x, 4.5);
-    await follow(t, () => BLD.rbcAt(ri, BLD.t || 0).add(V(0, 0.2, 1.0)), R.FAST ? 0 : 2200, { scale: 0.35 });
-    drop(t);
-    quest.say('Carbon dioxide passes straight through the two layers of lipids, into the blood. The blood carries it to your lungs, in the red blood cells and in the plasma.', 'ok');
+    /* straight between the lipids, out through the tissue fluid and the capillary's thin wall */
+    await tween(t, { path: curve([t.position.clone(), V(0.25 + jit(0.1), 0.42, 0.13), V(0.3, 0, 0.14), V(0.25, -0.6, 0.12), V(0.4 + jit(), -1.3, 0.04)]), ms: R.FAST ? 0 : 2200 });
+    /* then into the plasma: first along the tissue fluid until it is over the middle of a space between two red blood
+       cells, then down into that space, always over it as the blood flows (it never touches a red blood cell); then on
+       with the plasma, out of the picture */
+    const k = BLD.gapNear(t.position.x, BLD.t || 0), inPlasma = () => BLD.gapAt(k, BLD.t || 0).add(V(0, 0.5, 1.4)), a = t.position.clone();
+    unbob(t);
+    await live(new Promise(res => {
+      const t0 = performance.now(), sm = x => x * x * (3 - 2 * x);
+      const f = () => {
+        const s = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2600), g = inPlasma(), e1 = sm(Math.min(1, s / 0.45)), e2 = sm(Math.max(0, (s - 0.45) / 0.55));
+        t.position.set(a.x + (g.x - a.x) * e1, a.y + (g.y - a.y) * e2, a.z + (g.z - a.z) * e2); world.kick && world.kick();
+        if (s < 1) requestAnimationFrame(f); else res();
+      };
+      f();
+    }));
+    W.anim.push(function flowOn() { const p = inPlasma(); if (!t.parent || p.x > 9) { W.anim.splice(W.anim.indexOf(flowOn), 1); drop(t); return; } t.position.copy(p); });
+    quest.say('Carbon dioxide passes straight through the two layers of lipids, into the blood. It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.', 'ok');
     await quest.next('Check what you learned');
   }
 
@@ -305,19 +319,32 @@ export function makePlay(world, quest) {
     for (let i = 0; i <= 12; i++) pts.push(g.curve.getPointAt(i / 12).add(V(0.06, 0.12, 0.08)));
     return new THREE.CatmullRomCurve3(pts);
   }
+  /* the copy: one press (Copy) and it grows along the gene; or, beyond the Year 7 list, a film of how a cell copies a
+     gene, step by step, which makes the copy too (transcribe.js; Daniel, 4 Nov 2026: "keep it simple … Unless you could
+     add the option") */
   async function copy() {
     const g = gene();
-    await press(() => g.curve.getPointAt(0.5).add(V(0, 0.3, 0)), 'Copy', { cost: COST.copy });
+    let film = false;
+    for (;;) {
+      const b = quest.hot(() => g.curve.getPointAt(0.5).add(V(0, 0.3, 0)), 'Copy', { side: 'c' });
+      const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn ghost explore'; ex.textContent = '🔬 Explorer: how a cell copies a gene';
+      quest.step.do.appendChild(ex);
+      const pick = await live(Promise.race([b.done.then(() => 'copy'), new Promise(r => ex.addEventListener('click', () => r('film'), { once: true }))]));
+      b.remove(); ex.remove();
+      if (quest.energy(COST.copy)) { film = pick === 'film'; break; }
+      await wait(400);
+    }
     const rib = keep(ribbon(copyCurve(), { radius: 0.035 }));
-    const t0 = performance.now();
-    await live(new Promise(r => { const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2200); rib.userData.grow(k); if (k < 1) requestAnimationFrame(f); else r(); }; f(); }));
+    if (film) { await live(openCopyFilm()); rib.userData.grow(1); }
+    else {
+      const t0 = performance.now();
+      await live(new Promise(r => { const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2200); rib.userData.grow(k); if (k < 1) requestAnimationFrame(f); else r(); }; f(); }));
+    }
     props.rib = rib;
     quest.say('The copy of the gene: <b>mRNA</b>.', 'ok');
   }
   async function exportCopy() {
     let rib = props.rib; if (!rib) { rib = props.rib = keep(ribbon(copyCurve(), { radius: 0.035 })); rib.userData.grow(1); }
-    /* the pore nearest the window's rim, so the copy is seen leaving */
-    const rimPore = W.pores.slice().sort((a, b) => a.clone().sub(N0).normalize().dot(win) - b.clone().sub(N0).normalize().dot(win)).reverse()[0];
     await quest.choose(['Through a nuclear pore', 'Straight through the two membranes of the nucleus', 'Send the DNA itself, not a copy'], 0, async (i) => {
       if (i === 1) {
         quest.say('The <b>nuclear envelope</b> is two membranes. A large molecule such as mRNA cannot pass through them: it leaves only through a <b>nuclear pore</b>.', 'no');
@@ -328,10 +355,36 @@ export function makePlay(world, quest) {
       }
     });
     quest.say('The copy leaves through a nuclear pore.', 'ok');
-    const c = rib.geometry.boundingSphere ? rib.geometry.boundingSphere.center.clone() : N0.clone();
-    await tween(rib, { to: rimPore.clone().sub(c).multiplyScalar(1.15), ms: 1600 });
-    await quest.gain('mrna', rimPore);
+    /* the camera goes back out of the nucleus, far enough to see all of it, and the pore that the copy leaves by is ringed
+       (Daniel, 4 Nov 2026: "make sure that the zoom is far away and that you actually see the … copy leave one of the
+       pores"); the copy, a thread, slides along its own length to that pore, through it, and out into the cytoplasm */
+    const far = world.P.nucleus.view, camAt = V(...far.pos);
+    const pore = W.pores.slice().sort((a, b) => b.clone().sub(N0).normalize().dot(camAt.clone().sub(N0).normalize()) - a.clone().sub(N0).normalize().dot(camAt.clone().sub(N0).normalize()))[0];
+    const out = pore.clone().sub(N0).normalize();
+    const ring = keep(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 8, 28), new THREE.MeshBasicMaterial({ color: 0xfff1a8 })));
+    ring.position.copy(pore); ring.lookAt(pore.clone().add(out));
+    await fly(far.pos, N0.clone().lerp(pore, 0.55).toArray(), 1800);
+    /* the thread's way: the copy itself (its far end first), then the pore, then the cytoplasm beyond */
+    const cc = copyCurve(), pts = cc.getPoints(12);
+    if (pts[0].distanceTo(pore) < pts[pts.length - 1].distanceTo(pore)) pts.reverse();
+    const side = new THREE.Vector3().crossVectors(out, V(0, 1, 0)).normalize();
+    const way = new THREE.CatmullRomCurve3(pts.concat([pore.clone().addScaledVector(out, -0.5), pore.clone().addScaledVector(out, -0.12), pore.clone().addScaledVector(out, 0.2),
+      pore.clone().addScaledVector(out, 0.75).addScaledVector(side, 0.15), pore.clone().addScaledVector(out, 1.4).addScaledVector(side, 0.35), pore.clone().addScaledVector(out, 2.1).addScaledVector(side, 0.45)]));
+    const SEG = 320, thread = keep(ribbon(way, { radius: 0.035, segs: SEG })), per = 8 * 6;
+    const lenSegs = Math.max(6, Math.round(SEG * cc.getLength() / way.getLength()));
     drop(rib); props.rib = null;
+    const t0 = performance.now(), MS = R.FAST ? 0 : 3600;
+    await live(new Promise(res => {
+      const f = () => {
+        const k = MS ? Math.min(1, (performance.now() - t0) / MS) : 1, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        thread.geometry.setDrawRange(Math.round(e * (SEG - lenSegs)) * per, lenSegs * per); world.kick && world.kick();
+        if (k < 1) requestAnimationFrame(f); else res();
+      };
+      f();
+    }));
+    quest.say('The copy, mRNA, is in the cytoplasm now. The DNA stays in the nucleus.', 'ok');
+    await quest.gain('mrna', way.getPointAt(0.97));
+    drop(thread); drop(ring);
     await quest.next('Back to the map');
   }
 

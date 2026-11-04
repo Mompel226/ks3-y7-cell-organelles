@@ -15,7 +15,7 @@ import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js?v=0.185.1';
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { MeshoptDecoder } from '../vendor/three/examples/jsm/libs/meshopt_decoder.module.js?v=0.185.1';
-import { REAL } from './real.js?v=202611042055';
+import { REAL } from './real.js?v=202611042250';
 const R = window.REV, { $, $$, h, esc } = R;
 
 const SIMPLE = { src: 'img/diagram/simple-animal-cell.svg', vb: [730.39, 560.42], credit: 'Diagram: domdomegg, Wikimedia Commons, CC BY 4.0 (ribosomes added by the Cells Lab)' };
@@ -46,7 +46,7 @@ let model = null;
 function loadModel() {
   if (model) return model;
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611042055'));
+  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611042250'));
 }
 function viewer(pane, id) {
   const R3 = REAL3D[id], wrap = pane.querySelector('.lens__3d');

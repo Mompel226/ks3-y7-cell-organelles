@@ -81,11 +81,11 @@ window.STORY = {
   wayin: {
     part: 2, task: 'game-wayin', title: 'Cell membrane: the way in', kind: 'The cell membrane: part of every cell', y7: true, def: 'cell-membrane',
     needs: [], gives: ['glucose', 'oxygen', 'amino'],
-    intro: 'You are at the base of the cell. Below its membrane are the tissue fluid (the liquid round the cells) and a <dfn data-w="capillary">capillary</dfn> full of blood.\nThe cell needs <dfn data-w="glucose">glucose</dfn> and <dfn data-w="oxygen">oxygen</dfn> for respiration, and <dfn data-w="amino-acid">amino acids</dfn> to make proteins. The blood brings them.\nThe <dfn data-w="cell-membrane">cell membrane</dfn> controls what enters and leaves the cell.',
+    intro: 'You are at the base of the cell. Below its membrane are the <dfn data-w="tissue-fluid">tissue fluid</dfn> (the liquid round the cells) and a <dfn data-w="capillary">capillary</dfn> full of blood: red blood cells in the <dfn data-w="plasma">plasma</dfn>, the liquid part of the blood.\nThe cell needs <dfn data-w="glucose">glucose</dfn> and <dfn data-w="oxygen">oxygen</dfn> for respiration, and <dfn data-w="amino-acid">amino acids</dfn> to make <dfn data-w="protein">proteins</dfn>. The blood brings them.\nThe <dfn data-w="cell-membrane">cell membrane</dfn> controls what enters and leaves the cell.',
     steps: [
       { play: 'look', text: 'Here the membrane is drawn about 100 times bigger, so that you can see it: two layers of <dfn data-w="lipid">lipid</dfn> molecules, with proteins in them.\nAbove the membrane is the <b>inside</b> of the cell. Below it is the <b>outside</b>.' },
       { play: 'oxygen', text: '<dfn data-w="red-blood-cell">Red blood cells</dfn> carry oxygen from your lungs. Here, the cells use oxygen, so the red blood cells release it.\n<mark class="do">Press a red blood cell.</mark>' },
-      { play: 'carriers', text: 'Glucose and amino acids are dissolved in the plasma, the liquid part of the blood. They leave the capillary through its thin wall.\n<mark class="do">Press the glucose, then choose how it enters the cell.</mark>' },
+      { play: 'carriers', text: 'Glucose and amino acids are dissolved in the plasma. They leave the capillary through its thin wall.\n<mark class="do">Press the glucose, then choose how it enters the cell.</mark>' },
       { play: 'amino', text: 'A <dfn data-w="carrier-protein">carrier protein</dfn> carried the glucose through the membrane. An amino acid is a larger molecule too.\n<mark class="do">Press the amino acid, then choose how it enters the cell.</mark>' },
       { play: 'co2', text: '<dfn data-w="carbon-dioxide">Carbon dioxide</dfn> is a waste product of respiration. It is a small molecule, like oxygen.\n<mark class="do">Press the carbon dioxide.</mark>' }
     ],
@@ -110,19 +110,20 @@ window.STORY = {
     intro: 'The <dfn data-w="nucleus">nucleus</dfn> contains the genetic material (<dfn data-w="dna">DNA</dfn>) and controls the activities of the cell. The DNA is in 46 long threads, the <dfn data-w="chromosome">chromosomes</dfn>.\nTwo membranes surround the nucleus, the <dfn data-w="nuclear-envelope">nuclear envelope</dfn>, with holes in them: the <dfn data-w="nuclear-pore">nuclear pores</dfn>.',
     steps: [
       { play: 'enter', text: 'You become even smaller, and you enter the nucleus through a nuclear pore.\nIn a cell that is not dividing, every chromosome is a long, thin thread. (Chromosomes look like an X only when a cell divides.)' },
-      { play: 'findchr', text: 'A <dfn data-w="gene">gene</dfn> is a short section of DNA that carries the instructions for making one protein. The amylase gene is on chromosome 1, the largest kind of chromosome.\n<mark class="do">Press the threads to find chromosome 1.</mark>' },
+      { play: 'findchr', text: 'A <dfn data-w="gene">gene</dfn> is a short section of DNA that carries the instructions for making one <dfn data-w="protein">protein</dfn>. The amylase gene is on chromosome 1, the largest kind of chromosome.\n<mark class="do">Press the threads to find chromosome 1.</mark>' },
       { play: 'findgene', text: '<mark class="do">Press the glowing section: the amylase gene.</mark>' },
-      { play: 'copy', text: 'The DNA never leaves the nucleus. The cell makes a copy of the gene instead, called <dfn data-w="mrna">mRNA</dfn> (messenger RNA).\n<mark class="do">Press Copy to make the copy.</mark>' },
+      { play: 'copy', text: 'The DNA never leaves the nucleus. The cell makes a copy of the gene instead, called <dfn data-w="mrna">mRNA</dfn> (messenger RNA).\n<mark class="do">Press Copy to make the copy.</mark>\nExplorer, beyond the Year 7 list: <b>🔬 how a cell copies a gene</b> shows it step by step, and makes the copy too.' },
       { play: 'export', text: '<mark class="do">Choose how the copy leaves the nucleus.</mark>' }
     ],
     done: 'You carry the copy of the amylase gene. Next it needs a <b>ribosome</b>: the nucleolus makes the parts of ribosomes.',
+    explore: '🔬 Explorer: how a cell copies a gene',
     fact: { text: 'The DNA in one of your cells is about 2 metres long, but it fits into a nucleus about 6 µm across.', src: 'Annunziato 2008, Nature Education 1:26 (open)' },
     fact2: { text: 'Some people have more copies of the amylase gene than others. People from groups that have eaten foods rich in starch for thousands of years have more copies, on average.', src: 'Perry et al. 2007, Nature Genetics 39:1256' }
   },
   nucleolus: {
     part: 5, task: 'game-nucleolus', title: 'Nucleolus', kind: 'Not an organelle: no membrane', def: 'nucleolus',
     needs: [], gives: ['parts'], inside: 'nucleus',
-    intro: 'The <dfn data-w="nucleolus">nucleolus</dfn> is a dense region inside the nucleus. It makes the two parts of <dfn data-w="ribosome">ribosomes</dfn>, a small part and a large part.\nEach part is made of RNA (a molecule like DNA), which the nucleolus makes, and proteins, which enter the nucleus from the cytoplasm.\nIt has no membrane, so it is not an organelle.',
+    intro: 'The <dfn data-w="nucleolus">nucleolus</dfn> is a dense region inside the nucleus. It makes the two parts of <dfn data-w="ribosome">ribosomes</dfn>, a small part and a large part.\nEach part is made of <dfn data-w="rna">RNA</dfn> (a molecule like DNA), which the nucleolus makes, and <dfn data-w="protein">proteins</dfn>, which enter the nucleus from the cytoplasm.\nIt has no membrane, so it is not an organelle.',
     steps: [
       { play: 'small', text: '<mark class="do">Press Build to make the small part.</mark>' },
       { play: 'large', text: '<mark class="do">Press Build to make the large part.</mark>' },
@@ -142,12 +143,12 @@ window.STORY = {
     ],
     done: 'The ribosome is moving to the <b>rough ER</b>, with the start of the chain.',
     fact: { text: 'Electron micrographs showed one small box of a HeLa cell (a human cell grown in laboratories), only 7.5 × 4.6 × 7.5 µm. In it, a computer program found 553 130 ribosomes.', src: 'OpenOrganelle, dataset jrc_hela-2 (Xu et al. 2021, Nature 599:147; Heinrich et al. 2021, Nature 599:141)' },
-    fact2: { text: 'The part of a ribosome that joins amino acids together is made of RNA, not protein.', src: 'Nissen et al. 2000, Science 289:920' }
+    fact2: { text: 'The part of a ribosome that joins amino acids together is made of <dfn data-w="rna">RNA</dfn>, not protein.', src: 'Nissen et al. 2000, Science 289:920' }
   },
   rer: {
     part: 7, task: 'game-rer', title: 'Rough ER', kind: 'Organelle: flattened sacs of membrane', def: 'rough-er',
     needs: ['chain'], gives: ['amylase'], alsoNeeds: ['lipids'],
-    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough.\nThe proteins they make go inside the rough ER, where they fold into their shape.',
+    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough.\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.',
     steps: [
       { play: 'dock', text: '<mark class="do">Press Dock:</mark> the signal takes the ribosome to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel, inside the rough ER.\n<mark class="do">Press Go.</mark>' },
@@ -161,7 +162,7 @@ window.STORY = {
   ser: {
     part: 8, task: 'game-ser', title: 'Smooth ER', kind: 'Organelle: a network of tubes', def: 'smooth-er',
     needs: ['energy'], gives: ['lipids'],
-    intro: 'The <dfn data-w="smooth-er">smooth ER</dfn> is a network of tubes with no ribosomes. It makes <dfn data-w="lipid">lipids</dfn> (fats, oils and similar molecules).\nA membrane is two layers of lipids, with proteins in it. Every new <dfn data-w="vesicle">vesicle</dfn> removes a piece of the ER membrane, so the ER needs new lipids.\nThe rough ER and the smooth ER are one joined membrane, so new lipids spread from one to the other. This cell has only a little smooth ER.',
+    intro: 'The <dfn data-w="smooth-er">smooth ER</dfn> is a network of tubes with no ribosomes. It makes <dfn data-w="lipid">lipids</dfn> (fats, oils and similar molecules).\nA membrane is two layers of lipids, with <dfn data-w="protein">proteins</dfn> in it. Every new <dfn data-w="vesicle">vesicle</dfn> removes a piece of the ER membrane, so the ER needs new lipids.\nThe rough ER and the smooth ER are one joined membrane, so new lipids spread from one to the other. This cell has only a little smooth ER.',
     steps: [
       { play: 'lipid', text: 'A membrane lipid has a head and two tails.\n<mark class="do">Press Join three times</mark> to make three lipids. Each one uses some energy.' },
       { play: 'layer', text: 'The new lipids join the membrane of the ER: two layers, with their tails inside. The ER is one joined membrane, so they spread through it to the rough ER.\n<mark class="do">Press Add to the membrane.</mark>' }
@@ -172,7 +173,7 @@ window.STORY = {
   golgi: {
     part: 9, task: 'game-golgi', title: 'Golgi apparatus', kind: 'Organelle: a stack of flattened sacs', def: 'golgi',
     needs: ['amylase'], gives: ['packed'],
-    intro: 'The <dfn data-w="golgi">Golgi apparatus</dfn> is a stack of flattened, curved sacs. It modifies proteins (for example, it adds sugars to some of them), sorts them, and packages them into vesicles.\nVesicles from the rough ER join it on one side; new vesicles leave from the other side.',
+    intro: 'The <dfn data-w="golgi">Golgi apparatus</dfn> is a stack of flattened, curved sacs. It modifies <dfn data-w="protein">proteins</dfn> (for example, it adds sugars to some of them), sorts them, and packages them into vesicles.\nVesicles from the rough ER join it on one side; new vesicles leave from the other side.',
     steps: [
       { play: 'join', text: '<mark class="do">Press Join:</mark> the vesicle joins the first sac of the stack.' },
       { play: 'through', text: 'Your amylase moves through the stack, sac by sac.\n<mark class="do">Press Next sac until it reaches the last one.</mark>' },
@@ -185,7 +186,7 @@ window.STORY = {
   tracks: {
     part: 10, task: 'game-tracks', title: 'Microtubules', plural: true, kind: 'Not an organelle: no membrane', def: 'microtubule',
     needs: ['packed', 'energy'], gives: ['top'],
-    intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of protein. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
+    intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
     steps: [
       { play: 'grab', text: '<mark class="do">Press Attach:</mark> a motor protein holds the vesicle.' },
       { play: 'maze', text: 'Each step uses energy. Where two microtubules cross, the vesicle can step onto the other one.\n<mark class="do">At each crossing, choose the microtubule that leads to the top of the cell.</mark>' }
@@ -205,7 +206,7 @@ window.STORY = {
     ],
     done: 'Your amylase is in the saliva. Does it work? Test it.',
     fact: { text: 'Your salivary glands make between 1 and 1.5 litres of saliva every day.', src: 'de Almeida et al. 2008, Journal of Contemporary Dental Practice 9(3):72' },
-    fact2: { text: 'Amylase is one of the most common proteins in your saliva.', src: 'Peyrot des Gachons and Breslin 2016, Current Diabetes Reports 16:102' }
+    fact2: { text: 'Amylase is one of the most common <dfn data-w="protein">proteins</dfn> in your saliva.', src: 'Peyrot des Gachons and Breslin 2016, Current Diabetes Reports 16:102' }
   },
   test: {
     part: 12, task: 'game-test', title: 'Does your amylase work?', tag: 'The test',

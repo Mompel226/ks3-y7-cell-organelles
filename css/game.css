@@ -276,6 +276,28 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .lens__wait{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:#E8E4FF;font-weight:700}
 .lens__wait[hidden]{display:none}
 .lens__cap{font-size:15.5px;margin:8px 0 2px}
+/* the Explorer film of the nucleus: how a cell copies a gene (js/game/transcribe.js), in the lens's window */
+.cf__x{display:inline-block;margin:2px 0 10px;font:800 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#7a5cff;background:rgba(160,140,255,.14);border:1.5px dashed #b9a6ff;border-radius:999px;padding:6px 10px}
+.cf__key{margin:8px 0 6px;font-size:15px;color:var(--qp-ink)}
+.cf__key span{display:inline-grid;place-items:center;width:1.6em;height:1.6em;margin:0 2px;border-radius:50%;background:var(--c);color:#10142e;font-weight:900}
+.cf__n{margin:8px 0 4px;font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent)}
+.cf__t{font-size:17px;line-height:1.5}
+.cf__t p{margin:0}.cf__t p+p{margin-top:.45em}
+.cf__do{margin-top:12px}
+/* two columns where there is room (the film beside its words, so the window fits a laptop's screen); one on a phone */
+.cf{width:min(980px,100%)}
+.cf__grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:8px}
+.cf__3d{height:min(56vh,400px)}
+@media (max-width:760px){.cf__grid{grid-template-columns:1fr;gap:10px}.cf__3d{height:min(32vh,230px)}.cf__t{font-size:16px}}
+.step__do .explore{margin-top:8px}
+/* the film's scale bars and names, over its view at the parts they measure or name (transcribe.js) */
+.cf__bar,.cf__lab{position:absolute;left:0;top:0;pointer-events:none;transition:opacity .3s;will-change:transform}
+.cf__bar{display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;font:800 13px/1 var(--sans);text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.cf__bar i{display:block;height:9px;border:solid #fff;border-width:0 2px 2px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.35)}
+.cf__bar--v{flex-direction:row-reverse;align-items:center;transform-origin:0 0}
+.cf__bar--v b{margin-right:6px}
+.cf__bar--v i{width:9px;height:auto;border-width:2px 0 2px 2px;border-radius:2px 0 0 2px}
+.cf__lab{background:rgba(10,14,40,.86);color:#fff;font:800 13px/1.2 var(--sans);padding:5px 10px;border-radius:999px;white-space:nowrap;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.35)}
 
 /* ---------- under the stage ---------- */
 .about{max-width:1480px;margin:0 auto;padding:6px 24px 10px}

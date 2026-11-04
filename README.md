@@ -11,9 +11,9 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Place | What the pupil does there | What they bring away |
 |---|---|---|
 | The cell you know | the five Year 7 parts lit alone; then everything an electron microscope shows; what an organelle is | the map |
-| Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves, into a red blood cell | glucose, oxygen, amino acids |
+| Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves into the plasma, the liquid part of the blood, between the red blood cells | glucose, oxygen, amino acids |
 | Mitochondria | splits glucose in the cytoplasm, sends the pieces and oxygen in: aerobic respiration releases energy | energy (the bar) |
-| Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA); chooses how the copy leaves | the copy of the gene |
+| Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene (a zoom from a chromosome's packed fibre through the histones to the double helix, with scale bars of 30, 11 and 2 nm; A, T, C and G as the four nucleotides; the DNA untwisted as a ladder; the strands separate inside the enzyme, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore | the copy of the gene |
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
 | Ribosomes | joins the parts on the copy; matches each amino acid to the code; chooses where this ribosome must work | the start of the chain |
 | Rough ER | docks on a channel; makes the chain inside the rough ER; cuts the signal; folds it (the active site) | amylase in a vesicle |
@@ -96,7 +96,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   world is the same at every load), `magic.js` the materials and light, `world.js` the renderer, the camera's flights and
   what a pupil points at. `js/game/` is the game: `state.js` (what a pupil carries, which places are awake), `quest.js` (the
   panel and the buttons that stand on the parts), `play.js` (every step of every place), `names.js` (names on level lines,
-  shown only when the camera is still), `intro.js` (the dive), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing), `final.js` (the final check: the code, the
+  shown only when the camera is still), `intro.js` (the dive), `transcribe.js` (the Explorer film: how a cell copies a gene, a 3D view of its own), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing), `final.js` (the final check: the code, the
   questions one at a time, marking at the end, the result).
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
   question list); `js/signin.js`, `js/lesson.js` and `js/glossary.js` are copies of the Biology Hub's shared files, made by

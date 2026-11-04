@@ -6,12 +6,12 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611042055';
-import { state, COST } from './state.js?v=202611042055';
-import { sound } from './sound.js?v=202611042055';
-import { finalLine } from './final.js?v=202611042055';
-import { HAS_LENS } from './lens.js?v=202611042055';
-import { simpleCard } from './simplecard.js?v=202611042055';
+import { ICON } from './icons.js?v=202611042250';
+import { state, COST } from './state.js?v=202611042250';
+import { sound } from './sound.js?v=202611042250';
+import { finalLine } from './final.js?v=202611042250';
+import { HAS_LENS } from './lens.js?v=202611042250';
+import { simpleCard } from './simplecard.js?v=202611042250';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -235,9 +235,12 @@ export class Quest {
       document.removeEventListener('progress', paint);
       won.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
         ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
-        ${HAS_LENS(id) ? `<button type="button" class="qp__real">🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}</button>` : ''}`;
+        ${HAS_LENS(id) ? `<button type="button" class="qp__real">🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}</button>` : ''}
+        ${P.explore ? `<button type="button" class="qp__real qp__explore">${esc(P.explore)}</button>` : ''}`;
       R.terms(won);
-      const rb = $('.qp__real', won); if (rb) rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
+      const rb = $('.qp__real:not(.qp__explore)', won); if (rb) rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
+      /* an Explorer film of this place (the nucleus: how a cell copies a gene), again at any time */
+      const xb = $('.qp__explore', won); if (xb) xb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('explore', { detail: id })));
       nav.hidden = false; if (first) $('.qp__mapbtn', nav).textContent = 'Go to the map →';
       /* the place is done now: the map wakes what it gave (main.js), and the pupil sees it at once */
       if (now) { sound.gain(); document.dispatchEvent(new CustomEvent('place-complete', { detail: id })); this.scrollTo(won); }

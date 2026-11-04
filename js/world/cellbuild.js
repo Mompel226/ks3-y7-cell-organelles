@@ -17,7 +17,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611042055';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611042250';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -242,11 +242,26 @@ export function buildCell(scene) {
   /* red from every side, also far away and against the light (they looked black in the intro's view, 4 Nov 2026) */
   const rbcMat = magicStandard({ color: 0xc0303f, emissive: 0x6a0d1a, emissiveIntensity: 0.55, roughness: 0.4, fog: false }, { rim: 0xff7b8a, rimK: 0.45 });
   const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
-  /* where red blood cell i is at time t (the way in: oxygen leaves one, carbon dioxide goes into one) */
-  const rbcAt = (i, t, out = new THREE.Vector3()) => { const u = (((t * 0.012 + i / 9) % 1) + 1) % 1; return out.copy(capPath.getPointAt(u)).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1))); };
-  W.blood = { path: capPath, rbcAt, n: 9, radius: 3.05 };
+  /* where red blood cell i is at time t (the way in: oxygen leaves one) */
+  const FLOW = 0.012, uOf = (k, t) => (((t * FLOW + k / 9) % 1) + 1) % 1;
+  const rbcAt = (i, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(i, t))).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1)));
+  /* the plasma, the liquid part of the blood: pale yellow motes flowing along the capillary with the red blood cells.
+     The way in sends carbon dioxide into it, between two red blood cells, never into one (Daniel, 4 Nov 2026: "make
+     sure that it goes into the plasma, and it looks like it's going into the plasma … Otherwise, it's leading to a
+     misconception"). Its own random numbers, so that the rest of the world stays as it was. */
+  const NP = 260, Rp = rng(41), plasmaAt = [];
+  for (let i = 0; i < NP; i++) { const a = Rp() * 6.283, r = 2.55 * Math.sqrt(Rp()); plasmaAt.push([Rp(), r * Math.cos(a), r * Math.sin(a)]); }
+  const plasma = sparkles({ count: NP, size: 0.14, color: 0xffd76a, drift: 0.06, opacity: 0.85, sample: (v, i) => v.copy(capPath.getPointAt(plasmaAt[i][0])) });
+  plasma.name = 'plasma'; plasma.frustumCulled = false; below.add(plasma);
+  W.blood = { path: capPath, rbcAt, n: 9, radius: 3.05,
+    /* the middle of the plasma between red blood cells k and k + 1, at time t; and the one nearest x */
+    gapAt: (k, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(k + 0.5, t))),
+    gapNear: (x, t) => { let best = 0, bd = Infinity; for (let k = 0; k < 9; k++) { const d = Math.abs(capPath.getPointAt(uOf(k + 0.5, t)).x - x); if (d < bd) { bd = d; best = k; } } return best; } };
   W.anim.push((t) => {
     W.blood.t = t;
+    const pa = plasma.geometry.attributes.position, q = new THREE.Vector3();
+    for (let i = 0; i < NP; i++) { capPath.getPointAt(((plasmaAt[i][0] + t * FLOW) % 1 + 1) % 1, q); pa.setXYZ(i, q.x, q.y + plasmaAt[i][1], q.z + plasmaAt[i][2]); }
+    pa.needsUpdate = true;
     const o = new THREE.Object3D();
     for (let i = 0; i < 9; i++) {
       const u = (((t * 0.012 + i / 9) % 1) + 1) % 1;
