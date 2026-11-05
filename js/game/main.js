@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611051707';
-import { Names } from './names.js?v=202611051707';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611051707';
-import { makePlay } from './play.js?v=202611051707';
-import { setStill, wait } from './actors.js?v=202611051707';
-import { state } from './state.js?v=202611051707';
-import { ICON } from './icons.js?v=202611051707';
-import { intro } from './intro.js?v=202611051707';
-import { sound } from './sound.js?v=202611051707';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611051707';
+import { World, MAP_VIEW } from '../world/world.js?v=202611051733';
+import { Names } from './names.js?v=202611051733';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611051733';
+import { makePlay } from './play.js?v=202611051733';
+import { setStill, wait } from './actors.js?v=202611051733';
+import { state } from './state.js?v=202611051733';
+import { ICON } from './icons.js?v=202611051733';
+import { intro } from './intro.js?v=202611051733';
+import { sound } from './sound.js?v=202611051733';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611051733';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -193,11 +193,11 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611051707').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611051733').then(m => m.openLens(e.detail)));
 /* an Explorer film, from a place's end (the nucleus: how a cell copies a gene; the mitochondria: inside one) */
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611051707').then(m => m.openCopyFilm({ last: 'Close' }));
-  else if (e.detail === 'mito') import('./mitofilm.js?v=202611051707').then(m => m.openMitoFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611051733').then(m => m.openCopyFilm({ last: 'Close' }));
+  else if (e.detail === 'mito') import('./mitofilm.js?v=202611051733').then(m => m.openMitoFilm({ last: 'Close' }));
 });
 
 /* ---------- start ---------- */

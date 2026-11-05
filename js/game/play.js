@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611051707';
-import { state, COST, RESPIRE } from './state.js?v=202611051707';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611051707';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611051733';
+import { state, COST, RESPIRE } from './state.js?v=202611051733';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611051733';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer films, fetched when one is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611051707').then(m => m.openCopyFilm(o));
-const openMitoFilm = o => import('./mitofilm.js?v=202611051707').then(m => m.openMitoFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611051733').then(m => m.openCopyFilm(o));
+const openMitoFilm = o => import('./mitofilm.js?v=202611051733').then(m => m.openMitoFilm(o));
 const R = window.REV;
 
 export function makePlay(world, quest) {
@@ -515,47 +515,61 @@ export function makePlay(world, quest) {
     const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), e = k * k * (3 - 2 * k); o.scale.setScalar(s0 + (s1 - s0) * e); world.kick && world.kick(); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }));
   async function respire() {
     mitoLoop(true); patch(); setLid(1);
-    const halves = props.inside && props.inside.every(t => t.parent) ? props.inside : [mol('half', -18, -35), mol('half', -14.8, -36.6)];
+    let halves = props.inside && props.inside.every(t => t.parent) ? props.inside : [mol('half', -18, -35), mol('half', -14.8, -36.6)];
     if (!props.o2 || !props.o2.every(t => t.parent)) props.o2 = [0, 1, 2, 3, 4, 5].map(i => mol('oxygen', -22 + i * 3, -36 - (i % 2) * 2));
-    /* close, in the matrix: the two smaller molecules and the six oxygen molecules, all in view */
-    await camGo(fitView(-16, -46, -24, 40), 1800);
-    /* each smaller molecule is broken down by enzymes, step by step: at each step (a flash) one carbon dioxide molecule and
-       some hydrogen leave it, and what is left is smaller; three steps (pyruvate has three carbons: one leaves in the link
-       reaction, two in the Krebs cycle, which the IB view shows); its hydrogen is what the next step carries to the chain */
-    const co2 = [], hyd = [];
-    await Promise.all(halves.map((h, j) => (async () => {
-      await wait(R.FAST ? 0 : j * 700);
-      const s0 = h.scale.x;
-      for (let k = 0; k < 3; k++) {
-        nburst(h.position, 0xffe7a0, 10); await wait(R.FAST ? 0 : 300);
-        const c = molAt('co2', h.position.clone()), a = k * 2.1 + j * 1.3; co2.push(c);
-        tween(c, { to: h.position.clone().addScaledVector(pD(Math.cos(a), Math.sin(a), 0), 0.0026), ms: 800 });
-        const hh = halo(keep(token('default', 0.00013)), 0.45, 0xffffff); hh.position.copy(h.position); hyd.push(hh);
-        tween(hh, { to: h.position.clone().addScaledVector(pD(Math.cos(a + 2.4), Math.sin(a + 2.4) + 1.4, 0), 0.003), ms: 900 });
-        await scaleTo(h, s0 * (1 - (k + 1) * 0.28), 500);
-        await wait(R.FAST ? 0 : 650);
-      }
-      await scaleTo(h, s0 * 0.001, 450); drop(h);
-    })()));
-    /* each kind named, now that they are still (the review: with nothing named, carbon dioxide was "just a new dot") */
-    nanoNames([['nm-co2', 'carbon dioxide', co2.slice(0, 4).map(c => c.position.clone())], ['nm-o2', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())],
-      ['nm-h', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())]], -30, -2, -35);
-    ok('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.');
-    /* time to read the three names and the sentence before the camera moves back (2.6 s had been too short: Daniel, 5 Nov
-       2026, "it zooms out too early") */
-    await wait(R.FAST ? 0 : 5000);
-    /* one still view from the matrix to the cytosol: the carbon dioxide leaves the way the oxygen came, straight between the
-       lipids, each by its own way, and out of the top of the picture; the oxygen stays in view (the review: the camera had
-       followed it out into an empty cytosol and come back) */
-    quest.names.set([]);
-    await camGo(fitView(-16, -42, 14, 60), 1800);
-    await Promise.all(co2.map((c, i) => { const u = -27 + Math.random() * 20, p0 = c.position.clone(); return wait(R.FAST ? 0 : i * 260 + Math.random() * 300).then(() => tween(c, { path: curve([p0, pW(u + jit(2), -27.5), pW(u + jit(1), -25.5), pW(u + jit(3), -15 + jit(3)), pW(u + jit(1), -3.5), pW(u + jit(3), 6 + jit(2)), pW(u + jit(4), 26)]), ms: R.FAST ? 0 : 4400 + Math.random() * 1400 })); }));
-    co2.forEach(drop);
-    props.hyd = hyd;
-    /* what stays for the next step, named again: the white dots are the hydrogen, beside the oxygen */
-    nanoNames([['nm-h2', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())], ['nm-o2c', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())]], -34, 2, -36);
-    ok('Carbon dioxide leaves the mitochondrion: it passes straight between the lipids, as the oxygen did when it entered.');
-    await quest.next();
+    /* the breakdown plays once, and ↺ Watch again plays it once more from the start, as often as the pupil likes: a pupil
+       who reads while it plays can see it again (the review; Daniel, 5 Nov 2026: "Yes, add it") */
+    for (;;) {
+      /* close, in the matrix: the two smaller molecules and the six oxygen molecules, all in view */
+      await camGo(fitView(-16, -46, -24, 40), 1800);
+      /* each smaller molecule is broken down by enzymes, step by step: at each step (a flash) one carbon dioxide molecule and
+         some hydrogen leave it, and what is left is smaller; three steps (pyruvate has three carbons: one leaves in the link
+         reaction, two in the Krebs cycle, which the IB view shows); its hydrogen is what the next step carries to the chain */
+      const co2 = [], hyd = [];
+      await Promise.all(halves.map((h, j) => (async () => {
+        await wait(R.FAST ? 0 : j * 700);
+        const s0 = h.scale.x;
+        for (let k = 0; k < 3; k++) {
+          nburst(h.position, 0xffe7a0, 10); await wait(R.FAST ? 0 : 300);
+          const c = molAt('co2', h.position.clone()), a = k * 2.1 + j * 1.3; co2.push(c);
+          tween(c, { to: h.position.clone().addScaledVector(pD(Math.cos(a), Math.sin(a), 0), 0.0026), ms: 800 });
+          const hh = halo(keep(token('default', 0.00013)), 0.45, 0xffffff); hh.position.copy(h.position); hyd.push(hh);
+          tween(hh, { to: h.position.clone().addScaledVector(pD(Math.cos(a + 2.4), Math.sin(a + 2.4) + 1.4, 0), 0.003), ms: 900 });
+          await scaleTo(h, s0 * (1 - (k + 1) * 0.28), 500);
+          await wait(R.FAST ? 0 : 650);
+        }
+        await scaleTo(h, s0 * 0.001, 450); drop(h);
+      })()));
+      /* each kind named, now that they are still (the review: with nothing named, carbon dioxide was "just a new dot") */
+      nanoNames([['nm-co2', 'carbon dioxide', co2.slice(0, 4).map(c => c.position.clone())], ['nm-o2', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())],
+        ['nm-h', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())]], -30, -2, -35);
+      ok('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.');
+      /* time to read the three names and the sentence before the camera moves back (2.6 s had been too short: Daniel, 5 Nov
+         2026, "it zooms out too early") */
+      await wait(R.FAST ? 0 : 5000);
+      /* one still view from the matrix to the cytosol: the carbon dioxide leaves the way the oxygen came, straight between the
+         lipids, each by its own way, and out of the top of the picture; the oxygen stays in view (the review: the camera had
+         followed it out into an empty cytosol and come back) */
+      quest.names.set([]);
+      await camGo(fitView(-16, -42, 14, 60), 1800);
+      await Promise.all(co2.map((c, i) => { const u = -27 + Math.random() * 20, p0 = c.position.clone(); return wait(R.FAST ? 0 : i * 260 + Math.random() * 300).then(() => tween(c, { path: curve([p0, pW(u + jit(2), -27.5), pW(u + jit(1), -25.5), pW(u + jit(3), -15 + jit(3)), pW(u + jit(1), -3.5), pW(u + jit(3), 6 + jit(2)), pW(u + jit(4), 26)]), ms: R.FAST ? 0 : 4400 + Math.random() * 1400 })); }));
+      co2.forEach(drop);
+      props.hyd = hyd;
+      /* what stays for the next step, named again: the white dots are the hydrogen, beside the oxygen */
+      nanoNames([['nm-h2', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())], ['nm-o2c', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())]], -34, 2, -36);
+      ok('Carbon dioxide leaves the mitochondrion: it passes straight between the lipids, as the oxygen did when it entered.');
+      const nx = quest.next(), again = R.h('button', { type: 'button', class: 'btn ghost again' }, '↺ Watch again');
+      quest.step.do.appendChild(again);
+      const pick = await live(Promise.race([nx.then(() => 'next'), new Promise(r => again.addEventListener('click', () => r('again'), { once: true }))]));
+      again.remove();
+      if (pick === 'next') return;
+      /* the same start again: Next waits until it has played, the two smaller molecules are back where they arrived, and
+         the hydrogen is not made yet (the oxygen never moved) */
+      const nb = quest.step.do.querySelector('.btn.next'); if (nb) nb.remove();
+      quest.names.set([]); quest.say('');
+      hyd.forEach(drop); props.hyd = null;
+      halves = [mol('half', -18, -35, -2), mol('half', -14.8, -36.6, -2)];   /* where step 3 left them */
+    }
   }
   /* ---------- the hydrogen ions the pumps move into the space inside the fold: they build up there, like water behind a
      dam, and flow back only through ATP synthase, which turns and makes ATP (Daniel, 5 Nov 2026: "protons going inside the

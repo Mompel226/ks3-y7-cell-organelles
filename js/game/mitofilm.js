@@ -25,7 +25,7 @@
    drawn and nothing ever jumps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along, nanoPatch, atpIsMeasured, loadATP, ionStream, atpMaker, haloSprite, H_COL } from '../world/mitoparts.js?v=202611051707';
+import { heroMito, heroPoint, along, nanoPatch, atpIsMeasured, loadATP, ionStream, atpMaker, haloSprite, H_COL } from '../world/mitoparts.js?v=202611051733';
 
 const R = window.REV, { $ } = R;
 const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
