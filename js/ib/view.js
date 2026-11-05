@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611051947';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611051947';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611052331';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611052331';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -78,12 +78,29 @@ function termsIn(root, tipHost) {
   });
 }
 
-export function openIB({ mount = document.body, inGame = false, start = null, onClose = null } = {}) {
-  /* in the game, the view brings its own styles the first time it opens (the game's page does not load them) */
-  if (!document.querySelector('link[data-ibcss]')) {
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611051947', import.meta.url).href; document.head.appendChild(l);
+/* in the game, the view brings its own styles (the game's page does not load them) */
+function styles() {
+  let l = document.querySelector('link[data-ibcss]');
+  if (!l) {
+    l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
+    l.href = new URL('../../css/ib.css?v=202611052331', import.meta.url).href; document.head.appendChild(l);
   }
+  return l;
+}
+/* each chapter's code, fetched once; a failure is not kept: the next try fetches it again, under a new address so that
+   the browser cannot answer with its failure (the stamp tool keeps this ?v=) */
+const mods = {}, modFails = {};
+function chapterModule(def) {
+  const k = def.mod;
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611052331' + (modFails[k] ? '&r=' + modFails[k] : ''))
+    .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
+}
+/* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
+   while the pupil reads, so the door then opens at once (the audit, 5 Nov 2026: 0.6 s with nothing to see) */
+export function warm() { styles(); chapterModule(CHAPTERS[0]).catch(() => {}); }
+
+export function openIB({ mount = document.body, inGame = false, start = null, onClose = null } = {}) {
+  const css = styles();
   const root = document.createElement('div');
   root.className = 'ibv' + (inGame ? ' ibv--game' : '');
   root.setAttribute('role', inGame ? 'dialog' : 'main'); if (inGame) root.setAttribute('aria-modal', 'true');
@@ -102,9 +119,10 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     </header>
     <div class="ibv__main">
       <div class="ibv__stage">
-        <p class="ibv__pic" aria-live="polite"></p>
+        <p class="ibv__pic" aria-live="polite" hidden></p>
         <div class="ibv__board" hidden></div>
         <div class="ibv__paper" hidden></div>
+        <div class="ibv__veil is-on is-first" aria-hidden="true"></div>
         <p class="ibv__wait" hidden>Loading the measured shapes…</p>
       </div>
       <aside class="ibv__panel" aria-label="The steps">
@@ -128,17 +146,24 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       <div class="ibv__langs" role="group" aria-label="Translations"><button type="button" data-l="all">한국어 + 中文</button><button type="button" data-l="ko" lang="ko">한국어</button><button type="button" data-l="zh" lang="zh-Hans">中文</button><button type="button" data-l="en">English only</button></div>
       <div class="ibv__wblist"></div></aside>`;
   mount.appendChild(root);
+  /* shown only once its styles are there (the audit: its first opening in the game had shown it unstyled for 10 frames) */
+  if (!css.sheet) {
+    root.style.visibility = 'hidden';
+    const on = () => { root.style.visibility = ''; };
+    css.addEventListener('load', on, { once: true }); css.addEventListener('error', on, { once: true }); setTimeout(on, 4000);
+  }
   if (inGame) document.documentElement.classList.add('ibv-open');
   const $ = s => root.querySelector(s), $$ = s => Array.from(root.querySelectorAll(s));
   const stageEl = $('.ibv__stage'), textEl = $('.ibv__text'), countEl = $('.ibv__count'), nextB = $('.ibv__next'), backB = $('.ibv__back'), againB = $('.ibv__replay');
   const picEl = $('.ibv__pic'), waitEl = $('.ibv__wait'), boardEl = $('.ibv__board'), paperEl = $('.ibv__paper');
   const keyEl = document.createElement('div'); keyEl.className = 'ibv__key'; keyEl.hidden = true; $('.ibv__stage').appendChild(keyEl);
+  const veilEl = $('.ibv__veil');
 
   /* ---------------- the stage, and the knobs that drive it ---------------- */
   let scene = null, K = {}, tw = null, drag = { yaw: 0, pitch: 0, on: false };
   const stage = makeStage(stageEl, { onFrame });
   function onFrame(t, dt) {
-    if (!scene) return;
+    if (!scene || warming) return;
     if (tw) {
       const k = tw.ms ? Math.min(1, (performance.now() - tw.t0) / tw.ms) : 1, e = k * k * (3 - 2 * k);
       for (const n in tw.to) K[n] = tw.from[n] + (tw.to[n] - tw.from[n]) * (tw.lin && tw.lin.includes(n) ? k : e);
@@ -182,36 +207,118 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   }
 
   /* ---------------- chapters and steps ---------------- */
-  let ci = -1, si = 0, token = 0, xRet = null, steps = [], C = null;
+  let ci = -1, si = 0, token = 0, xRet = null, steps = [], C = null, loading = false, warming = false;
   const saved = store.get('ib', {});
+  const frames = n => new Promise(r => { const f = () => (--n <= 0 ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); });
+  /* a new picture's colours (shaders) are made before it shows, and those of every part that appears later or turns
+     see-through later (three.js keeps both), so no frame that moves waits for them (the audit, 5 Nov 2026: each
+     chapter's first frame took 0.1–0.35 s, and its first camera move started with a jump) */
+  async function prepare(group) {
+    const R = stage.renderer; if (!R.compileAsync) return;
+    const shown = [], solid = new Set();
+    group.traverse(o => {
+      if (!o.visible) { o.visible = true; shown.push(o); }
+      [].concat(o.material || []).forEach(m => { if (m.isMeshStandardMaterial && !m.transparent) solid.add(m); });
+    });
+    try {
+      await R.compileAsync(group, stage.cam, stage.scene);
+      solid.forEach(m => { m.transparent = true; m.needsUpdate = true; });
+      await R.compileAsync(group, stage.cam, stage.scene);
+    } finally {
+      solid.forEach(m => { m.transparent = false; m.needsUpdate = true; });
+      shown.forEach(o => { o.visible = false; });
+    }
+  }
+  /* under the dark veil, every part of a new picture is drawn once as it is and once see-through: the graphics chip receives
+     each shape and readies each colour program here, not in a frame that moves (the audit, 5 Nov 2026: frames of 130 ms
+     in chapter 3's zoom, where its parts first appear; a program made ahead is still readied on its first use) */
+  async function firstDraw(group) {
+    const was = [], solid = [];
+    group.traverse(o => {
+      was.push([o, o.visible, o.frustumCulled, o.isInstancedMesh ? o.count : null]);
+      o.visible = true; o.frustumCulled = false; if (o.isInstancedMesh && o.count === 0) o.count = 1;
+      [].concat(o.material || []).forEach(m => { if (m.isMeshStandardMaterial && !m.transparent && !solid.includes(m)) solid.push(m); });
+    });
+    warming = true;
+    try {
+      await frames(1);
+      solid.forEach(m => { m.transparent = true; m.needsUpdate = true; });
+      await frames(1);
+    } finally {
+      solid.forEach(m => { m.transparent = false; m.needsUpdate = true; });
+      was.forEach(([o, v, f, c]) => { o.visible = v; o.frustumCulled = f; if (c != null) o.count = c; });
+      warming = false;
+    }
+  }
   async function openChapter(i, s = 0, { fromExplore = null } = {}) {
     const def = typeof i === 'string' ? EXPLORE[i] : CHAPTERS[i];
     if (!def || def.soon) return;
     const my = ++token;
-    if (scene) { stage.scene.remove(scene.group); if (scene.dispose) scene.dispose(); scene = null; }
-    tw = null; stage.showLabels({}); stage.setRest(false); stage.setNums([]);
-    C = def; ci = i; steps = def.steps;
-    $$('.ibv__tab').forEach(b => b.classList.toggle('is-on', +b.dataset.ch === i));
+    /* while a chapter is made, only another chapter can be chosen (the audit: a second Next, from a double press or a held
+       arrow key, had left the view on its wait for good) */
+    loading = true; stage.setBusy(true); root.classList.add('is-loading');
+    nextB.disabled = backB.disabled = againB.disabled = true; nextB.classList.remove('pulse');
+    tw = null; stage.showLabels({}); stage.setRest(false);
+    if (window.IBV && window.IBV.at) window.IBV.at = Object.assign({}, window.IBV.at, { rest: false });
+    $$('.ibv__tab').forEach(b => b.classList.toggle('is-on', b.dataset.ch === String(i)));
+    /* the picture dims while the next one is made; then its words, names and picture change together (Daniel, 5 Nov
+       2026: "labels appear but no images first ... not with stuttering"); the wait is said only when it lasts */
+    veilEl.classList.add('is-on'); waitEl.hidden = true; waitEl.classList.remove('is-failed');
+    const slow = setTimeout(() => { if (my === token) { waitEl.textContent = 'Loading the measured shapes…'; waitEl.hidden = false; } }, 400);
+    let sc = null;
+    try {
+      const mod = await chapterModule(def);
+      if (my !== token) return;
+      sc = await mod.build(stage, { V, glow, smooth, THREE, def, id: typeof i === 'string' ? i : def.id, FAST });
+      if (my === token) await prepare(sc.group);
+    } catch (e) {
+      console.error(e);
+      if (sc && sc.dispose) sc.dispose();
+      if (my !== token) return;
+      /* a file that did not arrive (a weak connection): said, with the same chapter again a press away */
+      waitEl.innerHTML = 'This chapter could not be loaded. <button type="button" class="ibv__retry">Try again</button>';
+      waitEl.classList.add('is-failed'); waitEl.hidden = false;
+      waitEl.querySelector('.ibv__retry').addEventListener('click', () => openChapter(i, s, { fromExplore }));
+      return;
+    } finally { clearTimeout(slow); }
+    if (my !== token) { if (sc.dispose) sc.dispose(); return; }
+    waitEl.hidden = true;
+    if (scene) { stage.scene.remove(scene.group); if (scene.dispose) scene.dispose(); }
+    scene = sc; C = def; ci = i; steps = def.steps;
+    if (scene.steps.length !== steps.length) console.error(`From glucose to ATP: ${def.title} has ${steps.length} texts but ${scene.steps.length} steps`);
     $('.ibv__chn').textContent = typeof i === 'string' ? 'Explore' : def.n === '0' ? 'The map' : /^\d+$/.test(def.n) ? 'Chapter ' + def.n : def.id === 'tally' ? 'Summary' : def.id === 'test' ? 'Questions' : 'Article';
     $('.ibv__cht').textContent = def.title;
     $('.ibv__mmwrap').innerHTML = miniMap(def.where || 'all');
     root.classList.toggle('is-explore', typeof i === 'string');
-    waitEl.hidden = false;
-    let mod;
-    try { mod = await import('./' + def.mod + '.js?v=202611051947'); }  /* the stamp tool keeps this ?v= */ catch (e) { console.error(e); waitEl.textContent = 'This chapter could not be loaded.'; return; }
-    const sc = await mod.build(stage, { V, glow, smooth, THREE, def, id: typeof i === 'string' ? i : def.id, FAST });
-    if (my !== token) { if (sc.dispose) sc.dispose(); return; }
-    scene = sc; waitEl.hidden = true;
-    if (scene.steps.length !== steps.length) console.error(`From glucose to ATP: ${def.title} has ${steps.length} texts but ${scene.steps.length} steps`);
-    stage.scene.add(scene.group); stage.defineLabels(scene.labels || {});
+    stage.setNums([]); stage.scene.add(scene.group); stage.defineLabels(scene.labels || {});
     /* a key to the spaces' colours, where a chapter shows them (the same colour for each space in every chapter) */
     keyEl.innerHTML = (scene.key || []).map(([t, c]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join(''); keyEl.hidden = !scene.key;
     xRet = fromExplore;
-    await show(Math.max(0, Math.min(steps.length - 1, s)));
+    const s0 = Math.max(0, Math.min(steps.length - 1, s));
+    /* then the start of its step, still under the veil, now fully dark */
+    veilEl.classList.add('is-first');
+    await firstDraw(scene.group);
+    if (my !== token) return;
+    Object.assign(K, knobsAfter(s0 - 1));
+    await frames(1);
+    if (my !== token) return;
+    loading = false; stage.setBusy(false); root.classList.remove('is-loading'); veilEl.classList.remove('is-on', 'is-first');
+    if (performance.mark) performance.mark('ibv:shown');
+    await show(s0);
+  }
+  /* the next chapter (its code and its measured shapes) is fetched while the pupil reads this one, so Next opens it at
+     once (Daniel, 5 Nov 2026: "buffer as much as possible ... Everything loads when it should be loading, not before") */
+  const fetched = new Set();
+  function ahead() {
+    const n = nextOpen(ci); if (n == null || fetched.has(n)) return;
+    fetched.add(n);
+    const go = () => chapterModule(CHAPTERS[n]).then(m => m.prefetch && m.prefetch()).catch(() => fetched.delete(n));
+    if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 2000 }); else setTimeout(go, 300);
   }
   async function show(s, { replay = true } = {}) {
     const my = ++token; si = s;
     const st = steps[s], sst = scene.steps[s] || { phases: [] };
+    window.IBV.at = { ci, si: s, rest: false };
     countEl.textContent = `Step ${s + 1} of ${steps.length}`;
     textEl.innerHTML = paras(st.t); termsIn(textEl);
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
@@ -220,7 +327,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
        review: it had counted FADH₂ before FAD was reduced) */
     if (!sst.board || boardEl.dataset.ci !== String(ci)) { boardEl.innerHTML = ''; boardEl.hidden = true; }
     /* a page to read instead of a picture (the tally, the questions, the article) */
-    paperEl.hidden = !scene.paper; root.classList.toggle('is-paper', !!scene.paper);
+    paperEl.hidden = !scene.paper; root.classList.toggle('is-paper', !!scene.paper); stage.setPaused(!!scene.paper);
     if (scene.paper) {
       paperEl.innerHTML = scene.paper(s); termsIn(paperEl); paperEl.scrollTop = 0;
       if (scene.wire) scene.wire(paperEl, s, { open: id => { const k = CHAPTERS.findIndex(c => c.id === id); if (k >= 0) openChapter(k, 0); }, changed: () => {} });
@@ -245,6 +352,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     nextB.disabled = false; againB.disabled = false; nextB.classList.add('pulse');
     if (typeof ci === 'number') { const done = store.get('ib', {}); done.at = { ci, si: s }; done.max = done.max || {}; done.max[C.id] = Math.max(done.max[C.id] || 0, s + 1); store.set('ib', done); if (!inGame) history.replaceState(null, '', '#' + C.id + '-' + (s + 1)); }
     window.IBV.at = { ci, si: s, rest: true };
+    ahead();
   }
   function nextChapterLabel() { const n = nextOpen(ci); return n != null ? (/^\d+$/.test(CHAPTERS[n].n) ? `Chapter ${CHAPTERS[n].n}: ${CHAPTERS[n].short} →` : `${CHAPTERS[n].short} →`) : (inGame ? 'Back to the game →' : 'The end'); }
   function nextOpen(i) { if (typeof i !== 'number') return null; for (let j = i + 1; j < CHAPTERS.length; j++) if (!CHAPTERS[j].soon) return j; return null; }
@@ -265,7 +373,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   /* a press on the picture: the map's numbers open their chapters */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   let down = null;
-  stageEl.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; down = { x: e.clientX, y: e.clientY, yaw: drag.yaw, pitch: drag.pitch }; drag.on = true; stageEl.setPointerCapture && stageEl.setPointerCapture(e.pointerId); });
+  stageEl.addEventListener('pointerdown', e => { if (loading || e.target.closest('button')) return; down = { x: e.clientX, y: e.clientY, yaw: drag.yaw, pitch: drag.pitch }; drag.on = true; stageEl.setPointerCapture && stageEl.setPointerCapture(e.pointerId); });
   stageEl.addEventListener('pointermove', e => {
     if (!down) { /* light means press: only what a press opens lights */
       if (scene && scene.hover) { const r = stageEl.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, stage.cam); stageEl.style.cursor = scene.hover(ray) ? 'pointer' : ''; }
@@ -277,7 +385,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   stageEl.addEventListener('pointerup', e => {
     drag.on = false; if (!down) return;
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4; down = null;
-    if (moved || !scene || !scene.pick) return;
+    if (moved || !scene || !scene.pick || loading) return;
     const r = stageEl.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, stage.cam);
     const to = scene.pick(ray); if (to != null && CHAPTERS[to] && !CHAPTERS[to].soon) openChapter(to, 0);

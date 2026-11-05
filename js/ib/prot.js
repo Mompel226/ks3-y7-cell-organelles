@@ -7,8 +7,13 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 
-const got = {};
-export function loadProt(key) { return got[key] || (got[key] = import('./prot/' + key + '.js?v=202611051947').then(m => m.PROT)); }
+/* a shape that did not arrive (a weak connection) is not kept: the next try fetches it again, under a new address so that
+   the browser cannot answer with its failure */
+const got = {}, failed = {};
+export function loadProt(key) {
+  return got[key] || (got[key] = import('./prot/' + key + '.js?v=202611052331' + (failed[key] ? '&r=' + failed[key] : ''))
+    .then(m => m.PROT, e => { delete got[key]; failed[key] = (failed[key] || 0) + 1; throw e; }));
+}
 export const loadProts = keys => Promise.all(keys.map(loadProt));
 
 const b64 = s => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; };
@@ -47,7 +52,9 @@ export function protMat(color, { glass = false, opacity = 0.42, rim = 0xffffff, 
   return m;
 }
 
-/* the protein as a group (nm, its own frame); colours by part group (complexes I, III, IV …), else one colour */
+/* the protein as a group (nm, its own frame); colours by part group (complexes I, III, IV …), else one colour. A
+   see-through protein keeps ONE two-sided material, which three.js draws in two passes: two one-sided materials, tried
+   on 5 Nov 2026 to save its per-frame shader checks, drew GLUT4 differently (1.6 % of the picture) */
 export function protein(P, { color = 0x8fb7ff, colors = {}, glass = false, opacity, rimK } = {}) {
   const g = new THREE.Group(); g.name = 'prot-' + P.key;
   const mats = {}, hole = { value: new THREE.Vector4(0, 0, 0, 0) };
@@ -61,32 +68,49 @@ export function protein(P, { color = 0x8fb7ff, colors = {}, glass = false, opaci
   return g;
 }
 export function siteW(obj, name, out = new THREE.Vector3()) { const s = obj.userData.sites[name]; return s ? obj.localToWorld(out.copy(s)) : null; }
-/* points on a protein's outline, for a name's line to end ON it: the vertices of its surface nearest a few targets */
+/* points on a protein's outline, for a name's line to end ON it: the vertices of its surface nearest a few targets.
+   A name asks again on every frame at rest, so the answer is kept while the protein, its window and the targets stay
+   where they are, and each part's world matrix is applied directly (the audit, 5 Nov 2026: a still picture spent up to
+   15 ms a frame here on a slower phone, most of it recomputing the same matrices for every point) */
+const kept = new WeakMap();
 export function surfacePoints(obj, targets, out = []) {
+  obj.updateWorldMatrix(true, false);
+  const H = obj.userData && obj.userData.hole, hr = H && H.w > 0 ? (H.w * 1.15) ** 2 : 0;
+  let key = (obj.matrixWorld ? obj.matrixWorld.elements.join(',') : '') + (H ? '|' + H.x + ',' + H.y + ',' + H.z + ',' + H.w : '');
+  for (const t of targets) key += '|' + t.x + ',' + t.y + ',' + t.z;
+  const k = kept.get(obj);
+  if (k && k.key === key) { out.push(...k.pts); return out; }
   obj.updateWorldMatrix(true, true);
-  const v = new THREE.Vector3(), H = obj.userData && obj.userData.hole, hr = H && H.w > 0 ? (H.w * 1.15) ** 2 : 0;
+  const v = new THREE.Vector3(), pts = [];
   for (const t of targets) {
     let best = null, bd = 1e9;
     obj.traverse(o => {
       if (!o.isMesh) return;
-      const pos = o.geometry.attributes.position;
+      const pos = o.geometry.attributes.position, M = o.matrixWorld;
       for (let i = 0; i < pos.count; i += 7) {
-        v.fromBufferAttribute(pos, i); o.localToWorld(v);
+        v.fromBufferAttribute(pos, i).applyMatrix4(M);
         /* never a point in the cut-away window, where nothing is drawn (the review: lines ended in empty space) */
         if (hr && (v.x - H.x) ** 2 + (v.y - H.y) ** 2 + (v.z - H.z) ** 2 < hr) continue;
         const d = v.distanceToSquared(t); if (d < bd) { bd = d; best = v.clone(); }
       }
     });
-    if (best) out.push(best);
+    if (best) pts.push(best);
   }
+  kept.set(obj, { key, pts });
+  out.push(...pts);
   return out;
 }
+/* see-through on or off: three.js compiles a material's first state into its program ("#define OPAQUE") and never looks
+   at `transparent` again, so a material first drawn solid stayed solid however it faded (the audit, 5 Nov 2026: chapter
+   6's respirasome never turned see-through); asking for a new program each time it changes keeps both (view.js makes
+   both before the chapter shows) */
+export function seeThrough(m, on) { if (m.transparent !== on) { m.transparent = on; m.needsUpdate = true; } }
 /* each mesh's opacity (a protein fading in or out) */
 export function fadeProt(obj, a) {
   obj.visible = a > 0.003;
   Object.values(obj.userData.mats || {}).forEach(m => {
     if (!m.userData.base) m.userData.base = { o: m.opacity, t: m.transparent, dw: m.depthWrite };
     const B = m.userData.base;
-    m.opacity = B.o * a; m.transparent = B.t || a < 0.999; m.depthWrite = B.dw && a > 0.6;
+    m.opacity = B.o * a; seeThrough(m, B.t || a < 0.999); m.depthWrite = B.dw && a > 0.6;
   });
 }

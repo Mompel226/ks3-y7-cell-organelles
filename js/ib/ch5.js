@@ -18,10 +18,10 @@
    likely) ways.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611051947';
-import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611051947';
-import { bilayer } from './membrane.js?v=202611051947';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611051947';
+import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611052331';
+import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611052331';
+import { bilayer } from './membrane.js?v=202611052331';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611052331';
 
 const SEATS = [['oaa', 'oxaloacetate', '4C', true], ['citrate', 'citrate', '6C', true], ['isocitrate', 'isocitrate', '6C'], ['akg', 'α-ketoglutarate', '5C'],
   ['succinylcoa', 'succinyl CoA', '4C'], ['succinate', 'succinate', '4C'], ['fumarate', 'fumarate', '4C'], ['malate', 'malate', '4C']];
@@ -36,8 +36,12 @@ function tagTex(name, nC, ib) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
+/* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['c2'];
+export const prefetch = () => loadProts(PROTS);
+
 export async function build(stage, { V }) {
-  const [C2] = await loadProts(['c2']);
+  const [C2] = await loadProts(PROTS);
   const g = new THREE.Group(); g.name = 'ch5';
   const back = new THREE.Mesh(new THREE.PlaneGeometry(500, 400), new THREE.MeshBasicMaterial({ color: 0x3a2214 })); back.position.set(0, 0, -70); g.add(back);
   /* ---- the wheel ---- */
@@ -187,7 +191,7 @@ export async function build(stage, { V }) {
     /* the arc being travelled is bright */
     const cur = Math.floor(K.w + 1e-6) % 8;
     arrows.forEach((m, i) => { m.opacity = i === cur && K.w % 1 > 0.001 ? 0.95 : 0.32; });
-    fadeProt(c2, K.c2); im.visible = K.c2 > 0.02; im.userData.mats.forEach(m => { m.transparent = K.c2 < 0.999; m.opacity = K.c2; });
+    fadeProt(c2, K.c2); im.visible = K.c2 > 0.02; im.userData.mats.forEach(m => { seeThrough(m, K.c2 < 0.999); m.opacity = K.c2; });
   }
   /* the seat names, as boxes on the screen, where no other name may stand (view.js keepOut) */
   const kv = V();

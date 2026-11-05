@@ -30,7 +30,8 @@ export function glow(size, color = 0xfff4d0, opacity = 1) {
 
 export function makeStage(wrap, { onFrame } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false });
-  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace;
+  /* at most 1.75 pixels per point, as the game draws (world.js); a slow computer drops to 1 (measure, below) */
+  renderer.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.setClearColor(0x070a1f, 1);
   renderer.domElement.className = 'ibv__canvas';
   wrap.appendChild(renderer.domElement);
@@ -89,6 +90,10 @@ export function makeStage(wrap, { onFrame } = {}) {
     });
   }
   function showLabels(map) { want = map || {}; }
+  /* a name's size is measured once, and again when the page's fonts arrive (the comparison, 5 Nov 2026: names measured
+     in the stand-in font kept lines a few pixels too long or short) */
+  const refit = () => Object.values(L).forEach(D => { D.w = D.h = 0; });
+  if (document.fonts) document.fonts.addEventListener('loadingdone', refit);
   function placeLabels() {
     const narrow = W < 560, placed = keepOut.slice(), soft = numBoxes;
     placed.push({ l: 0, r: 190, t: H - 46, b: H });                  /* the scale bar's corner */
@@ -169,23 +174,43 @@ export function makeStage(wrap, { onFrame } = {}) {
     bar.style.transform = `translate(16px, ${H - 36}px)`;
   }
 
-  let alive = true, t0 = performance.now(), last = t0;
+  let alive = true, t0 = performance.now(), last = t0, paused = false, busy = false, slow = [];
   const still = new URLSearchParams(location.search).has('ibstill');
   function loop() {
     if (!alive) return;
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const t = still ? 0 : (now - t0) / 1000;
-    if (onFrame) onFrame(t, dt);
-    renderer.render(scene, cam);
-    placeNums(); placeLabels(); placeBar();
+    /* a page to read (the tally, the questions, the article) covers the whole picture: nothing is drawn under it */
+    if (!paused) {
+      const t = still ? 0 : (now - t0) / 1000;
+      if (onFrame) onFrame(t, dt);
+      renderer.render(scene, cam);
+      placeNums(); placeLabels(); placeBar();
+      measure(dt);
+    }
     requestAnimationFrame(loop);
+  }
+  /* a slow computer: fewer pixels, the game's rule (world.js measure): 90 frames slower than 34 ms on average take half a
+     pixel per point off, down to 1; never while a chapter is being made, whose first frames are slow on purpose */
+  function measure(dt) {
+    if (busy || still) { slow = []; return; }
+    slow.push(dt); if (slow.length < 90) return;
+    const avg = slow.reduce((a, b) => a + b, 0) / slow.length; slow = [];
+    const pr = renderer.getPixelRatio();
+    if (avg > 0.034 && pr > 1.01) { renderer.setPixelRatio(Math.max(1, pr - 0.5)); size(); }
   }
   requestAnimationFrame(loop);
   return {
     renderer, scene, cam, wrap, view, setView, between, project, pxPerNm,
     get W() { return W; }, get H() { return H; },
     defineLabels, showLabels, setRest(r) { rest = r; }, setKeepOut(list) { keepOut = list || []; }, setNums,
+    setPaused(p) { paused = !!p; }, setBusy(b) { busy = !!b; slow = []; },
     labelState: () => Object.keys(L).map(k => ({ key: k, on: !!L[k].at, want: want[k] || 0, box: L[k].at && L[k].at.box, p: L[k].at && L[k].at.p })),
-    stop() { alive = false; ro.disconnect(); renderer.dispose(); renderer.domElement.remove(); labs.remove(); nums.remove(); bar.remove(); }
+    /* the drawing context goes back at once: Chrome keeps 16 on a page and drops the oldest, the game's own (the audit,
+       5 Nov 2026: after about 16 openings of this view the game's 3D picture was lost) */
+    stop() {
+      alive = false; ro.disconnect(); if (scene.environment) scene.environment.dispose();
+      if (document.fonts) document.fonts.removeEventListener('loadingdone', refit);
+      renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove(); labs.remove(); nums.remove(); bar.remove();
+    }
   };
 }

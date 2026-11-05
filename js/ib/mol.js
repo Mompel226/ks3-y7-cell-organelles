@@ -14,7 +14,7 @@
    Units: nm (the IB view's scenes are in nm).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MOL } from './mol-data.js?v=202611051947';
+import { MOL } from './mol-data.js?v=202611052331';
 
 export const ELC = { C: 0x3a3f4a, H: 0xf4f6fa, O: 0xe8322f, N: 0x3b6cf0, P: 0xff9a1f, S: 0xf2d43a };
 /* ball radii (nm): a fixed part of each element's van der Waals radius (C 0.17 nm), so the bonds show */
@@ -55,7 +55,13 @@ export function ballStick(maxAtoms = 220, maxBonds = 260) {
   const g = new THREE.Group();
   const balls = new THREE.InstancedMesh(sphereGeo, ballMat(), maxAtoms);
   const sticks = new THREE.InstancedMesh(cylGeo, ballMat(), maxBonds * 4);
-  [balls, sticks].forEach(m => { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.count = 0; g.add(m); });
+  /* each with its colour list from the start: its shader program is then the one made before the chapter shows, not a
+     second one made the moment the first molecule appears (the audit, 5 Nov 2026: a 170 ms frame in chapter 3's zoom) */
+  [balls, sticks].forEach(m => {
+    m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.count = 0;
+    m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(m.instanceMatrix.count * 3).fill(1), 3); m.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    g.add(m);
+  });
   const col = new THREE.Color();
   const side = new THREE.Vector3(), dir = new THREE.Vector3(), mid = new THREE.Vector3(), a0 = new THREE.Vector3(), b0 = new THREE.Vector3();
   function stick(k, from, to, r, c) {

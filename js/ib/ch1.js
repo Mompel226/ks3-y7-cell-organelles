@@ -14,18 +14,22 @@
    to O6, and the hydrogen of O6 leaves as a hydrogen ion: glucose 6-phosphate and ADP (mol.js Reaction).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611051947';
-import { loadProts, protein, surfacePoints } from './prot.js?v=202611051947';
-import { bilayer, MEM } from './membrane.js?v=202611051947';
-import { disposeGroup, glow } from './stage.js?v=202611051947';
+import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611052331';
+import { loadProts, protein, surfacePoints } from './prot.js?v=202611052331';
+import { bilayer, MEM } from './membrane.js?v=202611052331';
+import { disposeGroup, glow } from './stage.js?v=202611052331';
 
 const lerp3 = (pts, f) => { const n = pts.length - 1, i = Math.max(0, Math.min(n - 1, Math.floor(f * n))), k = f * n - i, e = k * k * (3 - 2 * k); return pts[i].clone().lerp(pts[i + 1], e); };
 const qAxis = (a, t) => new THREE.Quaternion().setFromAxisAngle(a, t);
 /* a rotation that takes direction a onto direction b, then turns round b by `roll` */
 const qOnto = (a, b, roll = 0) => qAxis(b.clone().normalize(), roll).multiply(new THREE.Quaternion().setFromUnitVectors(a.clone().normalize(), b.clone().normalize()));
 
+/* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['glut4', 'hk2'];
+export const prefetch = () => loadProts(PROTS);
+
 export async function build(stage, { V }) {
-  const [GL, HK] = await loadProts(['glut4', 'hk2']);
+  const [GL, HK] = await loadProts(PROTS);
   const g = new THREE.Group(); g.name = 'ch1';
   /* ---- the membrane and the glucose transporter in its window ---- */
   const GA = V(0, 0, -3.2);

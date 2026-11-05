@@ -103,7 +103,20 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__board.ibv__board--panel{position:static;max-width:none;margin:8px 0 0;pointer-events:auto}
 .ibv__board b{font:900 12.5px/1.2 var(--ibv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A;margin-bottom:2px}
 .ibv__board .b{color:#FFE7A8;font-weight:900}
-.ibv__wait{position:absolute;inset:0;z-index:4;display:grid;place-items:center;margin:0;color:#E8E4FF;font-weight:800}
+.ibv__wait{position:absolute;inset:0;z-index:7;display:grid;place-items:center;align-content:center;gap:12px;margin:0;color:#E8E4FF;font-weight:800;text-align:center;padding:0 16px}
+/* the wait, said only when it lasts: a quiet bar moves under it (none once it has failed) */
+.ibv__wait::after{content:'';width:96px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#FFD27A,transparent) 0 0/200% 100%;animation:ibv-wait 1.1s linear infinite}
+.ibv__wait.is-failed::after{display:none}
+@keyframes ibv-wait{from{background-position:100% 0}to{background-position:-100% 0}}
+.ibv__retry{margin-left:6px;padding:7px 14px;border-radius:999px;border:1.5px solid #FFD27A;background:#FFD27A;color:#1b1640;font:800 15px/1.2 var(--ibv-sans);cursor:pointer}
+.ibv__retry:hover{background:#ffe09c}
+/* the veil: the picture dims while the next chapter is made, then lifts as its words come (view.js openChapter);
+   the first chapter opens from dark */
+.ibv__veil{position:absolute;inset:0;z-index:6;background:#070a1f;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.ibv__veil.is-on{opacity:.72}
+.ibv__veil.is-first{opacity:1;transition:none}
+.ibv.is-loading .ibv__count,.ibv.is-loading .ibv__text,.ibv.is-loading .ibv__xs,.ibv.is-loading .ibv__board--panel{opacity:.45;transition:opacity .3s}
+@media (prefers-reduced-motion:reduce){.ibv__veil{transition:none}.ibv__wait::after{animation:none;background-position:50% 0}}
 .ibv__wait[hidden]{display:none}
 .ibv__panel{overflow-y:auto;min-height:0;background:var(--ibv-sheet);color:var(--ibv-ink);padding:16px 20px 20px;border-left:1px solid var(--ibv-rule)}
 .ibv__where{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:center;margin-bottom:6px}

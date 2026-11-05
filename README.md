@@ -184,4 +184,8 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path, `--full 1` through its Full screen button);
   `node tools/ib-switch.mjs` plays the IB switch as a pupil (no switch before every check is right, the IB words and terms,
   the names, the doors into the view and back, on or off kept after a reload; `--w`/`--h`, `--mobile 1`).
+  `node tools/ib-speed.mjs --gate 1` checks how the view loads and moves on a pupil's first visit (a new browser profile;
+  `--net 4g`, `--cpu 4`, `--mobile 1`): no fade left solid, every step smooth once its picture shows, still pictures
+  light; `--double 1` presses Next twice, holds → and presses Back while a chapter loads; `--game 1` presses the game's IB
+  door twice, then opens and closes the view 20 times (one view, never seen unstyled, the game's own 3D picture kept).
 </details>

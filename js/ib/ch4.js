@@ -11,13 +11,17 @@
    FAD of E3 (Patel and Roche 1990, FASEB J 4:3224); the picture shows where it starts and where it ends.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611051947';
-import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611051947';
-import { bilayer } from './membrane.js?v=202611051947';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611051947';
+import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611052331';
+import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611052331';
+import { bilayer } from './membrane.js?v=202611052331';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611052331';
+
+/* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['pdh', 'mpc_mat'];
+export const prefetch = () => loadProts(PROTS);
 
 export async function build(stage, { V }) {
-  const [PDH, MM] = await loadProts(['pdh', 'mpc_mat']);
+  const [PDH, MM] = await loadProts(PROTS);
   const g = new THREE.Group(); g.name = 'ch4';
   /* the matrix's colour far behind, the inner membrane at the top with the pyruvate carrier, open to the matrix */
   const back = new THREE.Mesh(new THREE.PlaneGeometry(400, 300), new THREE.MeshBasicMaterial({ color: 0x3a2214 })); back.position.set(0, 0, -60); g.add(back);

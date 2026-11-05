@@ -19,17 +19,21 @@
    IV (the Q cycle's net result); oxygen waits at complex IV until 4 electrons (two NADH) have arrived: 2 water.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611051947';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611051947';
-import { bilayer, footprint } from './membrane.js?v=202611051947';
-import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611051947';
+import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611052331';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611052331';
+import { bilayer, footprint } from './membrane.js?v=202611052331';
+import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611052331';
 
 const H_COL = 0xff4f9a, E_COL = 0xfff07a;
 const along = (pts, f) => { const n = pts.length - 1; if (n < 1) return pts[0].clone(); const x = Math.max(0, Math.min(1, f)) * n, i = Math.min(n - 1, Math.floor(x)), k = x - i; return pts[i].clone().lerp(pts[i + 1], k); };
 
+/* its measured shapes and ATP synthase's: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['resp', 'c2', 'cytc', 'ant'], synthase = () => import('../world/atp-synthase.js?v=202611052331');
+export const prefetch = () => Promise.all([loadProts(PROTS), synthase()]);
+
 export async function build(stage, { V }) {
-  const [RS, C2, CC, AN] = await loadProts(['resp', 'c2', 'cytc', 'ant']);
-  const AT = (await import('../world/atp-synthase.js?v=202611051947')).ATP_SYNTHASE;
+  const [RS, C2, CC, AN] = await loadProts(PROTS);
+  const AT = (await synthase()).ATP_SYNTHASE;
   const g = new THREE.Group(); g.name = 'ch6';
   /* the spaces: the intermembrane space above, the matrix below (far behind the lipids) */
   const sp = (y0, y1, c) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(260, y1 - y0), new THREE.MeshBasicMaterial({ color: c })); m.position.set(0, (y0 + y1) / 2, -40); g.add(m); };
@@ -206,7 +210,12 @@ export async function build(stage, { V }) {
   ];
   const sPts = (obj, offs) => () => surfacePoints(obj, offs.map(o => obj.position.clone().add(o)));
   const molPts = id => () => drawn.atoms.filter(a => a.id === id && a.el !== 'H' && (a.s == null || a.s > 0.5)).map(a => a.p.clone());
-  const grpPts = (grp, offs) => () => { const ms = resp.children.filter(m => m.userData.grp === grp); return surfacePoints({ updateWorldMatrix: () => resp.updateWorldMatrix(true, true), traverse: f => ms.forEach(f) }, offs.map(o => resp.position.clone().add(o))); };
+  /* one complex of the respirasome, as one thing for its name's points: made once, so the points found can be kept */
+  const grpPts = (grp, offs) => {
+    const ms = resp.children.filter(m => m.userData.grp === grp);
+    const part = { matrixWorld: resp.matrixWorld, userData: resp.userData, updateWorldMatrix: (p, c) => resp.updateWorldMatrix(p, c), traverse: f => ms.forEach(f) };
+    return () => surfacePoints(part, offs.map(o => resp.position.clone().add(o)));
+  };
   const labels = {
     cI: { html: '<i>complex I</i>', side: 'l', lv: 'x', pts: grpPts('I', [V(-14, -10, 6), V(-12, -12, 6), V(-15, -6, 6)]) },
     cIII: { html: '<i>complex III (two)</i>', side: 'r', lv: 'x', pts: grpPts('III', [V(4, 6, 8), V(2, 7, 6), V(6, 5, 7)]) },

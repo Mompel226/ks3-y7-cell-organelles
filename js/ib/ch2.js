@@ -17,9 +17,9 @@
    reacting atom 0.35–0.45 nm from the substrate's.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611051947';
-import { loadProts, protein, surfacePoints, siteW } from './prot.js?v=202611051947';
-import { disposeGroup, glow } from './stage.js?v=202611051947';
+import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611052331';
+import { loadProts, protein, surfacePoints, siteW } from './prot.js?v=202611052331';
+import { disposeGroup, glow } from './stage.js?v=202611052331';
 
 const NAME = { glucose: 'glucose', g6p: '<i>glucose 6-phosphate</i>', f6p: '<i>fructose 6-phosphate</i>', fbp: '<i>fructose 1,6-bisphosphate</i>', dhap: '<i>dihydroxyacetone phosphate</i>',
   g3p: 'triose phosphate', bpg: '<i>1,3-bisphosphoglycerate</i>', pg3: '<i>3-phosphoglycerate</i>', pg2: '<i>2-phosphoglycerate</i>', pep: '<i>phosphoenolpyruvate</i>', pyruvate: 'pyruvate',
@@ -29,8 +29,12 @@ const ENZ = { hk2: 'hexokinase', gpi: 'glucose-6-phosphate isomerase', pfk: 'pho
 const COL = { hk2: 0xb3a6ff, gpi: 0x9fc6ff, pfk: 0xc0a8ff, aldolase: 0x9fe0d0, tpi: 0xa8d8ff, gapdh: 0xb8b0ff, pgk: 0xffc8a0, pgam: 0xa6e3ff, enolase: 0xc4f0b0, pkm: 0xffd59a, ldh: 0xffb3c8, pdc: 0xd9c2ff, adh: 0xc2e8ff };
 const SUB = new THREE.Vector3(-1, 0.12, 0.32), COF = new THREE.Vector3(1, 0.3, 0.35);
 
+/* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['hk2', 'gpi', 'pfk', 'aldolase', 'tpi', 'gapdh', 'pgk', 'pgam', 'enolase', 'pkm', 'ldh', 'pdc', 'adh'];
+export const prefetch = () => loadProts(PROTS);
+
 export async function build(stage, { V }) {
-  const keys = ['hk2', 'gpi', 'pfk', 'aldolase', 'tpi', 'gapdh', 'pgk', 'pgam', 'enolase', 'pkm', 'ldh', 'pdc', 'adh'];
+  const keys = PROTS;
   const PR = {}; (await loadProts(keys)).forEach((p, i) => { PR[keys[i]] = p; });
   const g = new THREE.Group(); g.name = 'ch2';
   /* ---- the stations: an enzyme each, its site(s) at (x, 0, 0) ---- */

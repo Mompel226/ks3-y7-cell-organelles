@@ -15,14 +15,18 @@
    (in muscle, the glycerol phosphate shuttle passes them to FAD in the inner membrane: Mráček et al. 2013, BBA 1827:401).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611051947';
-import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611051947';
-import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611051947';
-import { bilayer, MEM } from './membrane.js?v=202611051947';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611051947';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611052331';
+import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611052331';
+import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611052331';
+import { bilayer, MEM } from './membrane.js?v=202611052331';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611052331';
+
+/* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
+const PROTS = ['vdac', 'mpc_ims', 'mpc_occ', 'mpc_mat'];
+export const prefetch = () => loadProts(PROTS);
 
 export async function build(stage, { V }) {
-  const [VD, MI, MO, MM] = await loadProts(['vdac', 'mpc_ims', 'mpc_occ', 'mpc_mat']);
+  const [VD, MI, MO, MM] = await loadProts(PROTS);
   const g = new THREE.Group(); g.name = 'ch3';
   /* ---- the whole mitochondrion, its axis along x, its cut face towards the viewer ---- */
   const H = heroMito(), HS = H.spec;
@@ -67,10 +71,13 @@ export async function build(stage, { V }) {
     /* the cut face and the magnified piece: the piece takes over as the camera comes close */
     const d = stage.view.dist, near = smooth(700, 180, d);
     H.parts.outer.visible = H.parts.inner.visible = H.parts.cristae.visible = d > 140;
+    /* close up, the cut face lies wholly behind the magnified piece and draws nothing there, yet its colour program ran for
+       every pixel of the screen: 17 frames a second on a laptop (the audit, 5 Nov 2026); hidden, no pixel changes */
+    H.parts.face.visible = d >= 70;
     const U = H.section.userData.u;
     if (U.uHole) U.uHole.value.set(s0, 0.066, 0.11, near);
     patch.visible = d < 900;
-    [om, im].forEach(b => b.userData.mats.forEach(m => { m.transparent = near < 0.999; m.opacity = near; }));
+    [om, im].forEach(b => b.userData.mats.forEach(m => { seeThrough(m, near < 0.999); m.opacity = near; }));
     spaces.forEach(m => { m.material.opacity = 0.85 * near; });
     fadeProt(vdac, near);
     /* the carrier's three measured shapes, one after the other as pyruvate passes (mpc: 0 open to the intermembrane space,
