@@ -276,6 +276,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .lens__wait{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:#E8E4FF;font-weight:700}
 .lens__wait[hidden]{display:none}
 .lens__cap{font-size:15.5px;margin:8px 0 2px}
+/* the nucleus's real 3D: which colour is which, above the picture */
+.lens__key{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 8px;font-size:15px;font-weight:700;color:var(--qp-ink)}
+.lens__key span{display:inline-flex;align-items:center;gap:7px}
+.lens__key span::before{content:'';width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 /* the Explorer film of the nucleus: how a cell copies a gene (js/game/transcribe.js), in the lens's window */
 .cf__x{display:inline-block;margin:2px 0 10px;font:800 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#7a5cff;background:rgba(160,140,255,.14);border:1.5px dashed #b9a6ff;border-radius:999px;padding:6px 10px}
 .cf__key{margin:8px 0 6px;font-size:15px;color:var(--qp-ink)}
@@ -298,6 +302,11 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .cf__bar--v b{margin-right:6px}
 .cf__bar--v i{width:9px;height:auto;border-width:2px 0 2px 2px;border-radius:2px 0 0 2px}
 .cf__lab{background:rgba(10,14,40,.86);color:#fff;font:800 13px/1.2 var(--sans);padding:5px 10px;border-radius:999px;white-space:nowrap;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+/* a name with a level line that ends on its part (the hydrogen bonds): the pill, then the line */
+.cf__lab--line{display:flex;align-items:center;background:none;border:0;box-shadow:none;padding:0}
+.cf__lab--line span{background:rgba(10,14,40,.86);padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.cf__lab--line i{display:block;width:26px;height:2px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.6)}
+.cf__key[hidden]{display:none}
 
 /* ---------- under the stage ---------- */
 .about{max-width:1480px;margin:0 auto;padding:6px 24px 10px}

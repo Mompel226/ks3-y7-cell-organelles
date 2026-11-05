@@ -13,8 +13,8 @@ import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPa
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { OutputPass } from '../vendor/three/examples/jsm/postprocessing/OutputPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611042250';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611042250';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611050034';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611050034';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -216,6 +216,7 @@ export class World {
     const p0 = cam.position.clone(), a0 = c.target.clone();
     const p1 = new THREE.Vector3().fromArray(view.pos), a1 = new THREE.Vector3().fromArray(view.at);
     this.flying = true; c.enabled = false; this.setMoving(true);
+    if (this.hover) { this.hover = null; this.light(null, false); this.canvas.style.cursor = 'grab'; this.emit('hover', null); }
     if (this.still || p0.distanceTo(p1) < 0.01) { cam.position.copy(p1); c.target.copy(a1); return this.landed(view, isMap); }
     /* the arc rises away from the middle of the cell, so the flight passes over things, not through them */
     const mid = p0.clone().add(p1).multiplyScalar(0.5), out = mid.clone().sub(new THREE.Vector3(0, 7, 0)).setY(0).normalize();
@@ -289,10 +290,15 @@ export class World {
       const id = pick(e);
       this.emit('press', id);
     });
+    /* a place lights under the mouse only where pressing it takes you there: on the map, with no place open (Daniel,
+       4 Nov 2026: inside the nucleus "everything lights up … even if I'm not selecting anything … very, very bright";
+       inside a place a press on the cell does nothing, and the place you are in filled the view, lit). main.js sets
+       canPress; until it does, every place may light */
+    this.canPress = this.canPress || (() => true);
     this.canvas.addEventListener('pointermove', e => {
       if (e.pointerType !== 'mouse' || this.flying) return;
       const now = performance.now(); if (now - last < 60) return; last = now;
-      const id = pick(e);
+      const id = this.canPress() ? pick(e) : null;
       if (id !== this.hover) { this.hover = id; this.light(id, !!id); this.canvas.style.cursor = id ? 'pointer' : 'grab'; this.emit('hover', id); }
     });
     this.canvas.addEventListener('pointerleave', () => { this.hover = null; this.light(null, false); this.emit('hover', null); });

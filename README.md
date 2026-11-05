@@ -13,7 +13,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | The cell you know | the five Year 7 parts lit alone; then everything an electron microscope shows; what an organelle is | the map |
 | Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves into the plasma, the liquid part of the blood, between the red blood cells | glucose, oxygen, amino acids |
 | Mitochondria | splits glucose in the cytoplasm, sends the pieces and oxygen in: aerobic respiration releases energy | energy (the bar) |
-| Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene (a zoom from a chromosome's packed fibre through the histones to the double helix, with scale bars of 30, 11 and 2 nm; A, T, C and G as the four nucleotides; the DNA untwisted as a ladder; the strands separate inside the enzyme, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore | the copy of the gene |
+| Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene (a zoom from a chromosome's packed fibre through the histones to the double helix, with scale bars of 30, 11 and 2 nm; the DNA untwisted as a ladder of nucleotides, and only then A, T, C and G; the bases pair, A with T and C with G, joined by hydrogen bonds drawn as dashes; the strands separate inside the enzyme, where the hydrogen bonds break, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore | the copy of the gene |
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
 | Ribosomes | joins the parts on the copy; matches each amino acid to the code; chooses where this ribosome must work | the start of the chain |
 | Rough ER | docks on a channel; makes the chain inside the rough ER; cuts the signal; folds it (the active site) | amylase in a vesicle |
@@ -109,13 +109,14 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   and reads the board's record; `node tools/questions-check.mjs` checks the checks' data (no give-away option, every typed
   word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes.
   The playthrough also fails if, after any press, two names or buttons on the world overlap or one is under the corner
-  box or the panel, and, in the intro, if the corner's buttons cannot be pressed or cover the card or the picture.
+  box or the panel, and, in the intro, if the corner's buttons cannot be pressed or cover the card or the picture; and
+  if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
   refuses if a label would touch a part or another label. `node tools/frames.mjs --out <folder>` films the intro's three
   moves frame by frame and lays them out on sheets (`--w 390 --h 844 --mobile 1`: a phone), so a glitch of a few frames
   shows; `node tools/look.mjs --place <id> --out <folder>` photographs one place step by step (`--film 1`: a sheet of
-  frames for every press). `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
+  frames for every press; `--point <place>`: with the mouse over that place; `--lens <place>`: its See the real thing, Real 3D). `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.
   The final check: its questions and answers are `tools/final.master.mjs` (never published); `node tools/make-final.mjs`
   writes `js/final-data.js` from it (only fingerprints of the answers; `--check` proves every answer still marks right),
   `node tools/final-overlap.mjs` proves no run of six words is shared with the game, `python3 tools/cell-svg.py` draws the

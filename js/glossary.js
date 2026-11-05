@@ -30,6 +30,8 @@
    the nucleus's Explorer film (Korean and Chinese: the school science words). Then nucleotide and histone, for the film's zoom from a
    chromosome to its bases (Daniel's Year 9 slides on biological molecules), and base (in DNA) says what A, T, C and G
    stand for.
+   5 Nov 2026: hydrogen bond says what it does in DNA too (the bases of the two strands held in pairs), for the film's
+   hydrogen bonds (Daniel: "make sure that there is a hydrogen bonds shown").
    ============================================================ */
 (function () {
   'use strict';
@@ -50,7 +52,7 @@
       { k: 'solid',           en: 'solid',           ko: '고체',              zh: '固体',        d: 'A state of matter. Its particles are held close together in a regular pattern: they vibrate but stay in place.' },
       { k: 'liquid',          en: 'liquid',          ko: '액체',              zh: '液体',        d: 'A state of matter. Its particles touch and slide past each other, so it flows and takes the shape of its container.' },
       { k: 'gas',             en: 'gas',             ko: '기체',              zh: '气体',        d: 'A state of matter. Its particles are far apart and move fast in all directions; the pull between them is very weak.' },
-      { k: 'hydrogen-bond',   en: 'hydrogen bond',   ko: '수소 결합',         zh: '氢键',        d: 'A weak pull between molecules, such as between a hydrogen atom of one water molecule and the oxygen atom of the next. It is much weaker than the bonds inside a molecule. In liquid water it keeps the molecules close while they slide past each other.' },
+      { k: 'hydrogen-bond',   en: 'hydrogen bond',   ko: '수소 결합',         zh: '氢键',        d: 'A weak pull between molecules, such as between a hydrogen atom of one water molecule and the oxygen atom of the next. It is much weaker than the bonds inside a molecule. In liquid water it keeps the molecules close while they slide past each other. In DNA, hydrogen bonds join the bases of its two strands in pairs.' },
       { k: 'polar',           en: 'polar',           ko: '극성 (극성을 띤)',  zh: '极性的',      d: 'Having a slightly positive end and a slightly negative end. A water molecule is polar: its oxygen end is slightly negative (δ−) and its hydrogen end is slightly positive (δ+).' }
     ]},
     { g: 'Inside atoms', w: [

@@ -5,18 +5,18 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611042250';
-import { Names } from './names.js?v=202611042250';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611042250';
-import { makePlay } from './play.js?v=202611042250';
-import { setStill, wait } from './actors.js?v=202611042250';
-import { state } from './state.js?v=202611042250';
-import { ICON } from './icons.js?v=202611042250';
-import { openLens } from './lens.js?v=202611042250';
-import { intro } from './intro.js?v=202611042250';
-import { sound } from './sound.js?v=202611042250';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611042250';
-import { openCopyFilm } from './transcribe.js?v=202611042250';
+import { World, MAP_VIEW } from '../world/world.js?v=202611050034';
+import { Names } from './names.js?v=202611050034';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611050034';
+import { makePlay } from './play.js?v=202611050034';
+import { setStill, wait } from './actors.js?v=202611050034';
+import { state } from './state.js?v=202611050034';
+import { ICON } from './icons.js?v=202611050034';
+import { openLens } from './lens.js?v=202611050034';
+import { intro } from './intro.js?v=202611050034';
+import { sound } from './sound.js?v=202611050034';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611050034';
+import { openCopyFilm } from './transcribe.js?v=202611050034';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -59,7 +59,8 @@ function mapNames() {
     };
   }), [$('.hud')]);
 }
-/* a place pressed on the cell or its name */
+/* a place pressed on the cell or its name; it lights under the mouse only when that press would go there (world.js) */
+world.canPress = () => !quest.cur && !busy;
 world.on('press', id => { if (!id || quest.cur) return; go(id); });
 world.on('woke', id => { toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} awake.`); sound.wake(); });
 

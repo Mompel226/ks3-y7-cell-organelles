@@ -14,11 +14,19 @@
    1  a chromosome's thread: the chromatin fibre, nucleosomes packed in a coil (30 nm);
    2  it loosens into beads on a string: DNA wound round histones (a nucleosome, 11 nm);
    3  into the DNA between two beads: the double helix (2 nm), which turns slowly;
-   4  untwisted: a chain of nucleotides (a sugar, a phosphate and a base: A, T, C or G); A pairs with T, C with G;
-   5  an enzyme, RNA polymerase, joins the gene (unwound from its histones) and separates the two strands;
-   6  building blocks of RNA arrive one at a time; each fits against a base of ONE strand (U with A, A with T, …);
-   7  they join in a chain, the copy (mRNA), which leaves the enzyme as it grows; behind it the DNA joins again;
-   8  at the end of the gene the enzyme leaves the DNA: the copy is finished; the DNA stays in the nucleus.
+   4  untwisted: a chain of nucleotides (a sugar, a phosphate and a base: A, T, C or G);
+   5  the bases pair, A with T and C with G, held by hydrogen bonds (two between A and T, three between C and G);
+   6  an enzyme, RNA polymerase, joins the gene (unwound from its histones) and separates the two strands: the hydrogen
+      bonds between them break;
+   7  building blocks of RNA arrive one at a time; each fits against a base of ONE strand (U with A, A with T, …), held
+      by hydrogen bonds;
+   8  they join in a chain, the copy (mRNA), which leaves the enzyme as it grows; behind it the DNA joins again;
+   9  at the end of the gene the enzyme leaves the DNA: the copy is finished; the DNA stays in the nucleus.
+   Then (Daniel, 4 Nov 2026): "you start already mentioning ATCG, and it's not already visible in the image … when you
+   finally can see the nucleic bases, then you show AT fits each other, CG fits each other … make sure that there is a
+   hydrogen bonds shown". So nothing names a base before the bases are on the picture: the key beside the film appears at
+   step 5 (and U in it at step 7), and the hydrogen bonds are drawn: dashes between the bases of each pair, which break
+   where the strands are apart and form again behind the enzyme; the same between a building block of RNA and its base.
    True at this level (memory biology-before-pedagogy): the sizes are the textbook ones (his slide); one strand is copied;
    RNA has U where DNA has T; the strands are apart only inside the enzyme; the copy reads like the other strand, with U
    for T. Left out, for Year 7: the start signal, the strands' directions, the copy's changes before it leaves the nucleus.
@@ -29,7 +37,10 @@
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 
 const R = window.REV, { $ } = R;
-const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 0.95, YC = 3.05;   /* pairs; spacing; strands; copy */
+const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
+const LB = 0.82;                         /* a base's length from its sugar: a gap between the two bases of a pair, for the hydrogen bonds */
+const tipOf = L => L / 2 + 0.62 * (L - 0.24);   /* how far from its sugar a base ends (its rounded end included) */
+const BONDS = { A: 2, T: 2, U: 2, C: 3, G: 3 };   /* hydrogen bonds in a pair: two between A and T (or U), three between C and G */
 const COL = { A: 0xff6b6b, T: 0x4fa3ff, C: 0xffc94a, G: 0x4fd18b, U: 0xc38bff };
 const PAIR_DNA = { A: 'T', T: 'A', C: 'G', G: 'C' }, PAIR_RNA = { A: 'U', T: 'A', C: 'G', G: 'C' };
 /* the coding strand's bases (an example); the template strand is its partner, and the copy reads like the coding strand */
@@ -136,7 +147,7 @@ function film(wrap) {
   Object.values(tubes).forEach(t => root.add(t));
   const tube = (mesh, pts) => { mesh.geometry.dispose(); mesh.geometry = pts.length > 1 ? new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 8, 0.065, 10, false) : new THREE.BufferGeometry(); };
   const enz = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), glassMat(0x6fe3c8)); enz.scale.set(1.75, 2.15, 1.25); enz.renderOrder = 6; root.add(enz);
-  const ladderMats = [bead.a, bead.b, bead.r, phosMat, glowMat, tubeMat.a, tubeMat.b, tubeMat.r, ...Object.values(baseMat)];
+  const ladderMats = [bead.a, bead.b, bead.r, phosMat, glowMat, tubeMat.a, tubeMat.b, tubeMat.r, ...Object.values(baseMat)];   /* (and the hydrogen bonds', below) */
   const up = new THREE.Vector3(0, 1, 0);
   /* a base from its sugar towards `to`; its letter on its outer half, a little in front, so no two letters meet */
   const place = (o, from, to, len) => {
@@ -145,7 +156,27 @@ function film(wrap) {
     o.r.position.copy(from).addScaledVector(dir, L / 2); o.r.scale.set(1, Math.max(0.01, L - 0.24), 1); o.r.quaternion.setFromUnitVectors(up, dir);
     o.s.position.copy(from).addScaledVector(dir, Math.min(0.52, L * 0.55)); o.s.position.z += 0.2;
   };
-  function ladder(u, p, t, hl) {
+  /* the hydrogen bonds: for each pair (and each building block of RNA, from N on) up to three bonds, each a dashed line
+     of three dashes from one base's end to the other's; v (0 … 1) grows or shrinks them, so a bond forms or breaks */
+  const DASH = 3, dashGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 6), hbMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true });
+  const hbs = new THREE.InstancedMesh(dashGeo, hbMat, 2 * N * 3 * DASH); hbs.frustumCulled = false; root.add(hbs);
+  const hbM = new THREE.Matrix4(), hbQ = new THREE.Quaternion(), hbS = new THREE.Vector3(), hbP = new THREE.Vector3(), hbD = new THREE.Vector3(), hbX = new THREE.Vector3(1, 0, 0);
+  function bonds(slot, n, from, to, v = 0) {
+    if (n && v > 0.01) { hbD.copy(to).sub(from); }
+    const len = n && v > 0.01 ? hbD.length() : 0;
+    if (len) hbQ.setFromUnitVectors(up, hbD.clone().normalize());
+    for (let j = 0; j < 3; j++) {
+      const off = n === 2 ? (j === 2 ? null : (j - 0.5) * 0.11) : (j - 1) * 0.075;
+      for (let d = 0; d < DASH; d++) {
+        const k = (slot * 3 + j) * DASH + d;
+        if (!len || off == null) { hbM.makeScale(0, 0, 0); hbs.setMatrixAt(k, hbM); continue; }
+        hbP.copy(from).addScaledVector(hbD, (d + 0.5) / DASH).addScaledVector(hbX, off);
+        hbS.set(v, len / DASH * 0.55 * v, v); hbM.compose(hbP, hbQ, hbS); hbs.setMatrixAt(k, hbM);
+      }
+    }
+    hbs.instanceMatrix.needsUpdate = true;
+  }
+  function ladder(u, p, t, hl, hb) {
     const A = [], B = [], C = [], c = p - 0.5;
     Object.values(letters).forEach(m => { m.opacity = smooth(0.6, 0.95, u) * fade; });
     for (let i = 0; i < N; i++) {
@@ -153,7 +184,7 @@ function film(wrap) {
       const phi = (1 - u) * (i * 0.62 + t * 0.35), o = smooth(2.7, 1.3, Math.abs(i - c));
       const top = new THREE.Vector3(x, YT * Math.cos(phi) + LIFT * o, YT * Math.sin(phi)), bot = new THREE.Vector3(x, YB * Math.cos(phi), YB * Math.sin(phi));
       const mid = new THREE.Vector3(x, 0, (top.z + bot.z) / 2);
-      place(q.a, top, mid, 0.94); place(q.b, bot, mid, 0.94);
+      place(q.a, top, mid, LB); place(q.b, bot, mid, LB);
       /* each sugar's phosphate, half-way to the next sugar: the sugar-phosphate backbone */
       const nx = X(i + 1), phiN = (1 - u) * ((i + 1) * 0.62 + t * 0.35), oN = smooth(2.7, 1.3, Math.abs(i + 1 - c));
       q.a.ph.visible = q.b.ph.visible = i < N - 1;
@@ -174,9 +205,14 @@ function film(wrap) {
         const flight = from.clone().lerp(dock, e).add(new THREE.Vector3(0, Math.sin(e * Math.PI) * 0.35, 0));
         const rise = dock.clone().lerp(inCopy, lift).add(new THREE.Vector3(0, 0, Math.sin(lift * Math.PI) * 0.75));
         const pos = lift > 0 ? rise : flight;
-        place(q.u, pos, pos.clone().add(new THREE.Vector3(0, -1, 0)), 0.94 - 0.12 * lift);
+        place(q.u, pos, pos.clone().add(new THREE.Vector3(0, -1, 0)), LB - 0.1 * lift);
         if (arrive > 0.97) C.push(pos.clone());
-      }
+        /* docked, it is held to its base of the lower strand by hydrogen bonds, which break as the copy lifts away */
+        const rTip = pos.clone().add(new THREE.Vector3(0, -tipOf(LB - 0.1 * lift), 0)), bTip = bot.clone().addScaledVector(mid.clone().sub(bot).normalize(), tipOf(LB));
+        bonds(N + i, BONDS[PAIR_DNA[SEQ[i]]], bTip, rTip, smooth(0.9, 1, arrive) * (1 - smooth(0, 0.3, lift)) * hb);
+      } else bonds(N + i, 0);
+      /* the pair's own hydrogen bonds, where the two strands are together */
+      bonds(i, BONDS[SEQ[i]], bot.clone().addScaledVector(mid.clone().sub(bot).normalize(), tipOf(LB)), top.clone().addScaledVector(mid.clone().sub(top).normalize(), tipOf(LB)), hb * (1 - smooth(0.02, 0.12, o)));   /* only once the strands are (almost) together */
     }
     tube(tubes.a, A); tube(tubes.b, B); tube(tubes.r, C);
     enz.visible = p > -4 && p < N + 4;
@@ -193,12 +229,13 @@ function film(wrap) {
     { el: tag('cf__lab', 'histones (proteins)'), show: z => smooth(0.75, 0.95, z) * (1 - smooth(1.2, 1.5, z)) },
     { el: tag('cf__lab cf__lab--below', 'DNA'), show: z => smooth(0.75, 0.95, z) * (1 - smooth(1.2, 1.5, z)) },
     { el: tag('cf__lab', 'one nucleotide'), show: (z, u, p, hl) => hl },
+    { el: tag('cf__lab cf__lab--line', '<span>hydrogen bonds</span><i></i>'), line: true, show: (z, u, p, hl, hb) => hb * (1 - smooth(-4.5, -3, p)) },
     { el: tag('cf__lab', 'RNA polymerase'), show: (z, u, p) => smooth(-1.5, -0.3, p) * (1 - smooth(2.0, 3.0, p)) },
     { el: tag('cf__lab', 'the copy: mRNA'), show: (z, u, p) => smooth(7, 8.5, p) }
   ];
   const v = new THREE.Vector3(), proj = (pt) => { v.copy(pt).applyMatrix4(all.matrixWorld).project(cam); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H, v.z < 1]; };
   const pxPerNm = (pt) => { const a = proj(pt), b = proj(pt.clone().add(new THREE.Vector3(1, 0, 0))); return Math.hypot(b[0] - a[0], b[1] - a[1]); };
-  function overlay(z, u, p, hl) {
+  function overlay(z, u, p, hl, hb) {
     all.updateMatrixWorld(); cam.updateMatrixWorld();
     const kM = loose[MID].c, fibreLow = new THREE.Vector3(0, -19, 0);
     const at = [
@@ -208,17 +245,21 @@ function film(wrap) {
       () => { const a = proj(kM.clone().add(new THREE.Vector3(0, 0, 3))); return [a[0], a[1]]; },
       () => { const a = proj(new THREE.Vector3(0, -1.1, 0.9)); return [a[0], a[1] + 6]; },
       () => { const a = proj(new THREE.Vector3(X(HIGHLIGHT), YT + 0.32, 0.2)); return [a[0], a[1]]; },
+      () => { const a = proj(new THREE.Vector3(X(0) - 0.09, 0, 0)); return [a[0], a[1]]; },
       () => { const a = proj(enz.position.clone().add(new THREE.Vector3(0, 2.45, 0))); return [a[0], a[1]]; },
       () => { const a = proj(new THREE.Vector3(X(2), YC + 0.95, 0)); return [a[0], a[1]]; }
     ];
     marks.forEach((m, i) => {
-      const o = m.show(z, u, p, hl);
+      const o = m.show(z, u, p, hl, hb);
       m.el.style.opacity = o.toFixed(3); m.el.style.visibility = o > 0.01 ? 'visible' : 'hidden';
       if (o <= 0.01) return;
       const r = at[i]();
       if (m.nm) {
         if (m.el.classList.contains('cf__bar--v')) { m.el.style.transform = `translate(${r[0].toFixed(1)}px, ${r[1].toFixed(1)}px) translate(-100%, 0)`; m.el.firstChild.style.height = r[2].toFixed(1) + 'px'; }   /* its bracket ends at the helix's left, its words beyond */
         else { m.el.style.transform = `translate(${r[0].toFixed(1)}px, ${r[1].toFixed(1)}px)`; m.el.firstChild.style.width = r[2].toFixed(1) + 'px'; }
+      } else if (m.line) {
+        /* a name on the left, its level line ending on the part */
+        m.el.style.transform = `translate(${r[0].toFixed(1)}px, ${r[1].toFixed(1)}px) translate(-100%, -50%)`;
       } else {
         /* a name stays inside the view, however near the edge its part is */
         const hw = (m.w = m.w || m.el.offsetWidth) / 2, x = Math.max(hw + 6, Math.min(W - hw - 6, r[0]));
@@ -234,47 +275,51 @@ function film(wrap) {
     /* the whole ladder and the copy above it in view; in a narrow window (a phone) the view comes closer and follows the
        enzyme along the DNA, so that every letter can still be read */
     const tv = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), narrow = W < 520;
-    cam.userData.narrow = narrow; cam.userData.dist = Math.max((narrow ? 2.7 : 5.0) / (tv * cam.aspect), 3.1 / tv);
+    cam.userData.narrow = narrow; cam.userData.tv = tv; cam.userData.distW = (narrow ? 2.7 : 5.0) / (tv * cam.aspect); cam.userData.dist = Math.max(cam.userData.distW, 3.1 / tv);
     /* far away: the fibre fills the width (z = 0); then a few beads (z = 1) */
     cam.userData.d0 = Math.max(44 / (tv * cam.aspect), 20 / tv); cam.userData.d1 = Math.max(30 / (tv * cam.aspect), 14 / tv);
   };
   size(); addEventListener('resize', size);
-  const S = { z: 0, L: 0, u: 0, p: -6, hl: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
+  const S = { z: 0, L: 0, u: 0, p: -6, hl: 0, hb: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
   const t0 = performance.now();
   const loop = () => {
     if (!alive) return;
     const now = performance.now(), k = S.ms ? Math.min(1, (now - S.t0) / S.ms) : 1, e = k * k * (3 - 2 * k);
-    if (S.from) ['z', 'L', 'u', 'p', 'hl'].forEach(n => { S[n] = S.from[n] + (S.to[n] - S.from[n]) * (n === 'p' && S.lin ? k : e); });
+    if (S.from) ['z', 'L', 'u', 'p', 'hl', 'hb'].forEach(n => { S[n] = S.from[n] + (S.to[n] - S.from[n]) * (n === 'p' && S.lin ? k : e); });
     const t = R.FAST ? 0 : (now - t0) / 1000;
     /* the chromatin fades as the view reaches the DNA between two beads, where the ladder (the same DNA, drawn base by
        base) takes its place; the tilt of the far view goes as it comes close */
     chromatin(S.L);
     const near = smooth(1.45, 1.9, S.z);
     chrom.visible = near < 0.999; histMat.opacity = dnaMat.opacity = 1 - near; histMat.depthWrite = dnaMat.depthWrite = near < 0.5;
-    fade = near; root.visible = near > 0.001; ladderMats.forEach(m => { m.opacity = near; m.depthWrite = near > 0.5; });
-    ladder(S.u, S.p, t, S.hl);
+    fade = near; root.visible = near > 0.001; ladderMats.forEach(m => { m.opacity = near; m.depthWrite = near > 0.5; }); hbMat.opacity = near;
+    ladder(S.u, S.p, t, S.hl, S.hb);
     all.rotation.z = -0.32 * (1 - smooth(0.9, 1.9, S.z));
-    const d0 = cam.userData.d0, d1 = cam.userData.d1, d2 = cam.userData.dist;
+    /* on a phone, as the copy grows above the DNA, the view rises and steps back a little, so that the copy's name fits */
+    const tall = cam.userData.narrow ? smooth(6, 9, S.p) : 0;
+    const d0 = cam.userData.d0, d1 = cam.userData.d1, d2 = Math.max(cam.userData.distW, (3.1 + 0.45 * tall) / cam.userData.tv);
     const dist = S.z <= 1 ? d0 * Math.pow(d1 / d0, S.z) : d1 * Math.pow(d2 / d1, S.z - 1);
     const sway = R.FAST ? 0 : Math.sin(t * 0.35) * 0.12 * S.u;
     /* while the helix turns, the view moves a little to the right of it, so the 2 nm bar has room on its left */
     /* (on a phone, to the helix's left end, where its 2 nm bar is) */
-    const want = (cam.userData.narrow && S.p > -3 ? Math.max(X(2), Math.min(X(N - 3), X(S.p - 1.5))) : 0) - (cam.userData.narrow ? 3.2 : 1.1) * (1 - S.u) * smooth(1.6, 2, S.z);
+    /* (and while the hydrogen bonds are named, to the DNA's left end, where the name is) */
+    const want = (cam.userData.narrow && S.p > -3 ? Math.max(X(2), Math.min(X(N - 3), X(S.p - 1.5))) : 0) - (cam.userData.narrow ? 3.2 : 1.1) * (1 - S.u) * smooth(1.6, 2, S.z)
+      - (cam.userData.narrow ? 3.9 : 1.6) * S.hb * (1 - smooth(-4.5, -3, S.p));
     S.cx = S.cx == null || R.FAST ? want : S.cx + (want - S.cx) * 0.06;
-    const lookY = S.z <= 1 ? 0 : 1.05 * smooth(1, 2, S.z);
+    const lookY = S.z <= 1 ? 0 : 1.05 * smooth(1, 2, S.z) + 0.4 * tall;
     cam.position.set(S.cx + Math.sin(sway) * dist, lookY + (0.15 + 0.4 * (1 - S.u)) * Math.min(1, dist / 12), Math.cos(sway) * dist); cam.lookAt(S.cx, lookY, 0);
     renderer.render(scene, cam);
-    overlay(S.z, S.u, S.p, S.hl);
+    overlay(S.z, S.u, S.p, S.hl, S.hb);
     if (k >= 1 && S.done) { const d = S.done; S.done = null; d(); }
     requestAnimationFrame(loop);
   };
   loop();
   return {
-    /* to a moment: zoom z, loosened L, untwisted u, enzyme at p, nucleotide named hl; `lin` keeps an even pace (the
+    /* to a moment: zoom z, loosened L, untwisted u, enzyme at p, nucleotide named hl, hydrogen bonds hb; `lin` keeps an even pace (the
        building blocks arrive one by one) */
     go(to) {
       return new Promise(res => {
-        S.from = { z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl }; S.to = Object.assign({}, S.from, to);
+        S.from = { z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb }; S.to = Object.assign({}, S.from, to);
         S.lin = !!to.lin; S.t0 = performance.now(); S.ms = R.FAST ? 0 : (to.ms || 1200); S.done = res;
       });
     },
@@ -286,11 +331,12 @@ const STEPS = [
   { t: 'This is how a cell copies a gene, drawn millions of times bigger.\nA <dfn data-w="chromosome">chromosome</dfn> is one very long thread of DNA and protein. Here is a short piece of it, packed into a fibre 30 nanometres (nm) wide: about 30 millionths of a millimetre.' },
   { t: 'Closer: the DNA is wound round small balls of protein, the <dfn data-w="histone">histones</dfn>, like thread round beads. This keeps 2 metres of DNA tidy inside a nucleus.', go: { z: 1, L: 1, ms: 2800 } },
   { t: 'Closer again, between two beads: the DNA itself. It is two strands, twisted round each other: a double helix, only 2 nm wide.', go: { z: 2, ms: 3000 } },
-  { t: 'Here it is drawn untwisted, so that you can see each part.\nDNA is a chain of building blocks, the <dfn data-w="nucleotide">nucleotides</dfn>. Each one is a sugar, a phosphate and a <dfn data-w="dna-base">base</dfn>. There are four bases: A, T, C and G (adenine, thymine, cytosine and guanine).\nEach base fits only one other: A with T, and C with G.', go: { u: 1, hl: 1, ms: 1800 } },
-  { t: 'Where a gene is copied, its DNA is unwound from the histones. An <dfn data-w="enzyme">enzyme</dfn>, RNA polymerase, joins the gene and separates the two strands there, like opening a zip.', go: { p: 0, hl: 0, ms: 1900 } },
-  { t: 'Building blocks of <dfn data-w="rna">RNA</dfn> arrive, one at a time. Each one fits against a base of <b>one</b> strand only: U against A, A against T, G against C, and C against G.\n(RNA has U where DNA has T.)', go: { p: 5, ms: 5 * 1150, lin: true } },
-  { t: 'The building blocks join in a chain: the copy of the gene, <dfn data-w="mrna">mRNA</dfn>. It leaves the enzyme as it grows.\nBehind the enzyme, the two strands of DNA join again.', go: { p: N, ms: (N - 5) * 520, lin: true } },
-  { t: 'At the end of the gene, the enzyme leaves the DNA, and the copy is finished: it reads like the top strand, with U where the strand has T.\nThe DNA stays in the nucleus. The copy leaves through a nuclear pore.', go: { p: N + 5, ms: 2600 } }
+  { t: 'Here it is drawn untwisted, so that you can see each part.\nDNA is a chain of building blocks, the <dfn data-w="nucleotide">nucleotides</dfn>. Each one is a sugar, a phosphate and a <dfn data-w="dna-base">base</dfn>. There are four bases: A, T, C and G (adenine, thymine, cytosine and guanine).', go: { u: 1, hl: 1, ms: 1800 } },
+  { t: 'The bases of the two strands form pairs: A with T, and C with G.\n<dfn data-w="hydrogen-bond">Hydrogen bonds</dfn> join the two bases of each pair: two between A and T, three between C and G. A hydrogen bond is weak, so the two strands can be separated.', go: { hb: 1, hl: 0, ms: 1600 }, key: 1 },
+  { t: 'Where a gene is copied, its DNA is unwound from the histones. An <dfn data-w="enzyme">enzyme</dfn>, RNA polymerase, joins the gene and separates the two strands there, like opening a zip: the hydrogen bonds between the bases break.', go: { p: 0, ms: 1900 }, key: 1 },
+  { t: 'Building blocks of <dfn data-w="rna">RNA</dfn> arrive, one at a time. Each one fits against a base of <b>one</b> strand only, held by hydrogen bonds: U against A, A against T, G against C, and C against G.\n(RNA has U where DNA has T.)', go: { p: 5, ms: 5 * 1150, lin: true }, key: 2 },
+  { t: 'The building blocks join in a chain: the copy of the gene, <dfn data-w="mrna">mRNA</dfn>. It leaves the enzyme as it grows.\nBehind the enzyme, the two strands of DNA join again.', go: { p: N, ms: (N - 5) * 520, lin: true }, key: 2 },
+  { t: 'At the end of the gene, the enzyme leaves the DNA, and the copy is finished: it reads like the top strand, with U where the strand has T.\nThe DNA stays in the nucleus. The copy leaves through a nuclear pore.', go: { p: N + 5, ms: 2600 }, key: 2 }
 ];
 const paras = t => t.split('\n').map(x => `<p>${x}</p>`).join('');
 
@@ -303,12 +349,15 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <div class="lens__top"><h2 id="cf-h">🔬 How a cell copies a gene</h2><button type="button" class="close-x" aria-label="Close">×</button></div>
       <div class="cf__grid"><div class="lens__3d cf__3d"></div><div class="cf__side">
       <p class="cf__x">Explorer: beyond the Year 7 list</p>
-      <p class="cf__key"><span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.</p>
       <p class="cf__n" aria-live="polite"></p><div class="cf__t" aria-live="polite"></div>
+      <p class="cf__key" hidden></p>
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button></div>
     </div></div></div>`;
     box.hidden = false;
-    const F = film($('.cf__3d', box)), nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn', box);
+    const F = film($('.cf__3d', box)), nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn', box), kEl = $('.cf__key', box);
+    /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
+    const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
+      '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];
     let i = 0, busy = false;
     const close = () => { F.stop(); box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); done(); };
     const esc1 = e => { if (e.key === 'Escape') close(); };
@@ -317,6 +366,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     const show = async () => {
       const s = STEPS[i]; busy = true; btn.disabled = true;
       nEl.textContent = `${i + 1} of ${STEPS.length}`; tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
+      kEl.hidden = !s.key; kEl.innerHTML = KEY[s.key || 0];
       if (s.go) await F.go(s.go);
       busy = false; btn.disabled = false;
       btn.textContent = i === STEPS.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });

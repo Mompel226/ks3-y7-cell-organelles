@@ -5,9 +5,9 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611042250';
-import { state, COST, RESPIRE } from './state.js?v=202611042250';
-import { openCopyFilm } from './transcribe.js?v=202611042250';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611050034';
+import { state, COST, RESPIRE } from './state.js?v=202611050034';
+import { openCopyFilm } from './transcribe.js?v=202611050034';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const R = window.REV;
