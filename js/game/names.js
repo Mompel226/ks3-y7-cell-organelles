@@ -19,7 +19,7 @@ export class Names {
   }
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
      free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
-     name stands on its part) }];
+     name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in) */
   set(list, keepOut, frame) {
@@ -130,7 +130,10 @@ export class Names {
       el.className = 'nm nm--on ' + (it.cls || ''); if (it.press) el.type = 'button';
       el.innerHTML = it.small || it.html || it.text; el.style.visibility = 'hidden'; this.layer.appendChild(el);
       const r = el.getBoundingClientRect();
-      const pts = it.spots.map(p => W.project(p)).filter(sc => sc.inFront && sc.x > 0 && sc.x < right && sc.y > 0 && sc.y < bottom);
+      const seen = sc => sc.inFront && sc.x > 0 && sc.x < right && sc.y > 0 && sc.y < bottom;
+      /* alt: other parts of the same kind its name may stand on when its own spots have no room, each only if nothing
+         hides it (the mitochondrion on a phone's map: it lies small among other names) */
+      const pts = it.spots.map(p => W.project(p)).filter(seen).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => W.project(p)).filter(seen));
       return { it, el, w: r.width, h: r.height, pts };
     }).sort((a, b) => a.pts.length - b.pts.length);
     this.svg.innerHTML = '';

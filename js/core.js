@@ -112,8 +112,12 @@
     const G = window.KS3_GLOSSARY, has = k => !!WORD[k];
     const defHtml = w => G ? G.links(w.d, has, w.k).map(([t, k]) => k ? `<button type="button" class="wb__link" data-k="${esc(k)}">${esc(t)}</button>` : esc(t)).join('') : esc(w.d);
     list.innerHTML = (window.WORDS || []).map(g => `<p class="wb__g">${esc(g.g)}</p>` + g.w.map(w =>
-      `<div class="wb__item" data-k="${esc(w.k)}" data-s="${esc((w.en + ' ' + w.ko + ' ' + w.zh).toLowerCase())}"><button type="button" class="wb__row" aria-expanded="false"><b>${esc(w.en)}</b><span class="ko" lang="ko">${esc(w.ko)}</span><span class="zh" lang="zh-Hans">${esc(w.zh)}</span></button><div class="wb__def" hidden>${defHtml(w)}</div></div>`).join('')).join('');
-    const openItem = (item, on) => { const d = $('.wb__def', item), r = $('.wb__row', item); on = on == null ? d.hidden : on; d.hidden = !on; r.setAttribute('aria-expanded', String(on)); item.classList.toggle('open', on); };
+      `<div class="wb__item" data-k="${esc(w.k)}" data-s="${esc((w.en + ' ' + w.ko + ' ' + w.zh).toLowerCase())}"><button type="button" class="wb__row" aria-expanded="false"><b>${esc(w.en)}</b><span class="ko" lang="ko">${esc(w.ko)}</span><span class="zh" lang="zh-Hans">${esc(w.zh)}</span></button><div class="wb__def" hidden></div></div>`).join('')).join('');
+    /* a definition and its links are made the first time it is opened (5 Nov 2026, speed: all of them at once cost the
+       page about 60 ms as it loaded) */
+    const openItem = (item, on) => { const d = $('.wb__def', item), r = $('.wb__row', item); on = on == null ? d.hidden : on;
+      if (on && !d.firstChild && WORD[item.dataset.k]) d.innerHTML = defHtml(WORD[item.dataset.k]);
+      d.hidden = !on; r.setAttribute('aria-expanded', String(on)); item.classList.toggle('open', on); };
     const goTo = k => {
       const item = $(`.wb__item[data-k="${k}"]`, list); if (!item) return;
       if (item.classList.contains('hide')) { find.value = ''; $$('.wb__item', list).forEach(i => i.classList.remove('hide')); }

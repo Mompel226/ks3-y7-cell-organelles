@@ -1,0 +1,23 @@
+/* ============================================================
+   mito.css — the mitochondria's own styles (5 Nov 2026): the mitochondria place's scale bar (play.js), and the extras of
+   the Explorer film "Inside a mitochondrion" (js/game/mitofilm.js), which otherwise wears the gene-copy film's styles
+   (.cf, in game.css). Every size in that place is true, so the bar says how far the camera has zoomed.
+   ============================================================ */
+/* the scale bar, bottom left of the free part of the picture, under the names (5) and the buttons (8) */
+.mscale{position:absolute;left:16px;top:0;z-index:4;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;color:#fff;font:800 14px/1 var(--sans);text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.mscale i{display:block;height:9px;border:solid #fff;border-width:0 2px 2px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
+.mscale[hidden]{display:none}
+/* the film: its names stand on one side of their level line; its note on sizes */
+.mf__lab--l,.mf__lab--r{white-space:nowrap}
+.mf__lab span{line-height:1.25}
+.mf__note{margin:10px 0 0;font-size:14px;line-height:1.45;opacity:.85}
+.mf__bar{z-index:2}
+@media (max-width:760px){.mf__note{font-size:13.5px}}
+/* a name on the film: its line on the side of its part (set by mitofilm.js), its length the gap to the part */
+.mf__lab--r{flex-direction:row-reverse}
+.mf__lab i{flex:none}
+.mf__src{margin:8px 0 0;font-size:13px;line-height:1.4;opacity:.75;font-style:italic}
+.mf__src[hidden]{display:none}
+/* names on the world go at once when the camera moves (a fading name over a moving picture showed as a ghost), and fade in
+   when it stops (the expert review, 5 Nov 2026) */
+.names:not(.on){transition-duration:0s}

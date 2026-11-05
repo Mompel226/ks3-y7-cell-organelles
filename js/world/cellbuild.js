@@ -17,7 +17,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611051141';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611051508';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611051508';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611051508';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -161,6 +163,13 @@ function instanced(geo, mat, list, name) {
   return m;
 }
 const qAlong = (dir) => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+/* the mitochondrion you visit (mitoparts.js heroMito): where it is, how it is turned. It lies across the view, its cut
+   face towards it and the edge the camera zooms into on top, so the zoom is a straight move in (the expert review, 5 Nov
+   2026: the camera had turned by 70–90° on the way): its own y along it, its own −x (the side of the zoom) up, z out */
+export const HERO_AT = new THREE.Vector3(3.95, 7.35, 1.35);
+const HERO_L = new THREE.Vector3(1, -0.12, 0.08).normalize(), HERO_U = new THREE.Vector3(0, 1, 0).addScaledVector(HERO_L, -HERO_L.y).normalize();
+export const HERO_Q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(HERO_U.clone().negate(), HERO_L, new THREE.Vector3().crossVectors(HERO_L, HERO_U)));
+const HERO_FACE = new THREE.Vector3(0, 0, 1).applyQuaternion(HERO_Q);
 
 /* each place's camera view (pos) and what it looks at (at): defined first, so that nothing big is placed in front of
    them (the mitochondria are placed away from every line of sight) */
@@ -168,7 +177,8 @@ export const VIEWS = {
   wayin:    { pos: [-1.4, 1.5, 15.6], at: [-1.4, -0.1, -0.2] },   /* from the front: the membrane across the middle, inside above, the blood below */
   nucleus:  { pos: [1.2, 6.8, 9.6], at: [0, 5.2, -0.2] },
   nucleolus:{ pos: [1.6, 7.3, 4.6], at: [0.55, 5.5, 0.5] },
-  mito:     { pos: [4.6, 8.0, 5.0], at: [3.95, 7.35, 1.35] },
+  /* the whole of the one you visit, cut open, in the free part of the picture at any size (it is 2.7 µm long) */
+  mito:     { pos: HERO_AT.clone().addScaledVector(HERO_FACE, 4.6).add(new THREE.Vector3(0.25, 0.2, 0)).toArray(), at: HERO_AT.clone().add(new THREE.Vector3(0.05, 0.02, 0)).toArray() },
   ribosome: { pos: [-2.9, 8.6, 9.4], at: [-2.4, 7.7, 2.6] },
   rer:      { pos: [-7.6, 5.6, 7.2], at: [-3.6, 3.4, 0.6] },
   ser:      { pos: [-8.6, 9.4, 5.6], at: [-4.6, 7.8, 0.4] },
@@ -178,6 +188,9 @@ export const VIEWS = {
 };
 const segDist = (p, a, b) => { const ab = b.clone().sub(a), t = Math.max(0, Math.min(1, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)); };
 const SIGHTS = Object.values(VIEWS).map(v => [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
+/* the lines of sight as they were before 5 Nov 2026 (the old view of the mitochondria): the old rods' placement still
+   draws its random numbers with them, so that nothing placed after it moves */
+const SIGHTS0 = Object.entries(VIEWS).map(([k, v]) => k === 'mito' ? [new THREE.Vector3(4.6, 8.0, 5.0), new THREE.Vector3(3.95, 7.35, 1.35)] : [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
 
 /* ============================================================ the world ============================================================ */
 export function buildCell(scene) {
@@ -502,9 +515,14 @@ export function buildCell(scene) {
   granules.add(grCore, grMesh);
   W.granules = grList;
 
-  /* ---------- mitochondria: rods with two membranes, the inner one folded ---------- */
+  /* ---------- mitochondria: real shapes, each with its two membranes; the one you visit cut open (mitoparts.js) ----------
+     Daniel, 5 Nov 2026: "They don't look like real mitochondria … so it looks … like it has a double membrane inside".
+     The shapes are real mitochondria of one human cell (mito-shapes.js: short ones, long tubes, three branched), each
+     turned at random and placed where it fits: among the rest, never in the nucleus, the rough ER or the Golgi, never in
+     front of a place, never through another. The old rods' placement still draws its random numbers first (and the old
+     one's sparkles theirs), so that everything placed after it in the world (microtubules, lysosomes, free ribosomes …)
+     stays exactly where it was; the new ones have random numbers of their own. */
   const mitos = add('mitochondria', new THREE.Group());
-  const mitoMat = magicStandard({ color: 0xe8743c, roughness: 0.3, emissive: 0x5a1c06, emissiveIntensity: 0.45, transparent: true, opacity: 0.94 }, { rim: 0xffcfa0, rimK: 1.1, stripe: 0xffa45a, stripeK: 0.55 });
   const mList = [];
   const okMito = (p, len) => {
     const q = p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / 0.75, 1 / 0.9));
@@ -514,7 +532,7 @@ export function buildCell(scene) {
     if (p.distanceTo(G0) < 2.6) return false;
     if (grList.some(g => g.p.distanceTo(p) < g.r + 0.9)) return false;
     if (p.y > 14.6) return false;
-    if (SIGHTS.some(([a, b]) => segDist(p, a, b) < 1.6 + len / 2)) return false;   /* never in front of a place */
+    if (SIGHTS0.some(([a, b]) => segDist(p, a, b) < 1.6 + len / 2)) return false;   /* never in front of a place */
     return inside(p, 0.75) && inside(p.clone().add(new THREE.Vector3(0, len / 2, 0)), 0.55) && inside(p.clone().add(new THREE.Vector3(0, -len / 2, 0)), 0.55);
   };
   for (let k = 0; k < 6000 && mList.length < 17; k++) {
@@ -525,34 +543,44 @@ export function buildCell(scene) {
     const dir = new THREE.Vector3(rr(-0.45, 0.45), 1, rr(-0.45, 0.45)).normalize();
     mList.push({ p, len, dir });
   }
-  mList.forEach((m, i) => {
-    const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.31, m.len, 10, 20), mitoMat);
-    mesh.position.copy(m.p); mesh.quaternion.copy(qAlong(m.dir)); mesh.name = 'mito' + i; mitos.add(mesh);
+  for (let i = 0; i < 360; i++) R();
+  const H = heroMito(), hero = H.group; hero.position.copy(HERO_AT); hero.quaternion.copy(HERO_Q); hero.updateMatrixWorld(true);
+  const heroA = hero.localToWorld(heroPoint(H.spec, 0, 0)), heroB = hero.localToWorld(heroPoint(H.spec, H.spec.total, 0));
+  const Rm = rng(20261105), rm = (a, b) => a + (b - a) * Rm();
+  const taken = [], placed = [];
+  const fits = (p, r) => {
+    if (!inside(p, r + 0.12) || p.y > 14.4) return false;
+    const q = p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / 0.75, 1 / 0.9));
+    if (q.length() < 6.0 && p.y < 6.4) return false;                                 /* not in the nucleus or the rough ER */
+    if (p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / NSY, 1)).length() < NR + 0.6 + r) return false;
+    if (p.distanceTo(G0) < 2.5) return false;
+    if (grList.some(g => g.p.distanceTo(p) < g.r + r + 0.08)) return false;
+    if (SIGHTS.some(([a, b]) => segDist(p, a, b) < 1.15 + r)) return false;          /* never in front of a place */
+    if (segDist(p, heroA, heroB) < H.spec.R + 0.4 + r) return false;
+    return !taken.some(([t, tr]) => t.distanceTo(p) < r + tr + 0.1);
+  };
+  const turn = () => { const u1 = Rm(), u2 = Rm() * 6.2832, u3 = Rm() * 6.2832, a = Math.sqrt(1 - u1), b = Math.sqrt(u1); return new THREE.Quaternion(a * Math.sin(u2), a * Math.cos(u2), b * Math.sin(u3), b * Math.cos(u3)); };
+  /* the long and branched ones first (they fit in fewer places), then the short ones, then a second turn of the short */
+  const order = MITO_SHAPES.shapes.slice().sort((x, y) => y.len - x.len);
+  order.concat(order.filter(sh => sh.len < 1.6)).forEach(shape => {
+    for (let k = 0; k < 140; k++) {
+      const pos = new THREE.Vector3(rm(-6.2, 6.2), rm(1.0, 13.8), rm(-5.2, 3.0)), q = turn();
+      const pts = shape.paths.flat().map(v => [new THREE.Vector3(v[0], v[1], v[2]).applyQuaternion(q).add(pos), v[3]]);
+      if (!pts.every(([p, r]) => fits(p, r))) continue;
+      pts.forEach(t => taken.push(t)); placed.push({ shape, pos, q });
+      break;
+    }
   });
-  /* the one you visit: cut open lengthways to show the folded inner membrane (cristae) */
-  const hero = new THREE.Group(); hero.name = 'mito-hero'; hero.position.set(3.95, 7.35, 1.35); hero.quaternion.copy(qAlong(new THREE.Vector3(-0.35, 1, 0.18)));
-  const HL = 2.3, HR = 0.48;
-  const openSide = (m) => m.z < 0.02;
-  const heroOuter = new THREE.Mesh(keepTris(new THREE.CapsuleGeometry(HR, HL, 12, 40), openSide), magicStandard({ color: PAL.mito, side: THREE.DoubleSide, roughness: 0.35, emissive: 0x6a2008, emissiveIntensity: 0.45 }, { rim: 0xffc39a, rimK: 1.1 }));
-  const heroInner = new THREE.Mesh(keepTris(new THREE.CapsuleGeometry(HR - 0.07, HL, 12, 40), openSide), magicStandard({ color: 0xffa060, side: THREE.DoubleSide, roughness: 0.4, emissive: 0x7a3010, emissiveIntensity: 0.5 }, { rim: 0xffd2a8, rimK: 0.8 }));
-  hero.add(heroOuter, heroInner);
-  const cristaMat = magicStandard({ color: 0xff9c50, side: THREE.DoubleSide, roughness: 0.75, envMapIntensity: 0.3, emissive: 0x6a2a08, emissiveIntensity: 0.5 }, { rim: 0xffc890, rimK: 0.4 });
-  /* cristae: shelves folded inwards from the inner membrane, across the rod, from one side and then the other
-     (a ring segment in the back half, which is the half that is kept) */
-  for (let k = 0; k < 9; k++) {
-    const y = -HL / 2 + 0.2 + k * (HL - 0.4) / 8;
-    const left = k % 2 === 0, t0 = left ? 0.42 * Math.PI : 0.08 * Math.PI;
-    const geo = new THREE.RingGeometry(0.07, HR - 0.075, 28, 2, t0, 0.5 * Math.PI);
-    const p = geo.attributes.position, v = new THREE.Vector3();
-    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); p.setZ(i, 0.025 * Math.sin(v.x * 14 + k)); }
-    geo.rotateX(-Math.PI / 2); geo.computeVertexNormals();
-    const cr = new THREE.Mesh(geo, cristaMat); cr.position.y = y; hero.add(cr);
-    const cr2 = cr.clone(); cr2.position.y = y + 0.04; hero.add(cr2);           /* each crista is a fold: two membranes */
-  }
-  const matrixGlow = sparkles({ count: 120, size: 0.045, color: 0xffd0a0, drift: 0.02, sample: (v) => { v.set(rr(-0.32, 0.32), rr(-HL / 2, HL / 2), rr(-0.34, 0)); } });
-  hero.add(matrixGlow);
+  const real = realMitos(placed); mitos.add(real.inner, real.outer);
+  /* the one you visit: cut open lengthways, its two membranes, its folds (the cristae) and its matrix; in the matrix,
+     many molecules (its enzymes, its own DNA and ribosomes), as faint lights */
+  const rad = H.spec.rad;
+  const mspark = sparkles({ count: 110, size: 0.034, color: 0xffd0a0, drift: 0.01, sample: (v) => {
+    const s0 = rm(0.12, H.spec.total - 0.12), F = along(H.spec, s0), rmx = F.r - 0.04, a = rm(-rmx, rmx), b = rm(0.03, Math.max(0.04, Math.sqrt(Math.max(0, rmx * rmx - a * a)) - 0.02));
+    v.copy(heroPoint(H.spec, s0, a, b)); } });
+  hero.add(mspark);
   mitos.add(hero);
-  W.mito = { hero, list: mList };
+  W.mito = { hero, spec: H.spec, section: H.section, parts: H.parts, list: placed, real, sparks: mspark };
 
   /* ---------- microtubules: from the centrosome near the top of the cell, downwards ---------- */
   const C0 = new THREE.Vector3(0.1, 14.55, -1.1);
@@ -674,7 +702,9 @@ export function buildCell(scene) {
 
 /* ============================================================ the places of the game ============================================================
    Each place: where it is (center), what you can press (hit), the camera's view when you are there (view: pos, at),
-   points on it where its name may stand (spots, several, so names never cross), its mist, and the groups that sleep. */
+   points on it where its name may stand (spots, several, so names never cross), its mist, and the groups that sleep.
+   The mitochondrion's spots run its whole length, both edges: on a phone it lies small among other names, and spots
+   close together all lose at once (its name had been left out at 390 px). */
 export function places(W) {
   const N0 = W.nucleus.center, G0 = W.golgi.center;
   const hero = W.mito.hero.position;
@@ -693,7 +723,7 @@ export function places(W) {
     wayin:    { name: 'Cell membrane: the way in', center: new THREE.Vector3(-1.0, 0.25, -0.9), hit: 2.4, spots: wayInSpots, view: VIEWS.wayin, mist: 2.8, groups: ['blood'] },
     nucleus:  { name: 'Nucleus', center: N0.clone(), hit: 3.1, spots: nucSpots, view: VIEWS.nucleus, mist: 3.6, groups: ['nucleus'] },
     nucleolus:{ name: 'Nucleolus', center: N0.clone().add(new THREE.Vector3(0.55, 0.55, 0.8)), hit: 1.0, spots: [N0.clone().add(new THREE.Vector3(0.55, 1.2, 0.95)), N0.clone().add(new THREE.Vector3(1.2, 0.55, 1.0)), N0.clone().add(new THREE.Vector3(-0.1, 0.55, 1.1))], view: VIEWS.nucleolus, mist: 1.2, groups: [] },
-    mito:     { name: 'Mitochondria', center: hero.clone(), hit: 1.6, spots: [hero.clone().add(new THREE.Vector3(0.2, 0.9, 0.3)), hero.clone().add(new THREE.Vector3(0, -0.8, 0.3)), hero.clone().add(new THREE.Vector3(0.5, 0, 0.3))], view: VIEWS.mito, mist: 2.2, groups: ['mitochondria'] },
+    mito:     { name: 'Mitochondria', center: hero.clone(), hit: 1.6, spots: [0.08, 0.25, 0.5, 0.75, 0.92].flatMap(k => [1, -1].map(sd => W.mito.hero.localToWorld(heroPoint(W.mito.spec, W.mito.spec.total * k, sd * along(W.mito.spec, W.mito.spec.total * k).r * 0.98, 0.02)))), view: VIEWS.mito, mist: 2.2, groups: ['mitochondria'] },
     ribosome: { name: 'Ribosomes', center: new THREE.Vector3(-2.6, 7.6, 2.4), hit: 1.6, spots: riboSpots.length ? riboSpots : [new THREE.Vector3(-2.6, 7.6, 2.4)], view: VIEWS.ribosome, mist: 1.9, groups: ['free-ribosomes'] },
     rer:      { name: 'Rough ER', center: new THREE.Vector3(-3.8, 3.6, 0.9), hit: 2.4, spots: rerSpots, view: VIEWS.rer, mist: 3.0, groups: ['rer'] },
     ser:      { name: 'Smooth ER', center: new THREE.Vector3(-4.6, 7.9, -0.1), hit: 1.8, spots: serSpots, view: VIEWS.ser, mist: 2.2, groups: ['ser'] },

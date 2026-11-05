@@ -7,7 +7,7 @@
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611051141';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611051508';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
@@ -129,9 +129,10 @@ export function tween(obj, { to, path, ms = 1200, scale, spin = 0, fade } = {}) 
 export const wait = ms => new Promise(r => setTimeout(r, STILL ? 0 : ms));
 
 /* a short shower of sparkles where something happens */
-export function burst(scene, pos, { color = 0xffe39a, n = 60, r = 0.6, ms = 1100 } = {}) {
+/* (size and near for a magnified view, where a burst is nanometres across) */
+export function burst(scene, pos, { color = 0xffe39a, n = 60, r = 0.6, ms = 1100, size = 0.09, near = 0.5 } = {}) {
   const dirs = [];
-  const p = sparkles({ count: n, size: 0.09, color, drift: 0, twinkle: 0.3, sample: (v) => { const d = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(); dirs.push(d); v.set(0, 0, 0); } });
+  const p = sparkles({ count: n, size, near, color, drift: 0, twinkle: 0.3, sample: (v) => { const d = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(); dirs.push(d); v.set(0, 0, 0); } });
   p.position.copy(pos); scene.add(p);
   const attr = p.geometry.attributes.position, t0 = performance.now();
   return new Promise(res => {

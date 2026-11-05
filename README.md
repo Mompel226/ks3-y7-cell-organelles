@@ -12,7 +12,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 |---|---|---|
 | The cell you know | the five Year 7 parts lit alone; then everything an electron microscope shows; what an organelle is | the map |
 | Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves into the plasma, the liquid part of the blood, between the red blood cells | glucose, oxygen, amino acids |
-| Mitochondria | splits glucose in the cytoplasm, sends the pieces and oxygen in: aerobic respiration releases energy | energy (the bar) |
+| Mitochondria | sees one mitochondrion cut open: its two membranes at their true thickness and the folds of the inner one (cristae); zooms in, with a scale bar, to its edge, where every lipid, its proteins (each seen whole, no lipid in front of it) and the molecules are drawn at their true sizes; splits glucose in the cytosol; sends the two smaller molecules into the matrix (through a channel protein, then a carrier protein) and six oxygen molecules (straight between the lipids); watches carbon dioxide leave, water form at the last pump and ATP synthase turn as energy is released; or, as an Explorer, watches a film inside a mitochondrion (the two membranes, the intermembrane space, the pumps that move hydrogen ions, and the hydrogen ions flowing back through ATP synthase, turning it like a watermill, one eighth of a turn each, to make ATP) | energy (the bar) |
 | Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene (a zoom from a chromosome's packed fibre through the histones to the double helix, with scale bars of 30, 11 and 2 nm; the DNA untwisted as a ladder of nucleotides, and only then A, T, C and G; the bases pair, A with T and C with G, joined by hydrogen bonds drawn as dashes; the strands separate inside the enzyme, where the hydrogen bonds break, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore | the copy of the gene |
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
 | Ribosomes | joins the parts on the copy; matches each amino acid to the code; chooses where this ribosome must work | the start of the chain |
@@ -35,7 +35,10 @@ with a specific function), with its one definition from the shared KS3 glossary.
 diagram or a detailed diagram, real electron micrographs, a real human cell in 3D (its organelles from an electron
 microscope, the one in that place lit) and the real size. The world itself is a picture made for the game:
 true shapes and places (the nucleus low in the cell, rough ER round it, the Golgi above, the vesicles at the top, by the duct),
-magical colours and light, and molecules drawn far larger than life (the page says so).
+magical colours and light, and molecules drawn far larger than life (the page says so), except at the mitochondria, where
+every size is true and the camera zooms in instead (Daniel: "as close to relative size as possible"). The mitochondria
+of the world are real shapes: 33 mitochondria of one human cell, measured with an electron microscope (short ones, long
+tubes and branched ones), each drawn with its two membranes.
 
 **Checks.** After each place, two or three checks (32 in all): key words typed (a first letter, the word list or a hint
 when stuck, counted as help on the teacher's board), choices with no give-away, sorting and ordering. Every word a check uses
@@ -81,6 +84,8 @@ selling. Third-party pictures, music and sounds keep their own licences (below).
 | one cell, for the final check's two label questions | made for this page (`tools/cell-svg.py`), in the game's colours | the page's own |
 | electron micrographs | see `img/real/CREDITS.md` | CC BY 4.0 and public domain |
 | the real cell in 3D | Janelia Research Campus, OpenOrganelle *jrc_hela-2* (Xu et al. 2021, *Nature* 599:147; Heinrich et al. 2021, *Nature* 599:141), made into a model by the Foundations hub | CC BY 4.0 |
+| the shapes of the world's mitochondria | the same OpenOrganelle data (*jrc_hela-2*, the label of each mitochondrion): the centre line and radius of 33 of its 300 mitochondria (`tools/mito-shapes.py`) | CC BY 4.0 |
+| ATP synthase, in the mitochondria and their Explorer film | its measured shape: human ATP synthase by electron cryo-microscopy at 2.53 Å, PDB 8H9S (Lai et al. 2023, *Molecular Cell* 83:2137), each of its 27 subunits drawn as a smooth surface (`tools/atp-synthase.py`; the structure file stays on this computer) | CC0 (wwPDB) |
 | the music | Scott Buckley: 'The Distant Sun', 'Adrift Among Infinite Stars' and 'Penumbra', released under CC-BY 4.0, [www.scottbuckley.com.au](https://www.scottbuckley.com.au) (made smaller, each set to the same loudness: `tools/music.py`) | CC BY 4.0 |
 | the game's sounds (bells, rubbed glasses, wind chimes, a harp note) | Versilian Community Sample Library (VCSL), Versilian Studios, [github.com/sgossner/VCSL](https://github.com/sgossner/VCSL) (`tools/sounds.py`, each note tuned) | CC0 |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
@@ -96,8 +101,15 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   world is the same at every load), `magic.js` the materials and light, `world.js` the renderer, the camera's flights and
   what a pupil points at. `js/game/` is the game: `state.js` (what a pupil carries, which places are awake), `quest.js` (the
   panel and the buttons that stand on the parts), `play.js` (every step of every place), `names.js` (names on level lines,
-  shown only when the camera is still), `intro.js` (the dive), `transcribe.js` (the Explorer film: how a cell copies a gene, a 3D view of its own), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing), `final.js` (the final check: the code, the
-  questions one at a time, marking at the end, the result).
+  shown only when the camera is still), `intro.js` (the dive), `transcribe.js` (the Explorer film: how a cell copies a gene, a 3D view of its own), `mitofilm.js` (the Explorer film inside a mitochondrion: its own 3D view, ten steps), `simplecard.js` (the Year 7 diagram), `lens.js` and `real.js` (See the real thing), `final.js` (the final check: the code, the
+  questions one at a time, marking at the end, the result). `js/world/mitoparts.js` draws the mitochondria: the world's
+  real shapes (from `mito-shapes.js`, written by `python3 tools/mito-shapes.py` from the OpenOrganelle data already on this
+  computer, never downloaded), the one you visit cut open (its cut face worked out for each point of the screen from the
+  true thicknesses, so it stays sharp at any zoom), and the magnified double membrane in nanometres (every lipid; the
+  proteins, with no lipid in front of them), which fits exactly into the cut face where the camera zooms in; its ATP
+  synthase comes from `atp-synthase.js`, written by `python3 -I tools/atp-synthase.py` from the measured structure (PDB
+  8H9S, downloaded once on Daniel's go into this computer's cache, never published). `css/mito.css` holds the scale bar's and the
+  film's styles. The films, the lens and its 3D model loader are fetched only when they are opened.
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
   question list); `js/signin.js`, `js/lesson.js` and `js/glossary.js` are copies of the Biology Hub's shared files, made by
   `node tools/practicals-sync.mjs` in the workspace: never edit them here. A new word goes into the shared KS3 glossary first.
@@ -129,7 +141,12 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   downloaded originals are in `tools/sound-src/`. `node tools/sound-check.mjs` presses Sound for real (20: the music
   only after ✦ Dive in, the pieces in turn, heard and never clipping), served by `node tools/serve.mjs`, which, like
   GitHub Pages, lets a piece be jumped through; `node tools/record-music.mjs` records a minute of it to listen to.
-  `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. `tools/real-em.py` cut the electron micrographs
+  `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. Speed: `node tools/speed.mjs [--mobile 1]
+  [--cpu 4 --net wifi]` measures a first visit (time to the first screen and to READY, every file's bytes, the main
+  thread's work and its long tasks) and then frames per second, the graphics chip's time per frame and the main thread's
+  on the map, in the mitochondria and zoomed in to its double membrane; `node tools/profile.mjs` lists which functions cost the first load. `look.mjs
+  --explore mito` photographs (with `--film 1`, films) an Explorer film step by step; `--names 1` lists, after each
+  picture, the names placed and why any was left out. `tools/real-em.py` cut the electron micrographs
   from the OpenOrganelle data (with the Foundations hub's reader); `--where` makes each close-up's wider view of the same
   cell, with a white box where the close-up is, from cached data only. `node tools/look.mjs --lens <place> --tab dia|em|size`
   photographs a tab of See the real thing.

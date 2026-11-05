@@ -149,7 +149,9 @@ function dotTexture() {
 let DOT = null;
 
 /* sparkles: points that twinkle and drift (Brownian-like, small) — the crowded molecules of the cytosol, light motes */
-export function sparkles({ count, sample, size = 0.09, color = 0xffffff, colors = null, drift = 0.06, twinkle = 1, opacity = 0.9, additive = true }) {
+/* near: the depth (µm) below which a point stops growing as the camera comes closer (the magnified views of the
+   mitochondria are nanometres away: 0.0005 there) */
+export function sparkles({ count, sample, size = 0.09, color = 0xffffff, colors = null, drift = 0.06, twinkle = 1, opacity = 0.9, additive = true, near = 0.5 }) {
   DOT = DOT || dotTexture();
   const pos = new Float32Array(count * 3), ph = new Float32Array(count), sz = new Float32Array(count), col = new Float32Array(count * 3);
   const c0 = new THREE.Color(color), v = new THREE.Vector3();
@@ -165,16 +167,16 @@ export function sparkles({ count, sample, size = 0.09, color = 0xffffff, colors 
   g.setAttribute('aSize', new THREE.BufferAttribute(sz, 1));
   g.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
   const mat = new THREE.ShaderMaterial({
-    uniforms: { uTime: CUT.uTime, uMap: { value: DOT }, uScale: { value: 600 }, uDrift: { value: drift }, uTw: { value: twinkle }, uOpacity: { value: opacity }, uSleep: { value: 0 } },
+    uniforms: { uTime: CUT.uTime, uMap: { value: DOT }, uScale: { value: 600 }, uDrift: { value: drift }, uTw: { value: twinkle }, uOpacity: { value: opacity }, uSleep: { value: 0 }, uNear: { value: near } },
     vertexShader: `
       attribute float aPhase; attribute float aSize; attribute vec3 aColor;
-      uniform float uTime; uniform float uScale; uniform float uDrift; uniform float uTw;
+      uniform float uTime; uniform float uScale; uniform float uDrift; uniform float uTw; uniform float uNear;
       varying vec3 vC; varying float vA;
       void main() {
         vec3 p = position + uDrift * vec3(sin(uTime * 0.7 + aPhase * 3.1), sin(uTime * 0.53 + aPhase * 2.3), sin(uTime * 0.61 + aPhase * 1.7));
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = aSize * uScale / max(0.5, -mv.z);
+        gl_PointSize = aSize * uScale / max(uNear, -mv.z);
         vA = mix(1.0, 0.45 + 0.55 * sin(uTime * 2.2 + aPhase * 5.0), uTw);
         vC = aColor;
       }`,

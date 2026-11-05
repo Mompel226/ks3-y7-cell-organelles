@@ -5,18 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611051141';
-import { Names } from './names.js?v=202611051141';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611051141';
-import { makePlay } from './play.js?v=202611051141';
-import { setStill, wait } from './actors.js?v=202611051141';
-import { state } from './state.js?v=202611051141';
-import { ICON } from './icons.js?v=202611051141';
-import { openLens } from './lens.js?v=202611051141';
-import { intro } from './intro.js?v=202611051141';
-import { sound } from './sound.js?v=202611051141';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611051141';
-import { openCopyFilm } from './transcribe.js?v=202611051141';
+import { World, MAP_VIEW } from '../world/world.js?v=202611051508';
+import { Names } from './names.js?v=202611051508';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611051508';
+import { makePlay } from './play.js?v=202611051508';
+import { setStill, wait } from './actors.js?v=202611051508';
+import { state } from './state.js?v=202611051508';
+import { ICON } from './icons.js?v=202611051508';
+import { intro } from './intro.js?v=202611051508';
+import { sound } from './sound.js?v=202611051508';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611051508';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -51,9 +49,15 @@ function mapNames() {
     const P = world.P[id], awake = state.awake(id), done = state.complete(id);
     return {
       key: id, spots: P.spots, own: P.groups.map(g => WG[g]).filter(Boolean).concat(id === 'nucleolus' ? [world.W.nucleus.group] : []),
+      /* on a phone the mitochondrion you visit lies small among other names: its name may stand on another one (the
+         middle of its centre line), still one mitochondrion */
+      alt: id === 'mito' ? world.W.mito.list.map(m => { const c = m.shape.paths[0], v = c[Math.floor(c.length / 2)]; return new THREE.Vector3(v[0], v[1], v[2]).applyQuaternion(m.q).add(m.pos); }) : null,
       cls: done ? 'is-done' : awake ? 'is-open' : 'is-asleep',
       /* asleep: muted, with a dashed edge; what it needs is in the panel's list, and shows when the name is pressed */
-      html: `<span class="nm__t">${esc(STORY[id].title).replace(': ', ':<br>')}</span>${done ? '<span class="nm__s">✦</span>' : ''}`,
+      /* the name on the picture says what its line ends on: one mitochondrion, one ribosome, one microtubule (Daniel,
+         5 Nov 2026: "if you're pointing to one mitochondrion, label it mitochondrion, not mitochondria"); the list keeps
+         each place's own title */
+      html: `<span class="nm__t">${esc(STORY[id].onPic || STORY[id].title).replace(': ', ':<br>')}</span>${done ? '<span class="nm__s">✦</span>' : ''}`,
       label: STORY[id].title + (done ? ': done' : awake ? ': awake' : ': asleep'),
       press: () => (awake || done) ? go(id) : (quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))), toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} asleep: see what it needs in the list.`))
     };
@@ -185,13 +189,18 @@ async function test() {
 }
 
 /* ---------- See the real thing ---------- */
-document.addEventListener('lens', e => openLens(e.detail));
-/* an Explorer film, from a place's end (the nucleus: how a cell copies a gene) */
-document.addEventListener('explore', e => { if (e.detail === 'nucleus') openCopyFilm({ last: 'Close' }); });
+/* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
+document.addEventListener('lens', e => import('./lens.js?v=202611051508').then(m => m.openLens(e.detail)));
+/* an Explorer film, from a place's end (the nucleus: how a cell copies a gene; the mitochondria: inside one) */
+document.addEventListener('explore', e => {
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611051508').then(m => m.openCopyFilm({ last: 'Close' }));
+  else if (e.detail === 'mito') import('./mitofilm.js?v=202611051508').then(m => m.openMitoFilm({ last: 'Close' }));
+});
 
 /* ---------- start ---------- */
 async function start() {
-  await wait(R.FAST ? 0 : 300);
+  /* the loading screen stays until the 3D's shaders are compiled (world.js), at most 6 s */
+  await Promise.race([Promise.all([world.ready, wait(R.FAST ? 0 : 300)]), new Promise(r => setTimeout(r, 6000))]);
   $('#loading').hidden = true;
   looks();
   /* a final check started and not finished: straight back to it (the game under it shows the answers) */

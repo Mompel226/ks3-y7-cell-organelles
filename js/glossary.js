@@ -32,6 +32,10 @@
    stand for.
    5 Nov 2026: hydrogen bond says what it does in DNA too (the bases of the two strands held in pairs), for the film's
    hydrogen bonds (Daniel: "make sure that there is a hydrogen bonds shown").
+   5 Nov 2026, later: ten words for the cell game's mitochondria, drawn at their true sizes, and its Explorer film inside a
+   mitochondrion (cristae, matrix, intermembrane space, channel protein, ATP, ATP synthase, electron transport chain,
+   hydrogen ion, micrometre, nanometre; Daniel: the space between the two membranes is the intermembrane space, explained
+   as such); carrier protein now says "a membrane", since the inner membrane of a mitochondrion has them too.
    ============================================================ */
 (function () {
   'use strict';
@@ -217,7 +221,7 @@
       { k: 'lysosome',        en: 'lysosome',        ko: '리소좀',            zh: '溶酶体',      d: 'A small sac of enzymes that digest old parts of the cell and things that have entered the cell.' },
       { k: 'centrosome',      en: 'centrosome',      ko: '중심체',            zh: '中心体',      d: 'A small structure from which microtubules grow. It has two centrioles: each is a ring of nine groups of short tubes. It has no membrane, so it is not an organelle.' },
       { k: 'exocytosis',      en: 'exocytosis',      ko: '세포외 배출',       zh: '胞吐',        d: 'Releasing substances from a cell: a vesicle joins the cell membrane and opens to the outside (exo = out, cyto = cell).' },
-      { k: 'carrier-protein', en: 'carrier protein', ko: '운반체 단백질',     zh: '载体蛋白',    d: 'A protein in the cell membrane that lets one kind of substance, such as glucose, pass through.' },
+      { k: 'carrier-protein', en: 'carrier protein', ko: '운반체 단백질',     zh: '载体蛋白',    d: 'A protein in a membrane, such as the cell membrane, that lets one kind of substance, such as glucose, pass through.' },
       { k: 'carbohydrate',    en: 'carbohydrate',    ko: '탄수화물',          zh: '碳水化合物',  d: 'A molecule made of the elements carbon, hydrogen and oxygen, arranged in a particular way. Sugars, such as glucose, and starch are carbohydrates.' },
       { k: 'plasma',          en: 'plasma',          ko: '혈장',              zh: '血浆',        d: 'The liquid part of the blood. It is mostly water, with substances dissolved in it, such as glucose, amino acids and carbon dioxide. The blood cells are carried in it.' },
       { k: 'tissue-fluid',    en: 'tissue fluid',    ko: '조직액',            zh: '组织液',      d: 'The liquid round the cells of the body. It comes from the plasma, through the thin walls of the capillaries, and substances pass through it between the blood and the cells.' },
@@ -230,7 +234,17 @@
       { k: 'salivary-gland',  en: 'salivary gland',  ko: '침샘',              zh: '唾液腺',      src: 'Y7 Cells', d: 'An organ that makes saliva. You have three large pairs round your mouth.' },
       { k: 'capillary',       en: 'capillary',       ko: '모세 혈관',         zh: '毛细血管',    also: ['capillaries'], d: 'The smallest kind of blood vessel. Its wall is one cell thick, so substances pass between the blood and the cells.' },
       { k: 'red-blood-cell',  en: 'red blood cell',  ko: '적혈구',            zh: '红细胞',      d: 'A blood cell that carries oxygen. It has no nucleus, and it is a disc that is thinner in the middle.' },
-      { k: 'electron-microscope', en: 'electron microscope', ko: '전자 현미경', zh: '电子显微镜', src: 'Y7 Cells', d: 'A microscope that uses a beam of electrons instead of light. It shows much smaller details than a light microscope, such as ribosomes.' }
+      { k: 'electron-microscope', en: 'electron microscope', ko: '전자 현미경', zh: '电子显微镜', src: 'Y7 Cells', d: 'A microscope that uses a beam of electrons instead of light. It shows much smaller details than a light microscope, such as ribosomes.' },
+      { k: 'cristae',         en: 'cristae',         ko: '크리스타',          zh: '嵴（线粒体嵴）', also: ['crista'], d: 'The folds of the inner membrane of a mitochondrion (one: a crista). They give the inner membrane a large surface, where most of the energy of aerobic respiration is released.' },
+      { k: 'matrix',          en: 'matrix',          ko: '기질 (미토콘드리아 기질)', zh: '基质（线粒体基质）', d: 'In a mitochondrion: the thick liquid inside the inner membrane. It contains enzymes of aerobic respiration, and the mitochondrion\'s own DNA and ribosomes.' },
+      { k: 'intermembrane-space', en: 'intermembrane space', ko: '막 사이 공간', zh: '膜间隙', d: 'The narrow space between the two membranes of a mitochondrion, about 15 nm wide ("inter" means between). The space inside each crista is part of it.' },
+      { k: 'channel-protein', en: 'channel protein', ko: '통로 단백질',       zh: '通道蛋白',    d: 'A protein in a membrane that makes a narrow way through it, so that small substances can pass, such as water, or the smaller molecules made from glucose.' },
+      { k: 'atp',             en: 'ATP',             ko: 'ATP (아데노신 삼인산)', zh: 'ATP（腺苷三磷酸）', d: 'A small molecule that carries energy to the jobs of a cell. Respiration releases energy from glucose, and the cell uses this energy to make ATP; ATP then gives energy to each job, such as joining amino acids, making lipids and moving vesicles.' },
+      { k: 'atp-synthase',    en: 'ATP synthase',    ko: 'ATP 합성 효소',     zh: 'ATP合酶',     d: 'An enzyme in the inner membrane of a mitochondrion that makes ATP. Hydrogen ions flowing through it turn part of it, like wind turning a windmill.' },
+      { k: 'electron-transport-chain', en: 'electron transport chain', ko: '전자 전달계', zh: '电子传递链', d: 'A row of proteins in the inner membrane of a mitochondrion. Electrons from the food molecules pass from one protein to the next, and the proteins use their energy to pump hydrogen ions into the intermembrane space. At the end, the electrons join oxygen: water is produced.' },
+      { k: 'hydrogen-ion',    en: 'hydrogen ion (H⁺)', ko: '수소 이온',        zh: '氢离子',      also: ['hydrogen ions'], d: 'A hydrogen atom that has lost its electron: just one proton, with a positive charge (H⁺).' },
+      { k: 'micrometre',      en: 'micrometre (µm)', ko: '마이크로미터',      zh: '微米',        also: ['micrometres'], d: 'A unit of length: one thousandth of a millimetre (1 µm = 0.001 mm). Most cells are 10 to 100 µm across.' },
+      { k: 'nanometre',       en: 'nanometre (nm)',  ko: '나노미터',          zh: '纳米',        also: ['nanometres'], d: 'A unit of length: one millionth of a millimetre (1 nm = 0.000001 mm). A glucose molecule is about 1 nm across.' },
     ]},
     { g: 'Investigations', w: [
       { k: 'independent-variable', en: 'independent variable', ko: '조작 변인 (독립 변인)',       zh: '自变量',         d: 'The thing you change in an experiment, to see what effect it has. On a graph, you plot it on the x-axis (across).' },

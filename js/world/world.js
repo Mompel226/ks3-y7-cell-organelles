@@ -5,16 +5,21 @@
    until the pupil has what it needs; it then wakes (the mist clears, a ring of light turns round it).
    Quality: Retina screens draw at most 1.75 pixels per point; a slow computer drops to 1, then switches the glow off.
    ?still=1 (tests and less motion): flights jump to their end, nothing drifts.
+   Speed (5 Nov 2026; Daniel: "without losing quality, without losing fluidity, optimize … all of the 3D renders",
+   measured with tools/speed.mjs before and after): the shaders are compiled in parallel while the loading screen shows
+   (the first frame had compiled them all at once on the page's main thread); tone mapping, the screen's colours and the
+   grade are one pass at the end, not two; the glow is worked out at a quarter of the screen's pixels (it is a blur);
+   the screen itself keeps no anti-aliasing buffer, which only the glow's final picture ever reached (the 3D is drawn
+   into the glow's own picture, which never had one).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/EffectComposer.js?v=0.185.1';
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
-import { OutputPass } from '../vendor/three/examples/jsm/postprocessing/OutputPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611051141';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611051141';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611051508';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611051508';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -25,7 +30,7 @@ export class World {
   constructor(canvas, { still = false, quality = '' } = {}) {
     this.canvas = canvas; this.still = still; this.loop = this.loop.bind(this);
     this.listeners = {}; this.moving = false; this.inset = { right: 0, bottom: 0 };
-    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
+    const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: false });
     r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 0.96;
     this.dprMax = quality === 'low' ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
     r.setPixelRatio(this.dprMax);
@@ -53,7 +58,7 @@ export class World {
     this.composer.addPass(new RenderPass(scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.55, 0.8);
     this.composer.addPass(this.bloom);
-    this.composer.addPass(new OutputPass());
+    /* the last pass: tone mapping and the screen's colours (as three's OutputPass), then the grade, in one */
     this.composer.addPass(new ShaderPass({
       uniforms: { tDiffuse: { value: null } },
       vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
@@ -61,6 +66,10 @@ export class World {
         uniform sampler2D tDiffuse; varying vec2 vUv;
         void main() {
           vec4 c = texture2D(tDiffuse, vUv);
+          #ifdef TONE_MAPPING
+          c.rgb = toneMapping(c.rgb);
+          #endif
+          c = linearToOutputTexel(c);
           float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
           c.rgb = mix(c.rgb, c.rgb * vec3(0.92, 0.98, 1.10), 1.0 - smoothstep(0.0, 0.45, l));   /* cool shadows */
           c.rgb = mix(c.rgb, c.rgb * vec3(1.06, 1.0, 0.92), smoothstep(0.55, 1.0, l));          /* warm light */
@@ -70,6 +79,14 @@ export class World {
         }`
     }));
 
+    /* the shaders, compiled in parallel (KHR_parallel_shader_compile) while the loading screen shows: the variants the
+       glow's render target needs (no tone mapping there), so the first frame finds every one ready; nothing is drawn
+       until then (main.js waits for world.ready before it takes the loading screen away) */
+    this.compiled = false;
+    r.setRenderTarget(this.composer.renderTarget1);
+    this.ready = r.compileAsync(scene, this.camera).catch(() => {}).then(() => { this.compiled = true; this.kick(); });
+    r.setRenderTarget(null);
+    setTimeout(() => { if (!this.compiled) { this.compiled = true; this.kick(); } }, 6000);   /* never a world that waits for ever */
     this.t0 = performance.now(); this.frames = [];
     this.pointer();
     this.resize();
@@ -240,6 +257,12 @@ export class World {
     return new Promise(res => setTimeout(() => { this.setMoving(false); res(); }, this.still ? 0 : 250));
   }
   setMoving(on) { if (this.moving === on) return; this.moving = on; this.emit(on ? 'moving' : 'still'); }
+  /* the camera's near and far planes for its distance (µm) to what it looks at: the magnified views of a mitochondrion
+     (mitoparts.js) are a few nanometres away, the map tens of micrometres; nothing changes beyond 1 µm */
+  nearFar(d) {
+    const c = this.camera, n = d >= 1 ? 0.05 : Math.max(2e-5, Math.min(0.05, d / 30)), f = d >= 1 ? 500 : Math.max(12, Math.min(500, d * 2500));
+    if (Math.abs(c.near - n) > 1e-9 || Math.abs(c.far - f) > 1e-6) { c.near = n; c.far = f; c.updateProjectionMatrix(); }
+  }
 
   /* the side panel or the bottom sheet covers part of the picture: the picture's middle moves to the free part */
   setInset({ right = 0, bottom = 0, top = 0 }) { this.inset = { right, bottom, top }; this.resize(); }
@@ -250,8 +273,9 @@ export class World {
     this.size = { w, h };
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
+    /* the glow from a quarter of the screen's pixels (the composer had set it from half) */
     const pr = this.renderer.getPixelRatio();
-    this.bloom.resolution.set(Math.round(w * pr / 2), Math.round(h * pr / 2));
+    this.bloom.setSize(Math.round(w * pr / 2), Math.round(h * pr / 2));
     const R = Math.min(this.inset.right, w * 0.5), B = Math.min(this.inset.bottom, h * 0.6), T = Math.min(this.inset.top || 0, h * 0.6);
     const cam = this.camera;
     if (R > 0) { cam.aspect = (w + R) / h; cam.setViewOffset(w + R, h, R, 0, w, h); }
@@ -311,7 +335,7 @@ export class World {
   }
 
   /* ---------- the loop ---------- */
-  kick() { if (!this.running) { this.running = true; this.last = performance.now(); requestAnimationFrame(this.loop); } }
+  kick() { if (!this.running && this.compiled) { this.running = true; this.last = performance.now(); requestAnimationFrame(this.loop); } }
   loop(now) {
     if (document.hidden) { this.running = false; return; }
     const dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;

@@ -93,15 +93,21 @@ window.STORY = {
     fact: { text: 'A red blood cell is about 7.5 µm across: almost half as wide as this cell. In the narrowest capillaries, red blood cells bend to pass.', src: 'OpenStax, Anatomy and Physiology 2e, 18.2 (open textbook)' }
   },
   mito: {
-    part: 3, task: 'game-mito', title: 'Mitochondria', plural: true, kind: 'Organelle: two membranes', y7: true, def: 'mitochondria',
+    part: 3, task: 'game-mito', title: 'Mitochondria', onPic: 'Mitochondrion', plural: true, kind: 'Organelle: two membranes', y7: true, def: 'mitochondria',
     needs: ['glucose', 'oxygen'], gives: ['energy'],
     intro: '<dfn data-w="mitochondria">Mitochondria</dfn> (one: a mitochondrion) are the site of <dfn data-w="aerobic-respiration">aerobic respiration</dfn>, which releases energy from glucose, using oxygen.\nA mitochondrion has two membranes. The inner membrane is folded: the folds give a large surface, where most of the energy is released.',
+    /* every size true (Daniel, 5 Nov 2026: "it needs to be relative … as close to relative size as possible"): the camera
+       zooms in to the molecules, never the molecules made bigger (play.js, mitoparts.js) */
     steps: [
-      { play: 'split', text: 'In the <dfn data-w="cytosol">cytosol</dfn>, each glucose molecule is first split into two smaller molecules.\n<mark class="do">Press the glucose to split it.</mark>' },
-      { play: 'feed', text: '<mark class="do">Press the two smaller molecules, then the oxygen,</mark> to move them into the mitochondrion.' },
-      { play: 'respire', text: 'Aerobic respiration: <b>carbon dioxide</b> and <b>water</b> are produced, and energy is released. The cell uses this energy for its work: to join amino acids, to make lipids and to move vesicles.' }
+      { play: 'mlook', text: 'This is one mitochondrion, cut open: about 2.7 <dfn data-w="micrometre">micrometres</dfn> (µm) long. Its folds are the <dfn data-w="cristae">cristae</dfn> (one: a crista). Inside the inner membrane is a thick liquid, the <dfn data-w="matrix">matrix</dfn>.\nHere its two membranes look like one line: they are only 15 nm apart.\nA glucose molecule is about 1 <dfn data-w="nanometre">nanometre</dfn> (nm) across: this mitochondrion is 700 times wider. In this place everything is drawn at its true size compared with everything else, so to see glucose and the two membranes, you zoom in.\n<mark class="do">Press 🔍 Zoom in, beside the ring of light on its edge.</mark>' },
+      { play: 'split', text: 'You are at the edge of the mitochondrion. The bar at the bottom left shows the scale. Above is the <dfn data-w="cytosol">cytosol</dfn>; below, the outer membrane: two layers of lipids, with proteins in it.\nIn the cytosol, each glucose molecule is first split into two smaller molecules.\n<mark class="do">Press the glucose to split it.</mark>' },
+      { play: 'feed', text: 'The smaller molecules pass through the two membranes into the matrix: through a <dfn data-w="channel-protein">channel protein</dfn>, then a <dfn data-w="carrier-protein">carrier protein</dfn>. One glucose molecule needs six oxygen molecules.\n<mark class="do">Press the two smaller molecules, then the oxygen,</mark> to move them into the mitochondrion.' },
+      { play: 'respire', text: 'In the matrix, <dfn data-w="enzyme">enzymes</dfn> break the smaller molecules down, step by step. Watch what is produced.' },
+      { play: 'water', text: 'Hydrogen from the smaller molecules is carried to a chain of proteins in the folded inner membrane. Watch the last protein in the chain, and the oxygen.' },
+      { play: 'release', text: 'Aerobic respiration: <b>carbon dioxide</b> and <b>water</b> are produced, and energy is released. The cell uses this energy for its work: to join amino acids, to make lipids and to move vesicles.\nExplorer, beyond the Year 7 list: <b>🔬 inside a mitochondrion</b> shows how the energy is released, step by step.' }
     ],
     done: 'The energy bar is full. Every job of the cell uses some: when it is low, return here with more glucose and oxygen.',
+    explore: '🔬 Explorer: inside a mitochondrion',
     fact: { text: 'Mitochondria have their own small piece of DNA. You inherit all of it from your mother.', src: 'MedlinePlus Genetics, Mitochondrial DNA (US National Library of Medicine)' }
   },
   nucleus: {
@@ -133,7 +139,7 @@ window.STORY = {
     fact: { text: 'A growing human cell can make thousands of ribosome parts every minute.', src: 'Lewis and Tollervey 2000, Science 288:1385' }
   },
   ribosome: {
-    part: 6, task: 'game-ribosome', title: 'Ribosomes', plural: true, kind: 'Not an organelle: no membrane', y7: true, def: 'ribosome',
+    part: 6, task: 'game-ribosome', title: 'Ribosomes', onPic: 'Ribosome', plural: true, kind: 'Not an organelle: no membrane', y7: true, def: 'ribosome',
     needs: ['mrna', 'parts', 'amino', 'energy'], gives: ['chain'],
     intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nRibosomes have no membrane, so they are not organelles.',
     steps: [
@@ -184,7 +190,7 @@ window.STORY = {
     fact: { text: 'Camillo Golgi saw it in 1898, in nerve cells. For about 50 years many scientists thought it was a mistake made by his stain, until electron microscopes showed it in the 1950s.', src: 'Dröscher 1998, Histochemistry and Cell Biology 109:425' }
   },
   tracks: {
-    part: 10, task: 'game-tracks', title: 'Microtubules', plural: true, kind: 'Not an organelle: no membrane', def: 'microtubule',
+    part: 10, task: 'game-tracks', title: 'Microtubules', onPic: 'Microtubule', plural: true, kind: 'Not an organelle: no membrane', def: 'microtubule',
     needs: ['packed', 'energy'], gives: ['top'],
     intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
     steps: [
