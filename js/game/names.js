@@ -20,7 +20,8 @@ export class Names {
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
      free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
      name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room), aside
-     (on a phone, beside its part first: a protein the name would hide) }];
+     (on a phone, beside its part first: a protein the name would hide), side ('L' or 'R': beside the cell, the only side it
+     may stand on, when its line from the other side would cross another part; with no room there it is left out) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in) */
   set(list, keepOut, frame) {
@@ -89,7 +90,7 @@ export class Names {
     order.forEach(c => {
       const pref = c.pts.reduce((a, o) => a + o.sc.x, 0) / c.pts.length < cx ? 'L' : 'R';
       let best = null;
-      for (const side of [pref, pref === 'L' ? 'R' : 'L']) {
+      for (const side of c.m.it.side ? [c.m.it.side] : [pref, pref === 'L' ? 'R' : 'L']) {
         for (const o of c.pts) {
           const y = Math.round(o.sc.y);
           if (side === 'L' && o.sc.x < colL + 20) continue;

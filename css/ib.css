@@ -1,0 +1,220 @@
+/* ============================================================
+   ib.css — the IB view "From glucose to ATP" (5 Nov 2026), js/ib/view.js: a view that fills the window (over the game,
+   or at its own address), the 3D picture on the left, the steps on a sheet on the right (below it on a phone).
+   Levels (memory level-colours-never-blank: a filled tint, two levels never two neighbouring hues): SL and HL in the
+   practicals' IB blue, HL only in rose, beyond the IB guide in grey italics. Bright and dark: the computer's setting
+   until the reader chooses (biology.theme).
+   ============================================================ */
+.ibv{
+  --ibv-sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --ibv-serif:'Fraunces',Georgia,serif;
+  --ibv-sheet:#FFFFFF; --ibv-ink:#141A24; --ibv-ink2:#3D4657; --ibv-rule:#D9DEE7; --ibv-accent:#5B3FD1; --ibv-accent-ink:#4527B8;
+  --lv-sl:#2E3A8C; --lv-sl-bg:#E7E9F7; --lv-hl:#9B1C4A; --lv-hl-bg:#FCE6EE; --lv-x:#4F5663; --lv-x-bg:#ECEEF2;
+  --ibv-term:#4527B8;
+  position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:#070a1f;color:var(--ibv-ink);
+  font-family:var(--ibv-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ibv{
+  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B79BFF; --ibv-accent-ink:#CDB9FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB9FF } }
+:root[data-theme="dark"] .ibv{
+  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B79BFF; --ibv-accent-ink:#CDB9FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB9FF }
+html.ibv-open,html.ibv-open body{overflow:hidden}
+.ibv *{box-sizing:border-box}
+.ibv button{font-family:inherit}
+.ibv :focus-visible{outline:2.5px solid #FFD27A;outline-offset:2px}
+
+/* ---------- the top: the title, the chapters, the tools ---------- */
+.ibv__top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'id tools' 'tabs tabs';align-items:center;gap:6px 16px;padding:8px 14px 7px;background:linear-gradient(180deg,#121741,#0b0f2a);color:#fff;border-bottom:1px solid rgba(255,226,154,.28)}
+.ibv__id{min-width:0;grid-area:id;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px}
+.ibv__id .ibv__eyebrow{flex-basis:100%}
+.ibv__eyebrow{margin:0;font:800 11.5px/1.2 var(--ibv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A}
+.ibv__id h1{margin:1px 0 0;font:800 22px/1.15 var(--ibv-serif);color:#fff;white-space:nowrap}
+.ibv__by{margin:2px 0 0;font:700 12px/1.2 var(--ibv-sans);color:#C9CBEF}
+.ibv__tabs{grid-area:tabs;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.ibv__tabs::-webkit-scrollbar{display:none}
+.ibv__tab{flex:none;display:flex;align-items:center;gap:7px;border:1.5px solid rgba(255,255,255,.24);border-radius:999px;background:rgba(255,255,255,.05);color:#ECEAFF;padding:5px 12px 5px 5px;font:800 14px/1 var(--ibv-sans);white-space:nowrap;cursor:pointer}
+.ibv__tab b{display:grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:rgba(255,210,122,.16);color:#FFD27A;font-size:13.5px}
+.ibv__tab:hover{border-color:#FFD27A}
+.ibv__tab.is-on{background:#FFD27A;color:#1b1640;border-color:#FFD27A}
+.ibv__tab.is-on b{background:#1b1640;color:#FFD27A}
+.ibv__tab.is-soon{opacity:.42;cursor:default}
+.ibv__tab.is-soon:hover{border-color:rgba(255,255,255,.24)}
+.ibv__tools{grid-area:tools;display:flex;gap:8px;align-items:center}
+.ibv__tool{border:1.5px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(255,255,255,.06);color:#fff;font:800 14px/1 var(--ibv-sans);padding:8px 12px;cursor:pointer;white-space:nowrap}
+.ibv__tool:hover{border-color:#FFD27A}
+.ibv__close{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font:700 24px/1 var(--ibv-sans);cursor:pointer}
+.ibv__close:hover{border-color:#FFD27A;color:#FFD27A}
+
+/* ---------- the picture and the steps ---------- */
+.ibv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(460px,35vw));min-height:0}
+.ibv__stage{position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 40%,#1a1f56 0%,#0a0d29 62%,#060819 100%);touch-action:none}
+.ibv__canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.ibv__pic{position:absolute;z-index:3;left:50%;top:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 28px);padding:7px 14px;border-radius:999px;background:rgba(10,13,40,.82);border:1px solid rgba(255,226,154,.45);color:#FFE9B8;font:800 14px/1.3 var(--ibv-sans);text-align:center;pointer-events:none}
+.ibv__pic[hidden]{display:none}
+/* a page to read in place of the picture: the tally, the questions, the article */
+.ibv__paper{position:absolute;inset:0;z-index:5;overflow-y:auto;padding:26px clamp(16px,4vw,48px) 40px;background:var(--ibv-sheet);color:var(--ibv-ink)}
+.ibv__paper[hidden]{display:none}
+.ibv__paper h3{margin:0 0 12px;font:800 26px/1.2 var(--ibv-serif)}
+.ibv__paper h4{margin:22px 0 6px;font:800 19px/1.25 var(--ibv-serif)}
+.ibv__paper p{max-width:72ch;margin:0 0 .7em}
+.ibv__t{border-collapse:collapse;width:100%;max-width:880px;margin:6px 0 14px;font-size:15.5px}
+.ibv__t th,.ibv__t td{border:1px solid var(--ibv-rule);padding:8px 10px;text-align:left;vertical-align:top}
+.ibv__t thead th{background:color-mix(in srgb,var(--lv-sl) 10%,var(--ibv-sheet))}
+.ibv__t .tot th,.ibv__t tr:last-child th{background:color-mix(in srgb,#FFD27A 30%,var(--ibv-sheet))}
+.ibv__bars{display:flex;flex-direction:column;gap:10px;max-width:720px;margin:6px 0 16px}
+.ibv__bars div{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center}
+.ibv__bars span{display:block;width:var(--w);padding:9px 12px;border-radius:10px;background:color-mix(in srgb,#FFD27A 55%,var(--ibv-sheet));font-weight:800}
+.ibv__eq{font:800 22px/1.4 var(--ibv-serif)}
+.ibv__mist{display:block;width:100%;max-width:640px;height:auto;margin:6px 0 10px;border-radius:14px;background:#0b0f2a}
+.ibv__q{font-weight:800;font-size:18px}
+.ibv__ans{display:flex;gap:8px;flex-wrap:wrap;max-width:620px}
+.ibv__in{flex:1 1 240px;font:700 17px/1.3 var(--ibv-sans);padding:10px 12px;border-radius:10px;border:1.5px solid var(--ibv-rule);background:var(--ibv-sheet);color:var(--ibv-ink)}
+.ibv__chk,.ibv__chk2,.ibv__go{border-radius:999px;font:800 15px/1 var(--ibv-sans);padding:11px 16px;cursor:pointer;border:1.5px solid #F0B43A;background:#FFD27A;color:#1b1640}
+.ibv__fb,.ibv__fb2{font-weight:800}
+.ibv__fb.ok,.ibv__fb2.ok{color:#167A3E}.ibv__fb.no,.ibv__fb2.no{color:#9A5B05}
+.ibv__model{max-width:72ch;margin-top:10px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--lv-sl) 8%,var(--ibv-sheet));border:1.5px solid color-mix(in srgb,var(--lv-sl) 35%,transparent)}
+.ibv__model[hidden]{display:none}
+.ibv__hint{color:var(--ibv-ink2)}
+/* an order question: each li is a place, its number outside the card and never moving; only the card moves (the
+   estate's rule, 21 Oct 2026: tools/order-places.mjs) */
+.ibv__ord{list-style:none;padding:0;margin:8px 0 12px;max-width:760px;display:flex;flex-direction:column;gap:6px}
+.ibv__ord li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center}
+.ibv__n{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#1b1640;color:#FFD27A;font-weight:900}
+.ibv__oc{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1.5px solid var(--ibv-rule);background:var(--ibv-sheet);position:relative}
+.ibv__oc.is-moved{box-shadow:0 0 0 2.5px #FFD27A}
+.ibv__oc.bad{border-color:#E9A23B}
+.ibv__ord b{display:flex;gap:4px}
+.ibv__ord b button{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--ibv-rule);background:none;color:var(--ibv-ink);font:900 16px/1 var(--ibv-sans);cursor:pointer}
+.ibv__ord b button:disabled{opacity:.3;cursor:default}
+.ibv__art{max-width:78ch}
+.ibv__src{font-size:14px;color:var(--ibv-ink2);font-style:italic}
+.ibv.is-paper .ibv__bar{display:none}
+@media (max-width:860px){.ibv__paper{padding:16px 16px 30px}.ibv__paper h3{font-size:22px}.ibv__t{font-size:14px}.ibv__bars div{grid-template-columns:1fr}}
+/* a small board on the picture: a tally, or a chain of causes */
+.ibv__board{position:absolute;z-index:3;right:14px;top:14px;display:flex;flex-direction:column;gap:3px;max-width:min(300px,calc(100% - 28px));padding:10px 14px;border-radius:14px;background:rgba(10,13,40,.86);border:1.5px solid rgba(255,226,154,.55);color:#EEF0FF;font:700 14.5px/1.35 var(--ibv-sans);pointer-events:none}
+.ibv__board[hidden]{display:none}
+/* the key to the spaces' colours (view.js) */
+.ibv__key{position:absolute;left:12px;bottom:44px;z-index:3;display:flex;flex-wrap:wrap;gap:4px 12px;max-width:calc(100% - 220px);padding:6px 10px;border-radius:10px;background:rgba(10,13,40,.78);color:#EEF0FF;font:800 12.5px/1.2 var(--ibv-sans);pointer-events:none}
+.ibv__key[hidden]{display:none}
+.ibv__key i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45)}
+@media (max-width:560px){.ibv__key{font-size:11px;padding:4px 8px;left:8px;bottom:40px;max-width:calc(100% - 16px)}}
+/* on a phone: under the step's words (view.js) */
+.ibv__board.ibv__board--panel{position:static;max-width:none;margin:8px 0 0;pointer-events:auto}
+.ibv__board b{font:900 12.5px/1.2 var(--ibv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A;margin-bottom:2px}
+.ibv__board .b{color:#FFE7A8;font-weight:900}
+.ibv__wait{position:absolute;inset:0;z-index:4;display:grid;place-items:center;margin:0;color:#E8E4FF;font-weight:800}
+.ibv__wait[hidden]{display:none}
+.ibv__panel{overflow-y:auto;min-height:0;background:var(--ibv-sheet);color:var(--ibv-ink);padding:16px 20px 20px;border-left:1px solid var(--ibv-rule)}
+.ibv__where{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:center;margin-bottom:6px}
+.ibv__chn{margin:0;font:900 12.5px/1 var(--ibv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ibv-accent)}
+.ibv__cht{margin:4px 0 0;font:800 23px/1.15 var(--ibv-serif)}
+.ibv__count{margin:10px 0 6px;font:900 12.5px/1 var(--ibv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ibv-ink2)}
+.ibv__text p{margin:0 0 .6em}
+.ibv__text p:last-child{margin-bottom:0}
+.ibv__xs{display:flex;flex-direction:column;gap:6px;margin:12px 0 0}
+.ibv__xb{align-self:flex-start;text-align:left;border:1.5px dashed var(--ibv-accent);background:color-mix(in srgb,var(--ibv-accent) 8%,var(--ibv-sheet));color:var(--ibv-accent-ink);border-radius:12px;padding:8px 12px;font:800 15px/1.3 var(--ibv-sans);cursor:pointer}
+.ibv__xb:hover{border-style:solid}
+.ibv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--ibv-sheet) 0%,transparent),var(--ibv-sheet) 28%)}
+.ibv__do button{border-radius:999px;font:800 15px/1 var(--ibv-sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--ibv-rule);background:var(--ibv-sheet);color:var(--ibv-ink)}
+.ibv__do button:disabled{opacity:.42;cursor:default}
+.ibv__next{margin-left:auto;background:#FFD27A!important;border-color:#F0B43A!important;color:#1b1640!important}
+.ibv__next.pulse{animation:ibvPulse 2.4s ease-in-out infinite}
+@keyframes ibvPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,180,58,.55)}50%{box-shadow:0 0 0 8px rgba(240,180,58,0)}}
+@media (prefers-reduced-motion:reduce){.ibv__next.pulse{animation:none}}
+.ibv__legend{margin-top:14px;font-size:14.5px;color:var(--ibv-ink2)}
+.ibv__legend summary{cursor:pointer;font-weight:800}
+.ibv__legend p{margin:.4em 0 0}
+
+/* ---------- levels: a filled tint, never blank ---------- */
+.lv{display:inline-flex;align-items:baseline;gap:5px;vertical-align:1px;margin-right:4px;padding:2px 8px;border-radius:999px;font:900 11.5px/1.4 var(--ibv-sans);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.lv i{font-style:normal;font-weight:800;letter-spacing:0;text-transform:none;opacity:.85}
+.lv--sl{color:var(--lv-sl);background:var(--lv-sl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-sl) 35%,transparent)}
+.lv--hl{color:var(--lv-hl);background:var(--lv-hl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-hl) 35%,transparent)}
+.lv--x{color:var(--lv-x);background:var(--lv-x-bg);font-style:italic;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-x) 30%,transparent)}
+.lvp--x{color:var(--ibv-ink2)}
+
+/* ---------- key words ---------- */
+.ibv-term{all:unset;cursor:pointer;color:var(--ibv-term);font-weight:800;text-decoration:underline dotted 1.5px;text-underline-offset:3px}
+.ibv-term:focus-visible{outline:2px solid var(--ibv-accent);outline-offset:2px;border-radius:3px}
+.ibv-nw{white-space:nowrap}
+.ibv-tip{position:absolute;z-index:40;max-width:min(380px,calc(100% - 16px));padding:10px 13px;border-radius:12px;background:#10142e;color:#fff;font:600 15px/1.45 var(--ibv-sans);box-shadow:0 12px 32px rgba(0,0,0,.45);border:1px solid rgba(255,226,154,.5)}
+.ibv-tip .tr{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;color:#FFE7A8}
+.ibv-tip .tr i{font-style:normal;font-size:11.5px;opacity:.75;margin-right:5px}
+
+/* ---------- names on the picture: one level line that ends on its part ---------- */
+.ibv__labs,.ibv__nums{position:absolute;inset:0;pointer-events:none;z-index:2}
+.ibv__lab{position:absolute;left:0;top:0;display:flex;align-items:center;will-change:transform;transition:opacity .25s}
+.ibv__lab span{display:block;background:rgba(10,14,40,.88);color:#fff;font:800 13.5px/1.25 var(--ibv-sans);padding:5px 10px;border-radius:10px;white-space:nowrap;border:1px solid rgba(255,255,255,.42);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.ibv__lab>i{flex:none;display:block;height:2px;background:#fff;box-shadow:0 0 0 1px rgba(10,14,40,.6)}
+.ibv__lab span i{font-style:italic}
+.ibv__lab--r{flex-direction:row-reverse}
+.ibv__lab--x span{font-style:italic;border-style:dashed;color:#E4E7F2}
+.ibv__lab .k{color:#FFD27A}
+.ibv__num{position:absolute;left:0;top:0;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:#FFD27A;color:#1b1640;font:900 11.5px/1 var(--ibv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.4);will-change:transform}
+.ibv__num.old{background:#C9CFE0;color:#2a3046}
+.ibv__num.neg{background:#ff5d6c;color:#fff;min-width:15px;height:15px;font-size:13px;box-shadow:0 0 0 1.5px #3a0a14}
+.ibv__bar{position:absolute;left:0;top:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;color:#fff;font:800 13.5px/1 var(--ibv-sans);text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.ibv__bar i{display:block;height:9px;border:solid #fff;border-width:0 2px 2px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
+
+/* ---------- where it happens: the small map (the current place outlined in gold) ---------- */
+.ibv__mm{display:block;width:132px;height:auto;border-radius:10px;background:#0b0f2a}
+.ibv__mm .mm-cyt{fill:#25235e;stroke:#3c4590;stroke-width:1.5}
+.ibv__mm .mm-cap{fill:#3a1220;stroke:#8a2d45;stroke-width:1.5}
+.ibv__mm .mm-rbc{fill:#d6455a}
+.ibv__mm .mm-mem{stroke:#e9a2c2;stroke-width:4}
+.ibv__mm .mm-gly{fill:#3a47a8;stroke:#9ea9f0;stroke-width:1.5}
+.ibv__mm .mm-om{fill:#f07a45;stroke:#ffc0a0;stroke-width:2}
+.ibv__mm .mm-mx{fill:#c66a33}
+.ibv__mm .mm-im{fill:none;stroke:#ffd1a6;stroke-width:2.5;stroke-linecap:round}
+.ibv__mm .on{stroke:#FFD27A!important;stroke-width:4!important}
+.ibv__mm .mm-mx.on{fill:#ffb070}
+.ibv__mm .mm-mem.on{stroke-width:6!important}
+/* ---------- the words ---------- */
+.ibv__wb{position:absolute;z-index:30;top:62px;right:12px;width:min(420px,calc(100% - 24px));max-height:calc(100% - 76px);overflow-y:auto;background:var(--ibv-sheet);color:var(--ibv-ink);border-radius:16px;border:1.5px solid var(--ibv-accent);box-shadow:0 18px 50px rgba(0,0,0,.5);padding:12px 16px 16px}
+.ibv__wb[hidden]{display:none}
+.ibv__wbtop{display:flex;justify-content:space-between;align-items:center}
+.ibv__wbtop h2{margin:0;font:800 21px/1.2 var(--ibv-serif)}
+.ibv__wbx{border:0;background:none;font:700 26px/1 var(--ibv-sans);color:var(--ibv-ink2);cursor:pointer}
+.ibv__langs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.ibv__langs button{border:1.5px solid var(--ibv-rule);background:none;color:var(--ibv-ink);border-radius:999px;padding:6px 10px;font:800 13.5px/1 var(--ibv-sans);cursor:pointer}
+.ibv__langs button[aria-pressed="true"]{background:var(--ibv-accent);border-color:var(--ibv-accent);color:#fff}
+.ibv__w{border-top:1px solid var(--ibv-rule);padding:7px 0}
+.ibv__w summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.ibv__w summary span{color:var(--ibv-ink2);font-size:15px}
+.ibv__w p{margin:6px 0 2px;font-size:15.5px}
+
+/* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
+@media (max-width:860px),(max-aspect-ratio:4/5){
+  .ibv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,52fr) minmax(0,48fr)}
+  .ibv__panel{border-left:0;border-top:1px solid var(--ibv-rule);padding:12px 16px 16px}
+}
+@media (max-width:860px){
+  .ibv__top{gap:5px 10px;padding:7px 10px}
+  .ibv__id .ibv__by{flex-basis:100%}
+  .ibv__id h1{font-size:18px}
+  .ibv__eyebrow{font-size:10.5px}
+  .ibv__tool span{display:none}
+  .ibv__tool{padding:8px 10px}
+  .ibv__where{grid-template-columns:96px minmax(0,1fr);gap:10px}
+  .ibv__mm{width:96px}
+  .ibv__cht{font-size:19px}
+  .ibv{font-size:16px}
+  .ibv__tab{font-size:13px;padding:4px 10px 4px 4px}
+  .ibv__lab span{font-size:12.5px;padding:4px 8px}
+  .ibv__pic{font-size:12px;top:8px;padding:5px 11px;border-radius:12px}
+  .ibv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
+  .ibv__board{top:auto;bottom:44px;right:8px;max-width:min(62%,260px);padding:7px 10px;font-size:12px;gap:1px}
+  .ibv__board b{font-size:11px}
+}
+/* a table on a phone: one card per row, each cell with its heading (the review: the tally's last columns were cut off) */
+@media (max-width:560px){
+  .ibv__t,.ibv__t tbody,.ibv__t tr,.ibv__t td,.ibv__t th{display:block;width:auto}
+  .ibv__t thead{display:none}
+  .ibv__t tr{border:1px solid var(--ibv-rule);border-radius:10px;margin:0 0 8px;overflow:hidden}
+  .ibv__t td,.ibv__t th{border:0;border-top:1px solid var(--ibv-rule);padding:6px 10px}
+  .ibv__t tr > :first-child{border-top:0;font-weight:900}
+  .ibv__t td[data-h]::before,.ibv__t th[data-h]:not([data-h=""])::before{content:attr(data-h) ": ";font-weight:800;opacity:.75}
+  .ibv__t tr > :first-child::before{content:none}
+  .ibv__t th[data-h=""]:empty{display:none}
+}

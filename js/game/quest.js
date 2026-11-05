@@ -6,15 +6,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611051733';
-import { state, COST } from './state.js?v=202611051733';
-import { sound } from './sound.js?v=202611051733';
-import { finalLine } from './final.js?v=202611051733';
+import { ICON } from './icons.js?v=202611051947';
+import { state, COST } from './state.js?v=202611051947';
+import { sound } from './sound.js?v=202611051947';
+import { finalLine } from './final.js?v=202611051947';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611051733').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611051733';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611051947').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611051947';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -194,6 +194,7 @@ export class Quest {
       ol.appendChild(li);
     });
     R.terms(ol);
+    this.ibSwitch(id);
     if (from >= P.steps.length) { this.finishPanel(id); return; }
     for (let i = from; i < P.steps.length; i++) {
       if (my !== this.session) return;
@@ -210,6 +211,37 @@ export class Quest {
     if (P.task) R.L.done(P.task);
     this.finishPanel(id, true);
   }
+  /* the IB switch, in a place whose every check is right (Daniel, 5 Nov 2026: "Don't provide the IB toggle until they
+     have completed everything"; it stays after a pupil does the place again): on, each step says what IB adds, each
+     sentence with its level, and a door into the chapter of "From glucose to ATP" (js/ib/view.js) that shows it; the
+     steps, the names on the picture and what the place says use the IB terms (play.js). On or off is remembered (store
+     'ibon'). */
+  ibSwitch(id) {
+    const P = STORY[id], top = $('.qp__top', this.panel), ol = $('.steps', this.panel), root = document.documentElement;
+    if (!P.ib || !top || !ol || !state.checks(id).length || !state.checked(id)) { if (!$('.qp__ib', this.panel)) root.classList.remove('ib-on'); return; }
+    if ($('.qp__ib', top)) return;
+    const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
+    const LV = { sl: 'SL and HL', hl: 'HL only', x: 'Beyond the IB guide' };
+    const sw = h('button', { type: 'button', class: 'qp__ib', 'aria-pressed': 'false' }, '<span class="qp__ibt" aria-hidden="true"><i></i></span>IB Biology <b></b>');
+    top.appendChild(sw);
+    const draw = on => {
+      sw.setAttribute('aria-pressed', String(on)); $('b', sw).textContent = on ? 'on' : 'off';
+      root.classList.toggle('ib-on', on);
+      const qp = $('.qp', this.panel); if (qp) qp.classList.toggle('qp--ib', on);   /* the Year 7 checks fold away (game.css) */
+      P.steps.forEach((s, i) => { const li = ol.children[i], t = li && $('.step__t', li), b = P.ib[i]; if (t && b && b.text) t.innerHTML = paras(on ? b.text : s.text); });
+      $$('.step__ib', ol).forEach(x => x.remove());
+      if (on) P.ib.forEach((b, i) => {
+        const li = ol.children[i]; if (!li) return;
+        li.appendChild(h('div', { class: 'step__ib' }, b.p.map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${LV[lv]}${code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
+          + (b.ch == null ? '' : `<button type="button" class="step__ibdoor" data-ch="${b.ch}">🧬 From glucose to ATP: ${CH[b.ch]} →</button>`)));
+      });
+      R.terms(ol);
+      document.dispatchEvent(new CustomEvent('ib-switch', { detail: { id, on } }));
+    };
+    sw.addEventListener('click', () => { const on = sw.getAttribute('aria-pressed') !== 'true'; R.store.set('ibon', on); draw(on); });
+    ol.addEventListener('click', e => { const b = e.target.closest('.step__ibdoor'); if (b) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +b.dataset.ch } })); });
+    draw(!!R.store.get('ibon', false));
+  }
   /* the end of a place: first its checks, then, when every one is right, the place is done (✦): its message, a "Did you
      know?", the real thing, and the way to the map (Daniel, 4 Nov 2026: "You have to complete the questions. It's like
      completing a game"). The first place has no way to the map before that: nothing is awake yet. */
@@ -218,6 +250,7 @@ export class Quest {
     const qs = state.checks(id), my = this.session, first = id === 'arrive';
     end.hidden = false;
     end.innerHTML = `<p class="qp__k">Check what you learned</p>
+      ${P.ib ? '<p class="qp__ibchk">✓ Your Year 7 checks are all right. While IB is on, they are hidden, because they use the Year 7 words.</p>' : ''}
       <p class="qp__todo" role="status"></p>
       ${qs.map(q => `<div class="q" data-q="${q}"></div>`).join('')}
       <div class="qp__won"></div>
@@ -238,9 +271,10 @@ export class Quest {
       document.removeEventListener('progress', paint);
       won.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
         ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
-        ${P.explore ? `<button type="button" class="qp__real qp__explore">${esc(P.explore)}</button>` : ''}`;
+        ${P.explore ? `<button type="button" class="qp__real qp__explore${P.ib ? ' qp__explore--ib' : ''}">${esc(P.explore)}</button>` : ''}`;
       R.terms(won);
-      /* See the real thing, before the Explorer film (now, or once lens.js is here) */
+      this.ibSwitch(id);
+      /* See the real thing, before the place's extension (now, or once lens.js is here) */
       const lensBtn = () => {
         if (!HAS_LENS || !HAS_LENS(id) || !won.isConnected || $('.qp__real:not(.qp__explore)', won)) return;
         const rb = h('button', { type: 'button', class: 'qp__real' }, `🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}`);
@@ -248,7 +282,8 @@ export class Quest {
         rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
       };
       if (HAS_LENS) lensBtn(); else lensReady.then(lensBtn);
-      /* an Explorer film of this place (the nucleus: how a cell copies a gene), again at any time */
+      /* the place's extension, again at any time: the nucleus's Explorer film (how a cell copies a gene); the way in's and the
+         mitochondria's IB extension, "From glucose to ATP" (main.js) */
       const xb = $('.qp__explore', won); if (xb) xb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('explore', { detail: id })));
       nav.hidden = false; if (first) $('.qp__mapbtn', nav).textContent = 'Go to the map →';
       /* the place is done now: the map wakes what it gave (main.js), and the pupil sees it at once */

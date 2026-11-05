@@ -27,7 +27,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611051733';
+import { magicStandard } from './magic.js?v=202611051947';
 
 /* the mitochondria's own random numbers: the rest of the seeded world stays exactly as it was */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -258,7 +258,7 @@ let ATP_DATA = null;
 /* the measured model (atp-synthase.js, written by tools/atp-synthase.py), fetched the first time it is needed */
 export async function loadATP() {
   /* a download that fails (slow school Wi-Fi) must not stop the place: then the drawn one stands in, and says so */
-  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611051733')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
+  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611051947')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
   return ATP_DATA;
 }
 /* is the ATP synthase drawn now the measured one? (the film's source line says which) */
@@ -589,7 +589,8 @@ export function nanoPatch({ uc = 30, depth = 85, lumen = 12, U = 80, rows = 12 }
 }
 
 /* ============================================================ hydrogen ions through ATP synthase, and ATP made ============================================================ */
-/* shared by the place (play.js) and the Explorer film (mitofilm.js), so that the two never tell it differently */
+/* the place's dam (play.js); the Explorer film that also used them (mitofilm.js) was replaced by the IB extension (js/ib/)
+   on 5 Nov 2026 */
 const smooth01 = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /* hydrogen ions: lime, a colour nothing else in the mitochondrion has (the expert review, 5 Nov 2026: pink ions on the
    plum fold, beside pink lipid heads, were the faintest thing there, so the crowd behind the "dam" was hardly seen) */

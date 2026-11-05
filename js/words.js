@@ -9,7 +9,7 @@ window.WORD_KEYS = [
   { g: 'Inside the nucleus', w: ['nuclear-envelope', 'nuclear-pore', 'chromosome', 'dna', 'histone', 'nucleotide', 'dna-base', 'hydrogen-bond', 'gene', 'rna', 'mrna', 'nucleolus'] },
   { g: 'Making and releasing a protein', w: ['amino-acid', 'protein', 'enzyme', 'active-site', 'amylase', 'rough-er', 'smooth-er', 'lipid', 'fat', 'carbohydrate', 'golgi', 'vesicle', 'microtubule', 'motor-protein', 'centrosome', 'lysosome', 'exocytosis'] },
   { g: 'Respiration and the blood', w: ['aerobic-respiration', 'glucose', 'oxygen', 'carbon-dioxide', 'energy', 'diffusion', 'carrier-protein', 'capillary', 'plasma', 'tissue-fluid', 'red-blood-cell'] },
-  /* the mitochondria place, every size true, and its Explorer film (5 Nov 2026) */
+  /* the mitochondria place, every size true (5 Nov 2026) */
   { g: 'Inside a mitochondrion', w: ['cristae', 'matrix', 'intermembrane-space', 'channel-protein', 'micrometre', 'nanometre', 'electron-transport-chain', 'hydrogen-ion', 'atp-synthase', 'atp'] },
   { g: 'Saliva and the starch test', w: ['salivary-gland', 'saliva', 'starch', 'iodine', 'control-variable'] }
 ];

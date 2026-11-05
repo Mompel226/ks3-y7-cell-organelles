@@ -104,6 +104,9 @@
   /* ---------------- the word bank (one list for the page, with Korean and Chinese) ---------------- */
   const WORD = {};
   (window.WORDS || []).forEach(g => g.w.forEach(w => { WORD[w.k] = w; }));
+  /* a word of the shared KS3 glossary that this page's bank does not list (the IB words of quest.js ibSwitch) still opens
+     its meaning where it is used; the bank's list stays the Year 7 words */
+  const wordOf = k => WORD[k] || (window.KS3_GLOSSARY && window.KS3_GLOSSARY.by[k]) || null;
   function initWordBank() {
     const wb = $('#wb'), btn = $('#wbBtn'), list = $('#wbList'), find = $('#wbFind');
     if (!wb || !btn) return;
@@ -156,7 +159,7 @@
   let tipEl = null, tipFor = null;
   function closeTip() { if (tipEl) { tipEl.remove(); tipEl = null; tipFor = null; } }
   function showTip(btn) {
-    const w = WORD[btn.dataset.w]; if (!w) return;
+    const w = wordOf(btn.dataset.w); if (!w) return;
     if (tipFor === btn) { closeTip(); return; }
     closeTip();
     const l = lang();
@@ -172,7 +175,7 @@
   /* <dfn data-w="key">word</dfn> becomes a button that opens the word's meaning (inside text drawn later, too) */
   function terms(root) {
     $$('dfn[data-w]', root || document).forEach(d => {
-      if (!WORD[d.dataset.w]) { console.warn('word bank has no ' + d.dataset.w); d.replaceWith(document.createTextNode(d.textContent)); return; }
+      if (!wordOf(d.dataset.w)) { console.warn('word bank has no ' + d.dataset.w); d.replaceWith(document.createTextNode(d.textContent)); return; }
       const b = h('button', { type: 'button', class: 'term', 'data-w': d.dataset.w, 'aria-label': d.textContent + ': show its meaning' });
       b.innerHTML = d.innerHTML; d.replaceWith(b);
     });
