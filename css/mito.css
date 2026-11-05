@@ -21,3 +21,6 @@
 /* names on the world go at once when the camera moves (a fading name over a moving picture showed as a ghost), and fade in
    when it stops (the expert review, 5 Nov 2026) */
 .names:not(.on){transition-duration:0s}
+/* the word equation at the end of the mitochondria, each word in its molecule's colour on the picture */
+.eq{display:block;font-weight:800;font-size:17px;line-height:1.5;margin-bottom:4px}
+.eq-g{color:#a87400}.eq-o{color:#c93c3c}.eq-c{color:#53627d}.eq-w{color:#2a7fc0}

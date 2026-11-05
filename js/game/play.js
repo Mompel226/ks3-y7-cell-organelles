@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611051508';
-import { state, COST, RESPIRE } from './state.js?v=202611051508';
-import { nanoPatch, heroPoint, along, loadATP } from '../world/mitoparts.js?v=202611051508';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611051707';
+import { state, COST, RESPIRE } from './state.js?v=202611051707';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611051707';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer films, fetched when one is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611051508').then(m => m.openCopyFilm(o));
-const openMitoFilm = o => import('./mitofilm.js?v=202611051508').then(m => m.openMitoFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611051707').then(m => m.openCopyFilm(o));
+const openMitoFilm = o => import('./mitofilm.js?v=202611051707').then(m => m.openMitoFilm(o));
 const R = window.REV;
 
 export function makePlay(world, quest) {
@@ -289,9 +289,23 @@ export function makePlay(world, quest) {
       MS.tick = requestAnimationFrame(f);
     } else if (!on) { cancelAnimationFrame(MS.tick); MS.tick = 0; if (bar) bar.hidden = true; }
   }
-  /* leaving the place: everything as it was (the camera's up, its near and far planes, the cell, the cut face) */
+  /* the lid: the front half lifts away and fades (o 0 → 1), as in the Explorer film; closed, the mitochondrion looks whole */
+  const FR = MW.front;
+  const setLid = o => {
+    /* it lifts upwards (−x of the hero's frame is up on the screen) and tips back, solid until it is clear of the cut
+       face, then fades (the expert review: it had faded towards the camera instead of lifting) */
+    FR.group.position.set(-0.95 * o, 0, 0.3 * o); FR.group.rotation.set(0, -0.55 * o, 0);
+    FR.mats.forEach(m => { m.opacity = 1 - smooth(0.55, 0.95, o); m.depthWrite = o < 0.6; });
+    FR.face.userData.u.uFade.value = 1 - smooth(0.5, 0.9, o); FR.group.visible = o < 0.99; FR.o = o; world.kick && world.kick();
+  };
+  const openLid = () => FR.o >= 1 ? Promise.resolve() : live(new Promise(res => { const t0 = performance.now();
+    const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2800); setLid(k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }));
+  setLid(0);
+  /* leaving the place: everything as it was (the camera's up, its near and far planes, the cell, the cut face, the lid) */
   function mitoOff() {
-    mitoLoop(false); if (MS.deep) setDeep(false);
+    mitoLoop(false); if (MS.deep) setDeep(false); setLid(0); if (HC) HC.on = false;
+    if (props.flow) props.flow.forEach(F => { F.s.update(0, false); F.m.update(0, false); });
+    if (props.follow) props.follow.visible = false;
     if (PT) PT.group.visible = false; SECT.uHole.value.set(0, 0, 0, 0);
     world.camera.up.set(0, 1, 0); world.nearFar(10);
   }
@@ -345,15 +359,18 @@ export function makePlay(world, quest) {
   /* a molecule of true size (nm across), at a point of the magnified view */
   const SIZE = { glucose: 0.37, half: 0.42, oxygen: 0.24, co2: 0.24, water: 0.22 };
   let HALO = null;
-  const halo = (t, nm) => {
+  /* a molecule's glow has its own colour: the smaller molecule yellow (as in the bag), oxygen red, carbon dioxide grey,
+     water pale blue (the expert review, 5 Nov 2026: with every glow cream, carbon dioxide was only "a new dot") */
+  const HALO_COL = { glucose: 0xffe08a, half: 0xffe08a, oxygen: 0xff8080, co2: 0xb7c3d8, water: 0x9fd8ff };
+  const halo = (t, nm, col = 0xfff4d0) => {
     if (!HALO) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
       gr.addColorStop(0, 'rgba(255,255,255,0.55)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.18)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
       HALO = new THREE.CanvasTexture(c); HALO.colorSpace = THREE.SRGBColorSpace; }
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: HALO, color: 0xfff4d0, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: HALO, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     s.scale.setScalar(nm * 3.2 / 1000 / t.scale.x); s.renderOrder = 9; t.add(s); return t;
   };
   const NMS = { glucose: 0.9, half: 0.6, oxygen: 0.45, co2: 0.55, water: 0.32 };
-  const molAt = (kind, p) => { const t = keep(token(kind, SIZE[kind] / 1000)); t.position.copy(p); t.quaternion.copy(hero.quaternion); return halo(t, NMS[kind]); };
+  const molAt = (kind, p) => { const t = keep(token(kind, SIZE[kind] / 1000)); t.position.copy(p); t.quaternion.copy(hero.quaternion); return halo(t, NMS[kind], HALO_COL[kind]); };
   const mol = (kind, u, n, w = -1.4) => molAt(kind, pW(u, n, w));
   const along3 = pts => curve(pts.map(([u, n, w]) => pW(u, n, w == null ? -1.4 : w)));
   const nburst = (p, color, n = 26) => burst(scene, p, { n, r: 0.0022, size: 0.00045, near: 0.0004, color, ms: 900 });
@@ -367,8 +384,11 @@ export function makePlay(world, quest) {
   /* names on the magnified view: the frame is the named subject's own two sides (u0, u1 at height n): the names stand
      beside it, never on it */
   function nanoNames(list, u0, u1, n) {
-    /* [key, the name, its spots, the shorter name a phone shows ON the part (names.js), if any] */
-    quest.names.set(list.map(([key, html, spots, small]) => ({ key, free: true, html: `<span class="nm__t">${html}</span>`, small: small && `<span class="nm__t">${small}</span>`, spots: spots.map(p => p.isVector3 ? p : pW(p[0], p[1], p[2] == null ? -0.5 : p[2])) })),
+    /* [key, the name, its spots, the shorter name a phone shows ON the part (names.js), if any, aside: on a phone the name
+       stands beside its part first (a protein it would hide), its spots on a phone, if they differ: there the names stand
+       on their parts, so a membrane is named away from the proteins named on it] */
+    const phone = world.size.w < 640;
+    quest.names.set(list.map(([key, html, spots, small, aside, onPhone]) => ({ key, free: true, aside: !!aside, html: `<span class="nm__t">${html}</span>`, small: small && `<span class="nm__t">${small}</span>`, spots: (phone && onPhone || spots).map(p => p.isVector3 ? p : pW(p[0], p[1], p[2] == null ? -0.5 : p[2])) })),
       HUD2(), lr(pW(u0, n), pW(u1, n)));
   }
   /* the names on the whole mitochondrion: one line to one part (Daniel, 5 Nov 2026: "if you're pointing to one
@@ -378,9 +398,10 @@ export function makePlay(world, quest) {
     const cr = HS.cristae.filter(c => !c.zoom), mx = [];
     for (let i = 0; i + 1 < HS.cristae.length; i++) mx.push(P((HS.cristae[i].s + HS.cristae[i + 1].s) / 2, 0));
     const all = [
-      { key: 'm-om', free: true, html: '<span class="nm__t">outer membrane</span>', spots: ks.flatMap(k => { const r = along(HS, T * k).r - 0.0035; return [P(T * k, r), P(T * k, -r)]; }) },
-      { key: 'm-im', free: true, html: '<span class="nm__t">inner membrane</span>', spots: ks.flatMap(k => { const r = along(HS, T * k).r - 0.0255; return [P(T * k + 0.04, r), P(T * k + 0.04, -r)]; }) },
-      { key: 'm-cr', free: true, html: '<span class="nm__t">a crista: one fold of<br>the inner membrane</span>', small: '<span class="nm__t">a crista (a fold)</span>', spots: cr.map(c => { const F = along(HS, c.s), across = c.f * (F.r - 0.029); return P(c.s + (c.amp || 0) * Math.sin(across * c.k + c.ph) + (c.tilt || 0) * across, c.side * (F.r - 0.0255 - across)); }) },
+      /* the two membranes, one name: here they are one line (15 nm apart); named apart where the camera zooms in (step 4).
+         Two names on opposite edges had read as one membrane at the top and the other at the bottom (the expert review) */
+      { key: 'm-2m', free: true, html: '<span class="nm__t">two membranes,<br>15 nm apart</span>', small: '<span class="nm__t">two membranes</span>', spots: ks.flatMap(k => { const r = along(HS, T * k).r - 0.004; return [P(T * k, r), P(T * k, -r)]; }) },
+      { key: 'm-cr', free: true, html: '<span class="nm__t">a crista: a fold of<br>the inner membrane</span>', small: '<span class="nm__t">a crista (a fold)</span>', spots: cr.map(c => { const F = along(HS, c.s), across = c.f * (F.r - 0.029); return P(c.s + (c.amp || 0) * Math.sin(across * c.k + c.ph) + (c.tilt || 0) * across, c.side * (F.r - 0.0255 - across)); }) },
       { key: 'm-mx', free: true, html: '<span class="nm__t">matrix</span>', spots: mx }
     ];
     /* on a phone the names stand on their parts: three, so the mitochondrion still shows */
@@ -389,6 +410,17 @@ export function makePlay(world, quest) {
   }
   async function mlook() {
     world.wayIn(false); mitoLoop(true);
+    await settle();
+    if (world.camera.position.distanceTo(V(...world.P.mito.view.pos)) > 0.08) await camGo(heroView(), 1800);
+    /* seen whole first; it is cut open when the pupil presses (the step waits: the review, 5 Nov 2026) */
+    if (FR.o < 1) {
+      const cb = quest.hot(() => hero.localToWorld(heroPoint(HS, HS.total * 0.62, -along(HS, HS.total * 0.62).r * 0.2, 0.3)), '✂ Cut it open', { side: 'r', cls: 'big' });
+      await live(cb.done); cb.remove(); await openLid();
+    }
+    ok('Now you can see inside it.');
+  }
+  async function minside() {
+    world.wayIn(false); mitoLoop(true); setLid(1);
     await settle();
     if (world.camera.position.distanceTo(V(...world.P.mito.view.pos)) > 0.08) await camGo(heroView(), 1800);
     heroNames();
@@ -402,9 +434,9 @@ export function makePlay(world, quest) {
     await camGo(SPLIT(), R.FAST ? 0 : 4200);
   }
   async function split() {
-    mitoLoop(true); patch();
+    mitoLoop(true); patch(); setLid(1);
     if (!MS.deep || world.camera.position.distanceTo(world.controls.target) > 0.05) await camGo(SPLIT(), 2600);
-    nanoNames([['nm-c', 'cytosol', [[-17, 11.2], [-24, 11.6], [-27, 10.4]]], ['nm-om', 'outer membrane:<br>two layers of lipids', [[-30, -1.0], [-12, -1.0], [-31, -6.0]]],
+    nanoNames([['nm-c', 'cytosol', [[-17, 11.2], [-24, 11.6], [-27, 10.4]], null, false, [[-12, 4], [-30, 4], [-11, 1.5]]], ['nm-om', 'outer membrane:<br>two layers of lipids', [[-30, -1.0], [-12, -1.0], [-31, -6.0]]],
       ['nm-ch', 'channel protein', [[-22, -2.2, -2.6], [-22, -4.8, -2.6]]]], -30, -12, 2);
     const glu = mol('glucose', -21, 7.2); nbob(glu);
     await press(() => glu.position.clone().addScaledVector(pD(0, 1, 0), 0.0011), 'glucose', { cls: 'tok', side: 't' });
@@ -418,18 +450,24 @@ export function makePlay(world, quest) {
   /* step 3's view: both membranes, the space between them, the top of the matrix and the cytosol where the molecules
      wait, all at once (46 nm, as tall as the free part of the screen allows), so that every name and every molecule to
      press is in view while the pupil chooses (the names had shown for an instant, then the camera moved on) */
-  const OVER = () => {
-    /* on a phone the bag and its buttons cross the top of the picture: the view is fitted below them */
+  /* a still view in which the patch from n0 (below) to n1 (above) fills the free part of the screen, centred on u, never
+     closer than dMin nm; on a phone the bag and its buttons cross the top of the picture, so it is fitted below them */
+  const fitView = (u, n0, n1, dMin = 30) => {
     const st = world.canvas.getBoundingClientRect(), hd = document.querySelector('.hud'), hr = hd && hd.getBoundingClientRect();
     const top = hr && hr.width > st.width * 0.5 ? Math.max(0, hr.bottom - st.top + 6) : 0;
-    const free = Math.max(160, world.size.h - (world.inset.bottom || 0) - top), dnm = Math.max(40, 46 * world.pxPerUnit(1) / free);
-    return nanoView(-21, -10 + top / 2 / (world.pxPerUnit(1) / dnm), dnm);
+    const free = Math.max(160, world.size.h - (world.inset.bottom || 0) - top), dnm = Math.max(dMin, (n1 - n0) * world.pxPerUnit(1) / free);
+    return nanoView(u, (n0 + n1) / 2 + top / 2 / (world.pxPerUnit(1) / dnm), dnm);
   };
-  const feedNames = () => nanoNames([['nm-ch', 'channel protein', [[-22, -1, -2.6], [-22, -5.5, -2.6]]],
+  const OVER = () => fitView(-21, world.size.w < 640 ? -38 : -33, 13, 40);
+  /* on a phone the names stand on their parts, and a membrane's name is as wide as half the screen: the proteins' names
+     stand at the membranes' outer edges and the membranes' names at their inner edges, one above the other */
+  const feedNames = () => nanoNames([['nm-ch', 'channel protein', [[-22, -1, -2.6], [-22, -5.5, -2.6]], null, false, [[-22, 0.8, -2.6], [-22, -1, -2.6]]],
     ['nm-ims', 'intermembrane space:<br>the space between<br>the membranes', [[-34, -14.5], [-8, -14.5], [-36, -12]], 'intermembrane space'],
-    ['nm-cp', 'carrier protein', [[-20, -24, -3.4], [-20, -27.5, -3.4]]], ['nm-mx', 'matrix', [[-10, -30.5], [-14, -31], [-32, -30.5]]]], -36, -6, -11);
+    ['nm-cp', 'carrier protein', [[-20, -24, -3.4], [-20, -27.5, -3.4]], null, false, [[-20, -21, -3.4], [-20, -22.6, -3.4]]], ['nm-mx', 'matrix', [[-10, -30.5], [-14, -31], [-32, -30.5]], null, false, [[-6, -34], [-34, -34.5], [-10, -35]]],
+    ['nm-om3', 'outer membrane', [[-10, -3.5, -0.5], [-30, -3.5, -0.5], [-14, -3.5, -0.5]], null, false, [[-40, -5.6, -0.5], [-2, -5.6, -0.5], [-36, -5.6, -0.5]]],
+    ['nm-im3', 'inner membrane', [[-32, -25.5, -0.5], [-12, -25.5, -0.5], [-36, -25.5, -0.5]], null, false, [[-2, -27, -0.5], [1, -27, -0.5], [-40, -27, -0.5]]]], -36, -6, -11);
   async function feed() {
-    mitoLoop(true); patch();
+    mitoLoop(true); patch(); setLid(1);
     const over = async () => { await camGo(OVER(), 1600); feedNames(); };
     const halves = props.halves && props.halves.every(t => t.parent) ? props.halves : [mol('half', -22.8, 6.6), mol('half', -18.6, 5.4)];
     halves.forEach(t => nbob(t, 0.00015));
@@ -472,69 +510,187 @@ export function makePlay(world, quest) {
     props.inside = halves; props.o2 = O2;
     ok('Oxygen is a small molecule: it passes straight between the lipids of both membranes, by <dfn data-w="diffusion">diffusion</dfn>, as at the way in.');
   }
+  /* a molecule grows or shrinks to a size (scale), smoothly */
+  const scaleTo = (o, s1, ms) => live(new Promise(res => { const s0 = o.scale.x, t0 = performance.now();
+    const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), e = k * k * (3 - 2 * k); o.scale.setScalar(s0 + (s1 - s0) * e); world.kick && world.kick(); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }));
   async function respire() {
-    mitoLoop(true); patch();
+    mitoLoop(true); patch(); setLid(1);
     const halves = props.inside && props.inside.every(t => t.parent) ? props.inside : [mol('half', -18, -35), mol('half', -14.8, -36.6)];
     if (!props.o2 || !props.o2.every(t => t.parent)) props.o2 = [0, 1, 2, 3, 4, 5].map(i => mol('oxygen', -22 + i * 3, -36 - (i % 2) * 2));
-    await camGo(nanoView(-16, -38, 50), 1800);
-    /* in the matrix, enzymes break each smaller molecule down, step by step: three carbon dioxide molecules each */
-    const co2 = [];
-    for (const h of halves) {
-      nburst(h.position, 0xffe7a0, 18); await wait(450);
-      for (let k = 0; k < 3; k++) co2.push(molAt('co2', h.position.clone().addScaledVector(pD(1, 0, 0), (k - 1) * 0.0012).addScaledVector(pD(0, 1, 0), (k % 2) * 0.0007)));
-      drop(h);
-    }
-    ok('The smaller molecules are broken down: <b>carbon dioxide</b> is produced.');
-    await wait(1400);
-    /* both membranes in view, so the carbon dioxide is seen all the way out */
-    await camGo(nanoView(-16, -14, 62), 1800);
-    /* carbon dioxide leaves the way the oxygen came: straight between the lipids, out to the cytosol */
-    await Promise.all(co2.map((c, i) => { const u = -24 + i * 3.4 + jit(1), p0 = c.position.clone(); return wait(i * 180).then(() => tween(c, { path: curve([p0, pW(u, -27), pW(u + jit(1), -25.5), pW(u, -14), pW(u + jit(1), -3.5), pW(u, 6), pW(u + jit(2), 14)]), ms: R.FAST ? 0 : 4200 })); }));
+    /* close, in the matrix: the two smaller molecules and the six oxygen molecules, all in view */
+    await camGo(fitView(-16, -46, -24, 40), 1800);
+    /* each smaller molecule is broken down by enzymes, step by step: at each step (a flash) one carbon dioxide molecule and
+       some hydrogen leave it, and what is left is smaller; three steps (pyruvate has three carbons: one leaves in the link
+       reaction, two in the Krebs cycle, which the IB view shows); its hydrogen is what the next step carries to the chain */
+    const co2 = [], hyd = [];
+    await Promise.all(halves.map((h, j) => (async () => {
+      await wait(R.FAST ? 0 : j * 700);
+      const s0 = h.scale.x;
+      for (let k = 0; k < 3; k++) {
+        nburst(h.position, 0xffe7a0, 10); await wait(R.FAST ? 0 : 300);
+        const c = molAt('co2', h.position.clone()), a = k * 2.1 + j * 1.3; co2.push(c);
+        tween(c, { to: h.position.clone().addScaledVector(pD(Math.cos(a), Math.sin(a), 0), 0.0026), ms: 800 });
+        const hh = halo(keep(token('default', 0.00013)), 0.45, 0xffffff); hh.position.copy(h.position); hyd.push(hh);
+        tween(hh, { to: h.position.clone().addScaledVector(pD(Math.cos(a + 2.4), Math.sin(a + 2.4) + 1.4, 0), 0.003), ms: 900 });
+        await scaleTo(h, s0 * (1 - (k + 1) * 0.28), 500);
+        await wait(R.FAST ? 0 : 650);
+      }
+      await scaleTo(h, s0 * 0.001, 450); drop(h);
+    })()));
+    /* each kind named, now that they are still (the review: with nothing named, carbon dioxide was "just a new dot") */
+    nanoNames([['nm-co2', 'carbon dioxide', co2.slice(0, 4).map(c => c.position.clone())], ['nm-o2', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())],
+      ['nm-h', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())]], -30, -2, -35);
+    ok('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.');
+    /* time to read the three names and the sentence before the camera moves back (2.6 s had been too short: Daniel, 5 Nov
+       2026, "it zooms out too early") */
+    await wait(R.FAST ? 0 : 5000);
+    /* one still view from the matrix to the cytosol: the carbon dioxide leaves the way the oxygen came, straight between the
+       lipids, each by its own way, and out of the top of the picture; the oxygen stays in view (the review: the camera had
+       followed it out into an empty cytosol and come back) */
+    quest.names.set([]);
+    await camGo(fitView(-16, -42, 14, 60), 1800);
+    await Promise.all(co2.map((c, i) => { const u = -27 + Math.random() * 20, p0 = c.position.clone(); return wait(R.FAST ? 0 : i * 260 + Math.random() * 300).then(() => tween(c, { path: curve([p0, pW(u + jit(2), -27.5), pW(u + jit(1), -25.5), pW(u + jit(3), -15 + jit(3)), pW(u + jit(1), -3.5), pW(u + jit(3), 6 + jit(2)), pW(u + jit(4), 26)]), ms: R.FAST ? 0 : 4400 + Math.random() * 1400 })); }));
     co2.forEach(drop);
-    ok('Carbon dioxide passes out of the mitochondrion, straight between the lipids, as the oxygen came in.');
+    props.hyd = hyd;
+    /* what stays for the next step, named again: the white dots are the hydrogen, beside the oxygen */
+    nanoNames([['nm-h2', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())], ['nm-o2c', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())]], -34, 2, -36);
+    ok('Carbon dioxide leaves the mitochondrion: it passes straight between the lipids, as the oxygen did when it entered.');
     await quest.next();
   }
+  /* ---------- the hydrogen ions the pumps move into the space inside the fold: they build up there, like water behind a
+     dam, and flow back only through ATP synthase, which turns and makes ATP (Daniel, 5 Nov 2026: "protons going inside the
+     membrane and accumulating there in high quantity, a high concentration … acting like a dam … leaving … through the
+     ATP synthase … generating ATP"). Many inside the fold, a few in the matrix ---------- */
+  let HC = null;
+  function hCrowd() {
+    if (HC) return HC;
+    const G = PT.geo, N = 120, NM = 6, all = N + NM, pumps = PT.parts.pumps;
+    const mesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 10, 8), new THREE.MeshStandardMaterial({ color: H_COL, emissive: H_COL, emissiveIntensity: 0.9, roughness: 0.3 }), all);
+    mesh.frustumCulled = false; PT.group.add(mesh);
+    const glow = glowPoints(all, 0.0028); PT.group.add(glow);
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    /* where each one stays: inside the fold, between its walls, more of them towards its round end (where the camera looks
+       at ATP synthase), so that the crowd is seen; and a few in the matrix */
+    const homes = [];
+    for (let i = 0; i < N; i++) homes.push(V(G.uc + (r(i, 1) - 0.5) * (2 * G.hw - 8), G.nB - 6 - Math.pow(r(i, 2), 0.5) * (G.depth - 14), -0.8 - r(i, 3) * 8));
+    /* the few in the matrix: three beside the chain, three beside the ATP synthases (both sides of the "dam" in view there) */
+    for (let i = 0; i < NM; i++) homes.push(i < 3 ? V(G.uc - G.hw - 9 - r(i, 4) * 14, -50 - r(i, 5) * 28, -0.8 - r(i, 6) * 6)
+      : V(G.uc + (i === 3 ? -24 : i === 4 ? 25 : -14) + r(i, 4) * 3, G.nR - 22 - r(i, 5) * 8, -0.8 - r(i, 6) * 5));
+    /* each one inside the fold was pumped: from the matrix, through one of the three pumps, then to where it stays */
+    const ways = homes.map((h, i) => { const p = pumps[i % 3]; return new THREE.CatmullRomCurve3([V(p.x - 7, p.n + (r(i, 7) - 0.5) * 4, p.w + 1.5), V(p.x, p.n, p.w + 1.2), V(p.x + 5, p.n - 2, p.w + 1.2), h]); });
+    const tv = V(), tm = new THREE.Matrix4(), tq = new THREE.Quaternion(), ts = V(1, 1, 1), zero = new THREE.Matrix4().makeScale(0, 0, 0);
+    HC = { N, NM, homes, on: false, full: false, start: null, dur: 7000, hidden: false };
+    W.anim.push(t => {
+      const gp = glow.geometry.attributes.position, gc = glow.geometry.attributes.color;
+      if (!HC.on) { if (!HC.hidden) { for (let i = 0; i < all; i++) { mesh.setMatrixAt(i, zero); gc.setXYZ(i, 0, 0, 0); } mesh.instanceMatrix.needsUpdate = gc.needsUpdate = true; HC.hidden = true; } return; }
+      HC.hidden = false; const now = performance.now();
+      for (let i = 0; i < all; i++) {
+        let k = 1;                                                     /* 1: where it stays */
+        if (i < N && !HC.full) k = HC.start == null ? -1 : R.FAST ? 1 : (now - HC.start - HC.dur * i / N) / 1300;
+        if (k < 0) { mesh.setMatrixAt(i, zero); gc.setXYZ(i, 0, 0, 0); continue; }
+        if (k < 1) ways[i].getPointAt(k * k * (3 - 2 * k), tv);
+        else { const h = homes[i]; tv.set(h.x + 0.5 * Math.sin(t * 1.3 + i), h.y + 0.5 * Math.cos(t * 1.1 + i * 1.7), h.z + 0.35 * Math.sin(t * 0.9 + i * 2.3)); }
+        tm.compose(tv, tq, ts); mesh.setMatrixAt(i, tm); gp.setXYZ(i, tv.x, tv.y, tv.z); gc.setXYZ(i, 0.62, 0.85, 0.3);
+      }
+      mesh.instanceMatrix.needsUpdate = true; gp.needsUpdate = gc.needsUpdate = true;
+    });
+    return HC;
+  }
+  /* the crowd's places that the camera sees now, to end a name's line on (patch coordinates → the world) */
+  const crowdSpots = (n = 5) => HC.homes.slice(0, HC.N).map(h => PT.group.localToWorld(h.clone())).filter(p => { const sc = world.project(p); return sc.inFront && sc.x > 40 && sc.x < world.size.w - (world.inset.right || 0) - 40 && sc.y > 40 && sc.y < world.size.h - (world.inset.bottom || 0) - 40; }).slice(0, n);
   async function water() {
-    mitoLoop(true); patch();
-    const G = PT.geo, pump4 = [G.uc - G.hw - 4.5, -70];
+    mitoLoop(true); patch(); setLid(1); quest.names.set([]);   /* the last step's names never stand on this view */
+    const G = PT.geo, pump4 = [G.uc - G.hw - 4.5, -70], P1 = PT.parts.pumps[0], P4 = PT.parts.pumps[2];
     const O2 = props.o2 && props.o2.every(t => t.parent) ? props.o2 : [0, 1, 2, 3, 4, 5].map(i => mol('oxygen', -22 + i * 3, -36 - (i % 2) * 2));
-    await camGo(nanoView(pump4[0] - 4, -64, 50), 2200);
-    /* each line ends ON its part: the last pump itself (in front of its middle), the fold's wall between two pumps */
-    const P4 = PT.parts.pumps[2];
-    nanoNames([['nm-p4', 'the last protein<br>in the chain', [[P4.x - 1.6, P4.n, P4.w + 2.4], [P4.x - 1.6, P4.n + 2, P4.w + 2.2]]], ['nm-mx2', 'matrix', [[pump4[0] - 14, -58], [pump4[0] - 16, -76]]],
-      ['nm-cr2', 'a crista: a fold<br>of the inner<br>membrane', [[G.uc - G.hw, -64, -0.5], [G.uc - G.hw, -78, -0.5]], 'a crista (a fold)']], pump4[0] - 18, G.uc + G.hw + 3, -64);
-    /* each oxygen molecule reaches the pump; there it joins with hydrogen (four, from the smaller molecules): two water molecules */
+    const HC = hCrowd(); HC.on = true; HC.full = false; HC.start = null;      /* the fold empty until the pumps work */
+    const p4name = ['nm-p4', 'the last protein<br>in the chain', [[P4.x - 1.6, P4.n, P4.w + 2.4], [P4.x - 1.6, P4.n + 2, P4.w + 2.2]], null, true];
+    const mxname = ['nm-mx2', 'matrix', [[pump4[0] - 14, -54], [pump4[0] - 16, -76]]];
+    /* the hydrogen from the smaller molecules (step 4) goes on to the first protein's arm in the matrix, and the oxygen drifts
+       nearer the last one, while the camera comes to the chain (the three proteins in view, below the bag on a phone) */
+    const arm = pW(P1.x - 6.2, P1.n - 6.2, P1.w + 2);
+    const hyd = props.hyd && props.hyd.every(t => t.parent) ? props.hyd : [0, 1, 2, 3].map(k => { const h = halo(keep(token('default', 0.00013)), 0.45, 0xffffff); h.position.copy(pW(P1.x - 20 - k * 2.5, P1.n - 14 + k * 2.5, -1.4)); return h; });
+    props.hyd = null;
+    const near = O2.map((t, i) => pW(pump4[0] - 9 - (i % 3) * 2.2 + jit(0.6), -63 - Math.floor(i / 3) * 4.5 - (i % 2) * 1.5, -1.2 - Math.random()));
+    const drift = Promise.all(O2.map((t, i) => tween(t, { path: curve([t.position.clone(), pW(-6 + jit(3), -50 + jit(4)), near[i]]), ms: R.FAST ? 0 : 3800 + i * 200 })));
+    const hGo = Promise.all(hyd.map((h, k) => wait(R.FAST ? 0 : 600 + k * 220).then(() => tween(h, { to: arm, ms: R.FAST ? 0 : 2600 }))));
+    await camGo(fitView(pump4[0] - 4, -78, -42, 50), 2200);
+    /* part 1: the space inside the fold is named before it fills (the review); the hydrogen reaches the first protein, its
+       energy passes along the chain (a light, protein to protein), and the three pumps move hydrogen ions into the fold */
+    nanoNames([p4name, ['nm-lum', 'the space<br>inside the fold', [[G.uc - 4, -60, -1], [G.uc - 4, -70, -1], [G.uc - 2, -66, -1]], 'inside the fold'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
+    await hGo;
+    hyd.forEach(drop); nburst(arm, 0xfff1a8, 14);
+    const pulse = keep(token('default', 0.0004)); pulse.position.copy(arm);
+    tween(pulse, { path: curve(PT.parts.pumps.map(p => pW(p.x - 1.5, p.n, p.w + 2.5))), ms: R.FAST ? 0 : 2400 }).then(() => drop(pulse));
+    HC.start = performance.now();
+    await Promise.all([wait(R.FAST ? 0 : HC.dur + 1300), drift]);
+    HC.full = true;
+    /* the oxygen is not named here: its own button says "oxygen" (a name beside it said the same word twice) */
+    nanoNames([p4name, ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
+    ok('The proteins pumped <b>hydrogen ions</b> into the space inside the fold: now many are there.');
+    /* part 2, when the pupil presses: each oxygen molecule goes to the last protein; there it joins with hydrogen (four, from
+       the smaller molecules): two water molecules (the review: four things had happened at once) */
+    await press(() => O2[0].position.clone().addScaledVector(pD(0, 1, 0), 0.0009), 'oxygen', { cls: 'tok', side: 't' });
+    quest.names.set([]);
     const out = [];
     await Promise.all(O2.map((t, i) => {
       const p0 = t.position.clone(), end = pW(pump4[0] - 1.2 + jit(0.6), -70 + (i - 2.5) * 1.3, -2.2);
-      return wait(i * 380).then(() => tween(t, { path: curve([p0, pW(-6 + jit(3), -50 + jit(4)), pW(pump4[0] - 6 + jit(2), -62 + jit(4)), end]), ms: R.FAST ? 0 : 3000 })).then(async () => {
-        const hs = [0, 1, 2, 3].map(k => { const h = keep(token('default', 0.00013)); h.position.copy(end).addScaledVector(pD(Math.cos(k * 1.57), Math.sin(k * 1.57), 0), 0.0016); return h; });
+      return wait(R.FAST ? 0 : i * 320).then(() => tween(t, { path: curve([p0, pW(pump4[0] - 5 + jit(1), -68 + jit(2)), end]), ms: R.FAST ? 0 : 1800 })).then(async () => {
+        const hs = [0, 1, 2, 3].map(k => { const h = halo(keep(token('default', 0.00013)), 0.4, 0xffffff); h.position.copy(end).addScaledVector(pD(Math.cos(k * 1.57), Math.sin(k * 1.57), 0), 0.0016); return h; });
         await Promise.all(hs.map(h => tween(h, { to: end, ms: 600 })));
         hs.forEach(drop); drop(t);
         for (let k = 0; k < 2; k++) { const w = molAt('water', end.clone()); out.push(w); tween(w, { to: end.clone().addScaledVector(pD(-1, 0, 0), 0.0016 + 0.0009 * k).addScaledVector(pD(0, 1, 0), (k ? 1 : -1) * 0.0012), ms: 700 }); }
       });
     }));
     props.water = out; props.o2 = null;
+    await wait(R.FAST ? 0 : 800);
+    nanoNames([p4name, ['nm-wat', 'water', out.slice(0, 6).map(w => w.position.clone())], ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
     ok('At the last protein in the chain, oxygen joins with hydrogen from the smaller molecules: <b>water</b> is produced.');
     await quest.next();
   }
+  /* the dam: the hydrogen ions flow back only through ATP synthase, which turns in steps, one for each ion, and makes ATP
+     (the same stream and ATP as the Explorer film: mitoparts.js ionStream, atpMaker) */
+  async function dam() {
+    mitoLoop(true); patch(); setLid(1); quest.names.set([]);
+    const G = PT.geo, HC = hCrowd(); HC.on = true; HC.full = true;
+    /* far enough back that the two ATP synthases leave room beside them for the names (below the bag on a phone); the
+       water goes on drifting where it was made, out of the picture as the camera moves (it is no longer dropped at once) */
+    await camGo(fitView(G.uc, G.nR - 32, G.nR + 12, 74), 2200);
+    (props.water || []).forEach(drop); props.water = null;
+    const A = PT.parts.atp, s0 = quest.session;
+    props.flow = props.flow || A.map(a => ({ s: ionStream(a), m: atpMaker(a), rotor: a.userData.rotor }));
+    /* one ion followed, brighter, through the first ATP synthase (as in the Explorer film) */
+    if (!props.follow) { props.follow = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), new THREE.MeshStandardMaterial({ color: H_COL, emissive: H_COL, emissiveIntensity: 1.1, roughness: 0.3 })); haloSprite(props.follow, 1.1, 0xd9ff9e); A[0].add(props.follow); }
+    const fol = props.follow;
+    const names = extra => nanoNames([['nm-atp', 'ATP synthase<br>(a protein)', A.map(a => a.localToWorld(V(0, 12, 0))), 'ATP synthase', true],
+      ['nm-hi2', 'many<br>hydrogen ions', crowdSpots(), 'many hydrogen ions'],
+      ['nm-few', 'few<br>hydrogen ions', HC.homes.slice(HC.N + 3).map(h => PT.group.localToWorld(h.clone())), 'few hydrogen ions'], ...extra], G.uc - 21, G.uc + 21, G.nR - 16);
+    names([]);
+    /* the flow: 2 ions a second through each; the ring moves in steps, one for each ion, and ADP and phosphate join into
+       ATP each third of a turn. It goes on while the pupil reads, until Next (the review: it had stopped, frozen) */
+    let T = 0, last = performance.now(), run = true;
+    const T1 = 18.5;   /* after this, ATP is named: the seventh is being made on the near side of the head */
+    const tick = () => {
+      if (!run || quest.session !== s0) return;
+      const now = performance.now(); T += R.FAST ? T1 : Math.min(0.1, (now - last) / 1000) * 2; last = now;
+      props.flow.forEach(F => { F.rotor.rotation.y = F.s.rotorY(T); F.s.update(T, true); F.m.update(T, true); });   /* both the same way, with their ions */
+      const kf = 8 * Math.floor(Math.max(0, T - 1e-6) / 8); fol.visible = props.flow[0].s.ionAt(kf, T, fol.position) > 0;
+      world.kick && world.kick(); requestAnimationFrame(tick);
+    };
+    tick();
+    await live(new Promise(res => { const f = () => (T >= T1 || quest.session !== s0 ? res() : requestAnimationFrame(f)); f(); }));
+    /* ATP is named where it is made: the near side of each head, where a new one forms every eight ions */
+    const site = a => { const rr = a.userData.measured ? 6.7 : 4.9; return a.localToWorld(V(Math.cos(Math.PI / 3) * rr, 13.2, Math.sin(Math.PI / 3) * rr)); };
+    names([['nm-atpm', 'ATP', A.map(site)]]);
+    ok('As the hydrogen ions flow back through it, the ring of ATP synthase turns, and it makes <b>ATP</b>. The cell uses the energy in ATP for its work.');
+    await quest.next();
+    run = false;
+  }
   async function release() {
-    mitoLoop(true); patch();
-    const G = PT.geo;
-    /* far enough back that the two ATP synthases leave room beside them for the names (at 64 nm, on a laptop, the name
-       had stood on one of them); the frame: their two heads' outer sides */
-    await camGo(nanoView(G.uc, G.nR - 10, 74), 2200);
-    nanoNames([['nm-atp', 'ATP synthase<br>(a protein)', PT.parts.atp.map(a => a.localToWorld(V(0, 12, 0))), 'ATP synthase'],
-      ['nm-cr', 'a crista: a fold<br>of the inner<br>membrane', [[G.uc + G.hw, G.nR + 3, -0.5], [G.uc - G.hw, G.nR + 3, -0.5], [G.uc + G.hw, G.nR + 9, -0.5]], 'a crista (a fold)']], G.uc - 21, G.uc + 21, G.nR - 16);
-    /* energy is released: the ATP synthases turn (Explorer: how) */
-    const rot = PT.parts.atp.map(a => a.userData.rotor), t0 = performance.now(), sp = R.FAST ? 0 : 1;
-    const spin = () => { const k = (performance.now() - t0) / 1000; rot.forEach((r, i) => { r.rotation.y = (i ? -1 : 1) * k * 3.4 * sp; }); return k < 3.4; };
-    await live(new Promise(r => { const f = () => (spin() && !R.FAST ? requestAnimationFrame(f) : r()); f(); }));
-    PT.parts.atp.forEach(a => nburst(a.localToWorld(V(0, 12, 0)), 0xfff1a8, 30));
-    ok('Energy is released. ATP synthase, the protein that turns, passes it to a small molecule, ATP (see 🔬 Explorer).');
+    mitoLoop(true); patch(); setLid(1);
     (props.water || []).forEach(drop);
     quest.names.set([]);
     await camGo(heroView(), R.FAST ? 0 : 3600);
+    if (HC) HC.on = false;
     mitoLoop(false); bar && (bar.hidden = true);
     burst(scene, hero.position, { color: 0xfff1a8, n: 90, r: 2.2, ms: 1600 });
     await quest.gain('energy', hero.position, RESPIRE);
@@ -1135,7 +1291,7 @@ export function makePlay(world, quest) {
   async function organelles() { await quest.next(); }
   async function mission() { await quest.next('Go to the map'); }
 
-  const ACT = { look, oxygen, carriers, amino, co2, mlook, split, feed, respire, water, release, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
+  const ACT = { look, oxygen, carriers, amino, co2, mlook, minside, split, feed, respire, water, dam, release, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
     assemble, translate, where, dock, grow, cut, fold, bud, lipid, layer, join, through, sortgame, package: packageIt, grab, maze, smell, fuse, flatten,
     simple, full, organelles, mission };
   return {

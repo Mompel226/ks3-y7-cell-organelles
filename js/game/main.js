@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611051508';
-import { Names } from './names.js?v=202611051508';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611051508';
-import { makePlay } from './play.js?v=202611051508';
-import { setStill, wait } from './actors.js?v=202611051508';
-import { state } from './state.js?v=202611051508';
-import { ICON } from './icons.js?v=202611051508';
-import { intro } from './intro.js?v=202611051508';
-import { sound } from './sound.js?v=202611051508';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611051508';
+import { World, MAP_VIEW } from '../world/world.js?v=202611051707';
+import { Names } from './names.js?v=202611051707';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611051707';
+import { makePlay } from './play.js?v=202611051707';
+import { setStill, wait } from './actors.js?v=202611051707';
+import { state } from './state.js?v=202611051707';
+import { ICON } from './icons.js?v=202611051707';
+import { intro } from './intro.js?v=202611051707';
+import { sound } from './sound.js?v=202611051707';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611051707';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -76,7 +76,10 @@ document.addEventListener('click', e => { if (e.target.closest('[data-sound]')) 
 paintSound();
 const fb = $('#btnFull');
 if (!document.fullscreenEnabled) fb.hidden = true;
-fb.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else stage.requestFullscreen().catch(() => {}); });
+/* full screen is the whole page, with the stage filling the screen (css/game.css): with the stage alone in full screen,
+   the browser drew nothing outside it, so a word's meaning, the word bank, the final check and a dragged card never showed
+   (Daniel, 5 Nov 2026: "I tried to click but nothing appeared") */
+fb.addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); });
 document.addEventListener('fullscreenchange', () => { fb.innerHTML = document.fullscreenElement ? '⛶<span class="tool__w"> Leave full screen</span>' : '⛶<span class="tool__w"> Full screen</span>'; setTimeout(setInset, 100); });
 /* the music waits for the dive into the 3D cell (sound.js) */
 document.addEventListener('cellgame:dive', () => sound.allowMusic());
@@ -190,11 +193,11 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611051508').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611051707').then(m => m.openLens(e.detail)));
 /* an Explorer film, from a place's end (the nucleus: how a cell copies a gene; the mitochondria: inside one) */
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611051508').then(m => m.openCopyFilm({ last: 'Close' }));
-  else if (e.detail === 'mito') import('./mitofilm.js?v=202611051508').then(m => m.openMitoFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611051707').then(m => m.openCopyFilm({ last: 'Close' }));
+  else if (e.detail === 'mito') import('./mitofilm.js?v=202611051707').then(m => m.openMitoFilm({ last: 'Close' }));
 });
 
 /* ---------- start ---------- */

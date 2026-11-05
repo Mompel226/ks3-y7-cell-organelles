@@ -17,9 +17,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611051508';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611051508';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611051508';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611051707';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611051707';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611051707';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -545,6 +545,10 @@ export function buildCell(scene) {
   }
   for (let i = 0; i < 360; i++) R();
   const H = heroMito(), hero = H.group; hero.position.copy(HERO_AT); hero.quaternion.copy(HERO_Q); hero.updateMatrixWorld(true);
+  /* its front half (the same, turned over) closes it: from the cell it looks whole, and it opens like a lid when the pupil
+     arrives (play.js mlook; Daniel, 5 Nov 2026: "Show it from the outside and then show how it's split open") */
+  const FH = heroMito(), frontMats = []; FH.group.name = 'mito-hero-front'; FH.group.scale.z = -1; hero.add(FH.group);
+  FH.group.traverse(o => { if (o.material && !o.material.uniforms) { o.material = o.material.clone(); o.material.transparent = true; frontMats.push(o.material); } });
   const heroA = hero.localToWorld(heroPoint(H.spec, 0, 0)), heroB = hero.localToWorld(heroPoint(H.spec, H.spec.total, 0));
   const Rm = rng(20261105), rm = (a, b) => a + (b - a) * Rm();
   const taken = [], placed = [];
@@ -580,7 +584,7 @@ export function buildCell(scene) {
     v.copy(heroPoint(H.spec, s0, a, b)); } });
   hero.add(mspark);
   mitos.add(hero);
-  W.mito = { hero, spec: H.spec, section: H.section, parts: H.parts, list: placed, real, sparks: mspark };
+  W.mito = { hero, spec: H.spec, section: H.section, parts: H.parts, list: placed, real, sparks: mspark, front: { group: FH.group, mats: frontMats, face: FH.section } };
 
   /* ---------- microtubules: from the centrosome near the top of the cell, downwards ---------- */
   const C0 = new THREE.Vector3(0.1, 14.55, -1.1);

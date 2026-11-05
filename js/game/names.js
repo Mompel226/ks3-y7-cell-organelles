@@ -19,7 +19,8 @@ export class Names {
   }
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
      free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
-     name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room) }];
+     name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room), aside
+     (on a phone, beside its part first: a protein the name would hide) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in) */
   set(list, keepOut, frame) {
@@ -139,14 +140,17 @@ export class Names {
     this.svg.innerHTML = '';
     cand.forEach(c => {
       const hit = (bx) => bx.l < 2 || bx.r > right - 2 || bx.t < 2 || bx.b > bottom - 2 || out.concat(boxes).some(o => bx.l < o.r && bx.r > o.l && bx.t < o.b && bx.b > o.t);
-      /* on the part itself; else just beside it, with a short level line that ends on it */
+      /* on the part itself; else just beside it, with a short level line that ends on it. A name marked aside (a protein it
+         would hide) tries beside it first */
       const tries = [];
       c.pts.forEach(sc => {
-        tries.push({ sc, bx: { l: sc.x - c.w / 2, r: sc.x + c.w / 2, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } });
-        [1, -1].forEach(k => { const gap = 22, l = k > 0 ? sc.x + gap : sc.x - gap - c.w; tries.push({ sc, line: k, bx: { l, r: l + c.w, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } }); });
+        const on = { sc, bx: { l: sc.x - c.w / 2, r: sc.x + c.w / 2, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } };
+        const by = [1, -1].map(k => { const gap = 22, l = k > 0 ? sc.x + gap : sc.x - gap - c.w; return { sc, line: k, bx: { l, r: l + c.w, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } }; });
+        if (c.it.aside) tries.push(...by, on); else tries.push(on, ...by);
       });
       const at = tries.find(o => !hit(o.bx));
-      if (!at) { c.el.remove(); return; }
+      if (!at) { c.why = { edge: tries.filter(o => o.bx.l < 2 || o.bx.r > right - 2 || o.bx.t < 2 || o.bx.b > bottom - 2).length, box: tries.length }; c.el.remove(); return; }
+      c.at = at;
       boxes.push({ l: at.bx.l - 3, r: at.bx.r + 3, t: at.bx.t - 3, b: at.bx.b + 3 });
       c.el.style.left = at.bx.l + 'px'; c.el.style.top = at.sc.y + 'px'; c.el.style.visibility = '';
       if (at.line) {
@@ -159,7 +163,7 @@ export class Names {
       placed.push(c);
     });
     this.count = placed.length; this.left = this.items.length - placed.length;
-    this.report = cand.map(c => ({ key: c.it.key, spots: c.it.spots.length, seen: c.pts.length, placed: placed.includes(c), side: 'on' }));
+    this.report = cand.map(c => ({ key: c.it.key, spots: c.it.spots.length, seen: c.pts.length, placed: placed.includes(c), side: c.at && c.at.line ? (c.at.line > 0 ? 'R' : 'L') : 'on', y: c.at && Math.round(c.at.sc.y), why: c.why }));
     requestAnimationFrame(() => this.layer.classList.add('on'));
   }
 }

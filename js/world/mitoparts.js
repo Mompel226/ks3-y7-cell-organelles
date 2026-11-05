@@ -27,7 +27,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611051508';
+import { magicStandard } from './magic.js?v=202611051707';
 
 /* the mitochondria's own random numbers: the rest of the seeded world stays exactly as it was */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -257,9 +257,12 @@ export const ATP_MEASURED = true;
 let ATP_DATA = null;
 /* the measured model (atp-synthase.js, written by tools/atp-synthase.py), fetched the first time it is needed */
 export async function loadATP() {
-  if (ATP_MEASURED && !ATP_DATA) ATP_DATA = (await import('./atp-synthase.js?v=202611051508')).ATP_SYNTHASE;
+  /* a download that fails (slow school Wi-Fi) must not stop the place: then the drawn one stands in, and says so */
+  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611051707')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
   return ATP_DATA;
 }
+/* is the ATP synthase drawn now the measured one? (the film's source line says which) */
+export const atpIsMeasured = () => !!ATP_DATA;
 /* ATP synthase: the measured one when it is here, else the one drawn from the published architecture */
 export const anAtpSynthase = () => (ATP_DATA ? atpMeasured(ATP_DATA) : atpSynthase());
 /* the hero: { group (its own coordinates; the caller places it), spec, section (its cut face's material) } */
@@ -413,11 +416,14 @@ export function atpMeasured(D) {
   const g = new THREE.Group(), rotor = new THREE.Group(), stator = new THREE.Group(); g.add(rotor, stator);
   const COLS = { alpha: COL.alpha, beta: COL.beta, gamma: 0x6fd0c0, delta: 0x5fc0b0, epsilon: 0x7fe0d0, c: COL.rotor, a: 0xb9a6ff, b: COL.stalk, d: COL.stalk, f6: COL.stalk, oscp: 0xe6dcff, a6l: 0xcabfff, minor: 0xbfb3ee, other: 0xcccccc };
   const mats = {}, bytes = s => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; };
+  let marked = false;
   for (const p of D.parts) {
     const q = new Int16Array(bytes(p.pos)), pos = new Float32Array(q.length);
     for (let i = 0; i < q.length; i++) pos[i] = q[i] * p.sc[i % 3] + p.off[i % 3];
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(new THREE.BufferAttribute(new Uint16Array(bytes(p.idx)), 1)); geo.computeVertexNormals();
-    (p.rotor ? rotor : stator).add(new THREE.Mesh(geo, mats[p.part] || (mats[p.part] = protMat(COLS[p.part] || 0xcccccc))));
+    /* one c subunit pale, so that the ring is seen to turn (eight alike, moving in steps of 45°, looked still) */
+    const mark = p.part === 'c' && !marked && (marked = true);
+    (p.rotor ? rotor : stator).add(new THREE.Mesh(geo, mark ? (mats.cMark || (mats.cMark = protMat(0xf6fff2))) : mats[p.part] || (mats[p.part] = protMat(COLS[p.part] || 0xcccccc))));
   }
   g.userData = { rotor, stator, headY: D.head, ringR: 2.4, kind: 'atp-synthase', measured: true };
   return g;
@@ -580,4 +586,111 @@ export function nanoPatch({ uc = 30, depth = 85, lumen = 12, U = 80, rows = 12 }
     atp: new THREE.Vector3(uc, nR - hw - 12, P.atp.w)
   };
   return { group: g, pts, parts: { heads, tails, porins, mpc: { group: mpc, halves }, pumps, atp, back }, geo: { uc, hw, nB, nR, depth, U }, count: lip.length };
+}
+
+/* ============================================================ hydrogen ions through ATP synthase, and ATP made ============================================================ */
+/* shared by the place (play.js) and the Explorer film (mitofilm.js), so that the two never tell it differently */
+const smooth01 = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+/* hydrogen ions: lime, a colour nothing else in the mitochondrion has (the expert review, 5 Nov 2026: pink ions on the
+   plum fold, beside pink lipid heads, were the faintest thing there, so the crowd behind the "dam" was hardly seen) */
+export const H_COL = 0x9dff3c;
+let HALO_TEX = null;
+/* a soft round light round a small molecule (light, not size: memory true-relative-sizes), so that pupils find it */
+export function haloTexture() {
+  if (HALO_TEX) return HALO_TEX;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,0.5)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.16)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  HALO_TEX = new THREE.CanvasTexture(c); HALO_TEX.colorSpace = THREE.SRGBColorSpace; return HALO_TEX;
+}
+export const haloSprite = (o, nm, color = 0xfff4d0) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTexture(), color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); sp.scale.setScalar(nm * 3); sp.renderOrder = 9; o.add(sp); return o; };
+/* glows for many small molecules at once (one draw): colour black = not drawn (additive light adds nothing) */
+export function glowPoints(n, sizeUnits) {
+  const p = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: haloTexture(), size: sizeUnits, sizeAttenuation: true, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  p.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); p.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+  p.frustumCulled = false; return p;
+}
+/* a small molecule of the head: ADP or ATP (adenine, ribose and two or three phosphates) or one phosphate (nm) */
+export function nucleotide(np, mats) {
+  const g = new THREE.Group();
+  if (np > 0) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.06, 6, 6), mats.base); ring.position.set(-0.62, 0.08, 0); g.add(ring);
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.06, 6, 5), mats.base); ring2.position.set(-0.92, 0.2, 0); g.add(ring2);
+    const sugar = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 6, 5), mats.sugar); sugar.position.set(-0.28, -0.12, 0); g.add(sugar);
+  }
+  for (let i = 0; i < Math.max(1, np); i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 10), mats.p); p.position.set(np ? 0.05 + i * 0.36 : 0, np ? -0.12 : 0, 0); g.add(p); }
+  return g;
+}
+export const nucleotideMats = () => ({ base: new THREE.MeshStandardMaterial({ color: 0x6fa8ff, emissive: 0x2a4a9a, emissiveIntensity: 0.5, roughness: 0.4 }), sugar: new THREE.MeshStandardMaterial({ color: 0xf2f2ff, emissive: 0x404060, emissiveIntensity: 0.4, roughness: 0.4 }), p: new THREE.MeshStandardMaterial({ color: 0xffb02e, emissive: 0x7a4a00, emissiveIntensity: 0.6, roughness: 0.35 }) });
+/* the stream of hydrogen ions through ONE ATP synthase, a watermill (Daniel, 5 Nov 2026: "churning … due to the proton
+   flow … seeing the protons flowing and that triggering the turning"). In its own frame (nm; +y towards the head, the
+   crista's space at −y, +z towards the camera): ion k waits in the crista's space, goes into the inlet beside subunit a
+   while the ring is still, then the ring moves one eighth of a turn (in steps, one for each ion: 8 c subunits); 7 steps
+   later it is at the outlet and leaves into the matrix. At every step one goes in and one comes out. T counts the ions.
+   The ring turns as it does when ATP is MADE: clockwise seen from the membrane (from −y). Turning the other way, as
+   when ATP is broken down, is what Noji et al. 1997 (Nature 386:299) filmed; the expert review, 5 Nov 2026, caught the
+   first version turning that way. So the ion goes in on the far side of subunit a (−z) and comes out on the near side. */
+export function ionStream(AS, { n = 17, mat = null, glowSize = 0.0036 } = {}) {
+  const RR = (AS.userData.ringR || 2.25) + 0.75, IN = -0.4, DIR = -1;             /* the ring's outer face; the inlet's angle; clockwise from −y */
+  const ringAt = T => Math.floor(T) + smooth01(0.5, 1, T - Math.floor(T));       /* the ring: still, then one eighth */
+  /* the way, through open water so that it is seen: from the middle of the crista's space (C) to the inlet's mouth (M);
+     out of the outlet (S7) to just above the membrane on the near side (E1), clear of the side arm, then into the matrix */
+  const M = new THREE.Vector3(2.4, -5.2, -1.5), C = new THREE.Vector3(0.4, -9.0, -1.8), E1 = new THREE.Vector3(1.0, 3.8, 3.4);
+  const ringSite = a => new THREE.Vector3(Math.cos(a) * RR, 0.4, Math.sin(a) * RR), S0 = ringSite(IN), S7 = ringSite(IN + DIR * 7 * Math.PI / 4);
+  const far = new THREE.Vector3();
+  const ionAt = (k, T, out) => {                                     /* where ion k is, and how bright (0: not drawn) */
+    const q = T - k;
+    if (q < -3 || q >= 12) return 0;
+    if (q < 0) { out.copy(M).lerp(C, -q / 3); out.x += 0.4 * Math.sin(2.3 * q + k); out.z += 0.5 * Math.cos(1.9 * q + 2 * k); return 1; }   /* waiting */
+    if (q < 0.5) { out.copy(M).lerp(S0, smooth01(0, 0.5, q)); return 1; }                                                        /* in, through subunit a */
+    if (q < 7) { const a = IN + DIR * (ringAt(T) - k) * Math.PI / 4; out.set(Math.cos(a) * RR, 0.4, Math.sin(a) * RR); return 1; }   /* on the ring */
+    if (q < 7.5) { out.copy(S7).lerp(E1, smooth01(7, 7.5, q)); return 1; }                                                       /* out */
+    /* then away into the matrix, a little further each moment, fading among the others there: the outflow is seen */
+    const f = smooth01(7.5, 12, q);
+    out.copy(E1).lerp(far.set(-3.0 + 2.5 * Math.sin(k), 10.5, 4.3), f);
+    return 1 - f;
+  };
+  const ions = new THREE.InstancedMesh(new THREE.SphereGeometry(0.17, 10, 8), mat || new THREE.MeshStandardMaterial({ color: H_COL, emissive: H_COL, emissiveIntensity: 0.9, roughness: 0.3 }), n);
+  ions.frustumCulled = false; AS.add(ions);
+  const glow = glowPoints(n, glowSize); AS.add(glow);
+  const tv = new THREE.Vector3(), tm = new THREE.Matrix4(), tq = new THREE.Quaternion(), ts = new THREE.Vector3(), zero = new THREE.Matrix4().makeScale(0, 0, 0);
+  return {
+    RR, ringAt, ionAt, ions, glow,
+    /* the rotor's turn about +y for T (three.js turns +x towards −z for a positive angle: the ring's ions go the same way) */
+    rotorY: T => -DIR * ringAt(T) * Math.PI / 4,
+    /* T: the hydrogen ions through so far (eighths of a turn); on: the stream drawn at all */
+    update(T, on = true) {
+      const k0 = Math.floor(T), gp = glow.geometry.attributes.position, gc = glow.geometry.attributes.color;
+      for (let j = 0; j < n; j++) {
+        const k = k0 - 12 + ((j - (k0 - 12)) % n + n) % n, sz = on ? ionAt(k, T, tv) : 0;
+        if (!sz) { ions.setMatrixAt(j, zero); gc.setXYZ(j, 0, 0, 0); continue; }
+        tm.compose(tv, tq, ts.setScalar(sz)); ions.setMatrixAt(j, tm); gp.setXYZ(j, tv.x, tv.y, tv.z); gc.setXYZ(j, 0.75 * sz, 1.0 * sz, 0.4 * sz);
+      }
+      ions.instanceMatrix.needsUpdate = true; gp.needsUpdate = gc.needsUpdate = true;
+    }
+  };
+}
+/* ADP and phosphate join into ATP at the head: one for each third of a turn, which then leaves (nine, used again every
+   three turns). On the head's surface: the measured head reaches 5 to 6.4 nm from its axis (the drawn one, 4.9) */
+export function atpMaker(AS, mats = nucleotideMats()) {
+  const made = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(() => { const g = new THREE.Group(), adp = nucleotide(2, mats), pi = nucleotide(0, mats), p3 = nucleotide(0, mats); p3.position.set(0.77, -0.12, 0); g.add(adp, pi, p3); haloSprite(adp, 1.6); haloSprite(pi, 0.6); g.userData = { adp, pi, p3 }; g.visible = false; AS.add(g); return g; });
+  const rr = AS.userData.measured ? 6.7 : 4.9, sp = new THREE.Vector3(), far = new THREE.Vector3();
+  return {
+    made,
+    /* the one being made now (or, for ATP, the newest made) */
+    nowMade: T => made[Math.max(0, Math.floor(T / (8 / 3) - 1e-6)) % 9],
+    /* on the head's near side (one of the three sites faces away, behind the head) */
+    seen: m => m.visible && m.position.z > -1.5,
+    update(T, on = true) {
+      made.forEach((m, j) => {
+        const d = T - j * 8 / 3, kk = d < 23.4 ? d : ((d + 0.6) % 24) - 0.6;   /* 0 … 8/3 while this one is made (then again, every 3 turns) */
+        m.visible = on && kk > -0.6 && kk < 8 / 3 + 1.6;
+        if (!m.visible) return;
+        const site = (j % 3) * 2 * Math.PI / 3 + Math.PI / 3;
+        const arrive = smooth01(-0.6, 0.6, kk), join = smooth01(1.4, 2.4, kk), leave = smooth01(8 / 3, 8 / 3 + 1.6, kk);
+        sp.set(Math.cos(site) * rr, 12 + 1.2, Math.sin(site) * rr); far.copy(sp).multiplyScalar(1.6).setY(16 + 3 * leave);
+        m.position.copy(far).lerp(sp, arrive * (1 - leave)); m.position.y += 4 * leave;
+        m.userData.pi.position.set(1.6 - 0.83 * join, 0.4 - 0.52 * join, 0); m.userData.p3.visible = false; m.userData.pi.visible = true;
+      });
+    }
+  };
 }
