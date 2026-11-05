@@ -142,6 +142,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 @keyframes nextPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--qp-accent) 60%,transparent)}80%,100%{box-shadow:0 0 0 12px transparent}}
 @media (prefers-reduced-motion:reduce){ .btn.next.pulse{animation:none} }
 .choices{display:flex;flex-direction:column;gap:6px;width:100%}
+/* what a press added to a step glows for a moment once it is in view: two soft pulses (quest.js reveal; Daniel, 6 Nov 2026) */
+.step__say.is-new,.choices.is-new{border-radius:10px;animation:stepNew 1.7s ease-out}
+@keyframes stepNew{0%,40%{box-shadow:0 0 0 4px rgba(255,210,122,.95),inset 0 0 0 999px rgba(255,210,122,.2)}20%,60%{box-shadow:0 0 0 8px rgba(255,210,122,.5),inset 0 0 0 999px rgba(255,210,122,.1)}100%{box-shadow:0 0 0 12px rgba(255,210,122,0),inset 0 0 0 999px rgba(255,210,122,0)}}
+@media (prefers-reduced-motion:reduce){ .step__say.is-new,.choices.is-new{animation:none;box-shadow:0 0 0 3px rgba(255,210,122,.9)} }
 .choice{display:flex;gap:10px;align-items:flex-start;text-align:left;font:700 16.5px/1.35 var(--sans);color:var(--qp-ink);background:color-mix(in srgb,var(--qp-ink) 4%,transparent);border:1.5px solid var(--qp-rule);border-radius:12px;padding:10px 12px;cursor:pointer}
 .choice .lt{flex:none;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--qp-ink2);color:#fff;font:900 13px/1 var(--sans)}
 .choice:hover:not(:disabled){border-color:var(--qp-accent)}

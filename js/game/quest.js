@@ -6,15 +6,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611052331';
-import { state, COST } from './state.js?v=202611052331';
-import { sound } from './sound.js?v=202611052331';
-import { finalLine } from './final.js?v=202611052331';
+import { ICON } from './icons.js?v=202611060040';
+import { state, COST } from './state.js?v=202611060040';
+import { sound } from './sound.js?v=202611060040';
+import { finalLine } from './final.js?v=202611060040';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611052331').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611052331';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611060040').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611060040';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -306,12 +306,40 @@ export class Quest {
     const p = this.panel, top = el.getBoundingClientRect().top - p.getBoundingClientRect().top + p.scrollTop - 12;
     if (top < p.scrollTop || top + Math.min(el.offsetHeight, p.clientHeight - 24) > p.scrollTop + p.clientHeight) p.scrollTo({ top, behavior: R.FAST || instant ? 'auto' : 'smooth' });
   }
+  /* what a press adds to a step (a question's choices, a message, the Next button) comes into view inside the panel, and a
+     question or a message glows for a moment, so the pupil sees at once what to answer (Daniel, 6 Nov 2026: "I couldn't see
+     the rest. I had to scroll down ... it gets highlighted a little bit so that the student immediately knows that it needs
+     to answer a question on the right"). The whole step stays in view when it fits; when it does not, what is new does.
+     The page moves only here, and only down to show the whole game: with the page at its top (a saved game opened again)
+     the header is above the game and the bottom of the panel lay below the window. */
+  reveal(el, glow = true) {
+    const st = this.step; if (!el || !st) return;
+    requestAnimationFrame(() => {
+      if (!el.isConnected || this.step !== st) return;
+      const p = this.panel, g = (p.closest('.stage') || p.parentElement).getBoundingClientRect(), vh = innerHeight;
+      if (!document.fullscreenElement && g.bottom > vh + 1) {
+        const d = g.height <= vh ? g.bottom - vh + 8 : g.top - 8;
+        if (d > 1) window.scrollBy({ top: d, behavior: R.FAST ? 'auto' : 'smooth' });
+      }
+      const pt = p.getBoundingClientRect().top, y = v => v - pt + p.scrollTop, room = p.clientHeight;
+      const er = el.getBoundingClientRect(), sr = st.say.offsetParent ? st.say.getBoundingClientRect() : er;
+      const end = y(Math.max(er.bottom, sr.bottom)) + 12, li = y(st.li.getBoundingClientRect().top) - 12;
+      const start = end - li <= room ? li : y(er.top) - 12;
+      let top = p.scrollTop;
+      if (end > top + room) top = end - room;
+      if (start < top) top = start;
+      if (Math.abs(top - p.scrollTop) > 1) p.scrollTo({ top, behavior: R.FAST ? 'auto' : 'smooth' });
+      if (!glow) return;
+      el.classList.remove('is-new'); void el.offsetWidth; el.classList.add('is-new');
+      clearTimeout(el.newT); el.newT = setTimeout(() => el.classList.remove('is-new'), 1800);
+    });
+  }
 
   /* ---------- inside a step ---------- */
-  say(html, cls = '') { if (!this.step) return; this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); }
+  say(html, cls = '') { if (!this.step) return; this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); if (html) this.reveal(this.step.say); }
   next(label = 'Next step') {
     const b = h('button', { type: 'button', class: 'btn next pulse' }, label + ' →');
-    this.step.do.appendChild(b); b.focus({ preventScroll: true });
+    this.step.do.appendChild(b); b.focus({ preventScroll: true }); this.reveal(b, false);
     return new Promise(res => b.addEventListener('click', () => { b.remove(); res(); }, { once: true }));
   }
   /* choices written in the step: resolves with the index of the right one; a wrong one calls onWrong(i), which shows what
@@ -323,7 +351,7 @@ export class Quest {
     const order = opts.map((_, i) => i);
     for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
     order.forEach((i, k) => box.appendChild(h('button', { type: 'button', class: 'choice', 'data-i': i }, `<span class="lt">${'ABC'[k]}</span><span>${opts[i]}</span>`)));
-    this.step.do.appendChild(box);
+    this.step.do.appendChild(box); this.reveal(box);
     return new Promise(res => {
       $$('.choice', box).forEach(b => b.addEventListener('click', async () => {
         const i = +b.dataset.i; if (b.disabled) return;

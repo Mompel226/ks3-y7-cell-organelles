@@ -83,7 +83,7 @@ to make you goosebumps"); and soft sounds of real instruments when something hap
 their teacher, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the
 computer. Progress is kept in the browser, so a pupil can stop and carry on later.
 
-**Made by** Dr Daniel Mompel Riera, NLCS Jeju. Something wrong, or a suggestion? dmompelriera@nlcsjeju.kr
+**Made by** Dr Daniel Mompel Riera. Something wrong, or a suggestion? dmompelriera@nlcsjeju.kr
 
 **Licence.** Code: AGPL-3.0 (`LICENSE`). Teaching material: CC BY-NC-SA 4.0 (`LICENSE-CONTENT`): free for teaching, not for
 selling. Third-party pictures, music and sounds keep their own licences (below).
@@ -188,4 +188,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `--net 4g`, `--cpu 4`, `--mobile 1`): no fade left solid, every step smooth once its picture shows, still pictures
   light; `--double 1` presses Next twice, holds → and presses Back while a chapter loads; `--game 1` presses the game's IB
   door twice, then opens and closes the view 20 times (one view, never seen unstyled, the game's own 3D picture kept).
+  `node tools/panel-reveal.mjs` plays the way in's glucose step with the page at its top: what a press adds to the step
+  (the choices, a message) must come wholly into view, in the panel and in the window, and glow for a moment
+  (`--w 1280 --h 700`, `--w 1440 --h 900`, `--w 390 --h 844 --mobile 1`).
 </details>
