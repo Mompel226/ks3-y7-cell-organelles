@@ -36,6 +36,25 @@ Made by `tools/real-em.py` (not published). What it does to every HeLa picture:
 | `wayin.jpg` | The cell membrane at the top of the cell: embedding resin above, cytoplasm with ribosomes, ER and a mitochondrion below | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.34 µm (s1 voxel plane 1272); x 8.65–11.85, y 2.15–4.25 µm; s1, ×2.00 (4.00 nm a pixel), 800 × 525 px; outline (#E8C6FF) along the longest piece of `pm_seg` in the plane, on the outside of the cell only (blurred 1.5 voxels) |
 | `ribosome.jpg` | Free ribosomes in the cytoplasm, each ringed; two mitochondria | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.95 µm (s0 voxel plane 2662); x 10.78–12.48, y 2.08–3.28 µm; s0, ×1.98 (2.02 nm a pixel), 840 × 593 px; a ring (#FFD27A, 2 px, 4 nm outside) round every `ribo_seg` piece in the plane, not smoothed |
 
+**Where it is** (5 Nov 2026; Daniel: "You always have to have some sort of reference"): before each close-up, a wider view
+of the same cell made by `tools/real-em.py --where` from data already cached (the script stops rather than download).
+The same processing (one plane, the same contrast), at s2 (16 nm voxels, 20.96 nm apart in z) or s3 (32 nm, 41.92 nm),
+800 px wide; outlines from the dataset's own segmentations at s3 or s4 (64 nm), holes filled, pieces under 0.05 µm²
+left out, drawn 2.5 px wide just outside the structure; a white box with a dark edge where the close-up is; the scale bar
+on a dark band under the picture. Where the close-up's own plane is not cached at a wide scale, the nearest cached plane
+is used, 13.45 µm: 0.35 µm from the nucleus close-up's plane and 0.25 µm from the Golgi close-up's (the box marks the
+same place in the cell; the slice is a little further in).
+
+| File | What it shows | Source / author | Licence | Changes |
+|---|---|---|---|---|
+| `nucleolus-where.jpg` | The whole nucleus (violet) with its nucleoli (pink); the box: `nucleolus.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 14.12 µm (the close-up's plane), s3; x 12.5–35.5, y 0–6 µm; 28.8 nm a pixel |
+| `nucleus-where.jpg` | The whole nucleus (violet); the box: `nucleus.jpg`, on its lower edge | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.45 µm (0.35 µm from the close-up's 13.10), s3; x 12.5–35.5, y 0–6 µm; 28.8 nm a pixel |
+| `golgi-where.jpg` | The whole nucleus (violet), the Golgi apparatus under it (yellow); the box: `golgi.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.45 µm (0.25 µm from the close-up's 13.20), s3; x 12.5–35.5, y 0–6 µm; 28.8 nm a pixel |
+| `ribosome-where.jpg` | The cell's left end, the edge of the nucleus (violet); the box: `ribosome.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.95 µm (the close-up's plane), s3; x 4.5–19.5, y 0–5.5 µm; 18.8 nm a pixel |
+| `mito-where.jpg` | The cell's left end, its mitochondria (orange), the edge of the nucleus (violet); the box: `mito.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 12.80 µm (the close-up's plane), s2; x 4.2–17.3, y 0–5 µm; 16.4 nm a pixel |
+| `rer-where.jpg` | The cell's left end, the edge of the nucleus (violet); the box: `rer.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.30 µm (the close-up's plane), s2; x 4.2–17.3, y 0–5 µm; 16.4 nm a pixel |
+| `wayin-where.jpg` | The cell's left end, its top edge (the cell membrane), the edge of the nucleus (violet); the box: `wayin.jpg` | jrc_hela-2, Janelia Research Campus | CC BY 4.0 | z = 13.34 µm (the close-up's plane), s2; x 4.2–17.3, y 0–5 µm; 16.4 nm a pixel |
+
 Tried and left out (4 Nov 2026): **exit**, the vesicles at the cell membrane (the `vesicle_seg` vesicles near the
 membrane are 40 to 60 nm across, too small to see clearly even at 4 nm, and the larger bodies there are endosomes), and
 **tracks**, a microtubule lying in the plane (they run along z, so no plane of constant z holds one; a plane of constant

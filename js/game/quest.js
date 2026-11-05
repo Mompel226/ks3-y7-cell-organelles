@@ -6,12 +6,12 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611050034';
-import { state, COST } from './state.js?v=202611050034';
-import { sound } from './sound.js?v=202611050034';
-import { finalLine } from './final.js?v=202611050034';
-import { HAS_LENS } from './lens.js?v=202611050034';
-import { simpleCard } from './simplecard.js?v=202611050034';
+import { ICON } from './icons.js?v=202611051141';
+import { state, COST } from './state.js?v=202611051141';
+import { sound } from './sound.js?v=202611051141';
+import { finalLine } from './final.js?v=202611051141';
+import { HAS_LENS } from './lens.js?v=202611051141';
+import { simpleCard } from './simplecard.js?v=202611051141';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */

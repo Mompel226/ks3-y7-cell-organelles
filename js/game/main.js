@@ -5,18 +5,18 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611050034';
-import { Names } from './names.js?v=202611050034';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611050034';
-import { makePlay } from './play.js?v=202611050034';
-import { setStill, wait } from './actors.js?v=202611050034';
-import { state } from './state.js?v=202611050034';
-import { ICON } from './icons.js?v=202611050034';
-import { openLens } from './lens.js?v=202611050034';
-import { intro } from './intro.js?v=202611050034';
-import { sound } from './sound.js?v=202611050034';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611050034';
-import { openCopyFilm } from './transcribe.js?v=202611050034';
+import { World, MAP_VIEW } from '../world/world.js?v=202611051141';
+import { Names } from './names.js?v=202611051141';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611051141';
+import { makePlay } from './play.js?v=202611051141';
+import { setStill, wait } from './actors.js?v=202611051141';
+import { state } from './state.js?v=202611051141';
+import { ICON } from './icons.js?v=202611051141';
+import { openLens } from './lens.js?v=202611051141';
+import { intro } from './intro.js?v=202611051141';
+import { sound } from './sound.js?v=202611051141';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611051141';
+import { openCopyFilm } from './transcribe.js?v=202611051141';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;

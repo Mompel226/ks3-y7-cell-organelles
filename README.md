@@ -130,5 +130,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   only after ✦ Dive in, the pieces in turn, heard and never clipping), served by `node tools/serve.mjs`, which, like
   GitHub Pages, lets a piece be jumped through; `node tools/record-music.mjs` records a minute of it to listen to.
   `node tools/vendor-three.mjs <unpacked npm package>` re-copies three.js. `tools/real-em.py` cut the electron micrographs
-  from the OpenOrganelle data (with the Foundations hub's reader).
+  from the OpenOrganelle data (with the Foundations hub's reader); `--where` makes each close-up's wider view of the same
+  cell, with a white box where the close-up is, from cached data only. `node tools/look.mjs --lens <place> --tab dia|em|size`
+  photographs a tab of See the real thing.
 </details>
