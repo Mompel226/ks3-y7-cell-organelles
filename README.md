@@ -178,7 +178,9 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   word of a place's panel, as the page is and in full screen, and checks each meaning (and the word bank) shows on top. `tools/real-em.py` cut the electron micrographs
   from the OpenOrganelle data (with the Foundations hub's reader); `--where` makes each close-up's wider view of the same
   cell, with a white box where the close-up is, from cached data only. `node tools/look.mjs --lens <place> --tab dia|em|size`
-  photographs a tab of See the real thing. The IB extension: `node tools/ib-look.mjs --ch c0,c1 … --out <folder>` photographs
+  photographs a tab of See the real thing; `node tools/lens-text.mjs` opens every part's card and each of its tabs: nothing
+  above the tabs, no block of text over 200 characters, How big? with its numbers in bold (`--w 390 --h 844 --mobile 1`;
+  `--out <folder>` photographs each card whole). The IB extension: `node tools/ib-look.mjs --ch c0,c1 … --out <folder>` photographs
   each step at rest and reports any two names that overlap, any main name not shown at rest (MISSING) and any page error
   (`--w 390 --h 844 --mobile 1` a phone,
   `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path, `--full 1` through its Full screen button);

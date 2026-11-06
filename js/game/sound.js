@@ -19,7 +19,7 @@
    A browser lets a page make sound only after a press: when the sound was left on, it starts at the pupil's first press.
    ============================================================ */
 const R = window.REV;
-const V = '?v=202611060040';                                        /* the page's version (tools/stamp.mjs) */
+const V = '?v=202611060935';                                        /* the page's version (tools/stamp.mjs) */
 let ctx = null, master = null, fx = null, musicBus = null, on = !!R.store.get('sound', false), allowed = false;
 
 /* a space for the game's sounds: a soft stereo echo of noise that fades away (made here) */

@@ -28,7 +28,7 @@ import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js?v
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { MeshoptDecoder } from '../vendor/three/examples/jsm/libs/meshopt_decoder.module.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { REAL } from './real.js?v=202611060040';
+import { REAL } from './real.js?v=202611060935';
 const R = window.REV, { $, $$, h, esc } = R;
 
 const SIMPLE = { src: 'img/diagram/simple-animal-cell.svg', vb: [730.39, 560.42], credit: 'Diagram: domdomegg, Wikimedia Commons, CC BY 4.0 (ribosomes added by the Cells Lab)' };
@@ -110,7 +110,7 @@ function bigPieces(geo) {
 function loadModel() {
   if (model) return model;
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611060040'));
+  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611060935'));
 }
 function viewer(pane, id) {
   const R3 = REAL3D[id], wrap = pane.querySelector('.lens__3d');
@@ -154,6 +154,61 @@ function viewer(pane, id) {
   return () => { alive = false; removeEventListener('resize', size); controls.dispose(); renderer.dispose(); renderer.domElement.remove(); };
 }
 
+/* ---------- the card's words, laid out to be read ----------
+   Daniel, 6 Nov 2026: "there's a lot of text below the real thing ... that should not be there unless you're selecting one
+   of the options ... there are no bolded ... for a student looking at this, it'd be like, ooh, so much text, I'm not gonna
+   read". So the card opens with its title and its tabs only, and each tab sets its words out in short lines: a caption's
+   lead (what you see) as its heading and where to look under it (→), then a sentence a line; numbers with their units in
+   bold; the scale bar as a chip; the sentence about the cell and the credit in small type. The words are the ones he read
+   before, only set out differently (tools/lens-text.mjs checks it: no block over 200 characters, nothing above the tabs). */
+const NUM = /\b\d+(?:[.,]\d+)?(?: 000)*(?: (?:to|–) \d+(?:[.,]\d+)?(?: 000)*)?(?: ?(?:nanometres?|nm|micrometres?|µm|millimetres?|mm|cm|metres?|m)\b| times\b)/g;
+const boldNums = html => html.split(/(<[^>]+>)/).map(t => t.charAt(0) === '<' ? t : t.replace(NUM, '<b>$&</b>')).join('');
+const sentences = html => html.split(/\.\s+(?=[A-Z(<])/).map((t, i, a) => (i < a.length - 1 ? t + '.' : t).trim()).filter(Boolean);
+const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+/* a caption's first sentence cut at its first colon outside a tag: what you see, then where (a <b> left open by the cut is
+   closed in the heading and taken off what follows) */
+function lead(first) {
+  let tag = false, at = -1;
+  for (let i = 0; i < first.length && at < 0; i++) { const c = first[i]; if (c === '<') tag = true; else if (c === '>') tag = false; else if (c === ':' && !tag) at = i; }
+  if (at < 0) return { head: first, where: '' };
+  let head = first.slice(0, at), where = first.slice(at + 1).trim();
+  if ((head.match(/<b>/g) || []).length > (head.match(/<\/b>/g) || []).length) { head += '</b>'; where = where.replace(/^<\/b>\s*/, ''); }
+  return { head, where };
+}
+const ABOUT = /^This is part of one real human cell/;
+/* a micrograph's caption (js/game/real.js) */
+function capHTML(cap, credit) {
+  const S = sentences(cap), { head, where } = lead(S.shift() || '');
+  const bar = S.find(t => /^The bar /.test(t)), about = S.find(t => ABOUT.test(t)), lines = S.filter(t => t !== bar && t !== about);
+  return `<figcaption class="lens__capt"><p class="lens__ch">${boldNums(head)}</p>${where ? `<p class="lens__where">→ ${boldNums(where)}</p>` : ''}`
+    + (lines.length ? `<ul class="lens__pts">${lines.map(t => `<li>${boldNums(t)}</li>`).join('')}</ul>` : '')
+    + (bar ? `<p class="lens__scale">📏 ${boldNums(bar)}</p>` : '') + (about ? `<p class="lens__about">${about}</p>` : '')
+    + `<p class="lens__cr">${esc(credit)}</p></figcaption>`;
+}
+/* the nucleus's note above its real 3D: one nucleolus or several */
+const NUC_NOTE = `<div class="lens__note"><p class="lens__ch">One nucleolus, or three? Both happen.</p><ul class="lens__pts">${['Diagrams, and this game, draw one nucleolus.',
+  'A real nucleus can have more than one: this cell has three.', 'A nucleolus forms on the parts of chromosomes that carry the genes for ribosome parts.',
+  'A human body cell has ten of these chromosomes, so it can have up to ten nucleoli, but most cells show only one or two.',
+  'Each one is a nucleolus: a dense region of the nucleus that makes the parts of ribosomes.'].map(t => `<li>${t}</li>`).join('')}</ul></div>`;
+/* the real 3D's caption: what it is, then a line a sentence ("Drag to turn it" is on the picture) */
+const r3dCap = R3 => `<div class="lens__capt"><p class="lens__ch">${R3.nuc ? 'The nucleus of one real human cell' : 'One real human cell'} <span class="lens__soft">(a HeLa cell, a kind of cell grown in laboratories)</span></p><ul class="lens__pts">${(R3.nuc
+  ? ['Rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next.',
+    'Only the nucleus is shown: its envelope, the two membranes round it (violet, drawn see-through), and inside it the nucleoli (pink).',
+    'Its three nucleoli are each about 4 to 6 µm long: larger than in most cells, because this cell grows fast and makes many ribosomes.',
+    'The computer program that found them in the micrographs also marked many small specks; they are not shown here.']
+  : ['Rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next.', `The ${esc(R3.name)} is in colour; the rest is pale.`,
+    'The flat faces are the edges of the part that was imaged.', 'A HeLa cell is not a gland cell: it has far less rough ER than the cell in this game.']).map(t => `<li>${boldNums(t)}</li>`).join('')}</ul><p class="lens__cr">Janelia Research Campus, OpenOrganelle dataset jrc_hela-2 (Xu et al. 2021, Nature 599:147; Heinrich et al. 2021, Nature 599:141), CC BY 4.0. 3D model made for the Foundations hub.</p></div>`;
+/* How big?: its size first, larger, then a line a sentence; the football pitch with its answer on a line of its own, in
+   bold where it says how big; the units as chips */
+function sizeHTML(P) {
+  const S = sentences(esc(P.size)), first = S.shift();
+  const big = P.big ? boldNums(esc(P.big).replace(/: ([^:]+)\.$/, ': <b>$1</b>.')) : '';
+  return `<p class="lens__lead">${boldNums(first)}</p>${S.map(t => `<p class="lens__line">${boldNums(t)}</p>`).join('')}`
+    + (big ? `<div class="lens__big"><p class="lens__bigh">⚽ Picture it</p><p>If this cell were as big as a football pitch (about 100 m long),</p><p class="lens__bigq">${big}</p></div>` : '')
+    + sentences('This cell is about 16 µm across. A human hair is about 70 µm thick: <b>four</b> of these cells side by side would fit across it.').map(t => `<p class="lens__line">${boldNums(t)}</p>`).join('')
+    + '<p class="lens__units"><span>1 millimetre (mm) = 1000 micrometres (µm)</span><span>1 µm = 1000 nanometres (nm)</span></p>';
+}
+
 export function openLens(id) {
   const P = PART[id]; if (!P) return;
   const real = REAL[id] || {};
@@ -162,15 +217,13 @@ export function openLens(id) {
   const vb = D.vb.length === 4 ? D.vb : [0, 0, D.vb[0], D.vb[1]];
   box.innerHTML = `<div class="lens__card" role="dialog" aria-modal="true" aria-labelledby="lens-h">
     <div class="lens__top"><h2 id="lens-h">🔍 The real thing: ${esc(P.name)}</h2><button type="button" class="close-x" aria-label="Close">×</button></div>
-    <p class="lens__both">The cell world is a picture made for this game. Below is the ${esc(P.name)} as scientists draw it${real.em ? ', and as it looks in an electron micrograph' : ''}. <b>Both are right</b>: the game makes things brighter and some of them larger, so that you can find them.</p>
     <div class="lens__tabs" role="tablist">${tabs.map(([k, t], i) => `<button role="tab" type="button" data-t="${k}" aria-selected="${i === 0}">${t}</button>`).join('')}</div>
     <div class="lens__pane" data-p="dia"><figure class="lens__fig"><svg viewBox="${vb.join(' ')}" role="img" aria-label="A diagram of an animal cell with the ${esc(P.name)} ringed"><image href="${D.src}" x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}"/><circle cx="${P.at[0]}" cy="${P.at[1]}" r="${P.r}" fill="none" stroke="#151a40" stroke-opacity=".8" stroke-width="${vb[2] / 160 * 2.4}"/><circle cx="${P.at[0]}" cy="${P.at[1]}" r="${P.r}" fill="none" stroke="#FFD84A" stroke-width="${vb[2] / 160}"/></svg>
-      <figcaption><b>${esc(P.name)}</b>, ringed in yellow. ${esc(D.credit)}.</figcaption></figure></div>
-    ${real.em ? `<div class="lens__pane" data-p="em" hidden>${real.em.map(e => `<figure class="lens__fig"><img src="${e.src}" alt="${esc(e.alt)}" loading="lazy"><figcaption>${e.cap} <span class="lens__cr">${esc(e.credit)}</span></figcaption></figure>`).join('')}</div>` : ''}
-    ${REAL3D[id] ? `<div class="lens__pane" data-p="r3d" hidden>${REAL3D[id].nuc ? `<p class="lens__note"><b>One nucleolus, or three? Both happen.</b>Diagrams, and this game, draw one nucleolus. A real nucleus can have more than one: this cell has three. A nucleolus forms on the parts of chromosomes that carry the genes for ribosome parts. A human body cell has ten of these chromosomes, so it can have up to ten nucleoli, but most cells show only one or two. Each one is a nucleolus: a dense region of the nucleus that makes the parts of ribosomes.</p><p class="lens__key"><span style="--c:#8f80ff">nuclear envelope (see-through)</span><span style="--c:#e05cb4">nucleolus</span></p>` : ''}<div class="lens__3d"><p class="lens__wait">Loading the real cell…</p></div><p class="lens__cap">${REAL3D[id].nuc
-      ? 'The nucleus of one real human cell (a HeLa cell, a kind of cell grown in laboratories), rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next. Only the nucleus is shown: its envelope, the two membranes round it (violet, drawn see-through), and inside it the nucleoli (pink). Its three nucleoli are each about 4 to 6 µm long: larger than in most cells, because this cell grows fast and makes many ribosomes. The computer program that found them in the micrographs also marked many small specks; they are not shown here.'
-      : `One real human cell (a HeLa cell, a kind of cell grown in laboratories), rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next. The ${esc(REAL3D[id].name)} is in colour; the rest is pale. The flat faces are the edges of the part that was imaged. A HeLa cell is not a gland cell: it has far less rough ER than the cell in this game.`} <b>Drag to turn it.</b></p><p class="lens__cr">Janelia Research Campus, OpenOrganelle dataset jrc_hela-2 (Xu et al. 2021, Nature 599:147; Heinrich et al. 2021, Nature 599:141), CC BY 4.0. 3D model made for the Foundations hub.</p></div>` : ''}
-    <div class="lens__pane" data-p="size" hidden><p class="lens__size">${esc(P.size)}</p>${P.big ? `<div class="lens__big"><p class="lens__bigh">⚽ Picture it</p><p>If this cell were as big as a football pitch (about 100 m long), ${esc(P.big)}</p></div>` : ''}<p class="lens__size">This cell is about 16 µm across. A human hair is about 70 µm thick: four of these cells side by side would fit across it.</p><p class="lens__size">1 millimetre (mm) = 1000 micrometres (µm). 1 µm = 1000 nanometres (nm).</p></div>
+      <figcaption class="lens__capt"><p class="lens__ch"><span class="lens__ring" aria-hidden="true"></span>${esc(cap1(P.name))}, ringed in yellow</p><p class="lens__cr">${esc(D.credit)}.</p></figcaption></figure>
+      <div class="lens__both"><p class="lens__ch">Both are right</p><p>The cell world is a picture made for this game. The game makes things brighter, and some of them larger, so that you can find them.</p></div></div>
+    ${real.em ? `<div class="lens__pane" data-p="em" hidden>${real.em.map(e => `<figure class="lens__fig"><img src="${e.src}" alt="${esc(e.alt)}" loading="lazy">${capHTML(e.cap, e.credit)}</figure>`).join('')}</div>` : ''}
+    ${REAL3D[id] ? `<div class="lens__pane" data-p="r3d" hidden>${REAL3D[id].nuc ? NUC_NOTE + '<p class="lens__key"><span style="--c:#8f80ff">nuclear envelope (see-through)</span><span style="--c:#e05cb4">nucleolus</span></p>' : ''}<div class="lens__3d"><p class="lens__wait">Loading the real cell…</p><p class="lens__drag">✋ Drag to turn it</p></div>${r3dCap(REAL3D[id])}</div>` : ''}
+    <div class="lens__pane" data-p="size" hidden>${sizeHTML(P)}</div>
   </div>`;
   box.hidden = false;
   let stop3d = null;
