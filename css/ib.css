@@ -50,7 +50,7 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(460px,35vw));min-height:0}
 .ibv__stage{position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 40%,#1a1f56 0%,#0a0d29 62%,#060819 100%);touch-action:none}
 .ibv__canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
-.ibv__pic{position:absolute;z-index:3;left:50%;top:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 28px);padding:7px 14px;border-radius:999px;background:rgba(10,13,40,.82);border:1px solid rgba(255,226,154,.45);color:#FFE9B8;font:800 14px/1.3 var(--ibv-sans);text-align:center;pointer-events:none}
+.ibv__pic{position:absolute;z-index:3;left:50%;top:calc(var(--ovh,0px) + 12px);transform:translateX(-50%);margin:0;max-width:calc(100% - 28px);padding:7px 14px;border-radius:999px;background:rgba(10,13,40,.82);border:1px solid rgba(255,226,154,.45);color:#FFE9B8;font:800 14px/1.3 var(--ibv-sans);text-align:center;pointer-events:none}
 .ibv__pic[hidden]{display:none}
 /* a page to read in place of the picture: the tally, the questions, the article */
 .ibv__paper{position:absolute;inset:0;z-index:5;overflow-y:auto;padding:26px clamp(16px,4vw,48px) 40px;background:var(--ibv-sheet);color:var(--ibv-ink)}
@@ -92,7 +92,9 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv.is-paper .ibv__bar{display:none}
 @media (max-width:860px){.ibv__paper{padding:16px 16px 30px}.ibv__paper h3{font-size:22px}.ibv__t{font-size:14px}.ibv__bars div{grid-template-columns:1fr}}
 /* a small board on the picture: a tally, or a chain of causes */
-.ibv__board{position:absolute;z-index:3;right:14px;top:14px;display:flex;flex-direction:column;gap:3px;max-width:min(300px,calc(100% - 28px));padding:10px 14px;border-radius:14px;background:rgba(10,13,40,.86);border:1.5px solid rgba(255,226,154,.55);color:#EEF0FF;font:700 14.5px/1.35 var(--ibv-sans);pointer-events:none}
+.ibv__board{position:absolute;z-index:3;right:14px;top:calc(var(--ovh,0px) + 14px);display:flex;flex-direction:column;gap:3px;max-width:min(300px,calc(100% - 28px));padding:10px 14px;border-radius:14px;background:rgba(10,13,40,.86);border:1.5px solid rgba(255,226,154,.55);color:#EEF0FF;font:700 14.5px/1.35 var(--ibv-sans);pointer-events:none}
+/* a step with a board on a wide screen: the hint stands at the left, clear of it */
+@media (min-width:861px){.ibv__stage.has-board .ibv__pic{left:14px;transform:none;max-width:calc(100% - 350px);text-align:left}}
 .ibv__board[hidden]{display:none}
 /* the key to the spaces' colours (view.js) */
 .ibv__key{position:absolute;left:12px;bottom:44px;z-index:3;display:flex;flex-wrap:wrap;gap:4px 12px;max-width:calc(100% - 220px);padding:6px 10px;border-radius:10px;background:rgba(10,13,40,.78);color:#EEF0FF;font:800 12.5px/1.2 var(--ibv-sans);pointer-events:none}
@@ -215,7 +217,7 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
   .ibv{font-size:16px}
   .ibv__tab{font-size:13px;padding:4px 10px 4px 4px}
   .ibv__lab span{font-size:12.5px;padding:4px 8px}
-  .ibv__pic{font-size:12px;top:8px;padding:5px 11px;border-radius:12px}
+  .ibv__pic{font-size:12px;top:calc(var(--ovh,0px) + 8px);padding:5px 11px;border-radius:12px}
   .ibv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
   .ibv__board{top:auto;bottom:44px;right:8px;max-width:min(62%,260px);padding:7px 10px;font-size:12px;gap:1px}
   .ibv__board b{font-size:11px}
@@ -231,3 +233,50 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
   .ibv__t tr > :first-child::before{content:none}
   .ibv__t th[data-h=""]:empty{display:none}
 }
+
+/* the overview band over the picture (stage.js setOverview; Daniel, 6 Nov 2026): the whole map from far away, each part
+   named where no two names touch, the part at work lit (a ring) and the molecule a gold dot; on a phone only the part at
+   work is named */
+.ibv__ov{position:absolute;left:0;right:0;top:0;z-index:2;pointer-events:none;border-bottom:1.5px solid rgba(255,210,122,.5)}
+.ibv__ov[hidden]{display:none}
+.ibv__ovin{position:absolute;inset:0}
+.ibv__ovn{position:absolute;left:0;top:0;max-width:132px;padding:2px 8px;border-radius:8px;background:rgba(16,20,56,.92);border:1px solid rgba(255,255,255,.35);color:#fff;font:700 12px/1.25 var(--ibv-sans);text-align:center;white-space:normal}
+.ibv__ovn.is-on{background:#FFD27A;color:#1b1640;border-color:#FFD27A;box-shadow:0 0 0 3px rgba(255,210,122,.25)}
+.ibv__ovsvg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.ibv__ovsvg line{stroke:rgba(255,255,255,.5);stroke-width:1}
+.ibv__ovsvg line.is-on{stroke:#FFD27A;stroke-width:1.5}
+.ibv__ovs{position:absolute;top:11px;height:7px;border:2px solid rgba(255,210,122,.45);border-bottom:0;border-radius:5px 5px 0 0;text-align:center}
+.ibv__ovs em{position:relative;top:-10px;padding:0 6px;background:#0c1030;color:rgba(255,210,122,.78);font:800 12px/1 var(--ibv-sans);font-style:normal;white-space:nowrap}
+.ibv__ovs.is-on{border-color:#FFD27A}.ibv__ovs.is-on em{color:#FFD27A}
+.ibv__ovs.is-grey{border-color:rgba(190,190,230,.45)}.ibv__ovs.is-grey em{color:rgba(210,210,238,.85)}
+.ibv__ovr{position:absolute;left:0;top:0;border-radius:50%;border:2.5px solid #FFD27A;box-shadow:0 0 14px rgba(255,210,122,.6)}
+.ibv__ovd{position:absolute;left:0;top:0;width:12px;height:12px;border-radius:50%;background:#FFF0B8;box-shadow:0 0 0 3px rgba(255,210,122,.45),0 0 14px rgba(255,210,122,.9)}
+.ibv__ovr[hidden],.ibv__ovd[hidden],.ibv__ovn[hidden]{display:none}
+.ibv__ovin.is-narrow .ibv__ovn:not(.is-on),.ibv__ovin.is-narrow .ibv__ovs:not(.is-on) em{display:none}
+.ibv__ovin.is-narrow .ibv__ovn{max-width:190px}
+/* the Krebs cycle's overview: a diagram of the order of its steps (ch5.js): the arrows, each seat's molecule on the ring
+   (citrate and oxaloacetate, the two the IB guide names, in gold), each step's enzyme with what enters and leaves it */
+.ibv__ova{fill:none;stroke:rgba(255,233,184,.42);stroke-width:2}
+.ibv__ova.is-on{stroke:#FFD27A;stroke-width:3.5}
+.ibv__ovah{fill:rgba(255,233,184,.55)}
+.ibv__ovah.is-on{fill:#FFD27A}
+.ibv__ovsd{fill:rgba(255,233,184,.6)}
+.ibv__ovl{stroke:rgba(255,255,255,.45);stroke-width:1}
+.ibv__ovl.is-on{stroke:#FFD27A;stroke-width:1.5}
+.ibv__ovk{position:absolute;left:0;top:0;padding:2px 9px;border-radius:999px;background:rgba(16,20,56,.96);border:1px solid rgba(255,226,154,.6);color:#FFE9B8;font:800 12px/1.3 var(--ibv-sans);white-space:nowrap;transition:box-shadow .3s}
+.ibv__ovk b{margin-left:6px;color:#FFD27A}
+.ibv__ovk.is-ib{background:#FFD27A;color:#1b1640;border-color:#FFD27A}
+.ibv__ovk.is-ib b{color:#5a2a00}
+.ibv__ovk.is-at{box-shadow:0 0 0 3px rgba(255,210,122,.55),0 0 16px rgba(255,210,122,.85)}
+.ibv__ovk.is-at::before{content:'';position:absolute;left:-7px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#FFF0B8;box-shadow:0 0 0 3px rgba(255,210,122,.45),0 0 14px rgba(255,210,122,.9)}
+.ibv__ovk[hidden]{display:none}
+.ibv__ovn--k{max-width:182px}
+.ibv__ovn--k small{display:block;margin-top:1px;font:700 11px/1.3 var(--ibv-sans);color:rgba(255,255,255,.8)}
+.ibv__ovn--k.is-on small{color:#1b1640}
+.ibv__ovp{position:absolute;left:0;top:0;display:flex;flex-wrap:wrap;align-items:center;gap:3px 6px;font:800 12px/1.3 var(--ibv-sans);color:#FFE9B8}
+.ibv__ovp[hidden]{display:none}
+.ibv__ovp b{padding:2px 8px;border-radius:999px;background:rgba(16,20,56,.96);border:1px solid rgba(255,226,154,.6);white-space:nowrap}
+.ibv__ovp b.is-ib{background:#FFD27A;color:#1b1640;border-color:#FFD27A}
+.ibv__ovp em{margin-left:5px;font-style:normal;color:#FFD27A}
+.ibv__ovp b.is-ib em{color:#5a2a00}
+.ibv__ovin.is-narrow .ibv__ovn--k{max-width:none}

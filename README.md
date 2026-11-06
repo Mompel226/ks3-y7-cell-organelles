@@ -57,9 +57,11 @@ glucose transporter and the amino acid transporter); the Year 7 checks fold away
 open **From glucose to ATP**. That is a view of its own, over the whole page, with its own address for IB lessons:
 <https://nlcsbiology.com/ks3-y7-cell-organelles/glucose-to-atp/>. It follows one glucose molecule from the blood into a
 muscle cell and on to ATP, at true sizes, in seven chapters: the map; into the cell (the glucose transporter, and
-hexokinase trapping glucose); glycolysis (its ten steps, each with its reason, and the lactate and yeast branches); into
-the mitochondrion (porin, the pyruvate carrier); the link reaction; the Krebs cycle; and the electron transport chain, the
-proton gradient as a dam, and ATP synthase. Then the tally, two questions, and Daniel's article, which opens only when both
+hexokinase trapping glucose); glycolysis (its ten steps, each with its reason, and the lactate and yeast branches: above
+the molecules, every enzyme at its true size in a row, named, with the one at work lit); into the mitochondrion (porin, the
+pyruvate carrier); the link reaction; the Krebs cycle (above the molecules, a diagram of its order: each molecule with its
+carbons, and each step's enzyme with what enters and leaves it); and the electron transport chain, the proton gradient as
+a dam, and ATP synthase. Then the tally, two questions, and Daniel's article, which opens only when both
 are answered. Every molecule is drawn atom by atom, glucose's carbon atoms numbered 1 to 6 and followed through every
 reaction; every protein is its measured shape; side paths explore NAD, FAD, coenzyme A, oxidation and reduction, and the
 two ways of making ATP. Steps wait for Next; every key word opens its meaning, with Korean and Chinese.
@@ -130,7 +132,10 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   The film, the IB extension, the lens and its 3D model loader are fetched only when they are opened.
 - `js/ib/` is the IB extension, From glucose to ATP (its own address: `glucose-to-atp/index.html`; styles `css/ib.css`):
   `view.js` (the frame: chapters, steps that wait, level tags, the Explore paths, the words with Korean and Chinese, full
-  screen), `stage.js` (the camera that zooms, names on level lines, carbon numbers, the scale bar), `mol.js` (ball-and-stick
+  screen), `stage.js` (the camera that zooms, names on level lines, carbon numbers, the scale bar; a band above the picture
+  for a chapter's overview, glycolysis's row of enzymes or the Krebs cycle's diagram; a view that says what it must show is
+  framed on it at the screen's own shape, turned a quarter on a phone when that shows it larger; no name covers an atom or
+  crosses a molecule), `mol.js` (ball-and-stick
   molecules; a reaction moves each atom by its name), `prot.js` (the measured proteins, see-through, with a window into an
   active site), `membrane.js` (a bilayer about 5 nm thick, no lipid in front of a protein), `ch0.js`–`ch6.js` (the
   chapters), `paper.js` (the tally, Test yourself, Read more), `xmol.js` (the Explore paths), `text.js` (every word). Its
@@ -181,7 +186,8 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   photographs a tab of See the real thing; `node tools/lens-text.mjs` opens every part's card and each of its tabs: nothing
   above the tabs, no block of text over 200 characters, How big? with its numbers in bold (`--w 390 --h 844 --mobile 1`;
   `--out <folder>` photographs each card whole). The IB extension: `node tools/ib-look.mjs --ch c0,c1 … --out <folder>` photographs
-  each step at rest and reports any two names that overlap, any main name not shown at rest (MISSING) and any page error
+  each step at rest and reports any two names that overlap, a name on the hint or the board, any main name not shown at
+  rest (MISSING, with what turned each place down), the overview band's names (shown, and any two that touch) and any page error
   (`--w 390 --h 844 --mobile 1` a phone,
   `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path, `--full 1` through its Full screen button);
   `node tools/ib-switch.mjs` plays the IB switch as a pupil (no switch before every check is right, the IB words and terms,

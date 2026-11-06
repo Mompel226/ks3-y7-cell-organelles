@@ -14,7 +14,7 @@
    Units: nm (the IB view's scenes are in nm).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MOL } from './mol-data.js?v=202611060040';
+import { MOL } from './mol-data.js?v=202611061122';
 
 export const ELC = { C: 0x3a3f4a, H: 0xf4f6fa, O: 0xe8322f, N: 0x3b6cf0, P: 0xff9a1f, S: 0xf2d43a };
 /* ball radii (nm): a fixed part of each element's van der Waals radius (C 0.17 nm), so the bonds show */
@@ -165,11 +165,16 @@ export class Reaction {
     for (const t of this.to) {
       if (t.P) continue;
       const src = fromById[t.fitTo || t.id], A = [], B = [];
-      t.D.names.forEach((nm, i) => {
-        if (t.D.el[i] === 'H') return;
+      const pick = withH => t.D.names.forEach((nm, i) => {
+        if (!withH && t.D.el[i] === 'H') return;
         const k = aKey[(mv[t.id + ':' + nm] || ((t.fitTo || t.id) + ':' + nm))];
         if (k != null && (!src || this.A[k].f === src || mv[t.id + ':' + nm])) { A.push(this.A[k].p); B.push(t.D.P[i]); }
       });
+      pick(false);
+      /* a small new molecule made of atoms that leave another (water: one heavy atom) is fitted by its hydrogens too, so it
+         forms where its atoms were (Daniel, 6 Nov 2026: enolase's water had formed at the scene's origin, its bonds
+         stretched across the picture, and it was never named) */
+      if (A.length < 3 && !src) { A.length = 0; B.length = 0; pick(true); }
       if (A.length >= 3) { const F = fit(A, B); t.P = { p: F.t, q: F.q }; }
       else t.P = src ? { p: src.P.p.clone(), q: src.P.q.clone() } : pose();
     }

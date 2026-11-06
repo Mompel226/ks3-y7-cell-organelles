@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611060935';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611060935';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611061122';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611061122';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -83,7 +83,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611060935', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611061122', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -92,7 +92,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611060935' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611061122' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -172,25 +172,31 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     if (scene.views && K.cam != null) {
       /* a camera move goes straight from the view it starts at to the view it ends at (never through the views between) */
       const VW = scene.views, clampI = x => Math.max(0, Math.min(VW.length - 1, Math.round(x)));
+      /* a view that says what it must hold stands as far back as this screen needs (stage.js fitView) */
+      const vw = i => VW[i].fit ? Object.assign({}, VW[i], stage.fitView(VW[i])) : VW[i];
       let v;
-      if (tw && tw.to.cam != null && tw.from.cam !== tw.to.cam) { const a = clampI(tw.from.cam), b = clampI(tw.to.cam), f = (K.cam - tw.from.cam) / (tw.to.cam - tw.from.cam); v = stage.between(VW[a], VW[b], Math.max(0, Math.min(1, f))); }
-      else { const c = clampI(K.cam); v = { at: VW[c].at.clone(), dist: VW[c].dist, dir: VW[c].dir.clone(), up: VW[c].up.clone() }; }
+      if (tw && tw.to.cam != null && tw.from.cam !== tw.to.cam) { const a = clampI(tw.from.cam), b = clampI(tw.to.cam), f = (K.cam - tw.from.cam) / (tw.to.cam - tw.from.cam); v = stage.between(vw(a), vw(b), Math.max(0, Math.min(1, f))); }
+      else { const c = clampI(K.cam), w = vw(c); v = { at: w.at.clone(), dist: w.dist, dir: w.dir.clone(), up: w.up.clone() }; }
       /* the pupil may turn the picture a little (a drag), round the point looked at */
       if (drag.yaw || drag.pitch) {
         const q = new THREE.Quaternion().setFromAxisAngle(v.up, drag.yaw), side = new THREE.Vector3().crossVectors(v.up, v.dir).normalize();
         q.multiply(new THREE.Quaternion().setFromAxisAngle(side, drag.pitch));
         v.dir = v.dir.clone().applyQuaternion(q);
       }
-      /* a chapter may come closer on a phone, so that its carbon numbers show (the expert review) */
-      if (scene.narrowZoom && stage.W < 560) v.dist *= scene.narrowZoom;
+      /* a chapter may come closer on a phone, so that its carbon numbers show (the expert review); not one with an overview,
+         whose close-up below the band is already as short as a laptop's (6 Nov 2026: the zoom put molecules outside it) */
+      if (scene.narrowZoom && stage.W < 560 && !scene.overview) v.dist *= scene.narrowZoom;
       stage.setView(v);
     }
     scene.draw(K, t, dt);
+    /* the atoms no name may cover (a chapter of molecules) */
+    stage.setAvoid(scene.avoid ? scene.avoid() : []);
     stage.setNums(scene.nums ? scene.nums(K) : []);
-    /* no name stands on the board, or on what the chapter marks (the Krebs wheel's seat names) */
+    /* no name stands on the board, the key, the hint, or on what the chapter marks (the Krebs wheel's seat names) */
     const ko = [];
     if (!boardEl.hidden) { const b = boardEl.getBoundingClientRect(), s0 = stageEl.getBoundingClientRect(); if (b.width) ko.push({ l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }); }
     if (!keyEl.hidden) { const b = keyEl.getBoundingClientRect(), s0 = stageEl.getBoundingClientRect(); if (b.width) ko.push({ l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }); }
+    if (!picEl.hidden) { const b = picEl.getBoundingClientRect(), s0 = stageEl.getBoundingClientRect(); if (b.width) ko.push({ l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }); }
     if (scene.keepOut) ko.push(...scene.keepOut());
     stage.setKeepOut(ko);
     if (!drag.on && (drag.yaw || drag.pitch) && drag.home) { drag.yaw *= 0.86; drag.pitch *= 0.86; if (Math.abs(drag.yaw) + Math.abs(drag.pitch) < 1e-3) { drag.yaw = drag.pitch = 0; drag.home = false; } }
@@ -290,7 +296,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     $('.ibv__cht').textContent = def.title;
     $('.ibv__mmwrap').innerHTML = miniMap(def.where || 'all');
     root.classList.toggle('is-explore', typeof i === 'string');
-    stage.setNums([]); stage.scene.add(scene.group); stage.defineLabels(scene.labels || {});
+    stage.setNums([]); stage.scene.add(scene.group); stage.defineLabels(scene.labels || {}); stage.setOverview(scene.overview || null);
     /* a key to the spaces' colours, where a chapter shows them (the same colour for each space in every chapter) */
     keyEl.innerHTML = (scene.key || []).map(([t, c]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join(''); keyEl.hidden = !scene.key;
     xRet = fromExplore;
@@ -323,6 +329,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     textEl.innerHTML = paras(st.t); termsIn(textEl);
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
     picEl.hidden = !picEl.textContent;
+    /* a step with a board: its hint stands at the left from the start, clear of the board (top right on a wide screen) */
+    stageEl.classList.toggle('has-board', !!sst.board);
     /* the board changes at rest, with the names: during the step it still shows what was true before it (the expert
        review: it had counted FADH₂ before FAD was reduced) */
     if (!sst.board || boardEl.dataset.ci !== String(ci)) { boardEl.innerHTML = ''; boardEl.hidden = true; }
@@ -339,7 +347,16 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     nextB.textContent = last ? (xRet ? 'Back to the chapter →' : nextChapterLabel()) : 'Next step →';
     drag.home = true;
     Object.assign(K, knobsAfter(s - 1)); stage.showLabels({}); stage.setRest(false);
-    if (replay) for (const ph of phasesOf(sst)) { await tweenTo(ph); if (my !== token) return; }
+    if (replay) for (const ph of phasesOf(sst)) {
+      /* a hold: nothing moves while what takes part is named, then the step goes on (memory name-it-on-the-picture) */
+      if (ph.hold) {
+        if (FAST) continue;
+        stage.showLabels(ph.labs || {}); stage.setRest(true);
+        await new Promise(r => setTimeout(r, ph.hold)); if (my !== token) return;
+        stage.showLabels({}); stage.setRest(false); continue;
+      }
+      await tweenTo(ph); if (my !== token) return;
+    }
     else Object.assign(K, knobsAfter(s));
     if (sst.board) {
       /* on a phone the board stands under the step's words, not on the picture (the expert review: it hid half of it) */

@@ -2,9 +2,14 @@
    ch2.js — chapter 2, glycolysis in the cytosol (5 Nov 2026). Daniel's text: four stages (phosphorylation, lysis,
    oxidation, ATP formation), "why every single step happens"; the IB guide (C1.2.8): "not required to know the names of
    the intermediates, but ... each step in the pathway is catalysed by a different enzyme". So every one of the ten steps
-   is shown at its own enzyme, each in its measured shape (glass, so the molecules in its active site are seen), each at
-   its true size compared with the molecules; the ten enzymes stand in a row only to be visited one after another (in the
-   cytosol they are mixed among thousands of other proteins).
+   is shown at its own enzyme, each in its measured shape at its true size; the ten enzymes stand in a row only to be
+   visited one after another (in the cytosol they are mixed among thousands of other proteins).
+   Two views (Daniel, 6 Nov 2026: "you lost track of the overview ... which step I'm ... the idea is to really show what's
+   happening to the molecule, but at the same time to really clearly know in which stage you are"): the OVERVIEW above
+   (stage.js setOverview) is the whole row from far away, every enzyme named, the four stages over them, the enzyme at
+   work lit and the molecule a gold dot on it; the CLOSE-UP below is the molecule itself, without the enzyme's surface.
+   The enzymes are drawn only in the overview (layer 1). Each station first holds still with what takes part named (the
+   molecule and its ATP, NAD, ADP or phosphate ion), then the reaction runs and the products are named at rest.
    The molecules: ball-and-stick (mol.js), every atom from the Chemical Component Dictionary, as at pH 7.2; each reaction
    moves the real atoms (mol.js Reaction): a phosphate group from ATP onto glucose (C6, then C1), the ring opening and
    closing, the split between carbons 3 and 4 (lysis), the hydrogen from carbon 1 of triose phosphate onto NAD (oxidation)
@@ -17,9 +22,9 @@
    reacting atom 0.35–0.45 nm from the substrate's.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611060935';
-import { loadProts, protein, surfacePoints, siteW } from './prot.js?v=202611060935';
-import { disposeGroup, glow } from './stage.js?v=202611060935';
+import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611061122';
+import { loadProts, protein } from './prot.js?v=202611061122';
+import { disposeGroup, glow } from './stage.js?v=202611061122';
 
 const NAME = { glucose: 'glucose', g6p: '<i>glucose 6-phosphate</i>', f6p: '<i>fructose 6-phosphate</i>', fbp: '<i>fructose 1,6-bisphosphate</i>', dhap: '<i>dihydroxyacetone phosphate</i>',
   g3p: 'triose phosphate', bpg: '<i>1,3-bisphosphoglycerate</i>', pg3: '<i>3-phosphoglycerate</i>', pg2: '<i>2-phosphoglycerate</i>', pep: '<i>phosphoenolpyruvate</i>', pyruvate: 'pyruvate',
@@ -37,24 +42,25 @@ export async function build(stage, { V }) {
   const keys = PROTS;
   const PR = {}; (await loadProts(keys)).forEach((p, i) => { PR[keys[i]] = p; });
   const g = new THREE.Group(); g.name = 'ch2';
-  /* ---- the stations: an enzyme each, its site(s) at (x, 0, 0) ---- */
+  /* ---- the stations: an enzyme each, its site(s) at (x, 0, 0); phosphoglycerate kinase works alone, so two of it stand
+     one above the other, as close as their shapes allow (4.8 nm tall), so that both lanes fit one close-up ---- */
   const X = { A: 0, B: 21, C: 44, D: 67, E: 86, F: 104, G: 123, H: 140, I: 156, J: 174, K: 197, L: 220, M: 238 };
   const enz = {}, siteOf = {};
+  const inOv = e => e.traverse(o => o.layers.set(1));          /* an enzyme: in the overview only */
   const place = (st, key, { pair = false, copies = null, site = 'site' } = {}) => {
     const S = V(X[st], 0, 0), list = [];
-    if (copies) { siteOf[st] = S.clone(); } if (copies) copies.forEach((off, i) => { const e = protein(PR[key], { color: COL[key], glass: true, opacity: 0.2 }); e.position.copy(S).add(off).sub(e.userData.sites[site]); g.add(e); list.push(e); siteOf[st + i] = S.clone().add(off); e.userData.hole.set(S.x + off.x, S.y + off.y, S.z + off.z + 1.6, 3.0); });
+    if (copies) { siteOf[st] = S.clone(); } if (copies) copies.forEach((off, i) => { const e = protein(PR[key], { color: COL[key] }); e.position.copy(S).add(off).sub(e.userData.sites[site]); g.add(e); inOv(e); list.push(e); siteOf[st + i] = S.clone().add(off); });
     else {
-      const e = protein(PR[key], { color: COL[key], glass: true, opacity: 0.2 }), s = e.userData.sites;
+      const e = protein(PR[key], { color: COL[key] }), s = e.userData.sites;
       const mid = pair && s.a ? s.a.clone().add(s.b).multiplyScalar(0.5) : s[site];
-      e.position.copy(S).sub(mid); g.add(e); list.push(e);
-      e.userData.hole.set(S.x, S.y, S.z + 1.6, pair ? 4.2 : 3.0);
+      e.position.copy(S).sub(mid); g.add(e); inOv(e); list.push(e);
       if (pair && s.a) { siteOf[st + 'a'] = e.position.clone().add(s.a); siteOf[st + 'b'] = e.position.clone().add(s.b); }
       siteOf[st] = S.clone();
     }
     enz[st] = { key, list };
   };
   place('A', 'hk2', { site: 'glucose' }); place('B', 'gpi'); place('C', 'pfk'); place('D', 'aldolase'); place('E', 'tpi');
-  place('F', 'gapdh', { pair: true }); place('G', 'pgk', { copies: [V(0, 3.6, 0), V(0, -3.6, 0)], site: 'pg3' }); place('H', 'pgam', { pair: true });
+  place('F', 'gapdh', { pair: true }); place('G', 'pgk', { copies: [V(0, 2.5, 0), V(0, -2.5, 0)], site: 'pg3' }); place('H', 'pgam', { pair: true });
   place('I', 'enolase', { pair: true }); place('J', 'pkm', { pair: true }); place('K', 'ldh', { pair: true }); place('L', 'pdc'); place('M', 'adh');
   const at = (st, lane) => siteOf[st + lane] || siteOf[st];
   /* ---- the lanes' molecules, station by station (worked out once: any step can be shown from its start) ---- */
@@ -127,9 +133,9 @@ export async function build(stage, { V }) {
       const outs = d.out.map(([key, id, leave, shift]) => ({ key, id, leave, shift, P: rx.placeOf(id), num: nums[id] }));
       return { d, inP, cofs, rx, outs, lane: d.lane };
     });
-    /* a lane not used here waits beside the station */
+    /* a lane not used here waits beside the station, below and to the left, clear of the other lane's way to the next */
     const used = new Set(DEF[s].map(d => d.lane));
-    const waits = Object.keys(lanes).filter(k => !used.has(k)).map(k => ({ lane: k, P: { p: at(s).clone().add(V(-3.2, -5.2, 2.5)), q: lanes[k].P.q }, key: lanes[k].key, num: lanes[k].num }));
+    const waits = Object.keys(lanes).filter(k => !used.has(k)).map(k => ({ lane: k, P: { p: at(s).clone().add(V(-2.6, -2.6, 1.6)), q: lanes[k].P.q }, key: lanes[k].key, num: lanes[k].num }));
     ST[s] = { start, procs, waits };
     /* after it: the lanes that go on */
     const next = {};
@@ -146,6 +152,9 @@ export async function build(stage, { V }) {
   const knobs = { cam: 0 }; ORDER.forEach(s => { knobs['k' + s] = 0; });
   const BS = ballStick(700, 800); g.add(BS.group);
   let drawn = { atoms: [], bonds: [] };
+  /* the lanes' molecules (glucose; the two triose phosphates; the yeast's pyruvate), for the overview's gold dots */
+  const LANES = ['g', 't', 'd', 'y'], lanePos = {};
+  let cur = null;
   const lerpPose = (A, B, f) => ({ p: A.p.clone().lerp(B.p, f), q: A.q.clone().slerp(B.q, f) });
   function instances(K) {
     let cur = null; for (const s of ORDER) if (K['k' + s] > 0) cur = s;
@@ -175,6 +184,11 @@ export async function build(stage, { V }) {
     I.rx.forEach(r => { const base = all.atoms.length; all.atoms.push(...r.atoms); r.bonds.forEach(b => all.bonds.push({ a: b.a + base, b: b.b + base, o: b.o, s: b.s })); });
     BS.draw(all.atoms, all.bonds, stage.cam.position.clone().sub(stage.view.at).normalize());
     drawn = all;
+    /* for the overview: the station at work, and the middle of each lane's molecule */
+    cur = null; for (const s of ORDER) if (K['k' + s] > 0) cur = s;
+    for (const id of LANES) lanePos[id] = null;
+    const n = {}; for (const a of all.atoms) if (LANES.includes(a.id) && (a.s == null || a.s > 0.5)) { const c = n[a.id] || (n[a.id] = { p: V(), k: 0 }); c.p.add(a.p); c.k++; }
+    for (const id in n) lanePos[id] = n[id].p.divideScalar(n[id].k);
     const lane = all.atoms.filter(a => a.gn != null); if (lane.length) { halo.position.copy(lane.reduce((c, a) => c.add(a.p), V()).divideScalar(lane.length)); halo.visible = true; } else halo.visible = false;
   }
   function nums() {
@@ -184,44 +198,150 @@ export async function build(stage, { V }) {
     }
     return out;
   }
-  /* ---- the views: the row of enzymes, then each station ---- */
-  const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
-  const views = [{ at: V(120, 1, -2), dist: 150, dir: D(0.1, 0.22, 1), up: UP }].concat(ORDER.map(s => ({ at: at(s).clone().add(V(0.3, 0.3, 0.6)), dist: s === 'G' ? 12.5 : ['F', 'H', 'I', 'J', 'K'].includes(s) ? 10.5 : 7.5, dir: D(0.04, 0.1, 1), up: UP })));
+  /* ---- the views: glucose at the start, then each station. The enzymes are drawn only in the overview, so a station's
+     close-up is framed on its molecules alone: all of them, from their arrival to the released ones waiting aside, at
+     their middle, as far back as the screen needs to show them all with their names (stage.js fitView; 6 Nov 2026: the
+     second lane had lain at the picture's edge; on a phone it may turn a quarter round, the lanes then side by side) ---- */
+  const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0), DIR = D(0.04, 0.1, 1);
+  const RIGHT = new THREE.Vector3().crossVectors(UP, DIR).normalize(), UPV = new THREE.Vector3().crossVectors(DIR, RIGHT).normalize();
+  function frame(s) {      /* s: a station; null: glucose before the first */
+    const pts = [];
+    for (const k of s ? [1, 1.999, 2.5, 3, 4] : [0]) {
+      const K = {}; ORDER.forEach(x => { K['k' + x] = 0; }); if (s) K['k' + s] = k;
+      const I = instances(K), all = gather(I.insts);
+      I.rx.forEach(r => all.atoms.push(...r.atoms));
+      for (const a of all.atoms) if (a.s == null || a.s > 0.5) pts.push(a.p);
+    }
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z = 0;
+    for (const p of pts) { const x = p.dot(RIGHT), y = p.dot(UPV); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); z += p.dot(DIR); }
+    const c = RIGHT.clone().multiplyScalar((x0 + x1) / 2).addScaledVector(UPV, (y0 + y1) / 2).addScaledVector(DIR, z / pts.length);
+    const PAD = 0.14;   /* an atom's radius */
+    return { at: c, dist: 7.5, dir: DIR, up: UP, fit: { min: 5.5, side: RIGHT, pts: pts.map(p => { const q = p.clone().sub(c); return [Math.abs(q.dot(RIGHT)) + PAD, Math.abs(q.dot(UPV)) + PAD, q.dot(DIR)]; }) } };
+  }
+  const views = [frame(null)].concat(ORDER.map(frame));
   const vi = s => 1 + ORDER.indexOf(s);
   /* ---- names ---- */
   const molPts = (id) => () => drawn.atoms.filter(a => a.id === id && a.el !== 'H' && (a.s == null || a.s > 0.5)).map(a => a.p.clone());
   const labels = {};
-  ORDER.forEach(s => {
-    /* the enzyme's name on points of its glass inside the station's view (the review: points 4.5 nm out had been off the
-       picture, so the name was left out) */
-    enz[s].list.forEach((e, i) => { labels[s + 'e' + i] = { html: `<i>${ENZ[enz[s].key]}</i>`, lv: 'x', side: 'r', pts: () => surfacePoints(e, [at(s).clone().add(V(2.8, 1.8, 3)), at(s).clone().add(V(2.8, -1.8, 3)), at(s).clone().add(V(3.2, 0, 2.5)), at(s).clone().add(V(-2.8, 1.8, 3)), at(s).clone().add(V(-2.8, -1.8, 3))]) }; });
-  });
-  const mol = (id, key, side = 'l') => ({ html: NAME[key], side, lv: /<i>/.test(NAME[key]) ? 'x' : null, pts: molPts(id) });
+  /* a name on the left of the molecule that changes (it stands on the left of its site), on the right of what helps it
+     (ATP, ADP, NAD, a phosphate ion: on the right), so that no name's line crosses the other molecule */
+  const mol = (id, key, side = 'l') => ({ html: NAME[key], side, lv: /<i>/.test(NAME[key]) ? 'x' : null, pts: molPts(id), mid: id });
   Object.assign(labels, {
     g6p: mol('g', 'g6p'), f6p: mol('g', 'f6p'), fbp: mol('g', 'fbp'), adp: mol('a', 'adp', 'r'), dhap: mol('d', 'dhap'), g3pt: mol('t', 'g3p', 'r'), g3pd: mol('d', 'g3p'),
-    nadh: mol('nt', 'nadh', 'r'), nadhd: mol('nd', 'nadh', 'r'), bpg: mol('t', 'bpg', 'r'), atpt: mol('at', 'atp', 'r'), pg3: mol('t', 'pg3', 'r'), pg2: mol('t', 'pg2', 'r'),
-    water: mol('wt', 'water', 'r'), pep: mol('t', 'pep', 'r'), pyr: mol('t', 'pyruvate', 'r'), pyrd: mol('d', 'pyruvate', 'l'), lact: mol('t', 'lactate', 'r'), nadt: mol('nt', 'nad', 'r'),
+    nadh: mol('nt', 'nadh', 'r'), nadhd: mol('nd', 'nadh', 'r'), bpg: mol('t', 'bpg', 'l'), atpt: mol('at', 'atp', 'r'), pg3: mol('t', 'pg3', 'l'), pg2: mol('t', 'pg2', 'l'),
+    water: mol('wt', 'water', 'r'), pep: mol('t', 'pep', 'l'), pyr: mol('t', 'pyruvate', 'l'), pyrd: mol('d', 'pyruvate', 'l'), lact: mol('t', 'lactate', 'l'), nadt: mol('nt', 'nad', 'r'),
     ethanal: mol('y', 'ethanal', 'l'), co2: mol('cy', 'co2', 'r'), ethanol: mol('y', 'ethanol', 'l'), nady: mol('ny', 'nad', 'r'),
-    row: { html: 'each see-through shape: one enzyme molecule', side: 'r', pts: () => surfacePoints(enz.F.list[0], [at('F').clone().add(V(4, 4, 3))]) }
+    /* what takes part, named before it changes (memory name-it-on-the-picture) */
+    glucose: mol('g', 'glucose', 'l'), atpa: mol('a', 'atp', 'r'), pit: mol('pt', 'pi', 'r'), adpt: mol('at', 'adp', 'r'), pyry: mol('y', 'pyruvate', 'l'), nadhy: mol('ny', 'nadh', 'r')
   });
-  const run = (s, ms = [1800, 1400, 3000, 1600]) => [{ to: { cam: vi(s), ['k' + s]: 1 }, ms: ms[0] }, { to: { ['k' + s]: 2 }, ms: ms[1] }, { to: { ['k' + s]: 3 }, ms: ms[2] }, { to: { ['k' + s]: 4 }, ms: ms[3] }];
+  /* a station: its molecules arrive, its cofactor arrives, a hold (what takes part, named), the reaction, what is released
+     moves aside (Daniel, 6 Nov 2026: "a bit faster", and named before as well as after) */
+  const HOLD = { A: { glucose: 1, atpa: 1 }, B: { g6p: 1 }, C: { f6p: 1, atpa: 1 }, D: { fbp: 1 }, E: { dhap: 1 }, F: { g3pt: 1, nadt: 1, pit: 2 },
+    G: { bpg: 1, adpt: 1 }, H: { pg3: 1 }, I: { pg2: 1 }, J: { pep: 1, adpt: 1 }, K: { pyr: 1, nadh: 1 }, L: { pyry: 1 }, M: { ethanal: 1, nadhy: 1 } };
+  const run = (s, ms = [1300, 1000, 2300, 1200]) => [{ to: { cam: vi(s), ['k' + s]: 1 }, ms: ms[0] }, { to: { ['k' + s]: 1.999 }, ms: ms[1] }, { hold: 1700, labs: HOLD[s] },
+    { to: { ['k' + s]: 3 }, ms: ms[2] }, { to: { ['k' + s]: 4 }, ms: ms[3] }];
   const steps = [
-    { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { row: 1 }, pic: 'Each see-through shape is one enzyme, at its true size. In the cytosol they are mixed among thousands of other proteins. The last two, on the right, are a yeast cell\'s.' },
-    { phases: run('A'), labs: { Ae0: 1, g6p: 1, adp: 2 } },
-    { phases: run('B'), labs: { Be0: 1, f6p: 1 } },
-    { phases: run('C'), labs: { Ce0: 1, fbp: 1, adp: 2 } },
-    { phases: run('D'), labs: { De0: 1, dhap: 1, g3pt: 1 } },
-    { phases: run('E'), labs: { Ee0: 1, g3pd: 1, g3pt: 2 } },
-    { phases: run('F', [2200, 1800, 3400, 1600]), labs: { Fe0: 1, bpg: 1, nadh: 1, nadhd: 2 } },
-    { phases: run('G', [2200, 1600, 3000, 1600]), labs: { Ge0: 1, pg3: 1, atpt: 1 } },
-    { phases: run('H'), labs: { He0: 1, pg2: 1 } },
-    { phases: run('I'), labs: { Ie0: 1, pep: 1, water: 1 } },
-    { phases: run('J', [2000, 1600, 3000, 1600]), labs: { Je0: 1, pyr: 1, atpt: 1, pyrd: 2 } },
+    { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { glucose: 1 }, pic: 'Above, each shape is one enzyme at its true size, and the gold dot is the molecule. The last two, on the right, are a yeast cell\'s.' },
+    { phases: run('A'), labs: { g6p: 1, adp: 1 } },
+    { phases: run('B'), labs: { f6p: 1 } },
+    { phases: run('C'), labs: { fbp: 1, adp: 1 } },
+    { phases: run('D'), labs: { dhap: 1, g3pt: 1 } },
+    { phases: run('E'), labs: { g3pd: 1, g3pt: 2 } },
+    { phases: run('F', [1600, 1300, 2600, 1200]), labs: { bpg: 1, nadh: 1, nadhd: 2 } },
+    { phases: run('G', [1600, 1200, 2300, 1200]), labs: { pg3: 1, atpt: 1 } },
+    { phases: run('H'), labs: { pg2: 1 } },
+    { phases: run('I'), labs: { pep: 1, water: 1 } },
+    { phases: run('J', [1500, 1200, 2300, 1200]), labs: { pyr: 1, atpt: 1, pyrd: 2 } },
     { phases: [{ to: { cam: vi('J') }, ms: 400 }], labs: { pyr: 1, pyrd: 1 }, board: '<b>For each glucose</b><span>ATP used: 2</span><span>ATP made: 4</span><span class="b">Net: 2 ATP</span><span class="b">2 reduced NAD</span><span class="b">2 pyruvate</span>' },
     { phases: [{ to: { cam: vi('J') }, ms: 400 }], labs: { pyr: 1, pyrd: 1 }, board: '<b>Without oxygen</b><span>the electron transport chain stops</span><span>↓ NADH cannot give its electrons to it</span><span>↓ soon no NAD is left</span><span class="b">↓ glycolysis would stop</span>' },
-    { phases: run('K', [2400, 1800, 3000, 1600]), labs: { Ke0: 1, lact: 1, nadt: 1 } },
-    { phases: [...run('L', [1800, 600, 2600, 1400]), ...run('M', [1800, 1600, 2600, 1400])], labs: { Me0: 1, ethanol: 1, nady: 1, Le0: 2 } },
-    { phases: [{ to: { cam: 0 }, ms: 2400 }], labs: { row: 1 }, pic: 'The last two enzymes, on the right, are a yeast cell\'s: a muscle cell makes no ethanol.', board: '<b>Anaerobic respiration</b><span>humans: glucose → lactate</span><span>yeast: glucose → ethanol + carbon dioxide</span><span class="b">only 2 ATP per glucose</span><span>its only job: NAD is regenerated</span>' }
+    { phases: run('K', [1800, 1300, 2300, 1200]), labs: { lact: 1, nadt: 1 } },
+    { phases: [...run('L', [1300, 500, 2000, 1000]), ...run('M', [1300, 1200, 2000, 1000])], labs: { ethanol: 1, nady: 1, co2: 2 } },
+    { phases: [{ to: { cam: vi('M') }, ms: 800 }], labs: { ethanol: 1 }, pic: 'The last two enzymes above, on the right, are a yeast cell\'s: a muscle cell makes no ethanol.', board: '<b>Anaerobic respiration</b><span>humans: glucose → lactate</span><span>yeast: glucose → ethanol + carbon dioxide</span><span class="b">only 2 ATP per glucose</span><span>its only job: NAD is regenerated</span>' }
   ];
-  return { group: g, knobs, views, steps, labels, draw, nums, narrowZoom: 0.82, turn: true, dispose() { BS.dispose(); disposeGroup(g); } };
+  /* ---- the overview: the whole row from far away; the names in rows above and below it, each in the first place where
+     it touches no other (Daniel: "Make sure that labels do not overlap"); the four stages of the IB guide over them ---- */
+  g.updateMatrixWorld(true);
+  const STAGES = [['1 Phosphorylation', 'A', 'C'], ['2 Lysis', 'D', 'E'], ['3 Oxidation', 'F', 'F'], ['4 ATP formation', 'G', 'J'], ['Without oxygen', 'K', 'M', 'is-grey']];
+  const box = {}; ORDER.forEach(s => { const b = new THREE.Box3(); enz[s].list.forEach(e => b.expandByObject(e)); const sp = b.getBoundingSphere(new THREE.Sphere()); box[s] = { c: sp.center, r: sp.radius * 0.8 }; });
+  const ovEl = document.createElement('div'); ovEl.className = 'ibv__ovin';
+  const nmEl = {}, lnEl = {}, NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'ibv__ovsvg'); ovEl.appendChild(svg);
+  ORDER.forEach(s => {
+    const l = document.createElementNS(NS, 'line'); svg.appendChild(l); lnEl[s] = l;
+    const n = document.createElement('span'); n.className = 'ibv__ovn'; n.innerHTML = `<i>${ENZ[enz[s].key]}</i>`; ovEl.appendChild(n); nmEl[s] = n;
+  });
+  const stEl = STAGES.map(([t, a, b, cls]) => { const e = document.createElement('span'); e.className = 'ibv__ovs' + (cls ? ' ' + cls : ''); e.innerHTML = `<em>${t}</em>`; ovEl.appendChild(e); return { e, a, b }; });
+  const ring = document.createElement('i'); ring.className = 'ibv__ovr'; ring.hidden = true; ovEl.appendChild(ring);
+  const dots = LANES.map(id => { const e = document.createElement('i'); e.className = 'ibv__ovd'; e.hidden = true; ovEl.appendChild(e); return { id, e }; });
+  let laid = '';
+  /* each name: a row above or below the row of enzymes (its own side first), straight over its enzyme or moved sideways,
+     in the first place where it touches no other name and its line crosses none; a name that finds no place at all is the
+     only one left out, and the check (tools/ib-look.mjs) says so */
+  function layout(P, B, narrow) {
+    const placed = [{ l: 0, r: 130, t: B.H - 44, b: B.H }], gap = 7;   /* the band's scale bar */
+    const touches = bx => placed.some(o => bx.l < o.r + gap && bx.r > o.l - gap && bx.t < o.b + 3 && bx.b > o.t - 3);
+    const crosses = (x0, y0, x1, y1) => placed.some(o => { for (let k = 1; k < 8; k++) { const px = x0 + (x1 - x0) * k / 8, py = y0 + (y1 - y0) * k / 8; if (px > o.l && px < o.r && py > o.t && py < o.b) return true; } return false; });
+    /* the stages' brackets: each over its enzymes, or as wide as its name where that is wider ("3 Oxidation", one enzyme,
+       had run into the next bracket), a neighbour with room to spare giving way */
+    const bk = stEl.map(x => {
+      const a = P(box[x.a].c)[0] - box[x.a].r * B.ppn - 6, b = P(box[x.b].c)[0] + box[x.b].r * B.ppn + 6, w = x.e.firstChild.offsetWidth;
+      const need = w ? w + 14 : 14, c = (a + b) / 2, half = Math.max((b - a) / 2, need / 2);
+      return { x, l: c - half, r: c + half, need };
+    });
+    for (let i = 1; i < bk.length; i++) {
+      const A = bk[i - 1], Z = bk[i]; let over = A.r + 8 - Z.l; if (over <= 0) continue;
+      const tz = Math.min(over, Math.max(0, Z.r - Z.l - Z.need)); Z.l += tz; over -= tz;
+      const ta = Math.min(over, Math.max(0, A.r - A.l - A.need)); A.r -= ta; over -= ta;
+      if (over > 0) { A.l -= over / 2; A.r -= over / 2; Z.l += over / 2; Z.r += over / 2; }
+    }
+    bk.forEach(k => { k.x.e.style.left = k.l.toFixed(1) + 'px'; k.x.e.style.width = (k.r - k.l).toFixed(1) + 'px'; });
+    /* a stage's name, where it shows, is a place no enzyme's name may touch (measured where it is drawn) */
+    const R0 = ovEl.getBoundingClientRect(); let stB = 0;
+    bk.forEach(k => { if (k.need > 14) { const r = k.x.e.firstChild.getBoundingClientRect(); placed.push({ l: r.left - R0.left, r: r.right - R0.left, t: r.top - R0.top, b: r.bottom - R0.top }); stB = Math.max(stB, r.bottom - R0.top); } });
+    ORDER.forEach((s, i) => {
+      const el = nmEl[s], ln = lnEl[s];
+      if (narrow && s !== cur) { el.hidden = true; ln.style.display = 'none'; return; }
+      el.hidden = false; ln.style.display = '';
+      const w = el.offsetWidth, h = el.offsetHeight, [x, y] = P(box[s].c), r = box[s].r * B.ppn;
+      const up = [28, 28 + h + 6, 28 + 2 * h + 12], dn = [B.H - 30 - h, B.H - 36 - 2 * h, B.H - 42 - 3 * h];
+      const rows = (i % 2 ? [['dn', dn], ['up', up]] : [['up', up], ['dn', dn]]).flatMap(([side, tops]) => tops.map(t => [side, t]));
+      let at = null;
+      search: for (const [side, top] of rows) {
+        if (side === 'up' ? top + h > y - r - 4 : top < y + r + 4) continue;
+        for (const dx of [0, -26, 26, -52, 52, -78, 78, -104, 104]) {
+          const l = Math.max(4, Math.min(B.W - w - 4, x + dx - w / 2)), bx = { l, r: l + w, t: top, b: top + h };
+          const ex = Math.max(bx.l + 6, Math.min(bx.r - 6, x)), ey = side === 'up' ? bx.b : bx.t, ty = side === 'up' ? y - r : y + r;
+          if (touches(bx) || crosses(ex, ey, x, ty)) continue;
+          at = { bx, x1: ex, y1: ey, x2: x, y2: ty }; break search;
+        }
+      }
+      /* no row free (a phone's band is too short for a name above or below the row): beside its enzyme, at its height, a
+         short line to the ring round it */
+      if (!at) side: for (const t0 of [y - h / 2, stB + 4, B.H - h - 2]) for (const sd of [1, -1]) {
+        const rr = Math.max(9, r + 5), l = sd > 0 ? x + rr + 12 : x - rr - 12 - w, tt = Math.max(2, Math.min(B.H - h - 2, t0));
+        const bx = { l, r: l + w, t: tt, b: tt + h };
+        if (bx.l < 4 || bx.r > B.W - 4 || touches(bx)) continue;
+        at = { bx, x1: sd > 0 ? bx.l : bx.r, y1: Math.max(bx.t + 6, Math.min(bx.b - 6, y)), x2: x + sd * rr, y2: y }; break side;
+      }
+      if (!at) { el.hidden = true; ln.style.display = 'none'; return; }
+      placed.push(at.bx);
+      el.style.transform = `translate(${at.bx.l.toFixed(1)}px, ${at.bx.t.toFixed(1)}px)`;
+      ln.setAttribute('x1', at.x1.toFixed(1)); ln.setAttribute('y1', at.y1.toFixed(1)); ln.setAttribute('x2', at.x2.toFixed(1)); ln.setAttribute('y2', at.y2.toFixed(1));
+    });
+  }
+  function placeOv(P, B) {
+    const narrow = B.W < 560, key = B.W + 'x' + B.H + (narrow ? cur : '');
+    ovEl.classList.toggle('is-narrow', narrow);
+    ORDER.forEach(s => { nmEl[s].classList.toggle('is-on', s === cur); lnEl[s].classList.toggle('is-on', s === cur); });
+    const ci = cur ? ORDER.indexOf(cur) : -1;
+    stEl.forEach(x => x.e.classList.toggle('is-on', ci >= ORDER.indexOf(x.a) && ci <= ORDER.indexOf(x.b)));
+    if (key !== laid) { laid = key; layout(P, B, narrow); }
+    ring.hidden = !cur;
+    if (cur) { const [x, y] = P(box[cur].c), r = Math.max(9, box[cur].r * B.ppn + 5); ring.style.width = ring.style.height = (2 * r).toFixed(1) + 'px'; ring.style.transform = `translate(${(x - r).toFixed(1)}px, ${(y - r).toFixed(1)}px)`; }
+    dots.forEach(d => { const p = lanePos[d.id]; d.e.hidden = !p; if (p) { const [x, y] = P(p); d.e.style.transform = `translate(${(x - 6).toFixed(1)}px, ${(y - 6).toFixed(1)}px)`; } });
+  }
+  const overview = { view: { at: V(116, 0, 0), dir: D(0, 0.28, 1), up: UP }, width: 268, el: ovEl, place: placeOv };
+  /* every atom on the screen, which no name may cover (stage.js setAvoid) */
+  const avoid = () => drawn.atoms.filter(a => a.s == null || a.s > 0.5).map(a => ({ p: a.p, id: a.id, h: a.el === 'H' }));
+  return { group: g, knobs, views, steps, labels, draw, nums, avoid, overview, narrowZoom: 0.82, turn: true, dispose() { BS.dispose(); disposeGroup(g); } };
 }
