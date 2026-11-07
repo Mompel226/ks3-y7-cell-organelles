@@ -64,7 +64,13 @@ carbons, and each step's enzyme with what enters and leaves it); and the electro
 a dam, and ATP synthase. Then the tally, two questions, and Daniel's article, which opens only when both
 are answered. Every molecule is drawn atom by atom, glucose's carbon atoms numbered 1 to 6 and followed through every
 reaction; every protein is its measured shape; side paths explore NAD, FAD, coenzyme A, oxidation and reduction, and the
-two ways of making ATP. Steps wait for Next; every key word opens its meaning, with Korean and Chinese.
+two ways of making ATP. A longer side path, **Explore: insulin and its receptor** (IB HL, C2.1.11; its own address,
+<https://nlcsbiology.com/ks3-y7-cell-organelles/glucose-to-atp/#x-insulin-1>), opens from chapter 1: insulin binds to its
+receptor, a glycoprotein drawn in the membrane with its carbohydrate chains; the receptor changes from a V into an
+upside-down T (both shapes measured); its two tyrosine kinase parts meet and phosphorylate tyrosines; one phosphorylation
+atom by atom; the sequence of reactions (IRS-1, PI3-kinase, PIP3, Akt, AS160, Rab); a vesicle 60 nm across, cut open,
+moves to the plasma membrane and fuses with it; its glucose transporters, now in the plasma membrane, let more glucose
+in. Steps wait for Next; every key word opens its meaning, with Korean and Chinese.
 
 **The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
 made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of
@@ -106,6 +112,7 @@ selling. Third-party pictures, music and sounds keep their own licences (below).
 | ATP synthase, in the mitochondria and in From glucose to ATP | its measured shape: human ATP synthase by electron cryo-microscopy at 2.53 Å, PDB 8H9S (Lai et al. 2023, *Molecular Cell* 83:2137), each of its 27 subunits drawn as a smooth surface (`tools/atp-synthase.py`; the structure file stays on this computer) | CC0 (wwPDB) |
 | the molecules of From glucose to ATP | their ideal shapes from the wwPDB Chemical Component Dictionary: 39 molecules, each at the charge it has in a cell (pH 7.2), its atoms named so that each reaction moves every atom to its place (`tools/ib-molecules.py`) | CC0 (wwPDB) |
 | the proteins of From glucose to ATP | 23 measured structures from the Protein Data Bank, each drawn as a smooth surface (`tools/ib-proteins.py`; the structure files stay on this computer; each paper is named in `js/ib/prot/`): GLUT4 7WSM; the ten enzymes of glycolysis, hexokinase 2 2NZT, 1JLH, 4XYJ, 4ALD, 1HTI, 1U8F, 2XE7, 1YFK, 2PSN, 3SRF; lactate dehydrogenase 1I10; yeast pyruvate decarboxylase 1PVD and alcohol dehydrogenase 4W6Z; porin 2JK4; the pyruvate carrier in three shapes, 8YW6, 9KNX, 8YW9; the pyruvate dehydrogenase core 6CT0; complexes I, III and IV 5XTH; complex II 8GS8; cytochrome c 3ZCF; the ATP–ADP exchanger 1OKC | CC0 (wwPDB) |
+| the insulin receptor, insulin and the receptor's kinase in From glucose to ATP | their measured shapes from the Protein Data Bank (`tools/ib-insulin.py`; the structure files stay on this computer): the receptor before insulin binds, PDB 8U4B (An et al. 2024, *Nature Communications* 15:7567), and with four insulin molecules bound, PDB 6PXV (Uchikawa et al. 2019, *eLife* 8:e48630), each of its domains moved from one shape to the other; its kinase part with ATP and a piece of IRS-1, PDB 1IR3 (Hubbard 1997, *EMBO Journal* 16:5572) | CC0 (wwPDB) |
 | the music | Scott Buckley: 'The Distant Sun', 'Adrift Among Infinite Stars' and 'Penumbra', released under CC-BY 4.0, [www.scottbuckley.com.au](https://www.scottbuckley.com.au) (made smaller, each set to the same loudness: `tools/music.py`) | CC BY 4.0 |
 | the game's sounds (bells, rubbed glasses, wind chimes, a harp note) | Versilian Community Sample Library (VCSL), Versilian Studios, [github.com/sgossner/VCSL](https://github.com/sgossner/VCSL) (`tools/sounds.py`, each note tuned) | CC0 |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
@@ -138,9 +145,12 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   crosses a molecule), `mol.js` (ball-and-stick
   molecules; a reaction moves each atom by its name), `prot.js` (the measured proteins, see-through, with a window into an
   active site), `membrane.js` (a bilayer about 5 nm thick, no lipid in front of a protein), `ch0.js`–`ch6.js` (the
-  chapters), `paper.js` (the tally, Test yourself, Read more), `xmol.js` (the Explore paths), `text.js` (every word). Its
+  chapters), `paper.js` (the tally, Test yourself, Read more), `xmol.js` (the Explore paths), `xins.js` (the insulin path:
+  the receptor, the sequence of reactions, the vesicle that fuses), `text.js` (every word). Its
   data are written by tools, never by hand: `python3 -I tools/ib-molecules.py` writes `js/ib/mol-data.js`,
-  `python3 -I tools/ib-proteins.py` writes `js/ib/prot/*.js`, from files cached on this computer. The IB switch is in
+  `python3 -I tools/ib-proteins.py` writes `js/ib/prot/*.js`, `python3 -I tools/ib-insulin.py` writes `js/ib/prot/ir.js`
+  and `irk.js` (the insulin receptor's domains before and after insulin binds, insulin, the kinase), from files cached on
+  this computer. The IB switch is in
   `js/game/quest.js` (`ibSwitch`); what IB adds to each step, and each step in IB terms, in `js/story.js` (`ib`).
   The old Explorer film inside a mitochondrion is in the Biology Hub's `Archive/2026-11-05/`.
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
@@ -189,12 +199,13 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   each step at rest and reports any two names that overlap, a name on the hint or the board, any main name not shown at
   rest (MISSING, with what turned each place down), the overview band's names (shown, and any two that touch) and any page error
   (`--w 390 --h 844 --mobile 1` a phone,
-  `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path, `--full 1` through its Full screen button);
+  `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path (`--x x-insulin` the insulin path), `--full 1`
+  through its Full screen button);
   `node tools/ib-switch.mjs` plays the IB switch as a pupil (no switch before every check is right, the IB words and terms,
   the names, the doors into the view and back, on or off kept after a reload; `--w`/`--h`, `--mobile 1`).
   `node tools/ib-speed.mjs --gate 1` checks how the view loads and moves on a pupil's first visit (a new browser profile;
   `--net 4g`, `--cpu 4`, `--mobile 1`): no fade left solid, every step smooth once its picture shows, still pictures
-  light; `--double 1` presses Next twice, holds → and presses Back while a chapter loads; `--game 1` presses the game's IB
+  light; `--x x-insulin` the insulin path, at its own address, to its end; `--double 1` presses Next twice, holds → and presses Back while a chapter loads; `--game 1` presses the game's IB
   door twice, then opens and closes the view 20 times (one view, never seen unstyled, the game's own 3D picture kept).
   `node tools/panel-reveal.mjs` plays the way in's glucose step with the page at its top: what a press adds to the step
   (the choices, a message) must come wholly into view, in the panel and in the window, and glow for a moment

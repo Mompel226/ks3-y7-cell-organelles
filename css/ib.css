@@ -165,6 +165,8 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__lab span i{font-style:italic}
 .ibv__lab--r{flex-direction:row-reverse}
 .ibv__lab--x span{font-style:italic;border-style:dashed;color:#E4E7F2}
+/* a long name in a crowded close-up may take two lines on a phone (the insulin path's tyrosine, 7 Nov 2026) */
+@media (max-width:560px){.ibv__lab--two span{white-space:normal;max-width:8.6em;text-align:center}}
 .ibv__lab .k{color:#FFD27A}
 .ibv__num{position:absolute;left:0;top:0;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:#FFD27A;color:#1b1640;font:900 11.5px/1 var(--ibv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.4);will-change:transform}
 .ibv__num.old{background:#C9CFE0;color:#2a3046}

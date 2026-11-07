@@ -16,7 +16,7 @@
    z out of the picture. Units: µm, like the rest of the world.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611071821';
+import { magicStandard } from './magic.js?v=202611071901';
 
 const nm = 0.001;
 export const TRUE = {

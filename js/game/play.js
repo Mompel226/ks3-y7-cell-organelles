@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611071821';
-import { state, COST, RESPIRE } from './state.js?v=202611071821';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611071821';
-import { TRUE, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611071821';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611071901';
+import { state, COST, RESPIRE } from './state.js?v=202611071901';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611071901';
+import { TRUE, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611071901';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611071821').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611071901').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */

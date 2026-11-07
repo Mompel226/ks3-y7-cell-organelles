@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611071821';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611071821';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611071901';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611071901';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -83,7 +83,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611071821', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611071901', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -92,7 +92,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611071821' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611071901' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -299,7 +299,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     stage.setNums([]); stage.scene.add(scene.group); stage.defineLabels(scene.labels || {}); stage.setOverview(scene.overview || null);
     /* a key to the spaces' colours, where a chapter shows them (the same colour for each space in every chapter) */
     keyEl.innerHTML = (scene.key || []).map(([t, c]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join(''); keyEl.hidden = !scene.key;
-    xRet = fromExplore;
+    xRet = fromExplore || (typeof i === 'string' && def.ret ? { ci: Math.max(0, CHAPTERS.findIndex(c => c.id === def.ret.ch)), si: def.ret.s } : null);
     const s0 = Math.max(0, Math.min(steps.length - 1, s));
     /* then the start of its step, still under the veil, now fully dark */
     veilEl.classList.add('is-first');
@@ -314,7 +314,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   }
   /* the next chapter (its code and its measured shapes) is fetched while the pupil reads this one, so Next opens it at
      once (Daniel, 5 Nov 2026: "buffer as much as possible ... Everything loads when it should be loading, not before") */
-  const fetched = new Set();
+  const fetched = new Set(), fetchedX = new Set();
   function ahead() {
     const n = nextOpen(ci); if (n == null || fetched.has(n)) return;
     fetched.add(n);
@@ -342,6 +342,11 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     }
     const xs = (st.x || []).map(id => EXPLORE[id] ? `<button type="button" class="ibv__xb" data-x="${id}">🧭 ${esc(EXPLORE[id].title)}</button>` : '').join('');
     $('.ibv__xs').innerHTML = xs;
+    (st.x || []).forEach(id => {
+      if (!EXPLORE[id] || fetchedX.has(id)) return; fetchedX.add(id);
+      const go = () => chapterModule(EXPLORE[id]).then(m => m.prefetch && m.prefetch()).catch(() => fetchedX.delete(id));
+      if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 2500 }); else setTimeout(go, 400);
+    });
     backB.disabled = s === 0 && !xRet && ci === 0; againB.disabled = true; nextB.disabled = true; nextB.classList.remove('pulse');
     const last = s === steps.length - 1;
     nextB.textContent = last ? (xRet ? 'Back to the chapter →' : nextChapterLabel()) : 'Next step →';
@@ -367,6 +372,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     }
     stage.showLabels(sst.labs || {}); stage.setRest(true);
     nextB.disabled = false; againB.disabled = false; nextB.classList.add('pulse');
+    if (typeof ci === 'string' && !inGame) history.replaceState(null, '', '#' + ci + '-' + (s + 1));
     if (typeof ci === 'number') { const done = store.get('ib', {}); done.at = { ci, si: s }; done.max = done.max || {}; done.max[C.id] = Math.max(done.max[C.id] || 0, s + 1); store.set('ib', done); if (!inGame) history.replaceState(null, '', '#' + C.id + '-' + (s + 1)); }
     window.IBV.at = { ci, si: s, rest: true };
     ahead();
@@ -477,8 +483,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     close
   };
   let first = { ci: 0, si: 0 };
-  const h = /^#(c\d|[a-z]+)-(\d+)$/.exec(location.hash || '');
-  if (!inGame && h) { const i = CHAPTERS.findIndex(c => c.id === h[1]); if (i >= 0) first = { ci: i, si: +h[2] - 1 }; }
+  const h = /^#(c\d|x-[a-z0-9]+|[a-z]+)-(\d+)$/.exec(location.hash || '');
+  if (!inGame && h) { const i = CHAPTERS.findIndex(c => c.id === h[1]); if (i >= 0) first = { ci: i, si: +h[2] - 1 }; else if (EXPLORE[h[1]]) first = { ci: h[1], si: +h[2] - 1 }; }
   else if (start) first = start;
   else if (saved.at && CHAPTERS[saved.at.ci] && !CHAPTERS[saved.at.ci].soon) first = { ci: saved.at.ci, si: 0 };
   openChapter(first.ci, first.si);
