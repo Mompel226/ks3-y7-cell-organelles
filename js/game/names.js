@@ -20,8 +20,9 @@ export class Names {
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
      free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
      name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room), aside
-     (on a phone, beside its part first: a protein the name would hide), side ('L' or 'R': beside the cell, the only side it
-     may stand on, when its line from the other side would cross another part; with no room there it is left out) }];
+     (on a phone, beside its part first: a protein the name would hide), prefer (-1: on a phone, beside it on the left
+     first), side ('L' or 'R': beside the cell, the only side it may stand on, when its line from the other side would
+     cross another part; with no room there it is left out) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in) */
   set(list, keepOut, frame) {
@@ -146,7 +147,7 @@ export class Names {
       const tries = [];
       c.pts.forEach(sc => {
         const on = { sc, bx: { l: sc.x - c.w / 2, r: sc.x + c.w / 2, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } };
-        const by = [1, -1].map(k => { const gap = 22, l = k > 0 ? sc.x + gap : sc.x - gap - c.w; return { sc, line: k, bx: { l, r: l + c.w, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } }; });
+        const by = (c.it.prefer === -1 ? [-1, 1] : [1, -1]).map(k => { const gap = 22, l = k > 0 ? sc.x + gap : sc.x - gap - c.w; return { sc, line: k, bx: { l, r: l + c.w, t: sc.y - c.h / 2, b: sc.y + c.h / 2 } }; });
         if (c.it.aside) tries.push(...by, on); else tries.push(on, ...by);
       });
       const at = tries.find(o => !hit(o.bx));

@@ -28,7 +28,7 @@ import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js?v
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { MeshoptDecoder } from '../vendor/three/examples/jsm/libs/meshopt_decoder.module.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { REAL } from './real.js?v=202611071901';
+import { REAL } from './real.js?v=202611072222';
 const R = window.REV, { $, $$, h, esc } = R;
 
 const SIMPLE = { src: 'img/diagram/simple-animal-cell.svg', vb: [730.39, 560.42], credit: 'Diagram: domdomegg, Wikimedia Commons, CC BY 4.0 (ribosomes added by the Cells Lab)' };
@@ -51,7 +51,7 @@ const PART = {
   rer:      { d: 'detail', at: [291, 165], r: 14, name: 'rough ER', size: 'Each flattened sac of rough ER is about 0.05 to 0.1 µm thick. The game draws the gaps between the sacs two or three times wider, so you can see them.', big: 'each flattened sac of rough ER would be 30 to 60 cm thick: about as thick as your school bag is tall.' },
   ser:      { d: 'detail', at: [180, 214], r: 15, name: 'smooth ER', size: 'The tubes of smooth ER are about 0.03 to 0.06 µm wide.', big: 'a tube of smooth ER would be about 20 to 40 cm wide: about as wide as a bucket.' },
   golgi:    { d: 'detail', at: [145.7, 145.3], r: 36, name: 'Golgi apparatus', size: 'A stack of Golgi sacs is about 1 to 3 µm across, with about 4 to 8 sacs.', big: 'a stack of Golgi sacs would be 6 to 19 m across: about the size of a house.' },
-  tracks:   { d: 'detail', at: [345.5, 117], r: 11, name: 'microtubule', size: 'A microtubule is 25 nanometres wide, but it can be many micrometres long. Kinesin, one kind of motor protein, is about 80 nanometres long and walks along it in steps of 8 nanometres. Close up, the game shows them at their true sizes. From far away, it draws microtubules about three times thicker. The game draws your vesicle\'s motor protein like kinesin. The one that carries these vesicles to the top of the cell is probably dynein, which has another shape.', big: 'a microtubule would be 16 cm wide, as wide as a football. Kinesin would be half a metre long, taking steps of 5 cm, and your vesicle would be as tall as a house: a ball 5.6 m high.' }
+  tracks:   { d: 'detail', at: [345.5, 117], r: 11, name: 'microtubule', size: 'A microtubule is 25 nanometres wide, but it can be many micrometres long. The motor protein that carries these vesicles to the top of the cell is probably dynein. Each of its two heads is a ring about 14 nanometres across, on a thin stalk 15 nanometres long. Dynein walks only with dynactin, a rod 38 nanometres long, and an adaptor protein that holds the vesicle. Which adaptor protein these vesicles use is not yet known. Often two dyneins join one dynactin: the game shows one, so that you can see its steps. Each time a head steps, the vesicle moves on, most often 8 nanometres; some steps are longer, and some go backwards or to the side. Close up, the game shows them at their true sizes. From far away, it draws microtubules about three times thicker.', big: 'a microtubule would be 16 cm wide, about the length of a phone. Each head of dynein would be 9 cm across, the size of an orange. Your vesicle would be as tall as a house: a ball 5.6 m high.' }
 };
 
 /* the parts of the real cell model each place lights (the ER: rough and smooth together, as the data has them) */
@@ -110,7 +110,7 @@ function bigPieces(geo) {
 function loadModel() {
   if (model) return model;
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611071901'));
+  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611072222'));
 }
 function viewer(pane, id) {
   const R3 = REAL3D[id], wrap = pane.querySelector('.lens__3d');

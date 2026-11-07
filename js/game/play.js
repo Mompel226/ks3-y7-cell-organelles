@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611071901';
-import { state, COST, RESPIRE } from './state.js?v=202611071901';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611071901';
-import { TRUE, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611071901';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611072222';
+import { state, COST, RESPIRE } from './state.js?v=202611072222';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611072222';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611072222';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611071901').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611072222').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -1180,9 +1180,11 @@ export function makePlay(world, quest) {
   /* ---------------- microtubules, at their true sizes (tracks.js) ----------------
      Daniel, 6 Nov 2026, of the red blood cells at the way in: "I have really gone small"; for this place, 7 Nov 2026:
      "Yes, build it". The place opens on your vesicle from far away. Then the camera comes close, with the scale bar, to
-     the microtubule beside it, where the microtubule (25 nm wide), a motor protein (about 80 nm long) and the vesicle
-     (900 nm across: about 11 times the motor's length) are all at their true sizes. Attach: the motor reaches the
-     vesicle and holds it, then walks a few steps of 8 nm (slowed down: a real one takes about 100 a second). The maze is
+     the microtubule beside it, where the microtubule (25 nm wide), the motor protein and the vesicle (900 nm across) are
+     all at their true sizes. The motor protein is dynein, its heads rings 14 nm across, with dynactin (38 nm) and an
+     adaptor protein, joined together on the vesicle (tracks.js has every size and its source). Attach: dynein's heads
+     land on the microtubule, and it walks seven steps of different sizes (slowed down: a real one moves about 0.9 µm a
+     second). The maze is
      seen from far again: there the motor is too small to see (a glow shows where it is), and the microtubules are drawn
      three times thicker, as everywhere in the game (the How big? card says so); while the camera comes close, those fade
      and the true one shows. The vesicle hangs beside its microtubule, held by the motor, never threaded on it. */
@@ -1191,7 +1193,7 @@ export function makePlay(world, quest) {
   /* the vesicle's side of a microtubule: on its left, seen from the cut front of the cell, when the microtubule goes up
      (so that, close up, the motor and the microtubule stand clear of the pupil's bag, top left) */
   const sideOf = a => FRONT.clone().cross(a).normalize();
-  const HOLD = TRUE.mt + TRUE.reach + 0.45;            /* from a microtubule's middle to the vesicle's (radius 0.45 µm) */
+  const HOLD = TRUE.mt + TRUE.reach + 0.45;            /* from a microtubule's middle to the vesicle's (radius 0.45 µm), across it */
   /* three crossings; each move is 80 % of what it was before 7 Nov 2026, because the vesicle now starts higher */
   const FORKS = [[V(0.4, 1.1, -0.1), V(-1.3, 0.15, 0.3)], [V(-0.2, 1.0, 0.2), V(1.2, -0.1, 0.1)], [V(0.3, 1.2, -0.3), V(-1.2, 0.2, 0.2)]].map(f => f.map(v => v.multiplyScalar(0.8)));
   /* the motor starts on the first microtubule, with the vesicle 1.9 µm further up it than the top of the Golgi
@@ -1209,9 +1211,10 @@ export function makePlay(world, quest) {
   /* the motor and your vesicle, built once in the place (a pupil who comes back to the maze has them at the start) */
   function rig() {
     if (props.rig) return props.rig;
-    const mot = trueMotor(), ves = token('vesicle', 0.45), core = amylaseCore(0.45), glow = glowSprite(0xff6ec4);
-    ves.add(core); ves.position.set(0, HOLD, 0); mot.cargo.add(ves);
-    glow.position.set(0, TRUE.mt + 0.04, 0); mot.group.add(glow);
+    const mot = trueMotor(), ves = token('vesicle', 0.45), core = amylaseCore(0.45, 70000, 300), glow = glowSprite(0xff6ec4);
+    /* the vesicle on the adaptor's end, a little behind dynein's heads (towards the plus end): it is towed */
+    ves.add(core); ves.position.set(TRUE.lag, HOLD, 0); mot.cargo.add(ves);
+    glow.position.set(-0.02, TRUE.mt + 0.035, 0); mot.group.add(glow);
     keep(mot.group); mot.group.position.copy(M0); mot.group.quaternion.copy(frameOf(A0));
     return (props.rig = { mot, ves, core, glow, at: M0.clone(), a: A0.clone() });
   }
@@ -1258,27 +1261,45 @@ export function makePlay(world, quest) {
     }
   }
   /* close to the motor, from the cut front of the cell (nothing stands there), a little from the microtubule's other
-     side, so that the vesicle looms over it; the motor below the middle of the picture, clear of the bag */
-  const closeView = r => { const n = sideOf(r.a), f = FRONT.clone().addScaledVector(r.a, -r.a.z).normalize();
-    return { at: r.at.clone().addScaledVector(n, 0.045).addScaledVector(r.a, 0.05), dist: 0.34, dir: f.multiplyScalar(Math.cos(0.18)).addScaledVector(n, -Math.sin(0.18)).normalize(), up: V(0, 1, 0) }; };
-  /* the names close up, each with its true size (on a phone too): the motor's ends on its stalk as it is, bent or
-     straight; the vesicle's two on its skin and its amylase next to the motor, on their side (left), the microtubule's on
-     its own (right), so that no line crosses the microtubule; on a phone the motor's and the microtubule's stand beside
-     them, so that they do not hide the stalk (the expert review, 7 Nov 2026) */
+     side, so that the vesicle looms over it; dynein and dynactin in the middle of the picture, clear of the bag. The
+     camera turns as it comes close (40 degrees), so that dynein's heads are at the top and dynactin hangs below them
+     towards the vesicle: then each part's name has a height of its own (seen with the microtubule upright, they lay in
+     one row across the picture) */
+  const closeView = r => { const n = sideOf(r.a), f = FRONT.clone().addScaledVector(r.a, -r.a.z).normalize(), phone = world.size.w < 640;
+    /* on a phone, closer, and dynein lower in the picture, below the tools, with the microtubule further in */
+    return { at: r.at.clone().addScaledVector(n, phone ? 0.05 : 0.045).addScaledVector(r.a, phone ? -0.004 : -0.015), dist: phone ? 0.25 : 0.22, dir: f.multiplyScalar(Math.cos(0.18)).addScaledVector(n, -Math.sin(0.18)).normalize(),
+      up: r.a.clone().multiplyScalar(0.94).addScaledVector(n, -0.34).normalize() }; };
+  /* the names close up, each with its true size (on a phone too): dynein's ends on its front head, dynactin's on its
+     filament, the adaptor's between dynactin and the vesicle, as they are now; the vesicle's two on its skin and its
+     amylase, on their side (left), the microtubule's on its own (right), so that no line crosses the microtubule; on a
+     phone the proteins' names stand beside them, so that they do not hide them (the expert review, 7 Nov 2026) */
   function nearNames(r) {
     const n = sideOf(r.a), P = (x, y) => r.mot.group.localToWorld(V(x, y, 0)), c = r.ves.getWorldPosition(V(0, 0, 0));
-    /* a point of the vesicle's skin, deg degrees round from its edge nearest the microtubule, towards the camera */
-    const onVes = (deg, up, inside = 0) => { const t = deg * Math.PI / 180; return c.clone().addScaledVector(n, -(0.45 - inside) * Math.cos(t)).addScaledVector(TDIR, (0.45 - inside) * Math.sin(t)).add(V(0, up, 0)); };
+    /* a point of the vesicle's skin (or just inside it), deg degrees round from its edge nearest the microtubule
+       towards the camera, and along µm round it, along the microtubule: on the sphere itself, wherever the camera is */
+    const cam = world.camera.position.clone().sub(c); cam.addScaledVector(n, -cam.dot(n)).normalize();
+    const onVes = (deg, along, inside = 0) => { const t = deg * Math.PI / 180, b = along / 0.45;
+      const d = n.clone().multiplyScalar(-Math.cos(t) * Math.cos(b)).addScaledVector(cam, Math.sin(t) * Math.cos(b)).addScaledVector(r.a, Math.sin(b)).normalize();
+      return c.clone().addScaledVector(d, 0.45 - inside); };
+    const t = (a, b) => '<span class="nm__t">' + a + (b ? '<br>' + b : '') + '</span>', phone = world.size.w < 640;
     quest.names.set([
-      { key: 't-mt', free: true, side: 'R', aside: true, html: '<span class="nm__t">microtubule:<br>25 nm wide</span>', small: '<span class="nm__t">microtubule: 25 nm</span>', spots: [-0.08, -0.05, 0.05, 0.08].map(x => P(x, 0)) },
-      { key: 't-mot', free: true, aside: true, html: '<span class="nm__t">motor protein:<br>about 80 nm long</span>', small: '<span class="nm__t">motor protein: 80 nm</span>', spots: [0.45, 0.6, 0.3].map(t => r.mot.onStalk(t)) },
-      { key: 't-ves', free: true, side: 'L', html: '<span class="nm__t">your vesicle:<br>900 nm across</span>', small: '<span class="nm__t">your vesicle: 900 nm</span>', spots: [0.03, -0.025, 0.055, -0.055, 0.08, -0.08].map((u, i) => onVes(5 + i % 3, u)) },
-      { key: 't-amy', free: true, side: 'L', html: '<span class="nm__t">amylase: 5 nm</span>', small: '<span class="nm__t">amylase: 5 nm</span>', spots: [0, 0.045, -0.045, 0.085, -0.085, 0.12, -0.12, 0.02, -0.02, 0.065, -0.065].map(u => onVes(4, u, 0.005)) }
-    /* the edges of what is named: past the vesicle's spots on one side, past the microtubule's on the other (names.js
-       stands names outside them and uses only spots inside them) */
-    ], HUD2(), lr(onVes(22, 0), P(0.11, 0)));
+      { key: 't-mt', free: true, side: 'R', html: t('microtubule:', '25 nm wide'), small: t('microtubule:', '25 nm'), spots: (phone ? [-0.06, -0.075, -0.05, -0.09] : [-0.035, -0.02, -0.005, 0.01, 0.025, -0.05]).map(x => P(x, 0)) },
+      { key: 't-mot', free: true, side: 'L', aside: true, html: t('dynein:', 'each head 14 nm'), small: t('dynein:', 'each head 14 nm'), spots: r.mot.spots.dynein() },
+      { key: 't-dyn', free: true, side: 'L', aside: true, prefer: -1, html: t('dynactin: 38 nm long'), small: t('dynactin:', '38 nm'), spots: r.mot.spots.dynactin() },
+      { key: 't-ada', free: true, side: 'L', aside: true, html: t('adaptor protein'), small: t('adaptor', 'protein'), spots: r.mot.spots.adaptor() },
+      /* the vesicle's names below the adaptor's, on its skin a little down the microtubule (the picture is turned, so
+         there its skin is right of the names' column) */
+      { key: 't-ves', free: true, side: 'L', html: t('your vesicle: 900 nm'), small: t('your vesicle: 900 nm'), spots: [-0.014, -0.02, -0.017, -0.008, -0.011, -0.026].map(u => onVes(0, u)).concat(phone ? [[30, 0.01], [40, -0.02], [30, 0.04], [45, 0.03]].map(([d, u]) => onVes(d, u)) : []) },
+      { key: 't-amy', free: true, side: 'L', html: t('amylase: 5 nm'), small: t('amylase: 5 nm'), spots: (phone ? [[-0.015, 0.03], [-0.005, 0.03], [0.015, 0.03], [0.03, 0.035], [-0.03, 0.02], [0.045, 0.04], [0.06, 0.03]].map(([u, inside]) => onVes(0, u, inside)) : [-0.036, -0.03, -0.042, -0.046, -0.05].map(u => onVes(2, u, 0.006))) }
+    /* the edges of what is named: just inside the vesicle's skin, nearest the microtubule, on one side; just past the
+       microtubule, by dynein, on the other (names.js stands names outside them and uses only spots inside them) */
+    ], HUD2(), lr(onVes(0, 0, 0.012), P(-0.02, -0.022)));
   }
   async function grab() {
+    /* the words follow the picture (Daniel's rule): the step names dynein, dynactin and the rest only once the camera is
+       close enough to show them */
+    const later = quest.step ? [...quest.step.li.querySelectorAll('.step__t p')].slice(1) : [];
+    later.forEach(p => { p.hidden = true; });
     await fly(TV.pos, TV.at);
     const r = rig(); r.mot.reach(0); r.mot.pose(0, 0);
     /* the first microtubule twice in one place: drawn as seen from far, and at its true size for the close view */
@@ -1287,15 +1308,21 @@ export function makePlay(world, quest) {
     tracksLoop(true);
     await wait(900);
     await camGo(closeView(r), 3800);
+    later.forEach(p => { p.hidden = false; });
+    if (later.length) quest.reveal(later[later.length - 1]);
     nearNames(r);
-    /* the button below the motor, down its microtubule: on a phone, on the motor itself, it hid the motor */
-    await press(() => r.mot.group.localToWorld(V(-0.05, TRUE.mt + 0.03, 0)), 'Attach', { side: 'b' });
+    /* the button on the microtubule, down it, below dynein and dynactin: on a phone, next to the motor, it hid dynein */
+    await press(() => r.mot.group.localToWorld(V(-0.06, -0.015, 0)), 'Attach', { side: 'b' });
     quest.names.set([]);
-    await moveFor(900, k => r.mot.reach(k * k * (3 - 2 * k)));
-    quest.say('The motor protein holds your vesicle. It walks in steps of 8 nm. Here it walks about 65 times slower than a real one, which takes about 100 steps every second.', 'ok');
-    for (let i = 0; i < 6; i++) await moveFor(650, e => r.mot.pose(i, e));
-    /* the six steps kept: the motor's frame moves on 48 nm, and its parts go back to their first places (no change seen) */
-    r.at.addScaledVector(r.a, 6 * TRUE.step); r.mot.group.position.copy(r.at); r.mot.pose(0, 0);
+    /* dynein's two heads land on the microtubule; now it walks */
+    await moveFor(1100, k => r.mot.reach(k * k * (3 - 2 * k)));
+    quest.say('Dynein now walks and carries your vesicle. Each time one head steps, your vesicle moves on, most often 8 nm. Some steps are longer, and some go backwards or to the side. A real one walks about 70 times faster: about 900 nm every second.', 'ok');
+    /* the camera follows dynein, so that it stays in the free part of the picture as it walks 48 nm */
+    const walked = closeView({ at: r.at.clone().addScaledVector(r.a, TRUE.walk), a: r.a });
+    await Promise.all([(async () => { for (let i = 0; i < STEPS.length; i++) await moveFor(560, e => r.mot.pose(i, e)); })(), camGo(walked, STEPS.length * 560)]);
+    /* the seven steps kept: the motor's frame moves on 48 nm, and its parts go back to their first places (no change seen:
+       each head's own steps add up to 48 nm) */
+    r.at.addScaledVector(r.a, TRUE.walk); r.mot.group.position.copy(r.at); r.mot.pose(0, 0);
     nearNames(r);
     await quest.next();
   }

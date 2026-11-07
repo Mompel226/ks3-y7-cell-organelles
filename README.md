@@ -19,7 +19,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Rough ER | docks on a channel; makes the chain inside the rough ER; cuts the signal; folds it (the active site) | amylase in a vesicle |
 | Smooth ER | makes lipids; they form a membrane | lipids |
 | Golgi apparatus | joins the stack; moves through it; sorts proteins by their labels; packages amylase | a packed vesicle |
-| Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the motor protein about 80 nm long, the vesicle 900 nm across): the motor holds the vesicle and steps 8 nm at a time; then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
+| Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the vesicle 900 nm across): the motor protein is probably dynein, its two heads rings 14 nm across, joined with dynactin (38 nm) and an adaptor protein on the vesicle (without them dynein is folded and almost never walks); Attach lands its heads on the microtubule, and it walks seven steps of different sizes (the vesicle moves most often 8 nm, once 16 nm, once back; one head steps round the microtubule and back); then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
 | Cell membrane: the way out | a nerve message (smelling bread); exocytosis into the duct | amylase in saliva |
 | Does your amylase work? | starch and iodine solution: saliva in one well, water (the control) in the other | |
 
@@ -211,9 +211,12 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   (the choices, a message) must come wholly into view, in the panel and in the window, and glow for a moment
   (`--w 1280 --h 700`, `--w 1440 --h 900`, `--w 390 --h 844 --mobile 1`).
   `node tools/tracks-true.mjs` plays the microtubules as a pupil: close up, the camera within 0.4 µm and the scale bar at
-  50 nm, the microtubule 25 nm wide, the motor protein about 80 nm from the microtubule to the vesicle and six steps of
-  8 nm, the motor clear of the bag and the panel; in the maze no microtubule through the vesicle, and the vesicle always in
-  the picture; leaving puts everything back (`--w 390 --h 844 --mobile 1`). `node tools/blood-bend.mjs` moves the way in's
+  50 nm or less, the microtubule 25 nm wide; the motor protein drawn as dynein (it fails on the kinesin drawing of before 7
+  Nov 2026): dynein, dynactin and the adaptor joined from the start, the heads off the microtubule before Attach and on it
+  after, each ring 13–15 nm across with its middle about 17 nm up, dynactin 38 nm, dynein and dynactin 60–72 nm long, the
+  adaptor's end on the vesicle's membrane, seven steps carrying the vesicle 48 nm, all six parts named, dynein clear of the
+  bag and the panel before and after the steps; in the maze no microtubule through the vesicle, and the vesicle always in the picture; leaving puts everything
+  back (`--w 1280 --h 700`, `--w 390 --h 844 --mobile 1`). `node tools/blood-bend.mjs` moves the way in's
   blood through a whole turn: each red blood cell 7.5 µm across before it bends, inside the capillary at every moment, and
   the carbon dioxide's places in the middle of the plasma. `node tools/bag-fold.mjs`: in a place the bag folds by itself
   once it holds three kinds of item, a press opens and folds it, on the map it opens (`--w 390 --h 844 --mobile 1`).
