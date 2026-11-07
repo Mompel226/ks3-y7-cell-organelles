@@ -7,7 +7,7 @@
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611061122';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611071821';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};

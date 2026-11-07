@@ -5,13 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611061122';
-import { state, COST, RESPIRE } from './state.js?v=202611061122';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611061122';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611071821';
+import { state, COST, RESPIRE } from './state.js?v=202611071821';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611071821';
+import { TRUE, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611071821';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611061122').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611071821').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -42,7 +43,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -1176,61 +1177,210 @@ export function makePlay(world, quest) {
     await quest.next('Back to the map');
   }
 
-  /* ---------------- microtubules ---------------- */
-  const T = world.P.tracks.center;
+  /* ---------------- microtubules, at their true sizes (tracks.js) ----------------
+     Daniel, 6 Nov 2026, of the red blood cells at the way in: "I have really gone small"; for this place, 7 Nov 2026:
+     "Yes, build it". The place opens on your vesicle from far away. Then the camera comes close, with the scale bar, to
+     the microtubule beside it, where the microtubule (25 nm wide), a motor protein (about 80 nm long) and the vesicle
+     (900 nm across: about 11 times the motor's length) are all at their true sizes. Attach: the motor reaches the
+     vesicle and holds it, then walks a few steps of 8 nm (slowed down: a real one takes about 100 a second). The maze is
+     seen from far again: there the motor is too small to see (a glow shows where it is), and the microtubules are drawn
+     three times thicker, as everywhere in the game (the How big? card says so); while the camera comes close, those fade
+     and the true one shows. The vesicle hangs beside its microtubule, held by the motor, never threaded on it. */
+  const T = world.P.tracks.center, TV = world.P.tracks.view;
+  const TDIR = V(...TV.pos).sub(V(...TV.at)).normalize(), FRONT = V(0, 0, 1);
+  /* the vesicle's side of a microtubule: on its left, seen from the cut front of the cell, when the microtubule goes up
+     (so that, close up, the motor and the microtubule stand clear of the pupil's bag, top left) */
+  const sideOf = a => FRONT.clone().cross(a).normalize();
+  const HOLD = TRUE.mt + TRUE.reach + 0.45;            /* from a microtubule's middle to the vesicle's (radius 0.45 µm) */
+  /* three crossings; each move is 80 % of what it was before 7 Nov 2026, because the vesicle now starts higher */
+  const FORKS = [[V(0.4, 1.1, -0.1), V(-1.3, 0.15, 0.3)], [V(-0.2, 1.0, 0.2), V(1.2, -0.1, 0.1)], [V(0.3, 1.2, -0.3), V(-1.2, 0.2, 0.2)]].map(f => f.map(v => v.multiplyScalar(0.8)));
+  /* the motor starts on the first microtubule, with the vesicle 1.9 µm further up it than the top of the Golgi
+     apparatus, where it waited before: only the cytoplasm and the other vesicles stand round the close view */
+  const A0 = FORKS[0][0].clone().normalize();
+  const M0 = T.clone().add(V(-0.6, -1.6, 0.4)).addScaledVector(A0, 1.9).addScaledVector(sideOf(A0), -HOLD);
+  const frameOf = a => new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(a, sideOf(a), a.clone().cross(sideOf(a))));
+  /* a microtubule as the game draws it from far: three times thicker than it is (the maze's tracks), a stronger blue
+     than the cell's other microtubules, so that a pupil sees which way each one goes (the expert review, 7 Nov 2026:
+     they looked like the cell's other pale lines) */
+  const drawnTrack = (from, to) => keep(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(from, to), 8, 0.035, 6), new THREE.MeshBasicMaterial({ color: 0x38c8ff, transparent: true, opacity: 1 })));
+  /* something that changes every frame for ms milliseconds (fn gets 0 … 1); it stops if the pupil leaves */
+  const moveFor = (ms, fn) => live(new Promise(res => { const t0 = performance.now();
+    const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms); fn(k); world.kick(); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }));
+  /* the motor and your vesicle, built once in the place (a pupil who comes back to the maze has them at the start) */
+  function rig() {
+    if (props.rig) return props.rig;
+    const mot = trueMotor(), ves = token('vesicle', 0.45), core = amylaseCore(0.45), glow = glowSprite(0xff6ec4);
+    ves.add(core); ves.position.set(0, HOLD, 0); mot.cargo.add(ves);
+    glow.position.set(0, TRUE.mt + 0.04, 0); mot.group.add(glow);
+    keep(mot.group); mot.group.position.copy(M0); mot.group.quaternion.copy(frameOf(A0));
+    return (props.rig = { mot, ves, core, glow, at: M0.clone(), a: A0.clone() });
+  }
+  /* every frame while in the place: the scale bar; between 3.5 and 1.8 µm, while the bar still reads 1 µm or 500 nm,
+     what is drawn bigger than it is fades: the microtubules drawn three times thicker (the true one shows instead), the
+     free ribosomes (drawn 4 times bigger) and the cytosol's motes of light, so that close up nothing is drawn bigger
+     (the expert review, 7 Nov 2026: at 200 nm they still showed); the motor's glow keeps one size on the screen and goes
+     once the motor itself shows; each amylase dot is drawn 5 nm across at any distance */
+  const TS = { tick: 0, fade: null };
+  const railFade = () => { const m = W.groups.microtubules && W.groups.microtubules.children[0]; return m && m.material.uniforms && m.material.uniforms.uFade; };
+  /* the ribosomes' material is shared by the free ones and the rough ER's (far below here): seen through while this
+     place is open, as it was before when it closes */
+  function tracksFade(k) {
+    const rib = W.groups['free-ribosomes'], mot = W.groups.cytosol;
+    if (!TS.fade) { if (!rib || !mot) return; TS.fade = { rib: rib.material, tr: rib.material.transparent, mot: mot.material.uniforms.uOpacity.value }; rib.material.transparent = true; rib.material.needsUpdate = true; }
+    if (k == null) {
+      TS.fade.rib.transparent = TS.fade.tr; TS.fade.rib.opacity = 1; TS.fade.rib.needsUpdate = true; mot.material.uniforms.uOpacity.value = TS.fade.mot;
+      rib.visible = true; mot.visible = true; TS.fade = null; return;
+    }
+    TS.fade.rib.opacity = k; rib.visible = k > 0.01; mot.material.uniforms.uOpacity.value = TS.fade.mot * k; mot.visible = k > 0.01;
+  }
+  function tracksLoop(on) {
+    if (on && !TS.tick) {
+      const f = () => {
+        if (!TS.tick) return;
+        const cam = world.camera, d = cam.position.distanceTo(world.controls.target), far = smooth(1.8, 3.5, d), u = railFade();
+        if (u) u.value = far;
+        (props.drawn || []).forEach(m => { m.material.opacity = far; m.visible = far > 0.002; });
+        if (props.near) { props.near.material.opacity = 1 - far; props.near.visible = far < 0.998; }
+        tracksFade(far);
+        const r = props.rig;
+        if (r) {
+          r.glow.visible = d > 0.5; r.glow.material.opacity = smooth(0.5, 1.4, d); r.glow.scale.setScalar(d * 0.075);
+          const p = r.core.userData.points; p.material.size = p.userData.nm * world.fullH / (world.size.h * Math.tan(cam.fov * Math.PI / 360));
+        }
+        scaleBar(d);
+        TS.tick = requestAnimationFrame(f);
+      };
+      TS.tick = requestAnimationFrame(f);
+    } else if (!on && TS.tick) {
+      cancelAnimationFrame(TS.tick); TS.tick = 0; if (bar) bar.hidden = true;
+      const u = railFade(); if (u) u.value = 1;
+      if (TS.fade) tracksFade(null);
+    }
+  }
+  /* close to the motor, from the cut front of the cell (nothing stands there), a little from the microtubule's other
+     side, so that the vesicle looms over it; the motor below the middle of the picture, clear of the bag */
+  const closeView = r => { const n = sideOf(r.a), f = FRONT.clone().addScaledVector(r.a, -r.a.z).normalize();
+    return { at: r.at.clone().addScaledVector(n, 0.045).addScaledVector(r.a, 0.05), dist: 0.34, dir: f.multiplyScalar(Math.cos(0.18)).addScaledVector(n, -Math.sin(0.18)).normalize(), up: V(0, 1, 0) }; };
+  /* the names close up, each with its true size (on a phone too): the motor's ends on its stalk as it is, bent or
+     straight; the vesicle's two on its skin and its amylase next to the motor, on their side (left), the microtubule's on
+     its own (right), so that no line crosses the microtubule; on a phone the motor's and the microtubule's stand beside
+     them, so that they do not hide the stalk (the expert review, 7 Nov 2026) */
+  function nearNames(r) {
+    const n = sideOf(r.a), P = (x, y) => r.mot.group.localToWorld(V(x, y, 0)), c = r.ves.getWorldPosition(V(0, 0, 0));
+    /* a point of the vesicle's skin, deg degrees round from its edge nearest the microtubule, towards the camera */
+    const onVes = (deg, up, inside = 0) => { const t = deg * Math.PI / 180; return c.clone().addScaledVector(n, -(0.45 - inside) * Math.cos(t)).addScaledVector(TDIR, (0.45 - inside) * Math.sin(t)).add(V(0, up, 0)); };
+    quest.names.set([
+      { key: 't-mt', free: true, side: 'R', aside: true, html: '<span class="nm__t">microtubule:<br>25 nm wide</span>', small: '<span class="nm__t">microtubule: 25 nm</span>', spots: [-0.08, -0.05, 0.05, 0.08].map(x => P(x, 0)) },
+      { key: 't-mot', free: true, aside: true, html: '<span class="nm__t">motor protein:<br>about 80 nm long</span>', small: '<span class="nm__t">motor protein: 80 nm</span>', spots: [0.45, 0.6, 0.3].map(t => r.mot.onStalk(t)) },
+      { key: 't-ves', free: true, side: 'L', html: '<span class="nm__t">your vesicle:<br>900 nm across</span>', small: '<span class="nm__t">your vesicle: 900 nm</span>', spots: [0.03, -0.025, 0.055, -0.055, 0.08, -0.08].map((u, i) => onVes(5 + i % 3, u)) },
+      { key: 't-amy', free: true, side: 'L', html: '<span class="nm__t">amylase: 5 nm</span>', small: '<span class="nm__t">amylase: 5 nm</span>', spots: [0, 0.045, -0.045, 0.085, -0.085, 0.12, -0.12, 0.02, -0.02, 0.065, -0.065].map(u => onVes(4, u, 0.005)) }
+    /* the edges of what is named: past the vesicle's spots on one side, past the microtubule's on the other (names.js
+       stands names outside them and uses only spots inside them) */
+    ], HUD2(), lr(onVes(22, 0), P(0.11, 0)));
+  }
   async function grab() {
-    await fly(world.P.tracks.view.pos, world.P.tracks.view.at);
-    const ves = keep(token('vesicle', 0.45)); ves.add(token('amylase', 0.2)); ves.position.copy(T).add(V(-0.6, -1.6, 0.4));
-    const mot = keep(token('motor', 0.6)); mot.position.copy(ves.position).add(V(0.9, -0.5, 0.2));
-    props.ves = ves; props.mot = mot;
-    await press(() => mot.position.clone().add(V(0, -0.6, 0)), 'Attach', { side: 'b' });
-    await tween(mot, { to: ves.position.clone().add(V(0, -0.65, 0)), ms: 900 });
-    quest.say('A motor protein holds the vesicle.', 'ok');
+    await fly(TV.pos, TV.at);
+    const r = rig(); r.mot.reach(0); r.mot.pose(0, 0);
+    /* the first microtubule twice in one place: drawn as seen from far, and at its true size for the close view */
+    props.drawn = [drawnTrack(M0.clone().addScaledVector(FORKS[0][0], -0.7), M0.clone().add(FORKS[0][0]))];
+    props.near = keep(trueTrack(M0.clone().addScaledVector(A0, -1.0), M0.clone().addScaledVector(A0, 1.0)));
+    tracksLoop(true);
+    await wait(900);
+    await camGo(closeView(r), 3800);
+    nearNames(r);
+    /* the button below the motor, down its microtubule: on a phone, on the motor itself, it hid the motor */
+    await press(() => r.mot.group.localToWorld(V(-0.05, TRUE.mt + 0.03, 0)), 'Attach', { side: 'b' });
+    quest.names.set([]);
+    await moveFor(900, k => r.mot.reach(k * k * (3 - 2 * k)));
+    quest.say('The motor protein holds your vesicle. It walks in steps of 8 nm. Here it walks about 65 times slower than a real one, which takes about 100 steps every second.', 'ok');
+    for (let i = 0; i < 6; i++) await moveFor(650, e => r.mot.pose(i, e));
+    /* the six steps kept: the motor's frame moves on 48 nm, and its parts go back to their first places (no change seen) */
+    r.at.addScaledVector(r.a, 6 * TRUE.step); r.mot.group.position.copy(r.at); r.mot.pose(0, 0);
+    nearNames(r);
+    await quest.next();
   }
   /* three crossings: at each, the microtubule the vesicle is on meets one that lies across the cell; microtubules never
      branch, and the motor walks one way along them (towards their top end), so the pupil chooses which one to step onto */
   async function maze() {
-    const ves = props.ves || (() => { const t = keep(token('vesicle', 0.45)); t.add(token('amylase', 0.2)); t.position.copy(T).add(V(-0.6, -1.6, 0.4)); return (props.ves = t); })();
-    const mot = props.mot || (() => { const t = keep(token('motor', 0.6)); t.position.copy(ves.position).add(V(0, -0.65, 0)); return (props.mot = t); })();
-    const walk = async (to, ms) => {
-      const steps = Math.max(3, Math.round(ves.position.distanceTo(to) / 0.25));
-      const p0 = ves.position.clone();
-      for (let s = 1; s <= steps; s++) {
-        const k = s / steps, p = p0.clone().lerp(to, k);
-        await Promise.all([tween(ves, { to: p, ms: ms / steps }), tween(mot, { to: p.clone().add(V(0, -0.65, 0)), ms: ms / steps })]);
-        if (mot.userData.feet) mot.userData.feet.forEach((f, i) => { f.position.y = -0.3 + ((s + i) % 2 ? 0.06 : 0); });
-      }
+    tracksLoop(true);
+    const r = rig();
+    if (!props.drawn) r.mot.reach(1);            /* a pupil who comes back to this step: the motor already holds it */
+    quest.names.set([]);
+    /* from as far away as the place's own view, the camera follows your vesicle: the crossing it is at in the middle
+       (from the place's own view the maze climbed out of the top of the picture) */
+    const DFAR = V(...TV.pos).distanceTo(V(...TV.at));
+    const viewAt = (p, a) => ({ at: p.clone().addScaledVector(sideOf(a), HOLD * 0.5), dist: DFAR, dir: TDIR.clone(), up: V(0, 1, 0) });
+    if (world.camera.position.distanceTo(world.controls.target) < 3) await camGo(viewAt(r.at, r.a), 3000);
+    else { await fly(TV.pos, TV.at); await camGo(viewAt(r.at, r.a), 900); }
+    /* the motor walks to a point of a microtubule; at a crossing the vesicle swings round to the new one's side
+       (turn false: back along the same microtubule after a wrong choice, the vesicle stays where it hangs) */
+    const walk = (to, ms, turn = true) => {
+      const from = r.at.clone(), a1 = to.clone().sub(from).normalize(), q0 = r.mot.group.quaternion.clone(), q1 = turn ? frameOf(a1) : q0;
+      return moveFor(ms, k => { r.at.copy(from).lerp(to, k * k * (3 - 2 * k)); r.mot.group.position.copy(r.at); r.mot.group.quaternion.slerpQuaternions(q0, q1, smooth(0, 0.35, k)); })
+        .then(() => { if (turn) r.a.copy(a1); });
     };
-    const forks = [[V(0.4, 1.1, -0.1), V(-1.3, 0.15, 0.3)], [V(-0.2, 1.0, 0.2), V(1.2, -0.1, 0.1)], [V(0.3, 1.2, -0.3), V(-1.2, 0.2, 0.2)]];
-    for (let f = 0; f < forks.length; f++) {
-      const here = ves.position.clone(), up = here.clone().add(forks[f][0]), down = here.clone().add(forks[f][1]);
-      /* each microtubule runs on through the crossing, so the two cross instead of splitting */
-      const lines = [up, down].map((to) => { const from = here.clone().lerp(to, -0.7); const c = new THREE.LineCurve3(from, to); const m = keep(new THREE.Mesh(new THREE.TubeGeometry(c, 8, 0.035, 6), new THREE.MeshBasicMaterial({ color: 0x9ff3ff, transparent: true, opacity: 0.85 }))); return m; });
+    /* the motor turns onto the microtubule it is on now (each piece of the maze leans a little differently): the vesicle
+       swings round it to that microtubule's side */
+    const turnTo = (a1, ms) => { const q0 = r.mot.group.quaternion.clone(), q1 = frameOf(a1); return moveFor(ms, k => r.mot.group.quaternion.slerpQuaternions(q0, q1, k * k * (3 - 2 * k))).then(() => { r.a.copy(a1); }); };
+    /* the vesicle waits 0.65 µm before each crossing: its edge is only 90 nm from its microtubule, so a microtubule
+       through the motor's own point would pass through it; one that would still pass too close lies deeper (they cross
+       at different depths), turned about the line to the vesicle, away from the camera, until the vesicle is clear */
+    const GAP = 0.65;
+    const segDist = (p, a, b) => { const ab = b.clone().sub(a), t = Math.max(0, Math.min(1, p.clone().sub(a).dot(ab) / ab.lengthSq())); return a.clone().addScaledVector(ab, t).distanceTo(p); };
+    const clearOf = (X, to) => {
+      const c = r.ves.getWorldPosition(V(0, 0, 0)), d = to.clone().sub(X), L = d.length();
+      const w = c.clone().sub(X).cross(d).normalize(); if (w.lengthSq() < 0.5) w.copy(TDIR).negate(); else if (w.dot(TDIR) > 0) w.negate();
+      for (let b = 0; b <= 1.5; b += 0.05) {
+        const t = X.clone().add(d.clone().addScaledVector(w, b * L));
+        if (segDist(c, X.clone().lerp(t, -0.7), t) >= 0.5) return t;
+      }
+      return to;
+    };
+    for (let f = 0; f < FORKS.length; f++) {
+      const u = FORKS[f][0].clone().normalize();
+      if (r.a.angleTo(u) > 0.01) await turnTo(u, 600);
+      const here = r.at.clone(), X = here.clone().addScaledVector(u, GAP), up = here.clone().add(FORKS[f][0]), down = clearOf(X, X.clone().add(FORKS[f][1]));
+      /* each microtubule runs on through the crossing, so the two cross instead of splitting; the motor's own runs back
+         past the vesicle */
+      const lines = [drawnTrack(here.clone().addScaledVector(FORKS[f][0], -0.7), up), drawnTrack(X.clone().lerp(down, -0.7), down)];
+      (props.drawn || []).forEach(drop); props.drawn = lines;
+      if (props.near) { drop(props.near); props.near = null; }
       const order = Math.random() < 0.5 ? [0, 1] : [1, 0];
+      /* each button stands 0.35 µm past the end of its microtubule, with the same words on both: a pupil looks at where
+         each one goes (the expert review, 7 Nov 2026: arrows on them gave the answer, and on a phone they hid the
+         vesicle and the crossing); a screen reader still hears which is which */
+      const past = (from, to) => to.clone().addScaledVector(to.clone().sub(from).normalize(), 0.35);
       await new Promise(done => {
         order.forEach(i => {
-          const to = i === 0 ? up : down;
-          quest.hot(() => to.clone(), i === 0 ? '↑ this one' : '↔ this one', { side: 'c', aria: i === 0 ? 'the microtubule that goes up' : 'the microtubule that lies across the cell' }).done.then(async (b) => {
+          const to = i === 0 ? up : down, at = i === 0 ? past(here, up) : past(X, down);
+          quest.hot(() => at.clone(), 'this one', { side: 'c', aria: i === 0 ? 'the microtubule that goes up' : 'the microtubule that lies across the cell' }).done.then(async (b) => {
             if (!quest.energy(COST.step)) return;
             quest.clearHots();
             if (i === 1) {
               quest.say('This microtubule lies across the cell: on it, your vesicle moves to the side, not to the top. Amylase must reach the top, next to the duct. Choose again.', 'no');
-              await walk(here.clone().lerp(down, 0.45), 900); await walk(here, 700);
+              /* to the crossing, onto the other microtubule a little way, then back to where it waited */
+              await walk(X, 500); await walk(X.clone().lerp(down, 0.45), 900); await walk(X, 600, false); await turnTo(u, 300); await walk(here, 500, false);
               done('again');
               return;
             }
             quest.say('');
-            await walk(up, 1500);
+            await Promise.all([walk(up, 1500), camGo(viewAt(up, u), 1500)]);
             done('up');
           });
         });
-      }).then(async (r) => { lines.forEach(drop); if (r === 'again') f--; });
+      }).then(async (res) => { if (res === 'again') f--; });
     }
-    const g = W.granules.filter(x => x.p.y > 12.5).sort((a, b) => a.p.distanceTo(ves.position) - b.p.distanceTo(ves.position))[0];
-    if (g) await walk(g.p.clone().add(V(0.9, -0.3, 0.6)), 1200);
-    await quest.gain('top', ves.position);
+    (props.drawn || []).forEach(drop); props.drawn = [];
+    const vp = () => r.ves.getWorldPosition(V(0, 0, 0));
+    const g = W.granules.filter(x => x.p.y > 12.5).sort((a, b) => a.p.distanceTo(vp()) - b.p.distanceTo(vp()))[0];
+    if (g) {
+      const goal = g.p.clone().add(V(0.9, -0.3, 0.6)), a1 = goal.clone().sub(vp()).normalize(), to = goal.addScaledVector(sideOf(a1), -HOLD);
+      await Promise.all([walk(to, 1200), camGo(viewAt(to, a1), 1200)]);
+    }
+    await quest.gain('top', vp());
     state.use('packed');
-    drop(mot);
+    /* the vesicle waits at the top with the others; the motor lets it go */
+    scene.attach(r.ves); kept.push(r.ves); drop(r.mot.group); props.rig = null;
     await quest.next('Back to the map');
   }
 

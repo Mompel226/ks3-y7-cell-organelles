@@ -17,9 +17,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611061122';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611061122';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611061122';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611071821';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611071821';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611071821';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -248,16 +248,29 @@ export function buildCell(scene) {
   /* the blood keeps its colours far away too (the fog darkened it to black beads in the intro's view of the bunch) */
   const capWall = new THREE.Mesh(new THREE.TubeGeometry(capPath, 160, 3.05, 40, false), magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5, fog: false }, { rim: 0xff8aa0, rimK: 0.8 }));
   capWall.renderOrder = 1; below.add(capWall);
-  /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary */
-  const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.6 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
+  /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary. The capillary
+     (6.1 µm inside) is narrower than they are, so each one bends to pass, as real ones do in the narrowest capillaries:
+     a cup (a "parachute") with its rim trailing behind, its widest 2.8 µm from the capillary's middle, so the plasma
+     still flows round it (Daniel, 7 Nov 2026: "the cells could bend, that would be nice"; until then they were drawn
+     5.9 µm across, flat, to fit). The bend: each point of the flat cell goes onto a sphere of radius RB (its middle
+     surface), at the same distance from the cell's middle, the cell thinner as it spreads round (thickness × 0.6) */
+  const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.75 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
   for (let i = 24; i >= 0; i--) { const v = rbcProfile[i]; rbcProfile.push(new THREE.Vector2(v.x, -v.y)); }
-  const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x * 0.82), v.y)), 36);
+  const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x), v.y)), 36);
+  { const RB = 2.4, p = rbcGeo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const th = Math.hypot(v.x, v.z) / RB, ph = Math.atan2(v.z, v.x), R = RB + 0.6 * v.y;
+      p.setXYZ(i, R * Math.sin(th) * Math.cos(ph), R * Math.cos(th) - RB, R * Math.sin(th) * Math.sin(ph));
+    }
+    rbcGeo.computeVertexNormals(); }
   /* red from every side, also far away and against the light (they looked black in the intro's view, 4 Nov 2026) */
   const rbcMat = magicStandard({ color: 0xc0303f, emissive: 0x6a0d1a, emissiveIntensity: 0.55, roughness: 0.4, fog: false }, { rim: 0xff7b8a, rimK: 0.45 });
   const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
-  /* where red blood cell i is at time t (the way in: oxygen leaves one) */
+  /* where red blood cell i is at time t (the way in: oxygen leaves one): its front, in the capillary's middle, rocking a
+     little (0.05 µm: a bent cell nearly fills the capillary; tools/blood-bend.mjs keeps every one inside it) */
   const FLOW = 0.012, uOf = (k, t) => (((t * FLOW + k / 9) % 1) + 1) % 1;
-  const rbcAt = (i, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(i, t))).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1)));
+  const rbcAt = (i, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(i, t))).add(new THREE.Vector3(0, 0.05 * Math.sin(i * 1.7 + t * 0.6), 0.05 * Math.cos(i * 2.1)));
   /* the plasma, the liquid part of the blood: pale yellow motes flowing along the capillary with the red blood cells.
      The way in sends carbon dioxide into it, between two red blood cells, never into one (Daniel, 4 Nov 2026: "make
      sure that it goes into the plasma, and it looks like it's going into the plasma … Otherwise, it's leading to a
@@ -267,9 +280,11 @@ export function buildCell(scene) {
   const plasma = sparkles({ count: NP, size: 0.14, color: 0xffd76a, drift: 0.06, opacity: 0.85, sample: (v, i) => v.copy(capPath.getPointAt(plasmaAt[i][0])) });
   plasma.name = 'plasma'; plasma.frustumCulled = false; below.add(plasma);
   W.blood = { path: capPath, rbcAt, n: 9, radius: 3.05,
-    /* the middle of the plasma between red blood cells k and k + 1, at time t; and the one nearest x */
-    gapAt: (k, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(k + 0.5, t))),
-    gapNear: (x, t) => { let best = 0, bd = Infinity; for (let k = 0; k < 9; k++) { const d = Math.abs(capPath.getPointAt(uOf(k + 0.5, t)).x - x); if (d < bd) { bd = d; best = k; } } return best; } };
+    /* the middle of the plasma between red blood cells k and k + 1, at time t; and the one nearest x. Cell k + 1 is ahead
+       (the blood flows to the right) and its cup trails 2.4 µm back towards cell k, about 6 µm apart: the free plasma
+       runs from cell k's front to that rim, and its middle is a third of the way (half way was at the cup's mouth) */
+    gapAt: (k, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(k + 0.33, t))),
+    gapNear: (x, t) => { let best = 0, bd = Infinity; for (let k = 0; k < 9; k++) { const d = Math.abs(capPath.getPointAt(uOf(k + 0.33, t)).x - x); if (d < bd) { bd = d; best = k; } } return best; } };
   W.anim.push((t) => {
     W.blood.t = t;
     const pa = plasma.geometry.attributes.position, q = new THREE.Vector3();
@@ -277,10 +292,9 @@ export function buildCell(scene) {
     pa.needsUpdate = true;
     const o = new THREE.Object3D();
     for (let i = 0; i < 9; i++) {
-      const u = (((t * 0.012 + i / 9) % 1) + 1) % 1;
-      const p = capPath.getPointAt(u), tan = capPath.getTangentAt(u);
-      o.position.copy(p).add(new THREE.Vector3(0, 0.25 * Math.sin(i * 1.7 + t * 0.6), 0.3 * Math.cos(i * 2.1)));
-      o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tan); o.rotateX(0.5 + 0.3 * Math.sin(i + t * 0.4)); o.rotateZ(i);
+      /* each cup points the way the blood flows (its rim behind), tipping a little (0.025 rad) as it goes */
+      rbcAt(i, t, o.position);
+      o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), capPath.getTangentAt(uOf(i, t))); o.rotateX(0.025 * Math.sin(i + t * 0.4)); o.rotateY(i + t * 0.05);
       o.updateMatrix(); rbcs.setMatrixAt(i, o.matrix);
     }
     rbcs.instanceMatrix.needsUpdate = true;

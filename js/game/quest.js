@@ -6,15 +6,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611061122';
-import { state, COST } from './state.js?v=202611061122';
-import { sound } from './sound.js?v=202611061122';
-import { finalLine } from './final.js?v=202611061122';
+import { ICON } from './icons.js?v=202611071821';
+import { state, COST } from './state.js?v=202611071821';
+import { sound } from './sound.js?v=202611071821';
+import { finalLine } from './final.js?v=202611071821';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611061122').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611061122';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611071821').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611071821';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -28,6 +28,13 @@ export class Quest {
     this.hots = []; this.cur = null; this.session = 0;
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
     state.on(() => this.paintBag());
+    /* the bag's fold button (paintBag): the pupil's own choice, until they go to another place or the map */
+    bag.addEventListener('click', e => {
+      if (!e.target.closest('.bag__fold')) return;
+      this.bagFold = !this.bag.classList.contains('is-folded'); this.paintBag();
+      const b = this.bag.querySelector('.bag__fold'); if (b) b.focus();
+      if (!this.w.moving) this.names.show();
+    });
     this.paintBag();
   }
 
@@ -112,14 +119,21 @@ export class Quest {
   }
   clearHots() { this.hots.slice().forEach(o => o.remove()); }
 
-  /* ---------- the bag: what the pupil carries, and the energy bar ---------- */
+  /* ---------- the bag: what the pupil carries, and the energy bar ----------
+     It folds (Daniel, 7 Nov 2026: "as the things gets bigger and bigger, the panel on the left hides more and more, so
+     you don't see things ... make this panel collapsible ... always consider what this panel is hiding when showing
+     animations"): in a place, where the steps play, it folds by itself once it holds three kinds of item, to its energy
+     bar and a button that says how many; on the map, where the pupil chooses where to go, it opens. A press on the
+     button holds until the pupil goes to another place or to the map (openPlace, openMap). */
   paintBag() {
     const S = state.get(), b = this.bag; if (!b) return;
     const keys = Object.keys(ITEMS).filter(k => k !== 'energy' && (S.items[k] || 0) > 0);
     const e = Math.round(S.items.energy);
-    b.innerHTML = `<div class="bag__e" role="img" aria-label="Energy ${e} out of 100"><span class="bag__ek">${ICON.energy}<b>Energy</b></span><span class="bag__bar"><i style="width:${e}%"></i></span></div>` +
-      `<div class="bag__items" aria-label="What you carry">${keys.length ? keys.map(k => `<span class="bag__it" data-it="${k}" title="">${ICON[k] || ''}<span>${esc(ITEMS[k].name)}${ITEMS[k].many && S.items[k] > 1 ? ' ×' + S.items[k] : ''}</span></span>`).join('') : '<span class="bag__none">You carry nothing yet.</span>'}</div>`;
-    b.classList.toggle('low', e < 20);
+    const folded = keys.length > 0 && (this.bagFold != null ? this.bagFold : !!this.inPlace && keys.length >= 3);
+    const fold = keys.length ? `<button type="button" class="bag__fold" aria-expanded="${!folded}" aria-controls="bagItems">${folded ? `Show ${keys.length} item${keys.length > 1 ? 's' : ''} ▾` : 'Hide ▴'}</button>` : '';
+    b.innerHTML = `<div class="bag__top"><div class="bag__e" role="img" aria-label="Energy ${e} out of 100"><span class="bag__ek">${ICON.energy}<b>Energy</b></span><span class="bag__bar"><i style="width:${e}%"></i></span></div>${fold}</div>` +
+      `<div class="bag__items" id="bagItems" aria-label="What you carry"${folded ? ' hidden' : ''}>${keys.length ? keys.map(k => `<span class="bag__it" data-it="${k}" title="">${ICON[k] || ''}<span>${esc(ITEMS[k].name)}${ITEMS[k].many && S.items[k] > 1 ? ' ×' + S.items[k] : ''}</span></span>`).join('') : '<span class="bag__none">You carry nothing yet.</span>'}</div>`;
+    b.classList.toggle('low', e < 20); b.classList.toggle('is-folded', folded);
   }
   /* an item flies from the world into the bag, then the bag holds it */
   gain(item, from, n = 1) {
@@ -138,6 +152,7 @@ export class Quest {
   /* the map: the mission, the places (awake or asleep), and the bag */
   openMap() {
     this.session++; this.clearHots(); this.cur = null;
+    this.inPlace = false; this.bagFold = null; this.paintBag();
     this.w.setPlaceLook && this.w.setPlaceLook();
     const list = MAPPED.concat(['test']).filter(id => STORY[id]);
     const row = id => {
@@ -171,6 +186,7 @@ export class Quest {
   /* a place: its definition, then its steps one at a time */
   async openPlace(id, run) {
     const my = ++this.session; this.clearHots(); this.cur = id;
+    this.inPlace = true; this.bagFold = null; this.paintBag();
     const P = STORY[id], G = window.KS3_GLOSSARY;
     const def = P.def && G && G.by[P.def] ? G.by[P.def] : null;
     /* a word with two meanings (nucleus: a cell's and an atom's): here, only the cell's */

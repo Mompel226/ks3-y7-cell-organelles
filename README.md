@@ -11,7 +11,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Place | What the pupil does there | What they bring away |
 |---|---|---|
 | The cell you know | the five Year 7 parts lit alone; then everything an electron microscope shows; what an organelle is | the map |
-| Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves into the plasma, the liquid part of the blood, between the red blood cells | glucose, oxygen, amino acids |
+| Cell membrane: the way in | sees the membrane drawn bigger, as two layers of lipids, with the inside of the cell above and the tissue fluid and a capillary below, where the red blood cells (7.5 µm across, wider than the capillary) bend to pass; a red blood cell releases oxygen, which passes straight through the lipids; glucose and an amino acid each choose their way in (each passes through its own carrier protein); carbon dioxide leaves into the plasma, the liquid part of the blood, between the red blood cells | glucose, oxygen, amino acids |
 | Mitochondria | sees one mitochondrion whole, from outside, then presses ✂ Cut it open and its front half lifts away: its two membranes at their true thickness and the folds of the inner one (cristae); zooms in, with a scale bar, to its edge, where every lipid, its proteins (each seen whole, no lipid in front of it) and the molecules are drawn at their true sizes; splits glucose in the cytosol; sends the two smaller molecules into the matrix (through a channel protein, then a carrier protein) and six oxygen molecules (straight between the lipids); watches the smaller molecules broken down step by step into carbon dioxide and hydrogen, each named, then sees the carbon dioxide leave through both membranes (↺ Watch again plays it again); watches the chain of proteins pump hydrogen ions into the space inside the fold, where they build up behind the inner membrane like water behind a dam, then presses the oxygen, which joins hydrogen at the last protein: water; then watches them flow back only through ATP synthase, which turns like a watermill (the way it turns when it makes ATP), one step for each ion, and makes ATP | energy (the bar) |
 | Nucleus | goes in through a nuclear pore; finds chromosome 1 and the amylase gene; copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene (a zoom from a chromosome's packed fibre through the histones to the double helix, with scale bars of 30, 11 and 2 nm; the DNA untwisted as a ladder of nucleotides, and only then A, T, C and G; the bases pair, A with T and C with G, joined by hydrogen bonds drawn as dashes; the strands separate inside the enzyme, where the hydrogen bonds break, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore | the copy of the gene |
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
@@ -19,7 +19,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Rough ER | docks on a channel; makes the chain inside the rough ER; cuts the signal; folds it (the active site) | amylase in a vesicle |
 | Smooth ER | makes lipids; they form a membrane | lipids |
 | Golgi apparatus | joins the stack; moves through it; sorts proteins by their labels; packages amylase | a packed vesicle |
-| Microtubules | a motor protein carries the vesicle; chooses the track to the top of the cell at each fork | the vesicle at the top |
+| Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the motor protein about 80 nm long, the vesicle 900 nm across): the motor holds the vesicle and steps 8 nm at a time; then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
 | Cell membrane: the way out | a nerve message (smelling bread); exocytosis into the duct | amylase in saliva |
 | Does your amylase work? | starch and iodine solution: saliva in one well, water (the control) in the other | |
 
@@ -199,4 +199,11 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `node tools/panel-reveal.mjs` plays the way in's glucose step with the page at its top: what a press adds to the step
   (the choices, a message) must come wholly into view, in the panel and in the window, and glow for a moment
   (`--w 1280 --h 700`, `--w 1440 --h 900`, `--w 390 --h 844 --mobile 1`).
+  `node tools/tracks-true.mjs` plays the microtubules as a pupil: close up, the camera within 0.4 µm and the scale bar at
+  50 nm, the microtubule 25 nm wide, the motor protein about 80 nm from the microtubule to the vesicle and six steps of
+  8 nm, the motor clear of the bag and the panel; in the maze no microtubule through the vesicle, and the vesicle always in
+  the picture; leaving puts everything back (`--w 390 --h 844 --mobile 1`). `node tools/blood-bend.mjs` moves the way in's
+  blood through a whole turn: each red blood cell 7.5 µm across before it bends, inside the capillary at every moment, and
+  the carbon dioxide's places in the middle of the plasma. `node tools/bag-fold.mjs`: in a place the bag folds by itself
+  once it holds three kinds of item, a press opens and folds it, on the map it opens (`--w 390 --h 844 --mobile 1`).
 </details>

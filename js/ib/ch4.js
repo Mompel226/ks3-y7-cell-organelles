@@ -11,10 +11,10 @@
    FAD of E3 (Patel and Roche 1990, FASEB J 4:3224); the picture shows where it starts and where it ends.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611061122';
-import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611061122';
-import { bilayer } from './membrane.js?v=202611061122';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611061122';
+import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611071821';
+import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611071821';
+import { bilayer } from './membrane.js?v=202611071821';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611071821';
 
 /* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
 const PROTS = ['pdh', 'mpc_mat'];

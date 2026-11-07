@@ -257,13 +257,14 @@ export function haloRing(radius, color = 0xffe39a) {
 }
 
 /* light flowing along a microtubule: bands that move from the minus end (the top of this cell) … the flow shows the
-   tracks, it is not the motor (the motor is drawn walking, places/tracks.js) */
+   tracks, it is not the motor (the motor walks in play.js, the microtubules; tracks.js builds it). uFade: 1 seen, 0 gone
+   (the microtubules place fades these, drawn three times thicker, while the camera comes close to a true-size one) */
 export function railMat(color = PAL.mt) {
   const m = new THREE.ShaderMaterial({
-    uniforms: { uTime: CUT.uTime, uColor: { value: new THREE.Color(color) }, uSleep: { value: 0 }, uLit: { value: 0 }, uCutZ: CUT.uCutZ, uCutY: CUT.uCutY },
+    uniforms: { uTime: CUT.uTime, uColor: { value: new THREE.Color(color) }, uSleep: { value: 0 }, uLit: { value: 0 }, uFade: { value: 1 }, uCutZ: CUT.uCutZ, uCutY: CUT.uCutY },
     vertexShader: `varying vec2 vUv; varying vec3 vWPos; void main() { vUv = uv; vec4 w = modelMatrix * vec4(position, 1.0); vWPos = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
     fragmentShader: `
-      uniform float uTime; uniform vec3 uColor; uniform float uSleep; uniform float uLit; uniform float uCutZ; uniform float uCutY;
+      uniform float uTime; uniform vec3 uColor; uniform float uSleep; uniform float uLit; uniform float uFade; uniform float uCutZ; uniform float uCutY;
       varying vec2 vUv; varying vec3 vWPos;
       void main() {
         if (vWPos.z > uCutZ && vWPos.y > uCutY) discard;
@@ -271,7 +272,7 @@ export function railMat(color = PAL.mt) {
         float base = 0.20 + 0.65 * band;
         vec3 c = uColor * base * (1.0 + 1.2 * uLit);
         c = mix(c, vec3(0.3, 0.32, 0.55) * 0.4, uSleep * 0.8);
-        gl_FragColor = vec4(c, 0.30 + 0.40 * band);
+        gl_FragColor = vec4(c, (0.30 + 0.40 * band) * uFade);
       }`,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
   });
