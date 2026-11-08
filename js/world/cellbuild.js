@@ -11,15 +11,16 @@
    - mitochondria lie among the rest; a little smooth ER (this cell has only a little); a few lysosomes; the
      centrosome near the top.
    What is drawn bigger than life, so that it can be seen (the page says so in each place's "See the real thing"):
-   ribosomes (×4), nuclear pores (×1.5, and far fewer), microtubules (×3), the spaces between ER layers (×2–3).
+   ribosomes (×4), nuclear pores (about twice as wide, and far fewer; the first entry into the nucleus dives through one at
+   its true size, pore.js), microtubules (×3), the spaces between ER layers (×2–3).
    Everything else is at its real size for a cell about 16 µm tall. The neighbouring cells of the acinus stand round it,
    their tops meeting at the lumen. Every random choice uses one seed, so the world is the same at every load.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611081747';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611081747';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611081747';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611082056';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611082056';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611082056';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -163,6 +164,46 @@ function instanced(geo, mat, list, name) {
   return m;
 }
 const qAlong = (dir) => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+/* the nucleus's materials for the dive (8 Nov 2026; play.js dive): on top of magicStandard's own code, each kind its own
+   program, all compiled with the world. REV makes what is inside the nucleus black until the dive's light reaches it, so
+   that looking into the pore shows only the pore, never what is beyond it (Daniel, 8 Nov 2026: "when you enter and you see
+   the hole, you can only see what's in the hole"; 'in':
+   the chromosomes and the nucleolus; 'env': the envelopes, only where they are seen from inside: where the line from the
+   camera goes out of the nucleus (three.js draws a see-through two-sided shape in two passes and swaps which side is
+   "front" for the second, so gl_FrontFacing cannot tell); 'pore': the inner half of each pore). HOLE (the envelopes)
+   opens the dive's hole; PK (the pores) draws every pore smaller about itself */
+function revealOn(m, REV, kind, HOLE = null, PK = null) {
+  const before = m.onBeforeCompile, key = m.customProgramCacheKey;
+  const on = kind === 'env' ? 'step(0.0, dot((vRW - uNucC) / vec3(1.0, uNucSY * uNucSY, 1.0), vRW - cameraPosition))' : kind === 'pore' ? 'step(length((vRW - uNucC) / vec3(1.0, uNucSY, 1.0)), uNucR - 0.003)' : '1.0';
+  m.onBeforeCompile = (sh, r) => {
+    before(sh, r);
+    Object.assign(sh.uniforms, REV, HOLE || {}, PK || {});
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vRW;' + (HOLE ? ' varying vec3 vLP;' : '') + (PK ? ' uniform float uPoreK;' : ''))
+      .replace('#include <begin_vertex>', '#include <begin_vertex>' + (PK ? '\ntransformed *= uPoreK;' : '') + (HOLE ? '\nvLP = transformed;' : ''))
+      .replace('#include <project_vertex>', `#include <project_vertex>
+        {
+          vec4 rw = vec4(transformed, 1.0);
+          #ifdef USE_INSTANCING
+            rw = instanceMatrix * rw;
+          #endif
+          vRW = (modelMatrix * rw).xyz;
+        }`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uRevK; uniform vec3 uRevC; uniform float uRevR; uniform vec3 uNucC; uniform float uNucR; uniform float uNucSY; varying vec3 vRW;' +
+        (HOLE ? ' uniform vec3 uHoleP; uniform vec3 uHoleN; uniform float uHoleR; varying vec3 vLP;' : ''))
+      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>' + (HOLE ? `
+        if (uHoleR > 0.0) { float dn = dot(vLP, uHoleN); if (dn > 0.0 && distance(vLP * (dot(uHoleP, uHoleN) / dn), uHoleP) < uHoleR) discard; }` : ''))
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+        if (uRevK > 0.0) {
+          float dd = distance(vRW, uRevC), on = ${on};
+          float lit = 1.0 - smoothstep(uRevR - 0.6, uRevR, dd), band = exp(-pow((dd - uRevR) / 0.08, 2.0)) * step(0.02, uRevR);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * lit + vec3(0.85, 0.8, 1.0) * band * 0.2, uRevK * on);
+        }`);
+  };
+  m.customProgramCacheKey = () => key() + '|' + kind;
+  return m;
+}
 /* the mitochondrion you visit (mitoparts.js heroMito): where it is, how it is turned. It lies across the view, its cut
    face towards it and the edge the camera zooms into on top, so the zoom is a straight move in (the expert review, 5 Nov
    2026: the camera had turned by 70–90° on the way): its own y along it, its own −x (the side of the zoom) up, z out */
@@ -402,15 +443,30 @@ export function buildCell(scene) {
   varicosity.position.set(7.05, 2.0, -3.95); varicosity.scale.set(0.7, 0.9, 1.1); varicosity.visible = false; below.add(varicosity);
   W.nerve = { tube: nerve, end: varicosity, path: nervePath };
 
-  /* ---------- the nucleus: two membranes with pores, a window cut at the front to see inside ---------- */
+  /* ---------- the nucleus: two membranes with pores. Closed (the whole envelope, its pores all over it) until the pupil
+     has first been inside, by a dive through one pore (8 Nov 2026; Daniel: "the first time you go in, it needs to be
+     closed, and you need to go through a pore and then kind of travel through it and then reveal what's inside");
+     afterwards open, a window cut at the front to see inside, as before (world.js setNucleus) ---------- */
   const N0 = new THREE.Vector3(0, 5.0, -0.3), NR = 2.9, NSY = 0.9;
   const nucleus = add('nucleus', new THREE.Group()); nucleus.position.copy(N0);
   const winDir = new THREE.Vector3(0.12, 0.38, 0.92).normalize(), winCos = Math.cos(THREE.MathUtils.degToRad(46));
+  /* the dive's hole (play.js dive, pore.js): a point of the envelope is in it when the line from the middle of the
+     nucleus through it meets the plane that touches the envelope at the dive's pore within uHoleR (µm) of the pore; the
+     pore's own patch of membrane is that disc of the plane, carried onto the envelope along the same lines, so it fills
+     the hole exactly (0: no hole) */
+  const HOLE = { uHoleP: { value: new THREE.Vector3() }, uHoleN: { value: new THREE.Vector3(0, 0, 1) }, uHoleR: { value: 0 } };
+  /* the inside, dark until the light of the dive reaches it (uRevK 1; a wave from uRevC, uRevR µm wide, its front a band
+     of warm light; 0: no effect, as always outside the dive): what is inside is revealed only once the pupil is in */
+  const REV = { uRevK: { value: 0 }, uRevC: { value: new THREE.Vector3() }, uRevR: { value: 0 }, uNucC: { value: N0.clone() }, uNucR: { value: NR }, uNucSY: { value: NSY } };
   const envelope = (r, color, op) => {
-    const m = magicStandard({ color, transparent: true, opacity: op, side: THREE.DoubleSide, roughness: 0.3, depthWrite: op > 0.9 }, { rim: PAL.envelope, rimK: 1.1, rimPow: 2.0 });
-    const geo = keepTris(new THREE.SphereGeometry(r, 120, 80), (mid) => mid.clone().normalize().dot(winDir) < winCos);
-    geo.scale(1, NSY, 1); geo.computeVertexNormals();
-    return new THREE.Mesh(geo, m);
+    const m = revealOn(magicStandard({ color, transparent: true, opacity: op, side: THREE.DoubleSide, roughness: 0.3, depthWrite: op > 0.9 }, { rim: PAL.envelope, rimK: 1.1, rimPow: 2.0 }), REV, 'env', HOLE);
+    /* the same triangles closed and open, with the sphere's own smooth normals (made the flattened shape's by scale; the
+       old flat facets showed close up), so the part both keep looks the same in each */
+    const sphere = new THREE.SphereGeometry(r, 120, 80);
+    const cut = keepTris(sphere, (mid) => mid.clone().normalize().dot(winDir) < winCos), whole = keepTris(sphere, () => true);
+    [cut, whole].forEach(g => g.scale(1, NSY, 1));
+    const mesh = new THREE.Mesh(whole, m); mesh.userData.geo = { cut, whole };
+    return mesh;
   };
   const outerEnv = envelope(NR, PAL.nucleus, 0.92), innerEnv = envelope(NR - 0.07, 0x4f42b8, 0.95);
   nucleus.add(outerEnv, innerEnv);
@@ -429,9 +485,38 @@ export function buildCell(scene) {
     poreList.push({ d, p, q: qAlong(d) });
   }
   const poreGeo = new THREE.TorusGeometry(0.085, 0.032, 8, 18); poreGeo.rotateX(Math.PI / 2);
-  const poreMat = magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3 }, { rim: 0xfff0c8, rimK: 1.0 });
+  /* uPoreK: every pore drawn smaller, about itself (the dive: 0.513 is the true size, 120 nm across) */
+  const PK = { uPoreK: { value: 1 } };
+  const poreMat = revealOn(magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3 }, { rim: 0xfff0c8, rimK: 1.0 }), REV, 'pore', null, PK);
   const pores = instanced(poreGeo, poreMat, poreList, 'pores'); nucleus.add(pores);
   W.pores = poreList.map(p => p.p.clone().add(N0));
+  /* the pores of the front, where the window is: drawn while the nucleus is closed (their own random numbers, so that
+     nothing else of the seeded world moves), as close together as the others. The first is the pore the dive goes
+     through: where the line from the nucleus's view to what it looks at meets the envelope, so that it stands in the
+     middle of the picture there, with no other pore within 0.6 µm of it (the dive's close view shows only it) */
+  const doorD = (() => {
+    const o = new THREE.Vector3(...VIEWS.nucleus.pos).sub(N0), dir = new THREE.Vector3(...VIEWS.nucleus.at).sub(N0).sub(o).normalize();
+    const S = v => new THREE.Vector3(v.x / NR, v.y / (NR * NSY), v.z / NR), a = S(dir), b = S(o);
+    const A = a.dot(a), B = 2 * a.dot(b), C = b.dot(b) - 1, t = (-B - Math.sqrt(B * B - 4 * A * C)) / (2 * A);
+    return b.addScaledVector(a, t).normalize();
+  })();
+  const RF = rng(20261108), rf = (a, b) => a + (b - a) * RF(), frontPores = [{ d: doorD.clone() }];
+  for (let k = 0; k < 4000 && frontPores.length < 46; k++) {
+    const u = rf(-1, 1), a = rf(0, 6.283), sn = Math.sqrt(1 - u * u), d = new THREE.Vector3(sn * Math.cos(a), u, sn * Math.sin(a));
+    if (d.dot(winDir) <= winCos - 0.03 || d.distanceTo(doorD) < 0.21) continue;
+    if (frontPores.some(p => p.d.distanceTo(d) < 0.12) || poreList.some(p => p.d.distanceTo(d) < 0.12)) continue;
+    frontPores.push({ d });
+  }
+  frontPores.forEach(f => { f.p = f.d.clone().multiplyScalar(NR).multiply(new THREE.Vector3(1, NSY, 1)); f.q = qAlong(f.d); });
+  const poresFront = instanced(poreGeo, poreMat, frontPores, 'pores-front'); nucleus.add(poresFront);
+  /* the dive's pore in the nucleus's own frame: where it is on the outer envelope, the envelope's normal there, and two
+     directions across (play.js, pore.js) */
+  const doorP = frontPores[0].p.clone(), doorN = new THREE.Vector3(doorP.x, doorP.y / (NSY * NSY), doorP.z).normalize();
+  const doorE1 = new THREE.Vector3(0, 1, 0).cross(doorN).normalize(), doorE2 = doorE1.clone().cross(doorN).normalize();
+  /* the dive's pore as the world draws it, see-through: it fades while the real pore (pore.js) takes its place, the same
+     size (built and compiled with the world, so the fade compiles nothing) */
+  const doorTorus = new THREE.Mesh(poreGeo, revealOn(magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3, transparent: true, depthWrite: false }, { rim: 0xfff0c8, rimK: 1.0 }), REV, 'pore', null, PK));
+  doorTorus.position.copy(doorP); doorTorus.quaternion.copy(frontPores[0].q); doorTorus.visible = false; doorTorus.name = 'pore-door'; nucleus.add(doorTorus);
   /* chromatin: in a working cell each chromosome is a long thin thread in its own territory (never an X: chromosomes
      look like an X only when a cell divides). 14 territories drawn, of the 46; chromosome 1, the largest, is gold */
   const chromatin = new THREE.Group(); chromatin.name = 'chromatin'; nucleus.add(chromatin);
@@ -455,7 +540,7 @@ export function buildCell(scene) {
     }
     const curve = new THREE.CatmullRomCurve3(pts);
     const gold = c === 0;
-    const mat = magicStandard({ color: gold ? 0xffcf6b : terrColors[c % terrColors.length], emissive: gold ? 0x7a4a00 : 0x2a1f6a, emissiveIntensity: gold ? 0.5 : 0.4, roughness: 0.45 }, { rim: gold ? 0xffe9b0 : 0xd8ceff, rimK: 0.6 });
+    const mat = revealOn(magicStandard({ color: gold ? 0xffcf6b : terrColors[c % terrColors.length], emissive: gold ? 0x7a4a00 : 0x2a1f6a, emissiveIntensity: gold ? 0.5 : 0.4, roughness: 0.45 }, { rim: gold ? 0xffe9b0 : 0xd8ceff, rimK: 0.6 }), REV, 'in');
     const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, len * 3, gold ? 0.05 : 0.042, 6, false), mat);
     tube.name = 'chr' + (c + 1); chromatin.add(tube);
     W.chromosomes.push({ n: c + 1, center: ctr.clone(), curve, mesh: tube });
@@ -463,11 +548,12 @@ export function buildCell(scene) {
   /* the nucleolus: a dense region with no membrane, where ribosome parts are made */
   let nolGeo = mergeVertices(new THREE.IcosahedronGeometry(0.7, 5));
   { const p = nolGeo.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const k = 1 + 0.16 * fbm(v.x * 2.6, v.y * 2.6, v.z * 2.6) + 0.07 * noise3(v.x * 14, v.y * 14, v.z * 14); p.setXYZ(i, v.x * k, v.y * k, v.z * k); } nolGeo.computeVertexNormals(); }
-  const nucleolus = new THREE.Mesh(nolGeo, magicStandard({ color: 0xb04a92, emissive: 0x3a0a2c, emissiveIntensity: 0.6, roughness: 0.8 }, { rim: 0xff9ad6, rimK: 0.9 }));
+  const nucleolus = new THREE.Mesh(nolGeo, revealOn(magicStandard({ color: 0xb04a92, emissive: 0x3a0a2c, emissiveIntensity: 0.6, roughness: 0.8 }, { rim: 0xff9ad6, rimK: 0.9 }), REV, 'in'));
   nucleolus.position.set(0.55, 0.55, 0.8); nucleolus.name = 'nucleolus-body'; nucleus.add(nucleolus);
   const nolSpark = sparkles({ count: 140, size: 0.05, color: 0xffb3e6, drift: 0.02, sample: (v) => { const u = rr(-1, 1), a = rr(0, 6.28), s = Math.sqrt(1 - u * u), r = 0.5 + rr(0, 0.3); v.set(0.55 + s * Math.cos(a) * r, 0.55 + u * r, 0.8 + s * Math.sin(a) * r); } });
   nucleus.add(nolSpark);
-  W.nucleus = { group: nucleus, center: N0, r: NR, sy: NSY, winDir, nucleolus, outerEnv, innerEnv };
+  W.nucleus = { group: nucleus, center: N0, r: NR, sy: NSY, winDir, winCos, nucleolus, outerEnv, innerEnv, rim, rimPts, pores, poresFront, front: frontPores, chromatin, nolSpark,
+    door: { d: doorD, p: doorP, n: doorN, e1: doorE1, e2: doorE2, torus: doorTorus }, HOLE, REV, PK, poreGeo, poreMat };
 
   /* ---------- rough ER: curved layers round the base of the nucleus, studded with ribosomes ---------- */
   const rer = add('rer', new THREE.Group());

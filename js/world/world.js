@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611081747';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611081747';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611082056';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611082056';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -47,6 +47,7 @@ export class World {
     this.W = buildCell(scene);
     this.P = placeList(this.W);
     this.placeFx();
+    this.nucOpen = false; this.nucShown = false; this.nucDive = false; this.nucLook();
 
     this.controls = new OrbitControls(this.camera, canvas);
     Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, rotateSpeed: 0.55, zoomSpeed: 0.7 });
@@ -206,17 +207,35 @@ export class World {
   /* ---------- the cell you know (Year 7: membrane, cytoplasm, nucleus, mitochondria, ribosomes) and the rest ----------
      simple(true) hides every structure beyond the Year 7 list; reveal(key) shows one again (play.js names each). */
   simple(on) {
-    const G = this.W.groups, N = this.W.nucleus;
-    this.isSimple = on;
+    const G = this.W.groups;
+    this.isSimple = on; if (on) this.nucShown = false;
     BEYOND.forEach(k => { if (G[k]) G[k].visible = !on; });
     G.rer.children.forEach(m => { if (m.name !== 'rer-ribosomes') m.visible = !on; });
-    [N.innerEnv, this.W.nucleus.nucleolus, ...N.group.children.filter(c => c.name === 'pores' || c.name === 'chromatin' || c.isPoints || (c.isMesh && c.geometry.type === 'TubeGeometry'))].forEach(o => { o.visible = !on; });
+    this.nucLook();
   }
   reveal(key) {
-    const G = this.W.groups, N = this.W.nucleus;
+    const G = this.W.groups;
     if (key === 'rer') G.rer.children.forEach(m => { m.visible = true; });
-    else if (key === 'nucleus-inside') [N.innerEnv, N.nucleolus, ...N.group.children].forEach(o => { o.visible = true; });
+    else if (key === 'nucleus-inside') { this.nucShown = true; this.nucLook(); }
     else if (G[key]) G[key].visible = true;
+  }
+
+  /* ---------- the nucleus, closed or open (8 Nov 2026) ----------
+     Daniel: "the first time you go in, it needs to be closed, and you need to go through a pore and then kind of travel
+     through it and then reveal what's inside … if you go to the map, then you will see the nucleus open as you see it now".
+     Closed: the whole envelope, its pores all over it (those of the front too), nothing inside drawn (none of it can be
+     seen); open: its front cut away (the window, its glowing rim) and the inside shown, as before. main.js sets it from
+     the saved game ('in-nucleus': the pupil has been inside); the dive (play.js) opens it, unseen, once the pupil is in.
+     nucDive: during the dive the inside is drawn (black until its light reaches it). In the Year 7 view (simple) only the
+     outer envelope shows; the start's Show everything (reveal 'nucleus-inside') shows the rest that can be seen. */
+  setNucleus(open) { this.nucOpen = !!open; this.nucLook(); }
+  nucLook() {
+    const N = this.W.nucleus, full = !this.isSimple || !!this.nucShown, open = !!this.nucOpen, inside = full && (open || !!this.nucDive);
+    N.outerEnv.geometry = open ? N.outerEnv.userData.geo.cut : N.outerEnv.userData.geo.whole;
+    N.innerEnv.geometry = open ? N.innerEnv.userData.geo.cut : N.innerEnv.userData.geo.whole;
+    N.innerEnv.visible = full; N.pores.visible = full; N.poresFront.visible = full && !open; N.rim.visible = full && open;
+    [N.chromatin, N.nucleolus, N.nolSpark].forEach(o => { o.visible = inside; });
+    this.kick();
   }
 
   /* ---------- the camera ---------- */
