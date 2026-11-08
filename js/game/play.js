@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611081212';
-import { state, COST, RESPIRE } from './state.js?v=202611081212';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611081212';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611081212';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611081443';
+import { state, COST, RESPIRE } from './state.js?v=202611081443';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611081443';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611081443';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611081212').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611081443').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -86,7 +86,7 @@ export function makePlay(world, quest) {
      three a little smaller, game.css nm--ib, so that two fit in the membrane's height on a 1280 × 700 laptop); the
      amino acid transporter's only on the right, at its carrier's foot (names.js side). So no line crosses another
      carrier: a name with no room is left out. On a phone each name stands on its part, the membrane's anywhere along it */
-  const onCarrier = (C, ys) => ys.flatMap(([y, z]) => [V(-0.2, y, z), V(0.2, y, z)]).map(v => C.group.localToWorld(v));
+  const onCarrier = (C, ys) => ys.flatMap(([y, z]) => C.halves.map((h, k) => { h.updateWorldMatrix(true, false); return h.localToWorld(V(k ? 0.2 : -0.2, y, z)); }));
   const wayNames = again => !again && (quest.names.items[0] || {}).key === 'w-in' ? null : quest.names.set([
     { key: 'w-in', free: true, small: '<span class="nm__t">Inside: the cytoplasm</span>', html: '<span class="nm__t">Inside the cell:<br>the cytoplasm</span>', spots: [V(-3.7, 1.55, 0.12), V(-3.3, 1.7, 0.12), V(-3.7, 1.3, 0.12), V(1.9, 1.3, 0.12)] },
     ibOn() ? { key: 'w-mem', free: true, side: 'L', cls: 'nm--ib', small: '<span class="nm__t">phospholipid bilayer</span>', html: '<span class="nm__t">Cell membrane:<br>phospholipid bilayer</span>',
@@ -139,22 +139,35 @@ export function makePlay(world, quest) {
     quest.say(ib('Oxygen is a small molecule: it passes straight through the two layers of lipids. It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.', 'Oxygen is small and non-polar: it passes straight between the phospholipids, down its <dfn data-w="concentration-gradient">concentration gradient</dfn>, from the blood, where its concentration is higher, into the cell, where it is lower. This is simple <dfn data-w="diffusion">diffusion</dfn>.'), 'ok');
     await quest.gain('oxygen', ox[0].position, 2); ox.forEach(drop);
   }
-  /* a carrier protein rocks, open to the outside (k = -1) or to the inside (k = 1) */
-  const rock = (C, k, ms = 600) => live(new Promise(res => {
-    const a0 = C.halves[0].rotation.z, a1 = 0.26 * k, t0 = performance.now();
-    const f = () => { const e = R.FAST || !ms ? 1 : Math.min(1, (performance.now() - t0) / ms), a = a0 + (a1 - a0) * e * e * (3 - 2 * e);
-      C.halves[0].rotation.z = a; C.halves[1].rotation.z = -a; world.kick && world.kick(); if (e < 1) requestAnimationFrame(f); else res(); };
+  /* a carrier protein changes shape, from its pose now to pose s (cellbuild.js carrier: -1 open to the outside, 0 shut on
+     both sides, 1 open to the inside; the mitochondrion's carrier the same way, mitoparts.js) */
+  const turnTo = (C, s, ms = 600) => live(new Promise(res => {
+    const s0 = C.s, t0 = performance.now();
+    const f = () => { const e = R.FAST || !ms ? 1 : Math.min(1, (performance.now() - t0) / ms); C.pose(s0 + (s - s0) * e * e * (3 - 2 * e)); world.kick && world.kick(); if (e < 1) requestAnimationFrame(f); else res(); };
     f();
   }));
-  /* one molecule through a carrier protein: into its open side, the protein rocks, and out of its other side */
+  /* where a token stands so that the middle of its shape is at p (an amino acid's two parts are not round its centre) */
+  const centred = (t, p) => { const c = new THREE.Box3().setFromObject(t).getCenter(new THREE.Vector3()); return p.clone().add(t.position).sub(c); };
+  /* one molecule through a carrier protein, in the real order (cellbuild.js carrier). The carrier waits open to the
+     outside; the molecule moves to its mouth and into its pocket; as it settles there (it binds), the open side shuts
+     behind it; for a moment it is held inside, both sides shut; then the carrier opens to the inside, and the molecule
+     leaves as soon as there is room; once it is clear, the empty carrier changes back, open to the outside for the next */
   async function viaCarrier(C, t) {
-    const z = C.at.z + 0.1;
-    await tween(t, { to: V(C.at.x, -0.7, z), ms: 700 });
-    await tween(t, { to: V(C.at.x, -0.05, z), ms: 600 });
-    await rock(C, 1, 700);
-    await tween(t, { to: V(C.at.x, 0.66, z), ms: 600 });
-    rock(C, -1, 700);
-    await tween(t, { to: V(C.at.x + jit(0.3), 0.68, 0.12), ms: 600 });
+    unbob(t);
+    const at = y => centred(t, V(C.at.x, y, C.at.z + 0.1));
+    if (C.s !== -1) await turnTo(C, -1, 500);
+    await tween(t, { path: curve([t.position.clone(), at(-C.mouth - 0.12).add(V(jit(0.1), 0, 0)), at(-C.mouth)]), ms: 900 });
+    const shut = wait(R.FAST ? 0 : 540).then(() => turnTo(C, 0, 560));
+    await tween(t, { to: at(0), ms: 650 });
+    await shut;
+    await wait(300);
+    const open = turnTo(C, 1, 640);
+    await wait(R.FAST ? 0 : 545);
+    await tween(t, { to: at(C.mouth), ms: 620 });
+    await open;
+    const back = turnTo(C, -1, 900);
+    await tween(t, { to: V(C.at.x + jit(0.3), C.mouth + 0.14, 0.12), ms: 600 });
+    await back;
   }
   /* a larger molecule meets the lipids beside a carrier, and stays outside: what really happens (memory
      bench-sims-show-the-truth) */
@@ -179,12 +192,12 @@ export function makePlay(world, quest) {
   }
   async function carriers() {
     await wayFly();
-    const C = BL.carriers.glucose; await rock(C, -1, 0);
+    const C = BL.carriers.glucose; await turnTo(C, -1, 0);
     const g = await fromBlood('glucose', 2, C.at.x, 0.22);
     await press(() => g[0].position.clone().add(V(0, -0.3, 0)), 'glucose', { cls: 'tok', side: 'b' });
     await quest.choose(ibOn() ? ['Through a glucose transporter (a carrier protein)', 'Straight between the phospholipids'] : ['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
       quest.say(ib('Glucose is a larger molecule: the two layers of lipids stop it.', 'Glucose is polar: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
-      await bump(g[0], C.at.x + 0.95);
+      await bump(g[0], C.at.x + 1.15);
     });
     quest.say(ib('A <dfn data-w="carrier-protein">carrier protein</dfn> lets glucose pass through the membrane.', 'A <dfn data-w="glucose-transporter">glucose transporter</dfn> lets glucose pass through the membrane: <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, with no ATP.'), 'ok');
     for (const t of g) await viaCarrier(C, t);
@@ -192,19 +205,22 @@ export function makePlay(world, quest) {
   }
   async function amino() {
     await wayFly();
-    const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([rock(C, -1, 0), rock(G, -1, 0)]);
+    const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([turnTo(C, -1, 0), turnTo(G, -1, 0)]);
     const [a] = await fromBlood('amino', 1, C.at.x - 0.4, 0.28, true);
     await press(() => a.position.clone().add(V(0, -0.32, 0)), 'amino acid', { cls: 'tok', side: 'b' });
     await quest.choose(ibOn() ? ['Through its own transporter', 'Through the glucose transporter', 'Straight between the phospholipids'] : ['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
       if (i === 1) {
         quest.say(ib('The carrier protein for glucose lets only glucose pass through. Each kind of carrier protein lets only one kind of substance pass through.', 'The glucose transporter lets only glucose pass through. Each carrier protein is selective: only particles of the right shape and charge fit it.'), 'no');
-        const p0 = a.position.clone();
-        await tween(a, { to: V(G.at.x, -0.74, G.at.z + 0.1), ms: 1100 });
-        await tween(a, { to: V(G.at.x, -0.84, G.at.z + 0.1), ms: 240 });
+        /* into its open side, but it does not bind in the pocket: the carrier does not change shape, and it drifts out */
+        const p0 = a.position.clone(), at = y => centred(a, V(G.at.x, y, G.at.z + 0.1));
+        await tween(a, { to: at(-G.mouth), ms: 1100 });
+        await tween(a, { to: at(-G.mouth + 0.42), ms: 520 });
+        await wait(380);
+        await tween(a, { to: at(-G.mouth), ms: 520 });
         await tween(a, { to: p0, ms: 1100 });
       } else {
         quest.say(ib('An amino acid is a larger molecule: the two layers of lipids stop it.', 'An amino acid is charged: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
-        await bump(a, C.at.x - 0.95);
+        await bump(a, C.at.x - 1.2);
       }
     });
     quest.say(ib('Its own carrier protein lets the amino acid pass through.', 'Its own carrier protein, an amino acid transporter, lets the amino acid pass through.'), 'ok');
@@ -220,7 +236,7 @@ export function makePlay(world, quest) {
     /* then into the plasma: first along the tissue fluid until it is over the middle of a space between two red blood
        cells, then down into that space, always over it as the blood flows (it never touches a red blood cell); then on
        with the plasma, out of the picture */
-    const k = BLD.gapNear(t.position.x, BLD.t || 0), inPlasma = () => BLD.gapAt(k, BLD.t || 0).add(V(0, 0.5, 1.4)), a = t.position.clone();
+    const k = BLD.gapNear(t.position.x, BLD.t || 0), inPlasma = () => BLD.aimAt(k, BLD.t || 0), a = t.position.clone();
     unbob(t);
     await live(new Promise(res => {
       const t0 = performance.now(), sm = x => x * x * (3 - 2 * x);
@@ -486,7 +502,7 @@ export function makePlay(world, quest) {
      stand at the membranes' outer edges and the membranes' names at their inner edges, one above the other */
   const feedNames = () => nanoNames([['nm-ch', 'channel protein', [[-22, -1, -2.6], [-22, -5.5, -2.6]], null, false, [[-22, 0.8, -2.6], [-22, -1, -2.6]]],
     ['nm-ims', 'intermembrane space:<br>the space between<br>the membranes', [[-34, -14.5], [-8, -14.5], [-36, -12]], 'intermembrane space'],
-    ['nm-cp', 'carrier protein', [[-20, -24, -3.4], [-20, -27.5, -3.4]], null, false, [[-20, -21, -3.4], [-20, -22.6, -3.4]]], ['nm-mx', 'matrix', [[-10, -30.5], [-14, -31], [-32, -30.5]], null, false, [[-6, -34], [-34, -34.5], [-10, -35]]],
+    ['nm-cp', 'carrier protein', [[-21.5, -24, -3.4], [-21.5, -27.5, -3.4]], null, false, [[-20, -21, -3.4], [-20, -22.6, -3.4]]], ['nm-mx', 'matrix', [[-10, -30.5], [-14, -31], [-32, -30.5]], null, false, [[-6, -34], [-34, -34.5], [-10, -35]]],
     ['nm-om3', 'outer membrane', [[-10, -3.5, -0.5], [-30, -3.5, -0.5], [-14, -3.5, -0.5]], null, false, [[-40, -5.6, -0.5], [-2, -5.6, -0.5], [-36, -5.6, -0.5]]],
     ['nm-im3', 'inner membrane', [[-32, -25.5, -0.5], [-12, -25.5, -0.5], [-36, -25.5, -0.5]], null, false, [[-2, -27, -0.5], [1, -27, -0.5], [-40, -27, -0.5]]]], -36, -6, -11);
   async function feed() {
@@ -498,8 +514,8 @@ export function makePlay(world, quest) {
     /* clear of the corner box, and never on the channel protein's way */
     const O2 = props.o2 && props.o2.every(t => t.parent) ? props.o2 : [[-30, 3.2], [-27.5, 6.4], [-14.5, 4.0], [-12, 8.4], [-9.5, 5.4], [-16.5, 9.6]].map(([u, n]) => mol('oxygen', u, n, -1 - Math.random() * 1.2));
     props.o2 = O2; O2.forEach(t => nbob(t, 0.00012));
-    const C = PT.parts.mpc.halves;
-    const rockC = (k, ms = 500) => live(new Promise(res => { const a0 = C[0].rotation.z, a1 = 0.22 * k, t0 = performance.now(); const f = () => { const e = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), a = a0 + (a1 - a0) * e * e * (3 - 2 * e); C[0].rotation.z = a; C[1].rotation.z = -a; if (e < 1) requestAnimationFrame(f); else res(); }; f(); }));
+    const C = PT.parts.mpc;
+    C.pose(1);   /* the carrier waits open to the space between the membranes, where pyruvate comes from */
     /* before each press the camera is back at this view: a button never points at something out of view */
     await over();
     for (let i = 0; i < 2; i++) {
@@ -511,11 +527,21 @@ export function makePlay(world, quest) {
       const stop = track(() => t.position.clone().addScaledVector(pD(0, 1, 0), -0.003), 42);
       const u0 = -22 + (i ? 0.5 : -0.5), w0 = -2.6;
       await tween(t, { path: along3([[i ? -18.6 : -22.8, i ? 5.4 : 6.6], [u0, 3.5, w0], [u0, -0.2, w0], [u0, -7.4, w0], [-21 + i * 0.4, -14, -3], [-20, -20.6, -3.4]]), ms: R.FAST ? 0 : 3600 });
-      await rockC(-1, 400);
-      await tween(t, { path: along3([[-20, -20.6, -3.4], [-20, -25.5, -3.4], [-20, -30.4, -3.4]]), ms: R.FAST ? 0 : 1300 });
-      await rockC(1, 400);
+      /* the carrier's real order (the way in's carriers, viaCarrier): into its pocket, where it binds; as it settles, the
+         open side shuts behind it; held for a moment, both sides shut; the carrier opens to the matrix and pyruvate
+         leaves; once it is clear, the empty carrier changes back, open to the space between the membranes */
+      if (C.s !== 1) await turnTo(C, 1, 500);
+      const shut = wait(R.FAST ? 0 : 900).then(() => turnTo(C, 0, 600));
+      await tween(t, { to: pW(-20, -25.5, -3.4), ms: 1100 });
+      await shut;
+      await wait(300);
+      const open = turnTo(C, -1, 650);
+      await wait(R.FAST ? 0 : 550);
+      await tween(t, { to: pW(-20, -30.4, -3.4), ms: 800 });
+      await open;
+      const back = turnTo(C, 1, 900);
       await tween(t, { to: pW(-18 + i * 3.2, -35 - i * 1.6, -2), ms: 900 });
-      await rockC(0, 300);
+      await back;
       await stop();
       if (!i) ok(ib('It passes through a channel protein in the outer membrane, then a carrier protein in the inner membrane, into the matrix.', 'It passes through porin, a channel protein in the outer membrane, then the pyruvate carrier, a carrier protein in the inner membrane, into the matrix.'));
     }

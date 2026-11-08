@@ -27,7 +27,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611081212';
+import { magicStandard } from './magic.js?v=202611081443';
 
 /* the mitochondria's own random numbers: the rest of the seeded world stays exactly as it was */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -258,7 +258,7 @@ let ATP_DATA = null;
 /* the measured model (atp-synthase.js, written by tools/atp-synthase.py), fetched the first time it is needed */
 export async function loadATP() {
   /* a download that fails (slow school Wi-Fi) must not stop the place: then the drawn one stands in, and says so */
-  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611081212')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
+  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611081443')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
   return ATP_DATA;
 }
 /* is the ATP synthase drawn now the measured one? (the film's source line says which) */
@@ -538,10 +538,31 @@ export function nanoPatch({ uc = 30, depth = 85, lumen = 12, U = 80, rows = 12 }
   })();
   const porMat = protMat(COL.porin, 0.7); porMat.side = THREE.DoubleSide;
   const porins = P.porins.map(p => { const m = new THREE.Mesh(porinGeo, porMat); m.position.set(p.u, -3.5, p.w); g.add(m); return m; });
-  /* the carrier protein of the smaller molecules (the mitochondrial pyruvate carrier): two halves round a way through */
+  /* the carrier protein of the smaller molecules (the mitochondrial pyruvate carrier): two halves that meet face to face
+     round a pocket that pyruvate fits, and change shape in the real order, as the way in's carriers do (cellbuild.js
+     carrier; play.js feed). pose(s): -1 open to the matrix (below), 0 shut on both sides, 1 open to the space between
+     the membranes (above). Each half is its old shape moved 0.2 nm across the middle plane, and the part past it made
+     its flat face, with half of the pocket cut into it */
   const mpc = new THREE.Group(); mpc.position.set(P.mpc.u, nB, P.mpc.w); g.add(mpc);
   const mpcMat = protMat(COL.mpc, 0.8);
-  const halves = [-1, 1].map(s => { const pv = new THREE.Group(), b = new THREE.Mesh(blob(1.05, 2.8, 1.9, s + 4), mpcMat); b.position.x = s * 1.05; pv.add(b); mpc.add(pv); return pv; });
+  const MP = { cx: 0.85, P: 0.55, Ph: 0.6, Pz: 0.55, turn: 0.32 }, mEnd = 2.8 * Math.sqrt(1 - (MP.cx / 1.05) ** 2);
+  const halves = [-1, 1].map(s => {
+    const geo = blob(1.05, 2.8, 1.9, s + 4), p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const y = p.getY(i), z = p.getZ(i); let x = p.getX(i) + s * MP.cx;
+      if (s * x <= 0) { const q = 1 - (y / MP.Ph) ** 2 - (z / MP.Pz) ** 2; x = q > 0 ? s * MP.P * Math.sqrt(q) : 0; }
+      p.setX(i, x);
+    }
+    geo.computeVertexNormals();
+    const h = new THREE.Mesh(geo, mpcMat); mpc.add(h); return h;
+  });
+  const mpcPart = { group: mpc, halves, s: 0, Ph: MP.Ph, end: mEnd, top: 3.08,
+    pose(s) {
+      mpcPart.s = s;
+      const py = s < 0 ? mEnd : -mEnd;
+      halves.forEach((h, k) => { const a = (k ? -1 : 1) * Math.sign(s) * MP.turn * Math.abs(s); h.rotation.z = a; h.position.set(py * Math.sin(a), py * (1 - Math.cos(a)), 0); });
+    } };
+  mpcPart.pose(1); mpc.name = 'mpc'; mpc.userData.part = mpcPart;   /* (tools/carrier-order.mjs reads its pose) */
   /* the pumps on the crista's two walls (their matrix side outwards), and ATP synthase at its round end, two together */
   const pumps = P.pumps.map(p => {
     const m = pump(p.kind), x = uc + p.wall * hw;
@@ -585,7 +606,7 @@ export function nanoPatch({ uc = 30, depth = 85, lumen = 12, U = 80, rows = 12 }
     crista: new THREE.Vector3(uc, nB - depth * 0.45, 0), lumen: new THREE.Vector3(uc, nB - 20, 0), pump4: new THREE.Vector3(uc - hw - 3, -70, -3.8),
     atp: new THREE.Vector3(uc, nR - hw - 12, P.atp.w)
   };
-  return { group: g, pts, parts: { heads, tails, porins, mpc: { group: mpc, halves }, pumps, atp, back }, geo: { uc, hw, nB, nR, depth, U }, count: lip.length };
+  return { group: g, pts, parts: { heads, tails, porins, mpc: mpcPart, pumps, atp, back }, geo: { uc, hw, nB, nR, depth, U }, count: lip.length };
 }
 
 /* ============================================================ hydrogen ions through ATP synthase, and ATP made ============================================================ */

@@ -15,11 +15,11 @@
    (in muscle, the glycerol phosphate shuttle passes them to FAD in the inner membrane: Mráček et al. 2013, BBA 1827:401).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611081212';
-import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611081212';
-import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611081212';
-import { bilayer, MEM } from './membrane.js?v=202611081212';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611081212';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611081443';
+import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611081443';
+import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611081443';
+import { bilayer, MEM } from './membrane.js?v=202611081443';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611081443';
 
 /* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
 const PROTS = ['vdac', 'mpc_ims', 'mpc_occ', 'mpc_mat'];
@@ -138,8 +138,12 @@ export async function build(stage, { V }) {
     { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { mOM: 1, mIM: 1, mCr: 1, mMx: 2 } },
     { phases: [{ to: { cam: 1 }, ms: 3800 }], labs: { cyt: 1, om: 1, ims: 1, im: 1, mx: 1 } },
     { phases: [{ to: { cam: 2 }, ms: 1600 }, { to: { p: 1 }, ms: 3200 }], labs: { vdac: 1, pyr: 1, ims: 2 } },
-    { phases: [{ to: { cam: 3 }, ms: 1800 }, { to: { p: 1.45 }, ms: 1600 }, { to: { p: 1.7, mpc: 1 }, ms: 1800 }, { to: { p: 1.95, mpc: 2 }, ms: 1800 }], labs: { mpc: 1, pyr: 1, h: 1 } },
-    { phases: [{ to: { p: 3, mpc: 0, cam: 5 }, ms: 2400 }], labs: { pyr: 1, mx: 1, mpc: 2 } },
+    /* the real order (Daniel, 8 Nov 2026: "make sure that it matches the reality ... in terms of timing"): pyruvate moves into
+       the carrier, open to the intermembrane space, and binds (p 1.75: the middle); then the carrier closes round it (its
+       measured occluded shape), then opens to the matrix; pyruvate leaves; only once it is out does the empty carrier
+       change back (before, it began to change back while pyruvate was still leaving it) */
+    { phases: [{ to: { cam: 3 }, ms: 1800 }, { to: { p: 1.45 }, ms: 1600 }, { to: { p: 1.75 }, ms: 1300 }, { to: { mpc: 1 }, ms: 1300 }, { to: { mpc: 2 }, ms: 1500 }, { to: { p: 1.95 }, ms: 900 }], labs: { mpc: 1, pyr: 1, h: 1 } },
+    { phases: [{ to: { p: 2.4 }, ms: 1100 }, { to: { p: 3, mpc: 0, cam: 5 }, ms: 2200 }], labs: { pyr: 1, mx: 1, mpc: 2 } },
     { phases: [{ to: { cam: 4, n: 1 }, ms: 3600 }, { to: { e: 1.2 }, ms: 2200 }, { to: { n: 2 }, ms: 1600 }], labs: { nadh: 1, e: 1, im: 2 } },
     { phases: [{ to: { cam: 1 }, ms: 2000 }], labs: { om: 1, im: 1, mx: 1 } }
   ];

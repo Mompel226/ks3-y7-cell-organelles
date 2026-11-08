@@ -28,11 +28,11 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611081212';
-import { MOL } from './mol-data.js?v=202611081212';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611081212';
-import { bilayer, MEM } from './membrane.js?v=202611081212';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611081212';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611081443';
+import { MOL } from './mol-data.js?v=202611081443';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611081443';
+import { bilayer, MEM } from './membrane.js?v=202611081443';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611081443';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -622,18 +622,23 @@ export async function build(stage, { V }) {
       else if (K.rx < 1) { const R_ = reaction().at(K.rx), base = atoms.length; atoms.push(...R_.atoms); R_.bonds.forEach(b => bonds.push({ a: b.a + base, b: b.b + base, o: b.o, s: b.s })); }
       else { const P = rxPose(); addInsts([{ key: 'adp_k', id: 'a', P: P('adp_k') }, { key: 'ptyr_k', id: 't', P: P('ptyr_k') }]); }
     }
-    /* glucose through three of the new transporters: each opens to the outside, glucose binds, it opens to the inside */
+    /* glucose through three of the new transporters, in the real order (Daniel, 8 Nov 2026: "make sure that it matches the
+       reality ... in terms of timing"; ch1.js): each waits open to the outside; glucose moves in and binds in its middle;
+       then it closes to the outside and, a moment later, opens to the inside; only then glucose leaves; once it is clear,
+       the empty transporter changes back (before, each turned while its glucose was still moving in, and back while it
+       was still in its inner mouth) */
     if (K.fuse > 0.9) {
       VG.forEach((H, k) => { if (!GOS.includes(k)) H.rock(-1); });
       GOS.forEach((gi, j) => {
-        /* each one: from outside to the open outer mouth, into the middle, the transporter turns, released inside */
         const G = VG[gi], S = G.o.userData.sites, cav = S.cavity ? S.cavity.clone() : V3(0, 0, 0);
         const u = smooth(j * 0.12, j * 0.12 + 0.72, K.glc);
-        const path = [glcWait[j].d.clone(), V3(0.1, -3.6, 0.8), cav.clone().add(V3(0, -0.3, 0)), V3(0.1, 3.8, 0.9), glcOut[j].clone()];
-        const n = path.length - 1, i = Math.min(n - 1, Math.floor(u * n)), f = u * n - i, ef = f * f * (3 - 2 * f);
-        const pw = G.o.localToWorld(path[i].clone().lerp(path[i + 1], ef));
-        G.rock(u > 0.4 && u < 1 ? (u < 0.62 ? lerp(-1, 1, smooth(0.4, 0.62, u)) : lerp(1, -1, smooth(0.8, 1, u))) : -1);
-        addInsts([{ key: 'glucose', id: (u > 0.62 ? 'gl' : 'gw') + j, P: { p: pw, q: glcWait[j].q } }]);
+        /* [u, where]: outside, the outer mouth, the middle (binds), still there while it turns, the inner mouth, inside */
+        const keys = [[0, glcWait[j].d.clone()], [0.25, V3(0.1, -3.6, 0.8)], [0.45, cav.clone().add(V3(0, -0.3, 0))], [0.7, cav.clone().add(V3(0, -0.3, 0))], [0.82, V3(0.1, 3.8, 0.9)], [1, glcOut[j].clone()]];
+        let i = 0; while (i < keys.length - 2 && u > keys[i + 1][0]) i++;
+        const f = Math.min(1, Math.max(0, (u - keys[i][0]) / (keys[i + 1][0] - keys[i][0]))), ef = f * f * (3 - 2 * f);
+        const pw = G.o.localToWorld(keys[i][1].clone().lerp(keys[i + 1][1], ef));
+        G.rock(u < 0.45 ? -1 : u < 0.6 ? lerp(-1, 0, smooth(0.45, 0.55, u)) : u < 0.9 ? lerp(0, 1, smooth(0.6, 0.7, u)) : lerp(1, -1, smooth(0.9, 1, u)));
+        addInsts([{ key: 'glucose', id: (u > 0.7 ? 'gl' : 'gw') + j, P: { p: pw, q: glcWait[j].q } }]);
         gGlow[j].visible = K.glc > 0; gGlow[j].position.copy(pw); gGlow[j].material.opacity = 0.3 + 0.45 * Math.sin(Math.PI * u);
       });
       const base = VG[GOS[0]].o.localToWorld(V3());

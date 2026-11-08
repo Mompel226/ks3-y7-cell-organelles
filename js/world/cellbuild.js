@@ -17,9 +17,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611081212';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611081212';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611081212';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611081443';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611081443';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611081443';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -245,32 +245,56 @@ export function buildCell(scene) {
   /* the capillary runs under the base of the cell, about 1.4 µm below its membrane (the tissue fluid between), its front
      just behind the front cut, so that the way in shows it from the front */
   const capPath = new THREE.CatmullRomCurve3([new THREE.Vector3(-26, -6.0, -8.5), new THREE.Vector3(-9, -4.9, -3.4), new THREE.Vector3(0, -4.8, -2.9), new THREE.Vector3(9, -4.9, -3.4), new THREE.Vector3(26, -6.0, -8.0)]);
+  /* how wide the capillary is (Daniel, 8 Nov 2026, of the cells drawn bent from the start: "They don't look like red blood
+     cells ... if you show a normal red blood cell and then as the capillary gets narrowed, how they fold and then they
+     change shape, that would be useful"): 8.5 µm inside where the blood comes from, where a red blood cell (7.5 µm)
+     passes as it is; 6.1 µm under the cell and on past the right of the picture, where each one folds to pass (the
+     carbon dioxide flows on between the folded cells, out of the picture); wide again far to the right, out of view
+     (capillaries are 5-10 µm wide, OpenStax A&P 20.1; red blood cells bend to pass the narrowest, 18.2).
+     bendAt(x): 0 where the capillary is wide, 1 where it is narrow. Seen from the way in at any size (at least 20° to
+     each side of its middle, about x -8.2 to 5.4 at the capillary): discs arriving at the left, folding as the capillary
+     narrows, folded under the cell, where oxygen and carbon dioxide cross */
+  const RW = 4.25, RN = 3.05, NARROW = [-6.4, -2.6, 10.5, 14.5];
+  const sstep = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+  const bendAt = x => sstep(NARROW[0], NARROW[1], x) * (1 - sstep(NARROW[2], NARROW[3], x));
+  const capR = x => RW - (RW - RN) * bendAt(x);
+  const capGeo = new THREE.TubeGeometry(capPath, 160, 1, 40, false);
+  { const p = capGeo.attributes.position, v = new THREE.Vector3(), c = new THREE.Vector3();
+    for (let i = 0; i <= 160; i++) { capPath.getPointAt(i / 160, c); const r = capR(c.x); for (let j = 0; j <= 40; j++) { const k = i * 41 + j; v.fromBufferAttribute(p, k).sub(c).multiplyScalar(r).add(c); p.setXYZ(k, v.x, v.y, v.z); } }
+    capGeo.computeVertexNormals(); }
   /* the blood keeps its colours far away too (the fog darkened it to black beads in the intro's view of the bunch) */
-  const capWall = new THREE.Mesh(new THREE.TubeGeometry(capPath, 160, 3.05, 40, false), magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5, fog: false }, { rim: 0xff8aa0, rimK: 0.8 }));
+  const capWall = new THREE.Mesh(capGeo, magicStandard({ color: 0xc8506a, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false, roughness: 0.5, fog: false }, { rim: 0xff8aa0, rimK: 0.8 }));
   capWall.renderOrder = 1; below.add(capWall);
-  /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary. The capillary
-     (6.1 µm inside) is narrower than they are, so each one bends to pass, as real ones do in the narrowest capillaries:
-     a cup (a "parachute") with its rim trailing behind, its widest 2.8 µm from the capillary's middle, so the plasma
-     still flows round it (Daniel, 7 Nov 2026: "the cells could bend, that would be nice"; until then they were drawn
-     5.9 µm across, flat, to fit). The bend: each point of the flat cell goes onto a sphere of radius RB (its middle
-     surface), at the same distance from the cell's middle, the cell thinner as it spreads round (thickness × 0.6) */
+  /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary. Where it is wide,
+     each is a disc, its face turned towards you so that its thin middle shows (as before 7 Nov 2026). Where it narrows,
+     each folds into a cup (a "parachute") with its rim trailing behind, its widest 2.8 µm from the capillary's middle,
+     so the plasma still flows round it (Daniel, 7 Nov 2026: "the cells could bend, that would be nice"), and points the
+     way the blood flows; where it widens again (out of view), the cup opens into a disc again. The cup is a second shape of the same
+     cell (a morph target): each point of the flat cell goes onto a sphere of radius RB (its middle surface), at the same
+     distance from the cell's middle, the cell thinner as it spreads round (thickness × 0.6). A cell folds as its front
+     reaches the narrowing and opens again once its back has left it (foldOf: the narrowing 0.8 µm ahead or behind) */
   const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.75 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
   for (let i = 24; i >= 0; i--) { const v = rbcProfile[i]; rbcProfile.push(new THREE.Vector2(v.x, -v.y)); }
   const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x), v.y)), 36);
-  { const RB = 2.4, p = rbcGeo.attributes.position, v = new THREE.Vector3();
+  { const RB = 2.4, p = rbcGeo.attributes.position, v = new THREE.Vector3(), cup = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
       v.fromBufferAttribute(p, i);
       const th = Math.hypot(v.x, v.z) / RB, ph = Math.atan2(v.z, v.x), R = RB + 0.6 * v.y;
-      p.setXYZ(i, R * Math.sin(th) * Math.cos(ph), R * Math.cos(th) - RB, R * Math.sin(th) * Math.sin(ph));
+      cup.set([R * Math.sin(th) * Math.cos(ph), R * Math.cos(th) - RB, R * Math.sin(th) * Math.sin(ph)], i * 3);
     }
-    rbcGeo.computeVertexNormals(); }
+    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.BufferAttribute(cup, 3)); cg.setIndex(rbcGeo.index); cg.computeVertexNormals();
+    rbcGeo.morphAttributes.position = [cg.attributes.position]; rbcGeo.morphAttributes.normal = [cg.attributes.normal]; }
   /* red from every side, also far away and against the light (they looked black in the intro's view, 4 Nov 2026) */
   const rbcMat = magicStandard({ color: 0xc0303f, emissive: 0x6a0d1a, emissiveIntensity: 0.55, roughness: 0.4, fog: false }, { rim: 0xff7b8a, rimK: 0.45 });
   const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
-  /* where red blood cell i is at time t (the way in: oxygen leaves one): its front, in the capillary's middle, rocking a
-     little (0.05 µm: a bent cell nearly fills the capillary; tools/blood-bend.mjs keeps every one inside it) */
+  for (let i = 0; i < 9; i++) rbcs.setMorphAt(i, { morphTargetInfluences: [0] });   /* the fold's texture, before the first picture */
   const FLOW = 0.012, uOf = (k, t) => (((t * FLOW + k / 9) % 1) + 1) % 1;
-  const rbcAt = (i, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(i, t))).add(new THREE.Vector3(0, 0.05 * Math.sin(i * 1.7 + t * 0.6), 0.05 * Math.cos(i * 2.1)));
+  const foldOf = (i, t) => { const x = capPath.getPointAt(uOf(i, t)).x; return Math.max(bendAt(x - 0.8), bendAt(x + 0.8)); };
+  /* where red blood cell i is at time t (the way in: oxygen leaves one): in the capillary's middle (a cup: its front),
+     moving a little from it (0.25-0.3 µm as a disc, as before; 0.05 µm as a cup, which nearly fills the capillary;
+     tools/blood-bend.mjs keeps every one inside it) */
+  const rbcAt = (i, t, out = new THREE.Vector3()) => { const b = foldOf(i, t);
+    return out.copy(capPath.getPointAt(uOf(i, t))).add(new THREE.Vector3(0, (0.25 - 0.2 * b) * Math.sin(i * 1.7 + t * 0.6), (0.3 - 0.25 * b) * Math.cos(i * 2.1))); };
   /* the plasma, the liquid part of the blood: pale yellow motes flowing along the capillary with the red blood cells.
      The way in sends carbon dioxide into it, between two red blood cells, never into one (Daniel, 4 Nov 2026: "make
      sure that it goes into the plasma, and it looks like it's going into the plasma … Otherwise, it's leading to a
@@ -279,25 +303,47 @@ export function buildCell(scene) {
   for (let i = 0; i < NP; i++) { const a = Rp() * 6.283, r = 2.55 * Math.sqrt(Rp()); plasmaAt.push([Rp(), r * Math.cos(a), r * Math.sin(a)]); }
   const plasma = sparkles({ count: NP, size: 0.14, color: 0xffd76a, drift: 0.06, opacity: 0.85, sample: (v, i) => v.copy(capPath.getPointAt(plasmaAt[i][0])) });
   plasma.name = 'plasma'; plasma.frustumCulled = false; below.add(plasma);
-  W.blood = { path: capPath, rbcAt, n: 9, radius: 3.05,
-    /* the middle of the plasma between red blood cells k and k + 1, at time t; and the one nearest x. Cell k + 1 is ahead
-       (the blood flows to the right) and its cup trails 2.4 µm back towards cell k, about 6 µm apart: the free plasma
-       runs from cell k's front to that rim, and its middle is a third of the way (half way was at the cup's mouth) */
-    gapAt: (k, t, out = new THREE.Vector3()) => out.copy(capPath.getPointAt(uOf(k + 0.33, t))),
-    gapNear: (x, t) => { let best = 0, bd = Infinity; for (let k = 0; k < 9; k++) { const d = Math.abs(capPath.getPointAt(uOf(k + 0.33, t)).x - x); if (d < bd) { bd = d; best = k; } } return best; } };
+  /* the middle of the plasma between red blood cells k and k + 1 now (cell k + 1 ahead: the blood flows to the right): the
+     free plasma runs from the front of cell k to the back of cell k + 1, each as it is drawn now, folded or not, turned as
+     it is (a cup trails its rim behind; a disc stands round its middle), and the point on the capillary's middle half way
+     along it. Cells drawn last frame (W.anim below) with the fold of time t */
+  const SAMP = []; for (let i = 0; i < rbcGeo.attributes.position.count; i += 3) SAMP.push(i);
+  const mG = new THREE.Matrix4(), vG = new THREE.Vector3(), wG = new THREE.Vector3(), oG = new THREE.Vector3(), tG = new THREE.Vector3();
+  const LEN = capPath.getLength(), STEP = LEN / 9;
+  /* how far cell i reaches behind and ahead of its place, along the capillary (µm) */
+  const span = (i, t) => { rbcs.getMatrixAt(i, mG); oG.setFromMatrixPosition(mG); capPath.getTangentAt(uOf(i, t), tG); const b = foldOf(i, t), P = rbcGeo.attributes.position, Q = rbcGeo.morphAttributes.position[0]; let lo = Infinity, hi = -Infinity;
+    for (const k of SAMP) { const d = vG.fromBufferAttribute(P, k).lerp(wG.fromBufferAttribute(Q, k), b).applyMatrix4(mG).sub(oG).dot(tG); if (d < lo) lo = d; if (d > hi) hi = d; } return [lo, hi]; };
+  /* the gap after cell k: where its middle is (u) and how long its free plasma is (µm) */
+  const gapOf = (k, t) => { const a = uOf(k, t); if (uOf(k + 1, t) < a) return null; const f = span(k % 9, t)[1], len = STEP + span((k + 1) % 9, t)[0] - f; return { u: a + (f + len / 2) / LEN, len }; };
+  W.blood = { path: capPath, rbcAt, n: 9, radius: RN, radiusAt: capR, foldOf,
+    gapAt: (k, t, out = new THREE.Vector3()) => { const g = gapOf(k, t); return out.copy(capPath.getPointAt(g ? g.u : uOf(k + 0.5, t))); },
+    /* where the carbon dioxide is in that gap (play.js): beside its middle, nearer you and a little higher (0.5, 1.4 µm),
+       square to the capillary where it curves, so never nearer one cell than the other */
+    aimAt: (k, t, out = new THREE.Vector3()) => { const g = gapOf(k, t), u = g ? g.u : uOf(k + 0.5, t), tn = capPath.getTangentAt(u), off = new THREE.Vector3(0, 0.5, 1.4); off.addScaledVector(tn, -off.dot(tn)); return out.copy(capPath.getPointAt(u)).add(off); },
+    /* the gap the carbon dioxide enters, arriving at x: a roomy one near it (not a gap that a cell still folding crowds) */
+    gapNear: (x, t) => { let best = 0, bs = -Infinity; for (let k = 0; k < 9; k++) { const g = gapOf(k, t); if (!g) continue; const d = Math.abs(capPath.getPointAt(g.u).x - x); if (d > 3.2) continue; const sc = g.len - 0.4 * d; if (sc > bs) { bs = sc; best = k; } } return best; } };
+  const up = new THREE.Vector3(0, 1, 0), AX = new THREE.Vector3(1, 0, 0), AY = new THREE.Vector3(0, 1, 0);
+  const qDisc = new THREE.Quaternion(), qCup = new THREE.Quaternion(), qa = new THREE.Quaternion(), mo = { morphTargetInfluences: [0] };
   W.anim.push((t) => {
     W.blood.t = t;
     const pa = plasma.geometry.attributes.position, q = new THREE.Vector3();
-    for (let i = 0; i < NP; i++) { capPath.getPointAt(((plasmaAt[i][0] + t * FLOW) % 1 + 1) % 1, q); pa.setXYZ(i, q.x, q.y + plasmaAt[i][1], q.z + plasmaAt[i][2]); }
+    for (let i = 0; i < NP; i++) { capPath.getPointAt(((plasmaAt[i][0] + t * FLOW) % 1 + 1) % 1, q); const k = capR(q.x) / RN; pa.setXYZ(i, q.x, q.y + plasmaAt[i][1] * k, q.z + plasmaAt[i][2] * k); }
     pa.needsUpdate = true;
     const o = new THREE.Object3D();
     for (let i = 0; i < 9; i++) {
-      /* each cup points the way the blood flows (its rim behind), tipping a little (0.025 rad) as it goes */
+      const u = uOf(i, t), b = foldOf(i, t);
       rbcAt(i, t, o.position);
-      o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), capPath.getTangentAt(uOf(i, t))); o.rotateX(0.025 * Math.sin(i + t * 0.4)); o.rotateY(i + t * 0.05);
+      const base = qa.setFromUnitVectors(up, capPath.getTangentAt(u));
+      /* a disc: its face turned towards you (about 53°, rocking 6°), so its thin middle shows; all lean the same way, like
+         coins in a row, so that neighbours never touch (tools/blood-bend.mjs). A cup: pointing the way the blood flows,
+         tipping a little (0.025 rad) as it goes. Between, it turns from one to the other as it folds */
+      qDisc.copy(base).multiply(new THREE.Quaternion().setFromAxisAngle(AX, 0.92 + 0.1 * Math.sin(i * 1.3 + t * 0.4)));
+      qCup.copy(base).multiply(new THREE.Quaternion().setFromAxisAngle(AX, 0.025 * Math.sin(i + t * 0.4))).multiply(new THREE.Quaternion().setFromAxisAngle(AY, i + t * 0.05));
+      o.quaternion.slerpQuaternions(qDisc, qCup, b);
       o.updateMatrix(); rbcs.setMatrixAt(i, o.matrix);
+      mo.morphTargetInfluences[0] = b; rbcs.setMorphAt(i, mo);
     }
-    rbcs.instanceMatrix.needsUpdate = true;
+    rbcs.instanceMatrix.needsUpdate = true; rbcs.morphTexture.needsUpdate = true;
   });
   /* ---------- the way in, made bigger: the membrane at the base as two layers of lipids, with carrier proteins ----------
      Daniel, 4 Nov 2026: "you don't really see a membrane … you should still see an in and an out … a phospholipid
@@ -314,7 +360,8 @@ export function buildCell(scene) {
   /* the base's outline where the film is replaced (the film is flat there, below 0.12 µm), and the front cut */
   const inBase = (x, z) => Math.pow(Math.abs(x) / 6.3, 3) + Math.pow(Math.abs(z) / 5.3, 3) < 1 && z <= CUT.uCutZ.value - 0.04 && z >= LIP.zBack;
   const CARRIERS = { glucose: new THREE.Vector3(-1.75, 0, -0.08), amino: new THREE.Vector3(1.25, 0, -0.08) };
-  const clear = (x, z) => Object.values(CARRIERS).every(c => Math.abs(x - c.x) > 0.5 || Math.abs(z - c.z) > 0.45);
+  /* no lipid where a carrier protein stands, nor where its halves swing out as it changes shape (cellbuild.js carrier) */
+  const clear = (x, z) => Object.values(CARRIERS).every(c => Math.abs(x - c.x) > 0.86 || Math.abs(z - c.z) > 0.45);
   const lipids = [];
   for (let z = CUT.uCutZ.value - 0.06; z >= LIP.zBack; z -= LIP.step * 0.87) {
     const row = Math.round((CUT.uCutZ.value - z) / (LIP.step * 0.87));
@@ -342,16 +389,43 @@ export function buildCell(scene) {
     heads.computeBoundingSphere(); tails.computeBoundingSphere();
   }
   heads.name = 'lipid-heads'; tails.name = 'lipid-tails'; bil.add(heads, tails);
-  /* a carrier protein: two halves round a way through, which rock to open on one side, then on the other */
+  /* a carrier protein: two halves that meet face to face round a pocket that its molecule fits (the binding site, in the
+     middle of the membrane). Daniel, 8 Nov 2026: the molecules moved, and then the carrier protein changed shape; "make
+     sure that it matches the reality ... in terms of timing". The real order (alternating access: Jardetzky 1966, Nature
+     211:969; the glucose transporters GLUT1 and GLUT3, Deng et al. 2014, Nature 510:121, and 2015, Nature 526:391): the
+     carrier is open to one side; the molecule enters and binds in the pocket; the open side shuts behind it, so that for
+     a moment the molecule is held inside with both sides shut; then the other side opens and it leaves; then the empty
+     carrier changes back (play.js viaCarrier). pose(s): -1 open to the outside (below), 0 shut on both sides, 1 open to
+     the inside (above). The halves turn 18° about the ends of their faces (the rocker switch of these transporters is
+     about 15-20°): about the top ends the faces part at the bottom; about the bottom ends, at the top. Both halves are
+     cut from one ellipsoid each: the part past the middle plane is the flat face, with half of the pocket cut into it. */
+  const CAR = { rx: 0.5, ry: 0.6, rz: 0.36, cx: 0.12, P: 0.3, Ph: 0.31, Pz: 0.24, turn: 0.32 };
+  const yEnd = CAR.ry * Math.sqrt(1 - (CAR.cx / CAR.rx) ** 2);
+  const halfGeo = sd => {
+    const geo = new THREE.SphereGeometry(1, 40, 30), p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      let x = sd * CAR.cx + v.x * CAR.rx; const y = v.y * CAR.ry, z = v.z * CAR.rz;
+      if (sd * x <= 0) { const q = 1 - (y / CAR.Ph) ** 2 - (z / CAR.Pz) ** 2; x = q > 0 ? sd * CAR.P * Math.sqrt(q) : 0; }
+      p.setXYZ(i, x, y, z);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  };
   const carrier = (key, color, emissive) => {
     const g = new THREE.Group(); g.position.copy(CARRIERS[key]); g.name = 'carrier-' + key;
     const m = magicStandard({ color, emissive, emissiveIntensity: 0.55, roughness: 0.35, transparent: true, opacity: 0 }, { rim: 0xffffff, rimK: 0.45 });
-    const halves = [-1, 1].map(sd => {
-      const pv = new THREE.Group(); const b = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), m);
-      b.scale.set(0.21, 0.56, 0.36); b.position.x = sd * 0.205; pv.add(b); g.add(pv); return pv;
-    });
+    const halves = [-1, 1].map(sd => { const h = new THREE.Mesh(halfGeo(sd), m); g.add(h); return h; });
     bil.add(g);
-    return { group: g, halves, mat: m, at: CARRIERS[key] };
+    /* mouth: how far from the middle of the membrane a molecule waits, outside the carrier, before it goes in */
+    const C = { group: g, halves, mat: m, at: CARRIERS[key], s: 0, mouth: yEnd + 0.36, Ph: CAR.Ph, end: yEnd, top: CAR.ry,
+      pose(s) {
+        C.s = s;
+        const py = s < 0 ? yEnd : -yEnd;
+        halves.forEach((h, k) => { const a = (k ? -1 : 1) * Math.sign(s) * CAR.turn * Math.abs(s); h.rotation.z = a; h.position.set(py * Math.sin(a), py * (1 - Math.cos(a)), 0); });
+      } };
+    C.pose(-1); g.userData.part = C;
+    return C;
   };
   const carriers = { glucose: carrier('glucose', 0x3fd6b0, 0x0e5a48), amino: carrier('amino', 0xa58cff, 0x3a2a8a) };
   /* the tissue fluid: faint motes in the narrow space between the membrane and the capillary */

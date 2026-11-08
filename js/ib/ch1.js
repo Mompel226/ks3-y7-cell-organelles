@@ -14,10 +14,10 @@
    to O6, and the hydrogen of O6 leaves as a hydrogen ion: glucose 6-phosphate and ADP (mol.js Reaction).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611081212';
-import { loadProts, protein, surfacePoints } from './prot.js?v=202611081212';
-import { bilayer, MEM } from './membrane.js?v=202611081212';
-import { disposeGroup, glow } from './stage.js?v=202611081212';
+import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611081443';
+import { loadProts, protein, surfacePoints } from './prot.js?v=202611081443';
+import { bilayer, MEM } from './membrane.js?v=202611081443';
+import { disposeGroup, glow } from './stage.js?v=202611081443';
 
 const lerp3 = (pts, f) => { const n = pts.length - 1, i = Math.max(0, Math.min(n - 1, Math.floor(f * n))), k = f * n - i, e = k * k * (3 - 2 * k); return pts[i].clone().lerp(pts[i + 1], e); };
 const qAxis = (a, t) => new THREE.Quaternion().setFromAxisAngle(a, t);
@@ -166,7 +166,9 @@ export async function build(stage, { V }) {
     { phases: [{ to: { cam: 0 }, ms: 400 }, { to: { cam: 1 }, ms: 2600 }], labs: { glucose: 1 }, pic: 'Every size is true: the bar shows the scale. Cholesterol and glycoproteins are left out of this membrane. Drag the picture to turn it a little.' },
     { phases: [{ to: { cam: 0 }, ms: 1800 }, { to: { bounce: 1 }, ms: 2600 }, { to: { bounce: 0 }, ms: 10 }], labs: { polar: 1, tails: 1, heads: 2, outside: 2 } },
     { phases: [{ to: { cam: 2 }, ms: 2400 }, { to: { g: 1 }, ms: 2600 }], labs: { glut: 1, glucose: 1, outside: 2, inside: 2 } },
-    { phases: [{ to: { g: 2 }, ms: 1600 }, { to: { rock: 1 }, ms: 2400 }, { to: { g: 3 }, ms: 1800 }], labs: { glut: 1, glucose: 1, inside: 2, outside: 2 } },
+    /* the real order (Daniel, 8 Nov 2026: "make sure that it matches the reality ... in terms of timing"): glucose binds in
+       the middle; then the transporter closes to the outside, a moment later opens to the inside; only then glucose leaves */
+    { phases: [{ to: { g: 2 }, ms: 1600 }, { to: { rock: 0 }, ms: 1100 }, { to: { rock: 0 }, ms: 300 }, { to: { rock: 1 }, ms: 1300 }, { to: { g: 3 }, ms: 1800 }], labs: { glut: 1, glucose: 1, inside: 2, outside: 2 } },
     { phases: [{ to: { o2: 1 }, ms: 4200 }], labs: { o2b: 1, mem: 2, glut: 2 } },
     /* the enzyme and ATP are named first, while they are seen, and the phosphate group moves in a step of its own (Daniel,
        6 Nov 2026: "you label it at the end after you've seen the transformation ... Suddenly, you label ADP, but not ATP") */
