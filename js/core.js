@@ -4,6 +4,7 @@
    goes to js/lesson.js, which keeps it for the teacher's 🔬 Practicals board when the pupil is signed in. The list of
    questions the board reads (data/questions.json) comes from window.QS (the checks) and window.TASKS (each place's game),
    printed by ?manifest=1. ↺ Start again forgets every cellgame.* key on this computer.
+   A hard word's meaning, its line in the word bank and each place's definition say how to say it: sayHtml below.
    ============================================================ */
 (function () {
   'use strict';
@@ -107,6 +108,21 @@
   /* a word of the shared KS3 glossary that this page's bank does not list (the IB words of quest.js ibSwitch) still opens
      its meaning where it is used; the bank's list stays the Year 7 words */
   const wordOf = k => WORD[k] || (window.KS3_GLOSSARY && window.KS3_GLOSSARY.by[k]) || null;
+  /* how to say a hard word (Daniel, 8 Nov 2026: "the students can click on the very complex words ... to know how they
+     pronounce", then "and us pronunciation too"): js/say.js, labs-shared/say/say.js copied here by
+     tools/practicals-sync.mjs, knows the hard words. A word it knows as a whole gives one line: its spelling guide, the
+     Cambridge Dictionary's UK and US recordings where Cambridge has the word, and "Audio: Cambridge Dictionary", a link to
+     its page (a word without them keeps its guide and has no button). Any other key word gives a line for each hard word in
+     it, the word named (Golgi apparatus: Golgi, apparatus); a simple word has none. SAY_AS: the words a key word's line
+     says when its name is not the word to hear. The music pauses while a word plays (js/game/sound.js, the 'say' event). */
+  const SAY_AS = { 'rough-er': ['endoplasmic reticulum'], 'smooth-er': ['endoplasmic reticulum'], 'mitochondria': ['mitochondrion'] };
+  function sayHtml(w) {
+    const S = window.Say; if (!S || !w) return '';
+    const name = String(w.en).replace(/\s*\([^)]*\)/g, '').trim(), list = SAY_AS[w.k] || S.words(name);
+    if (!list.length) return '';
+    const whole = !SAY_AS[w.k] && list.length === 1 && list[0].toLowerCase() === name.toLowerCase();
+    return '<div class="says">' + list.map(x => whole ? S.html(x) : `<div class="says__r"><span class="says__w">${esc(x)}</span>${S.html(x)}</div>`).join('') + '</div>';
+  }
   function initWordBank() {
     const wb = $('#wb'), btn = $('#wbBtn'), list = $('#wbList'), find = $('#wbFind');
     if (!wb || !btn) return;
@@ -119,7 +135,7 @@
     /* a definition and its links are made the first time it is opened (5 Nov 2026, speed: all of them at once cost the
        page about 60 ms as it loaded) */
     const openItem = (item, on) => { const d = $('.wb__def', item), r = $('.wb__row', item); on = on == null ? d.hidden : on;
-      if (on && !d.firstChild && WORD[item.dataset.k]) d.innerHTML = defHtml(WORD[item.dataset.k]);
+      if (on && !d.firstChild && WORD[item.dataset.k]) d.innerHTML = defHtml(WORD[item.dataset.k]) + sayHtml(WORD[item.dataset.k]);
       d.hidden = !on; r.setAttribute('aria-expanded', String(on)); item.classList.toggle('open', on); };
     const goTo = k => {
       const item = $(`.wb__item[data-k="${k}"]`, list); if (!item) return;
@@ -164,7 +180,7 @@
     closeTip();
     const l = lang();
     const tr = (l === 'en') ? '' : '<div class="tr">' + (l !== 'zh' ? `<span lang="ko"><i>한국어</i>${esc(w.ko)}</span>` : '') + (l !== 'ko' ? `<span lang="zh-Hans"><i>中文</i>${esc(w.zh)}</span>` : '') + '</div>';
-    tipEl = h('div', { class: 'tip', role: 'note' }, `<b>${esc(w.en)}</b>: ${esc(w.d)}${tr}`);
+    tipEl = h('div', { class: 'tip', role: 'note' }, `<b>${esc(w.en)}</b>: ${esc(w.d)}${tr}${sayHtml(w)}`);
     document.body.appendChild(tipEl); tipFor = btn;
     const r = btn.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
     let x = r.left + scrollX; x = Math.max(8, Math.min(x, scrollX + document.documentElement.clientWidth - tw - 8));
@@ -200,6 +216,6 @@
     }
     document.dispatchEvent(new Event('cellgame:core'));
   }
-  window.REV = { $, $$, h, esc, store, ans, L, qDone, manifest, FAST, WORD, lang, params, terms, closeTip };
+  window.REV = { $, $$, h, esc, store, ans, L, qDone, manifest, FAST, WORD, lang, params, terms, closeTip, say: sayHtml };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

@@ -43,6 +43,11 @@ tubes and branched ones), each drawn with its two membranes.
 **Checks.** After each place, two or three checks (32 in all): key words typed (a first letter, the word list or a hint
 when stuck, counted as help on the teacher's board), choices with no give-away, sorting and ordering. Every word a check uses
 is explained above it, and every key word can be tapped for its meaning, with Korean and Chinese.
+**How to say the hard words.** Under a hard word's meaning, in the word bank and under each place's definition: its spelling
+guide, and UK and US buttons that play the Cambridge Dictionary's recordings from Cambridge's own site, with its name, a
+link to the word's page (Daniel: "the very complex words … to know how they pronounce", then "and us pronunciation too").
+The music pauses while a word plays and goes on after it ("pause for a moment the running music and then relaunch it
+after the word is done"). A word Cambridge has no page for keeps its guide only (cytosol, nucleolus, lysosome, Golgi).
 A place is **done** (✦) only when its jobs are done **and** every one of its checks is right (Daniel: "It's like
 completing a game. So you have to do the actions, but also complete the questions"); only then does what it gave wake the
 next places, and the list of places says "answer its checks to finish" until then. Answers shown after two tries are put
@@ -115,6 +120,7 @@ selling. Third-party pictures, music and sounds keep their own licences (below).
 | the insulin receptor, insulin and the receptor's kinase in From glucose to ATP | their measured shapes from the Protein Data Bank (`tools/ib-insulin.py`; the structure files stay on this computer): the receptor before insulin binds, PDB 8U4B (An et al. 2024, *Nature Communications* 15:7567), and with four insulin molecules bound, PDB 6PXV (Uchikawa et al. 2019, *eLife* 8:e48630), each of its domains moved from one shape to the other; its kinase part with ATP and a piece of IRS-1, PDB 1IR3 (Hubbard 1997, *EMBO Journal* 16:5572) | CC0 (wwPDB) |
 | the music | Scott Buckley: 'The Distant Sun', 'Adrift Among Infinite Stars' and 'Penumbra', released under CC-BY 4.0, [www.scottbuckley.com.au](https://www.scottbuckley.com.au) (made smaller, each set to the same loudness: `tools/music.py`) | CC BY 4.0 |
 | the game's sounds (bells, rubbed glasses, wind chimes, a harp note) | Versilian Community Sample Library (VCSL), Versilian Studios, [github.com/sgossner/VCSL](https://github.com/sgossner/VCSL) (`tools/sounds.py`, each note tuned) | CC0 |
+| how to say the hard words | the Cambridge Dictionary's UK and US recordings, played from [dictionary.cambridge.org](https://dictionary.cambridge.org) (never stored here), its name beside each word with a link to the word's page; if Cambridge's will not play, a Wikimedia Commons recording where the word has one (`assets/say/CREDITS.md`, credited as it plays) | Cambridge's own; Commons: CC0, CC BY, CC BY-SA |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
 
 <details><summary>Behind the scenes</summary>
@@ -154,8 +160,10 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `js/game/quest.js` (`ibSwitch`); what IB adds to each step, and each step in IB terms, in `js/story.js` (`ib`).
   The old Explorer film inside a mitochondrion is in the Biology Hub's `Archive/2026-11-05/`.
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
-  question list); `js/signin.js`, `js/lesson.js` and `js/glossary.js` are copies of the Biology Hub's shared files, made by
-  `node tools/practicals-sync.mjs` in the workspace: never edit them here. A new word goes into the shared KS3 glossary first.
+  question list); `js/signin.js`, `js/lesson.js`, `js/glossary.js`, `js/say.js` and `assets/say/` are copies of the Biology
+  Hub's shared files, made by `node tools/practicals-sync.mjs` in the workspace: never edit them here. A new word goes into
+  the shared KS3 glossary first; a hard word's spelling guide and Cambridge addresses into `labs-shared/say/say.js` (each
+  read from the word's own Cambridge page; core.js `sayHtml` and `SAY_AS` choose which line a key word shows).
 - After changing a check or a game's id: `node tools/make-questions.mjs` (writes `data/questions.json`, which the teacher's
   board reads), then `node tools/stamp.mjs` (one version for `version.txt`, every `?v=` of the page and of its own modules).
 - `node tools/playthrough.mjs` plays the whole game in headless Chrome as a pupil would, place by place (wrong choices
@@ -190,7 +198,10 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   on the map, in the mitochondria and zoomed in to its double membrane; `node tools/profile.mjs` lists which functions cost the first load. `look.mjs
   --explore nucleus` photographs (with `--film 1`, films) the Explorer film step by step; `--names 1` lists, after each
   picture, the names placed and why any was left out. `node tools/words-check.mjs --place <id>` presses every dotted
-  word of a place's panel, as the page is and in full screen, and checks each meaning (and the word bank) shows on top. `tools/real-em.py` cut the electron micrographs
+  word of a place's panel, as the page is and in full screen, and checks each meaning (and the word bank) shows on top. `node tools/say-check.mjs`
+  checks how to say the hard words (every key word's line, UK and US playing in a meaning and the word bank with the tip and
+  the row kept open, the music paused for the word and going on after it, each place's definition, Cambridge unreachable,
+  a phone, the dark version), answering Cambridge's addresses itself: it never asks Cambridge for anything. `tools/real-em.py` cut the electron micrographs
   from the OpenOrganelle data (with the Foundations hub's reader); `--where` makes each close-up's wider view of the same
   cell, with a white box where the close-up is, from cached data only. `node tools/look.mjs --lens <place> --tab dia|em|size`
   photographs a tab of See the real thing; `node tools/lens-text.mjs` opens every part's card and each of its tabs: nothing

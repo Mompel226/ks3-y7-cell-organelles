@@ -17,10 +17,15 @@
      place wakes, two bells when something reaches the bag, one low harp note for a wrong choice. Tones stand in only
      while they load.
    A browser lets a page make sound only after a press: when the sound was left on, it starts at the pupil's first press.
+   - A hard word said (its UK or US button, js/say.js) pauses the music for a moment (Daniel, 8 Nov 2026: "when they
+     click on a word, you're going to have to pause for a moment the running music and then relaunch it after the word is
+     done"): it fades out at once and waits; 0.3 s after the word ends (so that a second word straight after keeps it
+     waiting) it goes on from where it was, fading in. The game's small sounds are not paused.
    ============================================================ */
 const R = window.REV;
-const V = '?v=202611081606';                                        /* the page's version (tools/stamp.mjs) */
+const V = '?v=202611081622';                                        /* the page's version (tools/stamp.mjs) */
 let ctx = null, master = null, fx = null, musicBus = null, on = !!R.store.get('sound', false), allowed = false;
+let saying = false, sayGo = 0;                                      /* a hard word is being said (the 'say' event, below) */
 
 /* a space for the game's sounds: a soft stereo echo of noise that fades away (made here) */
 function room(seconds = 2.6) {
@@ -56,12 +61,12 @@ function player() {
   if (el) return el;
   el = new Audio(); el.preload = 'auto';
   gainNode = ctx.createGain(); ctx.createMediaElementSource(el).connect(gainNode).connect(musicBus);
-  el.addEventListener('ended', () => { piece = (piece + 1) % list.length; cue(); if (on && allowed && !document.hidden) el.play().catch(() => {}); });
+  el.addEventListener('ended', () => { piece = (piece + 1) % list.length; cue(); if (on && allowed && !saying && !document.hidden) el.play().catch(() => {}); });
   return el;
 }
 function cue() { const p = list[piece]; el.src = 'sounds/' + p.file + V; gainNode.gain.value = p.gain; }
 function musicOn() {
-  if (!ctx || !allowed || !on) return;
+  if (!ctx || !allowed || !on || saying) return;
   if (!list) { loadList().then(() => musicOn()); return; }
   if (!list.length) return;
   clearTimeout(fading);
@@ -78,6 +83,17 @@ function musicOff() {
 /* the list of pieces is read with the page (a small file), so that the press on ✦ Dive in can itself start the music:
    a phone plays music only from a press */
 loadList();
+/* a hard word is said (js/say.js tells the document 'say', detail.on true, then false): the music waits for it */
+function hush() {
+  if (!ctx || !el || el.paused) return;
+  musicBus.gain.cancelScheduledValues(ctx.currentTime); musicBus.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+  clearTimeout(fading); fading = setTimeout(() => { if (saying && el) el.pause(); }, 250);
+}
+document.addEventListener('say', e => {
+  clearTimeout(sayGo);
+  if (e.detail && e.detail.on) { saying = true; hush(); }
+  else sayGo = setTimeout(() => { saying = false; musicOn(); }, 300);
+});
 /* a hidden page waits: no music behind another tab */
 document.addEventListener('visibilitychange', () => { if (!on || !ctx) return; if (document.hidden) { musicOff(); } else { wakeUp(); musicOn(); } });
 
@@ -138,9 +154,10 @@ export const sound = {
   },
   /* the pupil is in the 3D game: the music may play (at ✦ Dive in, inside its press) */
   allowMusic() { allowed = true; if (on && ctx) { wakeUp(); musicOn(); } },
-  /* for the checks (tools/sound-check.mjs): is the music playing, which piece, how far, and are the recordings in? */
+  /* for the checks (tools/sound-check.mjs, tools/say-check.mjs): is the music playing, is a word being said, which piece,
+     how far, and are the recordings in? */
   get state() {
-    return { on, allowed, ctx: ctx ? ctx.state : 'none', music: !!(el && !el.paused && allowed), piece: list && el && el.src ? list[piece].title : '',
+    return { on, allowed, saying, ctx: ctx ? ctx.state : 'none', music: !!(el && !el.paused && allowed), piece: list && el && el.src ? list[piece].title : '',
       time: el ? +el.currentTime.toFixed(1) : 0, pieces: list ? list.length : 0, recordings: bank ? bank.harp.length + bank.glock.length + bank.glass.length + bank.chimes.length : 0 };
   },
   /* for the checks: the sound as it leaves (to measure its level), and the music's player (to try the end of a piece) */

@@ -87,6 +87,19 @@ h1{font:900 clamp(28px,2.7vw,36px)/1.05 var(--sans);margin:2px 0 2px;letter-spac
 .tip .tr{display:flex;gap:12px;margin-top:6px;padding-top:6px;border-top:1px solid var(--rule);font-size:15px}
 .tip .tr span{color:var(--ink2)}
 .tip .tr i{font-style:normal;font-size:11px;font-weight:800;color:var(--ink3);margin-right:4px}
+/* how to say a hard word (js/say.js, labs-shared's look): under a meaning, a word bank line and each place's definition;
+   the page's own colours and buttons big enough for a finger */
+.says{display:grid;gap:7px;margin-top:7px;padding-top:7px;border-top:1px solid var(--rule)}
+.says .say{--grey:var(--ink3);--edge:var(--rule2);--card:var(--sheet);--r-pill:999px;margin:0;font-size:14px;gap:5px 8px}
+.says .say__g{color:var(--ink2)}
+.says .say__b{font-size:13.5px;font-weight:800;padding:5px 12px 5px 9px;min-height:32px}
+.says .say__b svg{width:15px;height:15px}
+.says .say__src{font-size:12.5px;color:var(--ink3)}
+.says .say__c{font-size:12.5px;color:var(--ink3)}
+.says__r{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.says__w{font-weight:800;color:var(--ink)}
+.says__r .say{flex:1 1 12em}
+.wb__def .says,.qp__def .says{border-top:1px dashed var(--rule)}
 /* ---------- checks ---------- */
 .q{border:1px solid var(--rule);border-radius:14px;padding:13px 15px 14px;margin:14px 0;background:var(--sheet)}
 .q.ok{border-color:color-mix(in srgb,var(--good) 55%,transparent)}

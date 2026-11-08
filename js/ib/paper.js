@@ -6,7 +6,7 @@
    Nothing here is marked for the teacher: the answers stay on this computer (cellgame.ibtest).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { TEST, ARTICLE } from './text.js?v=202611081606';
+import { TEST, ARTICLE } from './text.js?v=202611081622';
 
 const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },

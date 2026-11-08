@@ -1,20 +1,21 @@
 /* ============================================================
    quest.js — the quest panel and the buttons on the world (4 Nov 2026).
    The panel is the pupil's book: on the map it holds the mission, what they carry and the places; in a place it holds
-   what the structure is (its one definition, from the shared KS3 glossary), the story steps one at a time (each waits:
-   memory animations-wait-for-the-reader), the choices, a "Did you know?", the checks, and "See the real thing".
+   what the structure is (its one definition, from the shared KS3 glossary, and how to say it: core.js sayHtml), the story
+   steps one at a time (each waits: memory animations-wait-for-the-reader), the choices, a "Did you know?", the checks,
+   and "See the real thing".
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611081606';
-import { state, COST } from './state.js?v=202611081606';
-import { sound } from './sound.js?v=202611081606';
-import { finalLine } from './final.js?v=202611081606';
+import { ICON } from './icons.js?v=202611081622';
+import { state, COST } from './state.js?v=202611081622';
+import { sound } from './sound.js?v=202611081622';
+import { finalLine } from './final.js?v=202611081622';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611081606').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611081606';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611081622').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611081622';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -194,7 +195,7 @@ export class Quest {
     this.setPanel(`<div class="qp qp--place" data-place="${id}">
       <div class="qp__top">${id === 'arrive' && !state.done('arrive') ? '' : '<button type="button" class="qp__back">← The map</button>'}${P.kind ? `<span class="qp__kind">${esc(P.kind)}</span>` : ''}</div>
       <h2 class="qp__title">${esc(P.title)}</h2>
-      ${def ? `<div class="qp__def">${P.y7 ? '<span class="qp__y7">Year 7 must know</span>' : '<span class="qp__x">Explorer: beyond the Year 7 list</span>'}<p><b>${esc(def.en)}:</b> ${esc(defText)}</p></div>` : ''}
+      ${def ? `<div class="qp__def">${P.y7 ? '<span class="qp__y7">Year 7 must know</span>' : '<span class="qp__x">Explorer: beyond the Year 7 list</span>'}<p><b>${esc(def.en)}:</b> ${esc(defText)}</p>${R.say(def)}</div>` : ''}
       ${P.intro ? `<div class="qp__intro">${paras(P.intro)}</div>` : ''}
       ${P.figure === 'simple' ? simpleCard() : ''}
       <ol class="steps"></ol>
