@@ -5,14 +5,14 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611081443';
-import { state, COST, RESPIRE } from './state.js?v=202611081443';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611081443';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611081443';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611081558';
+import { state, COST, RESPIRE } from './state.js?v=202611081558';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611081558';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611081558';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611081443').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611081558').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -104,7 +104,18 @@ export function makePlay(world, quest) {
     if (world.camera.position.distanceTo(V(...WV.pos)) > 0.05 || world.controls.target.distanceTo(V(...WV.at)) > 0.05) await fly(WV.pos, WV.at);
     wayNames();
   }
-  async function look() { await wayFly(); await quest.next(); }
+  /* the first step opens further out, to the left: the red blood cells come as discs and fold as the capillary narrows,
+     before they reach the cell; then the camera comes into the place's view, where every one is folded (Daniel, 8 Nov
+     2026: "zoom ... out first to show this folding ... And then you kind of zoom in ... by the time it reaches the cell,
+     it's already all thin"; cellbuild.js NARROW) */
+  const WIDE = { pos: [-9.6, -1.6, 20.5], at: [-9.6, -4.3, -3.2] };
+  async function look() {
+    world.wayIn(true);
+    await fly(WIDE.pos, WIDE.at, 2200);
+    await wait(5200);
+    await wayFly();
+    await quest.next();
+  }
   /* the red blood cells move to the right, along the capillary: the one a little left of the middle stays in view longest */
   const pickRbc = (x = -2.2, ahead = 3.5) => {
     let best = 0, bd = Infinity;

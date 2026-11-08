@@ -17,9 +17,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611081443';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611081443';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611081443';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611081558';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611081558';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611081558';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -248,13 +248,14 @@ export function buildCell(scene) {
   /* how wide the capillary is (Daniel, 8 Nov 2026, of the cells drawn bent from the start: "They don't look like red blood
      cells ... if you show a normal red blood cell and then as the capillary gets narrowed, how they fold and then they
      change shape, that would be useful"): 8.5 µm inside where the blood comes from, where a red blood cell (7.5 µm)
-     passes as it is; 6.1 µm under the cell and on past the right of the picture, where each one folds to pass (the
-     carbon dioxide flows on between the folded cells, out of the picture); wide again far to the right, out of view
-     (capillaries are 5-10 µm wide, OpenStax A&P 20.1; red blood cells bend to pass the narrowest, 18.2).
-     bendAt(x): 0 where the capillary is wide, 1 where it is narrow. Seen from the way in at any size (at least 20° to
-     each side of its middle, about x -8.2 to 5.4 at the capillary): discs arriving at the left, folding as the capillary
-     narrows, folded under the cell, where oxygen and carbon dioxide cross */
-  const RW = 4.25, RN = 3.05, NARROW = [-6.4, -2.6, 10.5, 14.5];
+     passes as it is; 7.0 µm from a little before the cell, under it and on past the right of the picture, where each one
+     folds to pass (the carbon dioxide flows on between the folded cells, out of the picture); wide again far to the
+     right, out of view (capillaries are 5-10 µm wide, OpenStax A&P 20.1; red blood cells bend to pass the narrowest,
+     18.2). bendAt(x): 0 where the capillary is wide, 1 where it is narrow. The cells fold before they reach the cell
+     (Daniel, 8 Nov 2026: "by the time it reaches the cell, it's already all thin"): the way in's first view, further out
+     (play.js look), shows them come as discs and fold; in the place's own view (about x -8.2 to 5.4 at the capillary,
+     at any size) every one is folded, where oxygen and carbon dioxide cross */
+  const RW = 4.25, RN = 3.5, NARROW = [-12.5, -8.5, 10.5, 14.5];
   const sstep = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
   const bendAt = x => sstep(NARROW[0], NARROW[1], x) * (1 - sstep(NARROW[2], NARROW[3], x));
   const capR = x => RW - (RW - RN) * bendAt(x);
@@ -267,27 +268,49 @@ export function buildCell(scene) {
   capWall.renderOrder = 1; below.add(capWall);
   /* red blood cells: discs pressed in the middle (biconcave), 7.5 µm across, carried along the capillary. Where it is wide,
      each is a disc, its face turned towards you so that its thin middle shows (as before 7 Nov 2026). Where it narrows,
-     each folds into a cup (a "parachute") with its rim trailing behind, its widest 2.8 µm from the capillary's middle,
+     each folds into a bowl (a "parachute") with its rim trailing behind, its widest 3.3 µm from the capillary's middle,
      so the plasma still flows round it (Daniel, 7 Nov 2026: "the cells could bend, that would be nice"), and points the
-     way the blood flows; where it widens again (out of view), the cup opens into a disc again. The cup is a second shape of the same
-     cell (a morph target): each point of the flat cell goes onto a sphere of radius RB (its middle surface), at the same
-     distance from the cell's middle, the cell thinner as it spreads round (thickness × 0.6). A cell folds as its front
-     reaches the narrowing and opens again once its back has left it (foldOf: the narrowing 0.8 µm ahead or behind) */
+     way the blood flows; where it widens again (out of view), it opens into a disc again. The fold is two more shapes of
+     the same cell (morph targets), half folded and folded: each point of the flat cell goes onto a sphere of radius RB
+     (6.4 µm, then 3.2 µm: its middle surface), at the same distance from the cell's middle, the cell a little thinner as
+     it spreads round (thickness × 0.95, then × 0.9). Passing through the half-folded shape, it bends as a disc bends,
+     never a straight blend of flat and folded. Daniel, 8 Nov 2026, of the deep thin cups of before ("it seems that the 3D
+     appearance is lost ... as if it was cut in half"): the bowl is shallower and thicker, and its inside (the disc's far
+     face) is drawn darker, a hollow in shade, so it reads as a whole cell with a dent. A cell folds as its front reaches
+     the narrowing and opens again once its back has left it (foldOf: the narrowing 0.8 µm ahead or behind) */
   const rbcProfile = []; for (let i = 0; i <= 24; i++) { const t = i / 24, r = 3.75 * t; const h = 1.5 * Math.sqrt(Math.max(0, 1 - t * t)) * (0.42 + 2.2 * t * t - 1.9 * t * t * t * t); rbcProfile.push(new THREE.Vector2(r, h)); }
   for (let i = 24; i >= 0; i--) { const v = rbcProfile[i]; rbcProfile.push(new THREE.Vector2(v.x, -v.y)); }
   const rbcGeo = new THREE.LatheGeometry(rbcProfile.map(v => new THREE.Vector2(Math.max(0.0001, v.x), v.y)), 36);
-  { const RB = 2.4, p = rbcGeo.attributes.position, v = new THREE.Vector3(), cup = new Float32Array(p.count * 3);
+  /* its two faces as two groups: the near face (the profile's first half) becomes the outside of the bowl, the far face
+     its inside, drawn darker (rbcInner) */
+  { const np = rbcProfile.length, idx = rbcGeo.index.array, outer = [], inner = [];
+    for (let f = 0; f < idx.length; f += 3) (Math.min(idx[f] % np, idx[f + 1] % np, idx[f + 2] % np) < 24 ? outer : inner).push(idx[f], idx[f + 1], idx[f + 2]);
+    rbcGeo.setIndex(outer.concat(inner)); rbcGeo.clearGroups(); rbcGeo.addGroup(0, outer.length, 0); rbcGeo.addGroup(outer.length, inner.length, 1); }
+  const bendTo = (RB, k) => {
+    const p = rbcGeo.attributes.position, v = new THREE.Vector3(), out = new Float32Array(p.count * 3);
     for (let i = 0; i < p.count; i++) {
       v.fromBufferAttribute(p, i);
-      const th = Math.hypot(v.x, v.z) / RB, ph = Math.atan2(v.z, v.x), R = RB + 0.6 * v.y;
-      cup.set([R * Math.sin(th) * Math.cos(ph), R * Math.cos(th) - RB, R * Math.sin(th) * Math.sin(ph)], i * 3);
+      const th = Math.hypot(v.x, v.z) / RB, ph = Math.atan2(v.z, v.x), R = RB + k * v.y;
+      out.set([R * Math.sin(th) * Math.cos(ph), R * Math.cos(th) - RB, R * Math.sin(th) * Math.sin(ph)], i * 3);
     }
-    const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.BufferAttribute(cup, 3)); cg.setIndex(rbcGeo.index); cg.computeVertexNormals();
-    rbcGeo.morphAttributes.position = [cg.attributes.position]; rbcGeo.morphAttributes.normal = [cg.attributes.normal]; }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(out, 3)); g.setIndex(rbcGeo.index); g.computeVertexNormals();
+    return g;
+  };
+  const FOLDS = [bendTo(6.4, 0.95), bendTo(3.2, 0.9)];
+  rbcGeo.morphAttributes.position = FOLDS.map(g => g.attributes.position); rbcGeo.morphAttributes.normal = FOLDS.map(g => g.attributes.normal);
+  /* the two shapes' parts at fold b (0 a disc, 1 folded): through half folded at 0.5 */
+  const inf = b => b < 0.5 ? [2 * b, 0] : [2 - 2 * b, 2 * b - 1];
+  /* where point k of a cell is, in the cell's own frame, at fold b, as the morph draws it */
+  const shapeAt = (k, b, out = new THREE.Vector3()) => {
+    const [h, f] = inf(b), e = 1 - h - f, P = rbcGeo.attributes.position, A = FOLDS[0].attributes.position, B = FOLDS[1].attributes.position;
+    return out.set(P.getX(k) * e + A.getX(k) * h + B.getX(k) * f, P.getY(k) * e + A.getY(k) * h + B.getY(k) * f, P.getZ(k) * e + A.getZ(k) * h + B.getZ(k) * f);
+  };
   /* red from every side, also far away and against the light (they looked black in the intro's view, 4 Nov 2026) */
   const rbcMat = magicStandard({ color: 0xc0303f, emissive: 0x6a0d1a, emissiveIntensity: 0.55, roughness: 0.4, fog: false }, { rim: 0xff7b8a, rimK: 0.45 });
-  const rbcs = new THREE.InstancedMesh(rbcGeo, rbcMat, 9); rbcs.name = 'rbc'; below.add(rbcs);
-  for (let i = 0; i < 9; i++) rbcs.setMorphAt(i, { morphTargetInfluences: [0] });   /* the fold's texture, before the first picture */
+  /* the inside of a folded cell: the same red in shade (Daniel, 8 Nov 2026: folded, they had looked "cut in half") */
+  const rbcInner = magicStandard({ color: 0x8e2230, emissive: 0x3c0711, emissiveIntensity: 0.5, roughness: 0.55, fog: false }, { rim: 0xb84858, rimK: 0.18 });
+  const rbcs = new THREE.InstancedMesh(rbcGeo, [rbcMat, rbcInner], 9); rbcs.name = 'rbc'; below.add(rbcs);
+  for (let i = 0; i < 9; i++) rbcs.setMorphAt(i, { morphTargetInfluences: [0, 0] });   /* the fold's texture, before the first picture */
   const FLOW = 0.012, uOf = (k, t) => (((t * FLOW + k / 9) % 1) + 1) % 1;
   const foldOf = (i, t) => { const x = capPath.getPointAt(uOf(i, t)).x; return Math.max(bendAt(x - 0.8), bendAt(x + 0.8)); };
   /* where red blood cell i is at time t (the way in: oxygen leaves one): in the capillary's middle (a cup: its front),
@@ -308,14 +331,14 @@ export function buildCell(scene) {
      it is (a cup trails its rim behind; a disc stands round its middle), and the point on the capillary's middle half way
      along it. Cells drawn last frame (W.anim below) with the fold of time t */
   const SAMP = []; for (let i = 0; i < rbcGeo.attributes.position.count; i += 3) SAMP.push(i);
-  const mG = new THREE.Matrix4(), vG = new THREE.Vector3(), wG = new THREE.Vector3(), oG = new THREE.Vector3(), tG = new THREE.Vector3();
+  const mG = new THREE.Matrix4(), vG = new THREE.Vector3(), oG = new THREE.Vector3(), tG = new THREE.Vector3();
   const LEN = capPath.getLength(), STEP = LEN / 9;
   /* how far cell i reaches behind and ahead of its place, along the capillary (µm) */
-  const span = (i, t) => { rbcs.getMatrixAt(i, mG); oG.setFromMatrixPosition(mG); capPath.getTangentAt(uOf(i, t), tG); const b = foldOf(i, t), P = rbcGeo.attributes.position, Q = rbcGeo.morphAttributes.position[0]; let lo = Infinity, hi = -Infinity;
-    for (const k of SAMP) { const d = vG.fromBufferAttribute(P, k).lerp(wG.fromBufferAttribute(Q, k), b).applyMatrix4(mG).sub(oG).dot(tG); if (d < lo) lo = d; if (d > hi) hi = d; } return [lo, hi]; };
+  const span = (i, t) => { rbcs.getMatrixAt(i, mG); oG.setFromMatrixPosition(mG); capPath.getTangentAt(uOf(i, t), tG); const b = foldOf(i, t); let lo = Infinity, hi = -Infinity;
+    for (const k of SAMP) { const d = shapeAt(k, b, vG).applyMatrix4(mG).sub(oG).dot(tG); if (d < lo) lo = d; if (d > hi) hi = d; } return [lo, hi]; };
   /* the gap after cell k: where its middle is (u) and how long its free plasma is (µm) */
   const gapOf = (k, t) => { const a = uOf(k, t); if (uOf(k + 1, t) < a) return null; const f = span(k % 9, t)[1], len = STEP + span((k + 1) % 9, t)[0] - f; return { u: a + (f + len / 2) / LEN, len }; };
-  W.blood = { path: capPath, rbcAt, n: 9, radius: RN, radiusAt: capR, foldOf,
+  W.blood = { path: capPath, rbcAt, n: 9, radius: RN, radiusAt: capR, foldOf, shapeAt,
     gapAt: (k, t, out = new THREE.Vector3()) => { const g = gapOf(k, t); return out.copy(capPath.getPointAt(g ? g.u : uOf(k + 0.5, t))); },
     /* where the carbon dioxide is in that gap (play.js): beside its middle, nearer you and a little higher (0.5, 1.4 µm),
        square to the capillary where it curves, so never nearer one cell than the other */
@@ -323,7 +346,7 @@ export function buildCell(scene) {
     /* the gap the carbon dioxide enters, arriving at x: a roomy one near it (not a gap that a cell still folding crowds) */
     gapNear: (x, t) => { let best = 0, bs = -Infinity; for (let k = 0; k < 9; k++) { const g = gapOf(k, t); if (!g) continue; const d = Math.abs(capPath.getPointAt(g.u).x - x); if (d > 3.2) continue; const sc = g.len - 0.4 * d; if (sc > bs) { bs = sc; best = k; } } return best; } };
   const up = new THREE.Vector3(0, 1, 0), AX = new THREE.Vector3(1, 0, 0), AY = new THREE.Vector3(0, 1, 0);
-  const qDisc = new THREE.Quaternion(), qCup = new THREE.Quaternion(), qa = new THREE.Quaternion(), mo = { morphTargetInfluences: [0] };
+  const qDisc = new THREE.Quaternion(), qCup = new THREE.Quaternion(), qa = new THREE.Quaternion(), mo = { morphTargetInfluences: [0, 0] };
   W.anim.push((t) => {
     W.blood.t = t;
     const pa = plasma.geometry.attributes.position, q = new THREE.Vector3();
@@ -341,7 +364,7 @@ export function buildCell(scene) {
       qCup.copy(base).multiply(new THREE.Quaternion().setFromAxisAngle(AX, 0.025 * Math.sin(i + t * 0.4))).multiply(new THREE.Quaternion().setFromAxisAngle(AY, i + t * 0.05));
       o.quaternion.slerpQuaternions(qDisc, qCup, b);
       o.updateMatrix(); rbcs.setMatrixAt(i, o.matrix);
-      mo.morphTargetInfluences[0] = b; rbcs.setMorphAt(i, mo);
+      mo.morphTargetInfluences = inf(b); rbcs.setMorphAt(i, mo);
     }
     rbcs.instanceMatrix.needsUpdate = true; rbcs.morphTexture.needsUpdate = true;
   });
