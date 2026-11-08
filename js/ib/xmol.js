@@ -6,8 +6,8 @@
    to ADP and phosphate). Sizes true: the scale bar says how close the camera is.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, poseAt } from './mol.js?v=202611081558';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611081558';
+import { ballStick, gather, Reaction, molData, poseAt } from './mol.js?v=202611081606';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611081606';
 
 /* for each Explore path: the molecules, and per step which is shown, what glows, and whether it changes */
 const PLAN = {

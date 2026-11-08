@@ -1,7 +1,8 @@
 /* ============================================================
    world.js — the cell world: renderer, light, glow, the camera's flights and what a pupil points at (4 Nov 2026).
-   The world is ONE scene (cellbuild.js). The camera flies between places along a gentle arc; names are shown only when
-   it is still (memory label-lines-never-cross: names on a 3D picture only at rest). A place sleeps (grey, in mist)
+   The world is ONE scene (cellbuild.js). The camera flies between places along a gentle arc; the names on the world
+   follow their parts as it moves, the pupil's own zoom and turn too (names.js, on the 'frame' event that each frame
+   sends before it is drawn; Daniel, 8 Nov 2026: "the labels should stick to the right position"). A place sleeps (grey, in mist)
    until the pupil has what it needs; it then wakes (the mist clears, a ring of light turns round it).
    Quality: Retina screens draw at most 1.75 pixels per point; a slow computer drops to 1, then switches the glow off.
    ?still=1 (tests and less motion): flights jump to their end, nothing drifts.
@@ -18,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611081558';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611081558';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611081606';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611081606';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -355,6 +356,8 @@ export class World {
       if (p.ring.visible) { p.ring.lookAt(this.camera.position); p.ring.rotateZ(t * 0.3); p.ring.scale.setScalar(1 + 0.04 * Math.sin(t * 2)); }   /* a halo that faces you */
     });
     if (!this.flying) this.controls.update();
+    /* the names on the world (names.js) follow their parts with the camera this frame is drawn with (8 Nov 2026) */
+    this.emit('frame', t);
     if (this.glow) this.composer.render(dt); else this.renderer.render(this.scene, this.camera);
   }
   /* a slow computer: fewer pixels first, then no glow */
