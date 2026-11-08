@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611081649';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611081649';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611081747';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611081747';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -30,7 +30,7 @@ export const MAP_VIEW = { pos: [0, 9.4, 27.5], at: [0, 8.2, 0] };
 export class World {
   constructor(canvas, { still = false, quality = '' } = {}) {
     this.canvas = canvas; this.still = still; this.loop = this.loop.bind(this);
-    this.listeners = {}; this.moving = false; this.inset = { right: 0, bottom: 0 };
+    this.listeners = {}; this.moving = false; this.inset = { right: 0, bottom: 0 }; this.frameH = 0;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: false });
     r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 0.96;
     this.dprMax = quality === 'low' ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
@@ -267,6 +267,10 @@ export class World {
 
   /* the side panel or the bottom sheet covers part of the picture: the picture's middle moves to the free part */
   setInset({ right = 0, bottom = 0, top = 0 }) { this.inset = { right, bottom, top }; this.resize(); }
+  /* a place that must be seen whole from side to side (the way in: the whole base of the cell) asks for more than 20° to
+     each side on a laptop or a full screen (a stage over 860 px wide; a phone keeps its own view) (Daniel, 8 Nov 2026: in
+     full screen "you don't see the left or you don't see the right"); 0: the usual view */
+  setFrame(h = 0) { if (this.frameH === h) return; this.frameH = h; this.resize(); }
   /* how many pixels one micrometre covers at a distance from the camera (the intro matches its drawing to the 3D) */
   pxPerUnit(dist = 1) { return (this.fullH / 2) / (dist * Math.tan(this.camera.fov * Math.PI / 360)); }
   resize() {
@@ -288,7 +292,8 @@ export class World {
        free part is small and narrow, the view widens, so a place's parts stay in view (a fixed 52° showed only 17° across) */
     const fw = Math.max(1, w - R), fh = Math.max(1, h - B - T), H = B > 0 ? h + B : T > 0 ? h + T : h, rad = Math.PI / 180;
     this.fullH = H;
-    const k = Math.max(Math.tan(19 * rad) / (fh / 2), Math.tan(20 * rad) / (fw / 2));
+    const hMin = this.frameH && w > 860 ? this.frameH : 20;
+    const k = Math.max(Math.tan(19 * rad) / (fh / 2), Math.tan(hMin * rad) / (fw / 2));
     cam.fov = 2 * Math.atan(k * H / 2) / rad;
     cam.updateProjectionMatrix();
     this.emit('resize');

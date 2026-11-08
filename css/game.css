@@ -114,6 +114,14 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 /* ---------- the quest panel: the pupil's book ---------- */
 .quest{position:absolute;z-index:10;top:14px;right:14px;bottom:14px;width:min(430px,38%);overflow-y:auto;overscroll-behavior:contain;background:var(--qp-bg);color:var(--qp-ink);border-radius:20px;border:1.5px solid rgba(255,210,122,.55);box-shadow:0 18px 50px rgba(0,0,0,.4);padding:18px 20px 22px;font-size:17px;line-height:1.55;scrollbar-width:thin}
 .quest:empty{display:none}
+/* Hide text / Show text (main.js): beside the panel's top, or at the top right once the panel is hidden */
+.qhide{position:absolute;z-index:11;top:14px;right:calc(min(430px,38%) + 24px)}
+.quest:empty ~ .qhide{display:none}
+.stage.qp-off .quest{display:none}
+.stage.qp-off .qhide{right:14px}
+.qhide.is-new{border-color:var(--gold);animation:qhideNew 1.6s ease-in-out infinite}
+@keyframes qhideNew{50%{box-shadow:0 0 0 4px rgba(255,210,122,.75)}}
+@media (prefers-reduced-motion:reduce){ .qhide.is-new{animation:none;box-shadow:0 0 0 3px rgba(255,210,122,.9)} }
 .qp__eyebrow,.qp__k{font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent);margin:0 0 6px}
 .qp__k{margin:22px 0 8px}
 .qp__title{font:800 27px/1.15 var(--serif);margin:2px 0 8px;letter-spacing:-.005em}
@@ -394,6 +402,8 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   .stage{height:calc(100svh - 120px);min-height:620px;border-radius:16px;margin:0 8px 14px}
   .quest{top:auto;left:0;right:0;bottom:0;width:auto;max-height:50%;border-radius:18px 18px 0 0;padding:14px 14px 18px;border-width:1.5px 0 0;overscroll-behavior:auto}   /* at its top, a swipe scrolls the page back up to the heading */
   .quest.is-map{max-height:36%}
+  .qhide,.stage.qp-off .qhide{top:auto;bottom:calc(var(--qh, 50%) + 8px);right:10px}
+  .stage.qp-off .qhide{bottom:10px}
   .hud{top:10px;bottom:auto;left:10px;max-width:calc(100% - 20px)}
   .bag{padding:7px 10px}
   .bag__items{margin-top:5px}

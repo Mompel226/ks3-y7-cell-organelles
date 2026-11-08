@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611081649';
-import { Names } from './names.js?v=202611081649';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611081649';
-import { makePlay } from './play.js?v=202611081649';
-import { setStill, wait } from './actors.js?v=202611081649';
-import { state } from './state.js?v=202611081649';
-import { ICON } from './icons.js?v=202611081649';
-import { intro } from './intro.js?v=202611081649';
-import { sound } from './sound.js?v=202611081649';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611081649';
+import { World, MAP_VIEW } from '../world/world.js?v=202611081747';
+import { Names } from './names.js?v=202611081747';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611081747';
+import { makePlay } from './play.js?v=202611081747';
+import { setStill, wait } from './actors.js?v=202611081747';
+import { state } from './state.js?v=202611081747';
+import { ICON } from './icons.js?v=202611081747';
+import { intro } from './intro.js?v=202611081747';
+import { sound } from './sound.js?v=202611081747';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611081747';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -90,7 +90,7 @@ async function go(id) {
   if (busy) return;
   if (id === 'final') { openFinal(); return; }
   if (id !== 'test') $('#test').hidden = true;
-  if (!id) { world.wayIn(false); busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
+  if (!id) { world.wayIn(false); world.setFrame(0); busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
   if (id !== 'test' && !state.awake(id)) { quest.openMap(); quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))); return; }
   busy = true; names.set([]); play.reset();
   /* the way in shows its membrane bigger, as two layers of lipids (world.wayIn); every other place, the thin film */
@@ -101,14 +101,28 @@ async function go(id) {
   setInset();
   if (id === 'test') { busy = false; return test(); }
   const P = world.P[id];
+  world.setFrame(P.view.frameH || 0);
   world.flyTo(P.view);
   busy = false;
   await quest.openPlace(id, (name) => play.run(name));
   looks();
 }
+/* Hide text / Show text: the panel goes, so that only the picture shows, in the middle (Daniel, 8 Nov 2026: "if the
+   students want to have everything centered and no text on the right to see just basically the image and see the
+   animations, the students should be able to do so"); while it is hidden, the button glows when the panel gets
+   something new (a step, a message, a question) */
+const qHide = $('#qHide'), panelOff = () => $('#stage').classList.contains('qp-off');
+qHide.addEventListener('click', () => {
+  const off = !panelOff(); $('#stage').classList.toggle('qp-off', off);
+  qHide.setAttribute('aria-expanded', String(!off)); qHide.textContent = off ? 'Show text' : 'Hide text'; qHide.classList.remove('is-new');
+  setInset();
+});
+new MutationObserver(() => { if (panelOff()) qHide.classList.add('is-new'); }).observe($('#quest'), { childList: true, subtree: true, characterData: true });
 function setInset() {
   const s = world.size, panel = $('#quest');
-  if (s.w > 860) world.setInset({ right: panel.offsetWidth + 24 }); else world.setInset({ bottom: Math.min(panel.offsetHeight, s.h * 0.5) });
+  $('#stage').style.setProperty('--qh', panel.offsetHeight + 'px');   /* on a phone, Hide text stands just above the panel */
+  if (panelOff()) world.setInset({});
+  else if (s.w > 860) world.setInset({ right: panel.offsetWidth + 24 }); else world.setInset({ bottom: Math.min(panel.offsetHeight, s.h * 0.5) });
 }
 addEventListener('resize', () => setTimeout(setInset, 50));
 /* the panel's size follows what it holds (on a phone it is a sheet as tall as its words, up to half the stage), and it is
@@ -193,7 +207,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611081649').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611081747').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -203,7 +217,7 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611081649').then(m => {
+  import('../ib/view.js?v=202611081747').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -213,10 +227,10 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611081649').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611081747').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611081649').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611081747').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
