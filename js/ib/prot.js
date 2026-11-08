@@ -11,7 +11,7 @@ import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
    the browser cannot answer with its failure */
 const got = {}, failed = {};
 export function loadProt(key) {
-  return got[key] || (got[key] = import('./prot/' + key + '.js?v=202611082056' + (failed[key] ? '&r=' + failed[key] : ''))
+  return got[key] || (got[key] = import('./prot/' + key + '.js?v=202611082221' + (failed[key] ? '&r=' + failed[key] : ''))
     .then(m => m.PROT, e => { delete got[key]; failed[key] = (failed[key] || 0) + 1; throw e; }));
 }
 export const loadProts = keys => Promise.all(keys.map(loadProt));

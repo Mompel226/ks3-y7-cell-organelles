@@ -12,15 +12,16 @@
      centrosome near the top.
    What is drawn bigger than life, so that it can be seen (the page says so in each place's "See the real thing"):
    ribosomes (×4), nuclear pores (about twice as wide, and far fewer; the first entry into the nucleus dives through one at
-   its true size, pore.js), microtubules (×3), the spaces between ER layers (×2–3).
+   its true size, pore.js), microtubules (×3), the spaces between ER layers (×2–3). The smooth ER's tubes are at their true
+   width, 0.05 µm (8 Nov 2026).
    Everything else is at its real size for a cell about 16 µm tall. The neighbouring cells of the acinus stand round it,
    their tops meeting at the lumen. Every random choice uses one seed, so the world is the same at every load.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611082056';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611082056';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611082056';
+import { mergeVertices, mergeGeometries } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611082221';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611082221';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611082221';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -468,7 +469,11 @@ export function buildCell(scene) {
     const mesh = new THREE.Mesh(whole, m); mesh.userData.geo = { cut, whole };
     return mesh;
   };
-  const outerEnv = envelope(NR, PAL.nucleus, 0.92), innerEnv = envelope(NR - 0.07, 0x4f42b8, 0.95);
+  /* the outer membrane is solid (opacity 1): nothing behind it shows through, neither the pores of the far side nor what
+     is inside or behind the nucleus (Daniel, 8 Nov 2026: at 0.92 the far side's pores showed through the closed nucleus,
+     "that means that you're seeing through the nucleus. But you're not seeing … the inside"). The inner one is seen only
+     from inside, through the window of the open nucleus */
+  const outerEnv = envelope(NR, PAL.nucleus, 1), innerEnv = envelope(NR - 0.07, 0x4f42b8, 0.95);
   nucleus.add(outerEnv, innerEnv);
   /* the rim of the window: where the two membranes meet the cut, a soft glowing ring */
   const rimPts = []; const wb1 = new THREE.Vector3(0, 1, 0).cross(winDir).normalize(), wb2 = winDir.clone().cross(wb1).normalize(), sinW = Math.sqrt(1 - winCos * winCos);
@@ -484,7 +489,10 @@ export function buildCell(scene) {
     const p = d.clone().multiplyScalar(NR).multiply(new THREE.Vector3(1, NSY, 1));
     poreList.push({ d, p, q: qAlong(d) });
   }
-  const poreGeo = new THREE.TorusGeometry(0.085, 0.032, 8, 18); poreGeo.rotateX(Math.PI / 2);
+  /* each ring goes through BOTH membranes, as a real pore does: from 0.032 µm outside the outer membrane (as before) to
+     0.032 µm inside the inner one, 0.07 µm deeper (8 Nov 2026: seen from inside the open nucleus, the pores had shown only
+     dimly through the inner membrane, as if it covered them) */
+  const poreGeo = new THREE.TorusGeometry(0.085, 0.032, 8, 18); poreGeo.rotateX(Math.PI / 2); poreGeo.scale(1, 2.1, 1); poreGeo.translate(0, -0.035, 0);
   /* uPoreK: every pore drawn smaller, about itself (the dive: 0.513 is the true size, 120 nm across) */
   const PK = { uPoreK: { value: 1 } };
   const poreMat = revealOn(magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3 }, { rim: 0xfff0c8, rimK: 1.0 }), REV, 'pore', null, PK);
@@ -581,26 +589,30 @@ export function buildCell(scene) {
   const rerRibos = instanced(riboGeo, riboMat, riboList, 'rer-ribosomes'); rer.add(rerRibos);
   W.rer = { sheets: rerSheets, ribosomes: riboList };
 
-  /* ---------- smooth ER: a small net of tubes, joined to the rough ER (this cell has little smooth ER) ---------- */
+  /* ---------- smooth ER: a fine net of tubes at their TRUE width, joined to the rough ER (8 Nov 2026; Daniel asked whether
+     it was big enough "considering its real size"). Real ER tubes are about 0.05 µm across (Shibata et al. 2010, Cell
+     143:774); the old net drew them 0.22 µm, about four times too wide, so its membrane was a short, thick knot. This cell
+     has little smooth ER (in a pancreas cell of the same kind, less than 1 % of all membrane against 60 % rough ER: Bolender
+     1974; Alberts et al., table 12-2): the new net keeps the old one's membrane (about 5 µm², 0.5 % of the rough ER drawn)
+     as about 30 µm of tube 0.05 µm wide, mostly three-way joins, in the same place. It is built further down (after the
+     free ribosomes), with random numbers of its own, clear of everything placed before it. The old net's random numbers
+     are still drawn here, so that everything placed after this stays exactly where it was ---------- */
   const ser = add('ser', new THREE.Group());
-  const serMat = magicStandard({ color: PAL.ser, transparent: true, opacity: 0.9, roughness: 0.3 }, { rim: 0xd2fff3, rimK: 1.1 });
-  const serStart = new THREE.Vector3(-5.05, 6.15, -0.6);
-  const serCurves = [];
-  const grow = (from, dir, depth) => {
-    if (depth > 3) return;
-    const pts = [from.clone()]; let p = from.clone(), d = dir.clone();
-    for (let i = 0; i < 6; i++) { d.add(new THREE.Vector3(rr(-0.5, 0.5), rr(-0.25, 0.45), rr(-0.5, 0.5))).normalize(); p = p.clone().addScaledVector(d, 0.42); if (!inside(p, 0.5)) break; pts.push(p); }
-    if (pts.length < 3) return;
-    serCurves.push(new THREE.CatmullRomCurve3(pts));
-    const end = pts[pts.length - 1], mid = pts[Math.floor(pts.length / 2)];
-    grow(end, d.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), 0.7), depth + 1);
-    if (depth < 2) grow(mid, d.clone().applyAxisAngle(new THREE.Vector3(1, 0, 0), -1.0), depth + 1);
-  };
-  grow(serStart, new THREE.Vector3(0.1, 1, 0.25), 0); grow(serStart.clone().add(new THREE.Vector3(0.2, 0.3, 1.0)), new THREE.Vector3(0.25, 0.9, 0.3), 1);
-  serCurves.forEach((c, k) => { const t = new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.11, 10, false), serMat); t.name = 'ser' + k; ser.add(t); });
-  const serJoints = serCurves.flatMap(c => [c.points[0], c.points[c.points.length - 1]]).map(p => ({ p, s: 1 }));
-  ser.add(instanced(new THREE.SphereGeometry(0.135, 14, 10), serMat, serJoints, 'ser-joints'));
-  W.ser = { curves: serCurves, start: serStart };
+  /* thin tubes need a little light of their own to read against the purple cytoplasm (as the rough ER's rim) */
+  const serMat = magicStandard({ color: PAL.ser, roughness: 0.3, emissive: 0x2a8a72, emissiveIntensity: 0.55 }, { rim: 0xd2fff3, rimK: 1.4 });
+  {
+    const grow = (from, dir, depth) => {
+      if (depth > 3) return;
+      const pts = [from.clone()]; let p = from.clone(), d = dir.clone();
+      for (let i = 0; i < 6; i++) { d.add(new THREE.Vector3(rr(-0.5, 0.5), rr(-0.25, 0.45), rr(-0.5, 0.5))).normalize(); p = p.clone().addScaledVector(d, 0.42); if (!inside(p, 0.5)) break; pts.push(p); }
+      if (pts.length < 3) return;
+      const end = pts[pts.length - 1], mid = pts[Math.floor(pts.length / 2)];
+      grow(end, d.clone().applyAxisAngle(new THREE.Vector3(0, 0, 1), 0.7), depth + 1);
+      if (depth < 2) grow(mid, d.clone().applyAxisAngle(new THREE.Vector3(1, 0, 0), -1.0), depth + 1);
+    };
+    const old0 = new THREE.Vector3(-5.05, 6.15, -0.6);
+    grow(old0, new THREE.Vector3(0.1, 1, 0.25), 0); grow(old0.clone().add(new THREE.Vector3(0.2, 0.3, 1.0)), new THREE.Vector3(0.25, 0.9, 0.3), 1);
+  }
 
   /* ---------- the Golgi apparatus: a stack of curved flattened sacs above the nucleus ---------- */
   const G0 = new THREE.Vector3(0.45, 9.55, -0.35);
@@ -773,6 +785,85 @@ export function buildCell(scene) {
   }
   const freeRibo = add('free-ribosomes', instanced(riboGeo, riboMat, freeList, 'free-ribosomes'));
   W.freeRibosomes = freeList;
+
+  /* the smooth ER's net (see "smooth ER" above): its joins in the space the old net filled, each clear of every part placed
+     before it (the nucleus, the rough ER's layers, the Golgi, the vesicles, every mitochondrion, the lysosomes, the
+     microtubules, the free ribosomes), of every other place's line of sight and of the lipids its own place shows in
+     front of it; the joins linked into one piece by the shortest clear tubes, then more, up to three at a join, never
+     crossing or meeting another at a narrow angle, until there is about 30 µm of tube; each tube a little bent; one tube
+     joins it to the outer layer of the rough ER */
+  {
+    const Rs = rng(20261109), rs = (a, b) => a + (b - a) * Rs();
+    const TUBE = 0.025, SER0 = new THREE.Vector3(-4.6, 7.9, -0.1), C = new THREE.Vector3(-4.75, 7.55, -0.85), AX = new THREE.Vector3(0.95, 1.25, 1.35);
+    const serView = new THREE.Vector3(...VIEWS.ser.pos), sights = SIGHTS.filter(([a]) => !a.equals(serView));
+    const lysoP = lyso.children.map(m => [m.position.clone(), m.geometry.parameters.radius]);
+    const mtPts = W.tracks.flatMap(t => t.curve.getPoints(80));
+    const rerZone = p => { const q = p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / 0.75, 1 / 0.9)); return q.length() < 5.75 && p.y < 6.4; };
+    const clear = (p, m, rerOk = false) => {
+      if (!inside(p, 0.3) || p.z > SER0.z + 0.8) return false;                  /* the lipids of its place float in front */
+      if (p.clone().sub(N0).multiply(new THREE.Vector3(1, 1 / NSY, 1)).length() < NR + 0.35) return false;
+      if (!rerOk && rerZone(p)) return false;
+      if (p.distanceTo(G0) < 2.5) return false;
+      if (grList.some(g => g.p.distanceTo(p) < g.r + m + 0.05)) return false;
+      if (taken.some(([t, tr]) => t.distanceTo(p) < tr + m + 0.08)) return false;        /* the mitochondria */
+      if (segDist(p, heroA, heroB) < H.spec.R + 0.3) return false;
+      if (lysoP.some(([c, r]) => c.distanceTo(p) < r + m + 0.05)) return false;
+      if (mtPts.some(t => t.distanceTo(p) < 0.16 + m)) return false;
+      if (freeList.some(f => f.p.distanceTo(p) < 0.1 + m)) return false;
+      return !sights.some(([a, b]) => segDist(p, a, b) < 1.0);
+    };
+    const segClear = (a, b, rerOk) => { for (let t = 0.08; t < 0.95; t += 0.06) if (!clear(a.clone().lerp(b, t), 0.03, rerOk)) return false; return true; };
+    /* the shortest distance between two straight pieces of tube */
+    const segSeg = (p1, q1, p2, q2) => {
+      const d1 = q1.clone().sub(p1), d2 = q2.clone().sub(p2), r = p1.clone().sub(p2), a = d1.dot(d1), e = d2.dot(d2), f = d2.dot(r), c = d1.dot(r), b = d1.dot(d2), den = a * e - b * b;
+      let sN = den > 1e-9 ? Math.min(1, Math.max(0, (b * f - c * e) / den)) : 0, tN = (b * sN + f) / e;
+      if (tN < 0) { tN = 0; sN = Math.min(1, Math.max(0, -c / a)); } else if (tN > 1) { tN = 1; sN = Math.min(1, Math.max(0, (b - c) / a)); }
+      return p1.clone().addScaledVector(d1, sN).distanceTo(p2.clone().addScaledVector(d2, tN));
+    };
+    const nodes = [];
+    for (let k = 0; k < 30000 && nodes.length < 46; k++) {
+      const u = new THREE.Vector3(rs(-1, 1), rs(-1, 1), rs(-1, 1)); if (u.lengthSq() > 1) continue;
+      const p = C.clone().add(u.multiply(AX));
+      if (nodes.some(n => n.distanceTo(p) < 0.42) || !clear(p, 0.08)) continue;
+      nodes.push(p);
+    }
+    const cand = [];
+    nodes.forEach((a, i) => nodes.forEach((b, j) => { if (j > i) { const d = a.distanceTo(b); if (d < 0.95 && segClear(a, b)) cand.push([d, i, j]); } }));
+    cand.sort((x, y) => x[0] - y[0]);
+    const par = nodes.map((_, i) => i), find = i => (par[i] === i ? i : (par[i] = find(par[i])));
+    const deg = nodes.map(() => 0), edges = [];
+    let total = 0;
+    const crosses = (i, j) => edges.some(([a, b]) => a !== i && a !== j && b !== i && b !== j && segSeg(nodes[i], nodes[j], nodes[a], nodes[b]) < 0.14);
+    const wide = (i, j) => edges.filter(([a, b]) => a === i || b === i).every(([a, b]) => nodes[a === i ? b : a].clone().sub(nodes[i]).normalize().dot(nodes[j].clone().sub(nodes[i]).normalize()) < 0.8);
+    const link = (d, i, j) => { edges.push([i, j]); deg[i]++; deg[j]++; total += d; };
+    for (const [d, i, j] of cand) if (find(i) !== find(j) && !crosses(i, j)) { par[find(i)] = find(j); link(d, i, j); }
+    for (const [d, i, j] of cand) {
+      if (total >= 30) break;
+      if (deg[i] >= 3 || deg[j] >= 3 || edges.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) continue;
+      if (!wide(i, j) || !wide(j, i) || crosses(i, j)) continue;
+      link(d, i, j);
+    }
+    /* one piece: the largest; joined to the outer layer of the rough ER at the point of it nearest the net */
+    const sizes = {}; nodes.forEach((_, i) => { const r0 = find(i); sizes[r0] = (sizes[r0] || 0) + 1; });
+    const main = +Object.keys(sizes).sort((a, b) => sizes[b] - sizes[a])[0];
+    const keepE = edges.filter(([a]) => find(a) === main);
+    const lowest = nodes.map((p, i) => [p, i]).filter(([, i]) => find(i) === main).sort((a, b) => a[0].y - b[0].y)[0];
+    const sheet = rerSheets[rerSheets.length - 1].attributes.position, v = new THREE.Vector3();
+    let anchor = null, best = 1e9;
+    for (let i = 0; i < sheet.count; i++) { v.fromBufferAttribute(sheet, i); const d = v.distanceTo(lowest[0]); if (d < best && segClear(v, lowest[0], true)) { best = d; anchor = v.clone(); } }
+    const curves = keepE.map(([a, b]) => {
+      const A = nodes[a], B = nodes[b], ab = B.clone().sub(A), side = new THREE.Vector3(rs(-1, 1), rs(-1, 1), rs(-1, 1));
+      side.addScaledVector(ab, -side.dot(ab) / ab.lengthSq()).normalize();
+      return new THREE.CatmullRomCurve3([A.clone(), A.clone().lerp(B, 0.5).addScaledVector(side, rs(0.03, 0.08)), B.clone()]);
+    });
+    if (anchor && best < 2.5) curves.push(new THREE.CatmullRomCurve3([anchor, anchor.clone().lerp(lowest[0], 0.5).add(new THREE.Vector3(0, 0.05, 0)), lowest[0].clone()]));
+    const tubes = curves.map(c => new THREE.TubeGeometry(c, Math.max(6, Math.ceil(c.getLength() / 0.06)), TUBE, 6, false));
+    const net = new THREE.Mesh(mergeGeometries(tubes), serMat); net.name = 'ser-net'; ser.add(net);
+    tubes.forEach(g => g.dispose());
+    const joinAt = nodes.filter((_, i) => find(i) === main && deg[i] > 0).concat(anchor && best < 2.5 ? [anchor] : []);
+    ser.add(instanced(new THREE.SphereGeometry(TUBE * 1.4, 10, 8), serMat, joinAt.map(p => ({ p, s: 1 })), 'ser-joins'));
+    W.ser = { curves, start: anchor || lowest[0], joins: joinAt, length: curves.reduce((t, c) => t + c.getLength(), 0) };
+  }
 
   /* ---------- the top of the cell: microvilli into the lumen, and the lumen leading into the duct ---------- */
   const apex = add('apex', new THREE.Group());

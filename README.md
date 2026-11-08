@@ -17,7 +17,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Nucleolus | builds the two ribosome parts; sends each out through a pore | ribosome parts |
 | Ribosomes | joins the parts on the copy; matches each amino acid to the code; chooses where this ribosome must work | the start of the chain |
 | Rough ER | docks on a channel; makes the chain inside the rough ER; cuts the signal; folds it (the active site) | amylase in a vesicle |
-| Smooth ER | makes lipids; they form a membrane | lipids |
+| Smooth ER | a fine net of tubes at their true width (0.05 µm; this cell has little smooth ER); makes lipids; they form a membrane | lipids |
 | Golgi apparatus | joins the stack; moves through it; sorts proteins by their labels; packages amylase | a packed vesicle |
 | Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the vesicle 900 nm across): the motor protein is probably dynein, its two heads rings 14 nm across, joined with dynactin (38 nm) and an adaptor protein on the vesicle (without them dynein is folded and almost never walks); Attach lands its heads on the microtubule, and it walks seven steps of different sizes (the vesicle moves most often 8 nm, once 16 nm, once back; one head steps round the microtubule and back); then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
 | Cell membrane: the way out | a nerve message (smelling bread); exocytosis into the duct | amylase in saliva |
@@ -37,7 +37,7 @@ microscope, the one in that place lit) and the real size. The world itself is a 
 true shapes and places (the nucleus low in the cell, rough ER round it, the Golgi above, the vesicles at the top, by the duct),
 magical colours and light, and molecules drawn far larger than life (the page says so), except at the mitochondria, the
 microtubules and the nuclear pore, where every size is true and the camera zooms in instead
-(Daniel: "as close to relative size as possible"). The mitochondria
+(Daniel: "as close to relative size as possible"); the smooth ER's tubes are drawn at their true width too. The mitochondria
 of the world are real shapes: 33 mitochondria of one human cell, measured with an electron microscope (short ones, long
 tubes and branched ones), each drawn with its two membranes.
 
@@ -171,7 +171,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   first), answers every place's checks in the panel, and reports what is done, the board's record and any console error; it needs the estate served on
   127.0.0.1:8799; `--w 375 --h 812 --mobile` plays it on a phone. `node tools/sweep.mjs` marks every check wrong, then right,
   and reads the board's record; `node tools/questions-check.mjs` checks the checks' data (no give-away option, every typed
-  word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes; `node tools/pore-dive.mjs` checks the nucleus closed before the first entry (the start place, the map, the nucleus), the dive (the camera, read every frame, goes through the middle of the pore and through no membrane elsewhere; nothing inside lit before it is in), and the nucleus open after, also after a new load and in a game saved before (`--w 375 --h 812 --mobile 1 --cpu 4`: a slow phone); `node tools/names-follow.mjs` zooms, turns and flies the camera as a pupil does (the wheel, a drag, a pinch) and checks, frame by frame, that every name stays on its part, level, and never blinks.
+  word explained above it); `node tools/names-check.mjs` checks the names on the map at laptop, tablet and phone sizes; `node tools/pore-dive.mjs` checks the nucleus closed before the first entry (the start place, the map, the nucleus) and solid there (nothing of its far side shows through), the dive (the camera, read every frame, goes through the middle of the pore and through no membrane elsewhere; nothing inside lit before it is in), and the nucleus open after, also after a new load and in a game saved before (`--w 375 --h 812 --mobile 1 --cpu 4`: a slow phone); `node tools/names-follow.mjs` zooms, turns and flies the camera as a pupil does (the wheel, a drag, a pinch) and checks, frame by frame, that every name stays on its part, level, and never blinks.
   The playthrough also fails if, after any press, two names or buttons on the world overlap or one is under the corner
   box or the panel, and, in the intro, if the corner's buttons cannot be pressed or cover the card or the picture; and
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
