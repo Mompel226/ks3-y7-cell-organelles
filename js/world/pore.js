@@ -39,7 +39,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, CUT } from './magic.js?v=202611090712';
+import { PAL, magicStandard, CUT } from './magic.js?v=202611090843';
 
 /* the sizes above, in nm (play.js reads them for the camera's way through) */
 export const NPC = {
@@ -119,7 +119,7 @@ function swaying(m, open, shared) {
         {
           float s2 = aS * aS;
           transformed += aAmp * s2 * vec3(sin(uTime * 1.3 + aPh), 0.55 * sin(uTime * 1.7 + aPh * 1.9), sin(uTime * 1.05 + aPh * 0.7));
-          ${open ? `float k = uOpen * exp(-pow((transformed.y - uCamY + 22.0) / 34.0, 2.0)) * pow(aS, 1.1);
+          ${open ? `float k = uOpen * exp(-pow((transformed.y - uCamY + 8.0) / 16.0, 2.0)) * pow(aS, 1.1);
           transformed.xz += normalize(aRoot.xz + vec2(1e-4, 0.0)) * k * 30.0;
           transformed.y -= k * 8.0;` : ''}
         }`);
@@ -318,7 +318,7 @@ export async function buildPore(env) {
   const [ringMat, innerMat, knobMat] = goldMats(), [ringLid, innerLid, knobLid] = goldMats().map(m => { m.transparent = true; return m; });
   [ringMat, innerMat, knobMat, ringLid, innerLid, knobLid].forEach(m => mats.push(m)); lidMats.push(ringLid, innerLid, knobLid);
   /* each part goes with the half its middle is in, by its angle round the axis: no protein is cut */
-  const half = () => ({ far: [], near: [] }), cr = half(), nr = half(), ir = half(), kn = half();
+  const half = () => ({ far: [], near: [] }), cr = half(), nr = half(), ir = half(), kn = half(), dr = half();
   const put = (list, a, geo) => (isNear(a) ? list.near : list.far).push(geo);
   for (let k = 0; k < 8; k++) {
     const a = k * Math.PI / 4, s = k * 3.1;
@@ -333,8 +333,14 @@ export async function buildPore(env) {
     });
     /* where each cytoplasmic filament is held: a round part on the ring */
     put(kn, a + 0.26, placed(blob(5.5, 5, 5.5, s + 9), 51, a + 0.26, 11));
+    /* the basket's distal ring (about 40 nm across, where the eight basket filaments meet), made of proteins like the other
+       rings: eight curved parts head to tail, and a round part where each filament joins it (Daniel, 9 Nov 2026: the smooth
+       ring that stood there "doesn't look like a protein"). Filament k ends at the angle a + 0.08 */
+    const j = a + 0.08;
+    put(dr, j + Math.PI / 8, arcBlob(NPC.distalR, j + Math.PI / 8, NPC.distal, 12.5, 5.5, 5, s + 11));
+    put(kn, j, placed(blob(3.4, 3.2, 3.4, s + 12), NPC.distalR + 0.5, j, NPC.distal + 0.5));
   }
-  [[cr, ringMat, ringLid, 'ring-cyto'], [nr, ringMat, ringLid, 'ring-nuclear'], [ir, innerMat, innerLid, 'ring-inner'], [kn, knobMat, knobLid, 'knobs']].forEach(([list, m, ml, name]) => {
+  [[cr, ringMat, ringLid, 'ring-cyto'], [nr, ringMat, ringLid, 'ring-nuclear'], [ir, innerMat, innerLid, 'ring-inner'], [kn, knobMat, knobLid, 'knobs'], [dr, ringMat, ringLid, 'ring-distal']].forEach(([list, m, ml, name]) => {
     const merge = l => mergeGeometries(l.map(x => { x.deleteAttribute('uv'); return x; }));
     const mesh = new THREE.Mesh(merge(list.far), m); mesh.name = name; npc.add(mesh);
     const lid = new THREE.Mesh(merge(list.near), ml); lid.name = name + '-lid'; lidP.add(lid);
@@ -357,14 +363,7 @@ export async function buildPore(env) {
     const b = new THREE.CatmullRomCurve3([at(52, -64, -0.26), at(50, -84, -0.24), at(39, -112, -0.2), at(NPC.distalR + 2, NPC.distal + 3, -0.18)]);
     put(fil, a - 0.22, thread(b, 28, 5, () => 1.35, 0.5));
   }
-  /* the basket's distal ring, in two halves, one with each half of the pore */
-  [[CUT, fil.far], [CUT + Math.PI, fil.near]].forEach(([q, list]) => {
-    const ring = new THREE.TorusGeometry(NPC.distalR, 2.6, 8, 24, Math.PI); ring.rotateX(Math.PI / 2); ring.rotateY(-q); ring.translate(0, NPC.distal, 0);
-    const n = ring.attributes.position.count;
-    ring.setAttribute('aS', new THREE.BufferAttribute(new Float32Array(n), 1)); ring.setAttribute('aRoot', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
-    ring.setAttribute('aPh', new THREE.BufferAttribute(new Float32Array(n), 1)); ring.setAttribute('aAmp', new THREE.BufferAttribute(new Float32Array(n), 1));
-    ring.deleteAttribute('uv'); list.push(ring);
-  });
+  /* (the basket's distal ring is made with the other rings, above, of proteins) */
   /* the channel's soft threads (FG repeats): from the inner ring's wall, and from the edges of the two outer rings, towards
      the middle, so that they fill the channel; each about 1 nm thick */
   took.push(performance.now() - T0); await pause();

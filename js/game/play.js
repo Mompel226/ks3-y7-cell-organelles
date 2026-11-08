@@ -5,15 +5,15 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611090712';
-import { state, COST, RESPIRE } from './state.js?v=202611090712';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611090712';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611090712';
-import { sound } from './sound.js?v=202611090712';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611090843';
+import { state, COST, RESPIRE } from './state.js?v=202611090843';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611090843';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611090843';
+import { sound } from './sound.js?v=202611090843';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611090712').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611090843').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -822,7 +822,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611090712').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611090843').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1049,68 +1049,79 @@ export function makePlay(world, quest) {
     const PHI2 = 0.12;          /* while the names are read the camera drifts a little further round: the cut seen in depth */
     await moveCam(R.FAST ? 0 : 6400, k => { const v = view(TH2, D2, C2y, PHI + PHI2 * smooth(0, 1, k), 0, 1); cam.up.copy(v.up); setCam(v.P, v.A, D2 / 1000); });
     quest.names.set([], HUDN(), cutFrame()); world.setMoving(true);
-    /* 4. the near half is put back as the camera rises over the pore onto its axis, looking down its middle (the lid comes
-       back only once the camera is above it: it had been taken away where the camera passes) */
-    const F2 = PHI + PHI2;
-    await moveCam(R.FAST ? 0 : 3800, k => {
-      const e = k * k * (3 - 2 * k), r = D2 + (Y0 - C2y - D2) * e, v = view(TH2 * (1 - e), r, C2y, F2, 0, 1 - e);
+    /* 4. the nucleus whole again first: beside the pore the camera moves a little back and up while the near half comes
+       back, so that the cut is covered again before the camera goes over the pore (Daniel, 9 Nov 2026: "make sure that
+       transition is smooth by basically covering again the nucleus and then getting again inside the hole") */
+    const F2 = PHI + PHI2, D3 = D2 * 1.12, TH3 = TH2 - 0.1;
+    await moveCam(R.FAST ? 0 : 2400, k => {
+      const e = k * k * (3 - 2 * k), r = D2 + (D3 - D2) * e, v = view(TH2 + (TH3 - TH2) * e, r, C2y, F2, 0, 1);
       cam.up.copy(v.up); setCam(v.P, v.A, r / 1000);
-      PD.setLid(1 - smooth(0.35, 0.85, k));
+      PD.setLid(1 - smooth(0.05, 0.85, k));
     });
     PD.setLid(0);
+    /* then over the pore onto its axis, looking down its middle */
+    await moveCam(R.FAST ? 0 : 3400, k => {
+      const e = k * k * (3 - 2 * k), r = D3 + (Y0 - C2y - D3) * e, v = view(TH3 * (1 - e), r, C2y, F2, 0, 1 - e);
+      cam.up.copy(v.up); setCam(v.P, v.A, r / 1000);
+    });
     const downUp = orbit(0, 1, C2y, F2).up;          /* the camera's up while it looks down the axis */
-    /* 5. through: down the middle of the pore, slowly, slowest where it passes the two membranes (Daniel: "The speed as you
-       go through the pore should be nice and slow, beautiful"); the soft threads bend back before the camera and close
-       behind it; then the basket and its small ring, and out into the nucleus, where it is black. It looks down the axis,
-       L nm ahead (what the scale bar measures): the envelope's middle from above the pore, 45 nm ahead in it, and out of
-       the basket, while all is still black, 1.2 µm deep, where the inside is (the bar had said 10 nm with the nucleolus
-       1.7 µm away) */
-    const Y1 = -170, Lof = y => 45 + (Y0 - C2y - 45) * smooth(10, Y0, y) + 1155 * smooth(-140, Y1, y);
+    /* 5. through: down the middle of the pore, slowly through its protein net (Daniel: "The speed as you go through the pore
+       should be nice and slow, beautiful"), whose soft threads bend back before the camera and close behind it; then, once
+       past the net, quickly through the rest of the channel, the basket and past its small ring (Daniel, 9 Nov 2026: it had
+       spent "too much time going through the hole at the end"), into the nucleus, where it is black. It looks down the
+       axis, L nm ahead: the envelope's middle from above the pore, 45 nm ahead in it, and past the basket 1.2 µm deep, where
+       the inside is. About 3 s above the pore, 3.6 s through the net (y 10 to -45: its threads part only just ahead of
+       the camera, pore.js swaying, so that the net fills the view until the camera reaches it; parting 22 nm ahead, they had
+       opened a clear tunnel, and the basket's ring had filled the view for seconds), then 1 s to the channel's end, through
+       the basket and past its ring */
+    const Y1 = -150, Lof = y => 45 + (Y0 - C2y - 45) * smooth(10, Y0, y) + 1155 * smooth(-140, Y1, y);
     const NS = 400, ys = [], ts = [0];
     for (let i = 0; i <= NS; i++) ys.push(Y0 + (Y1 - Y0) * i / NS);
-    /* slowest where it passes the two membranes (the envelope's middle ± about 45 nm), quicker through the basket */
-    const pace = y => (0.25 + 0.75 * smooth(Y0, Y0 - 35, y) * smooth(Y1, Y1 + 30, y)) * (1 - 0.62 * Math.exp(-Math.pow((y - C2y) / 42, 2))) * (1 + 0.9 * smooth(-62, -90, y) * smooth(-158, -134, y));
+    const pace = y => (0.3 + 0.7 * smooth(Y0, Y0 - 35, y) * smooth(Y1, Y1 + 16, y)) * (1 - 0.65 * Math.exp(-Math.pow((y + 15) / 26, 2))) * (1 + 3 * smooth(-40, -54, y));
     for (let i = 1; i <= NS; i++) ts.push(ts[i - 1] + Math.abs(ys[i] - ys[i - 1]) / pace((ys[i] + ys[i - 1]) / 2));
     const T = ts[NS], yAt = k => { const t = k * T; let i = 1; while (i < NS && ts[i] < t) i++; const f = (t - ts[i - 1]) / Math.max(1e-9, ts[i] - ts[i - 1]); return ys[i - 1] + (ys[i] - ys[i - 1]) * f; };
-    /* the light: from the moment the camera is out of the basket, its front spreads from the pore at a steady pace, about
-       1 µm a second, then faster, through the whole nucleus in about 4 s, while the camera moves back at once: the threads
-       near the pore light first, and the front crosses the nucleolus over about a second (the expert review: it had
-       flashed, a large cream shape, in 4 frames) */
-    const C = pw(0, -150, 0), nolD = C.distanceTo(inN(N.nucleolus.position));
-    let lr0 = 0, lt0 = 0;
-    const lightR = () => { if (!lt0) return 0; if (R.FAST) return 8; const t = (performance.now() - lt0) / 1000; return 0.55 * smooth(0, 0.25, t) + 1.1 * t + 0.15 * t * t; };
-    await moveCam(10000, k => {
+    await moveCam(R.FAST ? 0 : 7600, k => {
       const y = yAt(k), L = Lof(y);
       PD.sway.forEach(u => { u.uCamY.value = y; u.uOpen.value = smooth(170, 70, y); });
       cam.up.copy(downUp); setCam(pw(0, y, 0), pw(0, y - L, 0), L / 1000);
       /* inside the pore no scale bar: it measures L nm ahead, and the rings close by read wrong against it (the expert review) */
       if (bar) bar.hidden = y < 12;
-      if (y < -140 && !lt0) { lt0 = performance.now(); N.REV.uRevC.value.copy(C); sound.wake(); }
-      if (lt0) { lr0 = lightR(); N.REV.uRevR.value = lr0; spark.value = DV.spark0 * smooth(nolD - 0.3, nolD + 0.6, lr0); }
     });
-    /* 6. the nucleus is opened behind the camera (nothing of the opening can be seen from here: it is more than 70° from
-       where the camera looks), the pore and its patch are put away, and the camera moves back through the opening until
-       the whole nucleus is seen, every pore growing back to the world's size. As the view widens, a light spreads from
-       the pore through the nucleus, its front a little ahead of the camera's view, and shows the chromosomes and the
-       nucleolus as it reaches them; then the whole nucleus is lit */
-    DV.open = true;
+    /* 6. in the dark, out of the basket, the camera turns to look the way the whole nucleus will be seen, upright, before
+       anything is lit (Daniel, 9 Nov 2026: "things appear, but the camera twists … things do not appear cleanly": it had
+       turned while the inside appeared). The pore is put away first and the hole it filled closed (both behind the camera):
+       through the hole, the turn had shown shapes outside the nucleus, dimly */
     PD.group.visible = false; N.HOLE.uHoleR.value = 0; doorShown(true);
+    const v = nucView(), P1 = cam.position.clone(), dirF = v.at.clone().sub(v.pos).normalize(), d2 = v.pos.distanceTo(v.at);
+    const qa = cam.quaternion.clone(), qb = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(P1, P1.clone().add(dirF), V(0, 1, 0)));
+    const fwd = new THREE.Vector3(), upv = new THREE.Vector3(), q = new THREE.Quaternion();
+    await moveCam(R.FAST ? 0 : 500, k => {
+      q.copy(qa).slerp(qb, k * k * (3 - 2 * k)); fwd.set(0, 0, -1).applyQuaternion(q); upv.set(0, 1, 0).applyQuaternion(q);
+      cam.up.copy(upv); setCam(P1, P1.clone().addScaledVector(fwd, 1.2), 1.2); if (bar) bar.hidden = true;
+    });
+    cam.up.set(0, 1, 0);
+    /* then the nucleus is opened behind the camera (nothing of the opening can be seen from here), every pore grows back to
+       the world's size, and a light spreads from the pore through the nucleus, about 1 µm a second, then faster: the
+       threads near the camera light first, the nucleolus over about a second (the expert review: it had flashed, a large
+       cream shape, in 4 frames). Meanwhile the camera moves straight back, without turning, out through the opening until
+       the whole nucleus is seen */
+    DV.open = true;
     world.nucDive = false; world.setNucleus(true); state.setFlag('in-nucleus');
-    if (!lt0) { lt0 = performance.now(); N.REV.uRevC.value.copy(C); sound.wake(); }
-    const v = nucView(), at1 = c.target.clone(), off1 = cam.position.clone().sub(at1), d1 = off1.length(), dir1 = off1.normalize();
-    const d2 = v.pos.distanceTo(v.at), dir2 = v.pos.clone().sub(v.at).normalize();
-    await moveCam(5000, k => {
-      /* the camera moves back quickly at first, then slows into the whole view; the light goes on spreading */
-      const e = 1 - Math.pow(1 - k, 2.2), d = d1 * Math.pow(d2 / d1, e), g = (d - d1) / (d2 - d1);
+    const C = pw(0, -150, 0), nolD = C.distanceTo(inN(N.nucleolus.position)), lt0 = performance.now();
+    const lightR = () => R.FAST ? 8 : (t => 0.55 * smooth(0, 0.25, t) + 1.1 * t + 0.15 * t * t)((performance.now() - lt0) / 1000);
+    N.REV.uRevC.value.copy(C); sound.wake();
+    let lr0 = 0;
+    await moveCam(4800, k => {
+      /* slow at first, while the light shows what is near; then out to the whole view */
+      const e = k * k * k * (k * (6 * k - 15) + 10), pos = P1.clone().lerp(v.pos, e), dn = 1.2 + (d2 - 1.2) * e;
       N.PK.uPoreK.value = TRUEK + (1 - TRUEK) * smooth(0.1, 0.9, e);
       lr0 = Math.max(lr0, lightR(), k >= 1 ? 8 : 0); N.REV.uRevR.value = lr0;
       spark.value = DV.spark0 * smooth(nolD - 0.3, nolD + 0.6, lr0);
-      const at = at1.clone().lerp(v.at, g);
-      cam.up.copy(downUp).lerp(V(0, 1, 0), smooth(0, 0.6, e)).normalize();
-      setCam(at.clone().addScaledVector(dir1.clone().lerp(dir2, smooth(0, 0.85, e)).normalize(), d), at, d);
+      setCam(pos, pos.clone().addScaledVector(dirF, dn), dn); if (bar) bar.hidden = true;
       /* the rest of the cell comes back once the camera is out of the nucleus (the cytosol's lights are not drawn inside it) */
       if (DV.hidden.length && cam.position.clone().sub(N0).multiply(V(1, 1 / N.sy, 1)).length() > N.r + 0.02) diveDeep(false);
     });
+    setCam(v.pos, v.at, d2);
     diveDeep(false); cam.up.set(0, 1, 0);
     N.PK.uPoreK.value = 1; N.REV.uRevK.value = 0; spark.value = DV.spark0; if (bar) bar.hidden = true;
     DV.on = false;
