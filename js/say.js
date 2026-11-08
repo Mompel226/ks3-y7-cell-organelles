@@ -31,7 +31,9 @@
    complex in these key stage 3 game ... pause for a moment the running music and then relaunch it after the word is
    done", then "and us pronunciation too") uses it as well: tools/practicals-sync.mjs copies it there as js/say.js. Its
    words joined the list the same day, read the same way (each recording 0.6–2.4 s). As a recording starts and ends,
-   the document gets a 'say' event, detail.on true or false: the game pauses its music for the word.
+   the document gets a 'say' event, detail.on true or false: the game pauses its music for the word. Four words Cambridge
+   has no page for have a Wikimedia Commons recording instead (nucleolus, lysosome, phospholipid, dehydrogenation; Daniel's
+   "Yes, download", 8 Nov 2026), each clear by the rules in audio/CREDITS.md; lipid and ion had none clear enough.
    ============================================================ */
 (function (global) {
   'use strict';
@@ -307,10 +309,10 @@
     "gradient": ["GRAY-dee-unt", {}],
     "apparatus": ["ap-uh-RAY-tus (US ap-uh-RAT-us)", {}],
     "cytosol": ["SY-tuh-sol", {}],
-    "nucleolus": ["nyoo-KLEE-uh-lus (US noo-…)", {}],
+    "nucleolus": ["nyoo-KLEE-uh-lus (US noo-…)", {"uk": ["Vealhurl", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:LL-Q1860_%28eng%29-Vealhurl-nucleolus.wav"]}],
     "histone": ["HIS-tohn", {}],
     "centrosome": ["SEN-truh-sohm", {}],
-    "lysosome": ["LY-suh-sohm", {}],
+    "lysosome": ["LY-suh-sohm", {"uk": ["Vealhurl", "CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:LL-Q1860_%28eng%29-Vealhurl-lysosome.wav"]}],
     "exocytosis": ["ek-soh-sy-TOH-sis", {}],
     "Golgi": ["GOL-jee (US GOHL-jee)", {}],
     "cristae": ["KRIS-tee", {}],
@@ -322,8 +324,9 @@
     "Krebs cycle": ["KREBZ SY-kul", {}],
     "chemiosmosis": ["kem-ee-oz-MOH-sis", {}],
     "decarboxylation": ["dee-kar-bok-sih-LAY-shun", {}],
-    "dehydrogenation": ["dee-hy-druh-juh-NAY-shun", {}],
-    "facilitated": ["fuh-SIL-ih-tay-tid", {}]
+    "dehydrogenation": ["dee-hy-druh-juh-NAY-shun", {"en": ["Yangolin", "CC0", "https://commons.wikimedia.org/wiki/File:LL-Q1860_%28eng%29-Yangolin-dehydrogenation.wav"]}],
+    "facilitated": ["fuh-SIL-ih-tay-tid", {}],
+    "phospholipid": ["fos-foh-LIP-id", {"en": ["Sapaa", "CC0", "https://commons.wikimedia.org/wiki/File:LL-Q1860_%28eng%29-Sapaa-phospholipid.wav"]}]
   };
   /* word: [its UK recording, its US recording, its page], each under https://dictionary.cambridge.org
      (/media/english/uk_pron/….mp3, /media/english/us_pron/….mp3, /dictionary/english/…) */

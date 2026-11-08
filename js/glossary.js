@@ -40,6 +40,8 @@
    glycolysis, pyruvate, NAD and reduced NAD, FAD, coenzyme A, the link reaction, the Krebs cycle, oxidation and reduction,
    dehydrogenation, decarboxylation, both kinds of phosphorylation, chemiosmosis, facilitated diffusion, the glucose
    transporter …), in the IB guide's own terms (C1.2.7–C1.2.16; B2.1.8), plain enough for Korean EAL pupils.
+   8 Nov 2026: phospholipid (IB B2.1.1–B2.1.2), so that the cell game's IB text opens it, with a recording of it
+   (labs-shared/say); Korean 인지질 and Chinese 磷脂, the school science words.
    ============================================================ */
 (function () {
   'use strict';
@@ -274,6 +276,7 @@
       { k: 'glucose-transporter', en: 'glucose transporter', ko: '포도당 수송체', zh: '葡萄糖转运蛋白', also: ['glucose transporters'], d: 'A carrier protein in the cell membrane that lets glucose through by facilitated diffusion: it opens to one side, then to the other. In muscle cells, insulin brings more of them to the membrane.' },
       { k: 'concentration-gradient', en: 'concentration gradient', ko: '농도 기울기', zh: '浓度梯度', d: 'A difference in the concentration of a substance between two places. Particles diffuse down a concentration gradient: from the higher to the lower concentration.' },
       { k: 'hydrophobic',     en: 'hydrophobic',     ko: '소수성',            zh: '疏水的',      d: 'Water-avoiding: not attracted to water molecules. The tails of the lipids in a membrane are like this, so the middle of a membrane stops polar molecules and ions.' },
+      { k: 'phospholipid',    en: 'phospholipid',    ko: '인지질',            zh: '磷脂',        also: ['phospholipids'], d: 'A lipid with a phosphate group in its head. The head is hydrophilic (attracted to water) and the two hydrocarbon tails are hydrophobic. In water, phospholipids form two layers with their tails inside: the phospholipid bilayer of every cell membrane.' },
       { k: 'lactate',         en: 'lactate',         ko: '젖산',              zh: '乳酸',        d: 'The product of anaerobic respiration in humans, with 3 carbon atoms. Pyruvate accepts the hydrogen of reduced NAD, so NAD is regenerated and glycolysis can continue. Muscles make it during hard exercise.' },
       { k: 'ethanol',         en: 'ethanol',         ko: '에탄올',            zh: '乙醇',        d: 'An alcohol with 2 carbon atoms. Yeast makes it, with carbon dioxide, in anaerobic respiration; brewing uses it.' },
       { k: 'anaerobic-respiration', en: 'anaerobic respiration', ko: '무산소 호흡', zh: '无氧呼吸', d: 'Respiration without oxygen: in humans, glucose → lactate; in yeast, glucose → ethanol + carbon dioxide. It happens in the cytosol and yields only 2 ATP per glucose.' }

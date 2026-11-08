@@ -94,7 +94,7 @@ window.STORY = {
        `text`: the step's own words with the IB terms where Year 7 has simpler ones (Daniel, 5 Nov 2026: "if you used lipids
        for Key Stage 3, now you use phospholipids") */
     ib: [
-      { ch: 1, text: 'Here the membrane is drawn about 100 times bigger, so that you can see it: a phospholipid bilayer, with proteins in it.\nAbove the membrane is the <b>inside</b> of the cell. Below it is the <b>outside</b>.',
+      { ch: 1, text: 'Here the membrane is drawn about 100 times bigger, so that you can see it: a <dfn data-w="phospholipid">phospholipid</dfn> bilayer, with proteins in it.\nAbove the membrane is the <b>inside</b> of the cell. Below it is the <b>outside</b>.',
         p: [['sl', 'B2.1.1, B2.1.2', 'The membrane is a phospholipid bilayer, about 5 nm thick. The phosphate heads are hydrophilic: they face the water on each side. The hydrocarbon tails are <dfn data-w="hydrophobic">hydrophobic</dfn>: they form the core, a barrier to ions and polar molecules.']] },
       { ch: null, p: [['sl', 'B2.1.3', 'Oxygen molecules are small and non-polar, so they pass between the phospholipids by simple diffusion, down their <dfn data-w="concentration-gradient">concentration gradient</dfn>.']] },
       { ch: 1, p: [['sl', 'B2.1.8', 'Glucose is polar, so it cannot pass between the phospholipids. The carrier protein for glucose is a <dfn data-w="glucose-transporter">glucose transporter</dfn>: glucose enters by <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, and no ATP is used.'],
