@@ -46,6 +46,9 @@ button.nm{pointer-events:auto;cursor:pointer}
 .nm.is-open{border-color:var(--gold);box-shadow:0 0 0 0 rgba(255,210,122,.6),0 4px 18px rgba(0,0,0,.35);animation:awake 2.2s ease-out infinite}
 @keyframes awake{0%{box-shadow:0 0 0 0 rgba(255,210,122,.55),0 4px 18px rgba(0,0,0,.35)}80%,100%{box-shadow:0 0 0 12px rgba(255,210,122,0),0 4px 18px rgba(0,0,0,.35)}}
 .nm--on{font-size:15px;padding:4px 9px;gap:4px;max-width:160px}
+/* a name written inside the space it names, with no box (the space between the two membranes of the nucleus, cut open: a box
+   had hidden the very space it names; dark words on the lilac, a pale glow round them) */
+.nm.nm--in{background:none;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:#24195c;text-align:center;justify-content:center;text-shadow:0 0 4px rgba(236,230,255,.95),0 0 9px rgba(236,230,255,.8)}
 .nm--on .ico{width:15px;height:15px}
 .nm.is-asleep{color:#CFCBF5;background:rgba(30,28,70,.62);border-style:dashed;border-color:rgba(196,190,255,.5)}
 .nm.is-done{border-color:#8CF0C8;color:#E9FFF6}
@@ -390,12 +393,6 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .cf__key[hidden]{display:none}
 
 /* ---------- under the stage ---------- */
-.about{max-width:1480px;margin:0 auto;padding:6px 24px 10px}
-.about h2{font:800 24px/1.2 var(--serif);margin:6px 0 8px}
-.about__grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.about h3{font:900 14px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);margin:8px 0 6px}
-.about p{margin:0;font-size:16.5px;color:var(--ink2)}
-.about p+p{margin-top:.5em}
 
 /* ---------- a phone, or a narrow window: the world above, the book below as a sheet ---------- */
 @media (max-width:860px){
@@ -410,7 +407,6 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   .bag__it span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .nm{font-size:14.5px;padding:5px 10px;max-width:180px}
   .testbox{right:14px;bottom:52%}
-  .about__grid{grid-template-columns:1fr}
   .qp__title{font-size:23px}
   .toasts{top:auto;bottom:calc(50% + 10px)}
 }
@@ -507,3 +503,46 @@ html.is-final{overflow:hidden}
 .win__c{font:900 32px/1.15 var(--sans);letter-spacing:.12em;color:#FFE39A;user-select:all}
 .win__acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 .win .btn.ghost{background:none;color:#FFE7A8;border:1.5px solid rgba(255,226,154,.7)}
+
+/* How the game works (index.html #howto, 8 Nov 2026): the first card of a new game, over the stage while the cell loads
+   behind it; How to play, at the top, shows it again. Short lines, a picture for each, the key words highlighted (Daniel:
+   "make it fun … otherwise, they're not going to read it"). The corner's tools stay above it, so Sound works from here */
+.howto{position:absolute;inset:0;z-index:45;display:flex;overflow:auto;padding:52px 16px 12px;background:radial-gradient(120% 100% at 30% 20%,#2a2370,#0b0f2a 75%)}
+.howto[hidden]{display:none}
+.stage.is-howto .hud{z-index:46;max-width:none}
+.stage.is-howto .tools{flex-wrap:nowrap}                /* one row of tools above the card, as in the intro */
+.stage.is-howto .bag{display:none}
+/* at the top of the stage, which on a laptop goes on below the first screen; centred across; when it is taller than the
+   stage it scrolls, nothing cut off */
+.howto__card{margin:0 auto auto;width:min(780px,100%);background:var(--qp-bg);color:var(--qp-ink);border-radius:22px;border:1.5px solid rgba(255,210,122,.6);padding:16px 24px 18px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.howto__eyebrow,.howto__h{font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent);margin:0 0 6px}
+.howto__mission{font:800 24px/1.25 var(--serif);margin:0}
+.howto__why{font-size:15.5px;color:var(--qp-ink2);margin:4px 0 0}
+.howto__h{margin:12px 0 9px;padding-top:11px;border-top:1.5px solid var(--qp-rule)}
+.howto__list{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+.howto__list li{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:center;font-size:16px;line-height:1.4}
+.howto__i{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:rgba(255,210,122,.25);font-size:17px;line-height:1;color:#B07A00}
+.hl{background:linear-gradient(transparent 50%,rgba(255,210,122,.8) 50%);padding:0 3px;border-radius:2px}
+:root[data-theme="dark"] .hl{background:linear-gradient(transparent 50%,rgba(255,210,122,.4) 50%)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .hl{background:linear-gradient(transparent 50%,rgba(255,210,122,.4) 50%)} }
+.howto__go{display:block;margin:0 auto;font-size:17.5px;padding:12px 24px}
+/* on a laptop the mission stands on the left and the points on the right, the button under both: the card is about half
+   as tall, so it fits above the bottom of a short laptop screen (1366 × 768 shows about 650 px of page) */
+@media (min-width:861px){
+  .howto__card{width:min(1080px,100%);display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.9fr);column-gap:26px;align-items:start}
+  .howto__w{border-left:1.5px solid var(--qp-rule);padding-left:24px}
+  .howto__h{margin:2px 0 10px;padding-top:0;border-top:0}
+  .howto__go{grid-column:1/-1;margin-top:16px}
+}
+@media (max-width:860px){
+  .howto{padding:52px 10px 10px}
+  .howto__card{padding:14px 16px 16px}
+  .howto__mission{font-size:21px}
+  .howto__list{gap:7px}
+  .howto__list li{font-size:15.5px;grid-template-columns:28px 1fr;gap:9px}
+  .howto__i{width:28px;height:28px;font-size:15px}
+}
+/* the foot: the contact line, then the sources, credits and licences, folded (Daniel: "a collapsible … if they're curious") */
+footer .credits{margin-top:4px}
+footer .credits summary{cursor:pointer;font-weight:700;color:var(--ink2)}
+footer .credits p{margin:.5em 0 0}

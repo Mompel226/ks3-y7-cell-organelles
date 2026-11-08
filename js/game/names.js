@@ -20,6 +20,7 @@ import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 
 const GLIDE = 420;    /* ms: a name moving to its new row once the camera has stopped */
 const FADE = 180;     /* ms: a name stepping back or coming in (game.css: .nm and .nml, their transition) */
+const UP = 22;        /* px: the upright line of a name above or below its part (as long as a line beside a part) */
 const SETTLE = 10;    /* frames (about 1/6 s) in which its parts moved less than 0.3 px each: the camera has stopped (the
                          wheel's notches come about 0.1 s apart: a pause between two is not a stop) */
 const ease = k => 1 - Math.pow(1 - k, 3);
@@ -148,7 +149,10 @@ export class Names {
      name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room), aside
      (on a phone, beside its part first: a protein the name would hide), prefer (-1: on a phone, beside it on the left
      first), side ('L' or 'R': beside the cell, the only side it may stand on, when its line from the other side would
-     cross another part; with no room there it is left out) }];
+     cross another part; with no room there it is left out), up (-1: the name stands above its part, 1: below it, its line
+     ONE upright line that ends on the part; for a thin part that a name on it or beside it would hide, such as a membrane
+     seen in section: memory label-lines-never-cross, "above or below, never across"), len (px: that upright line's length,
+     when the name must stand clear of more than its part: the net inside the ring of a pore) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in).
      A name whose key stays in the next list is the same name: it moves to its new place, never out and in again. */
@@ -236,6 +240,8 @@ export class Names {
     const a = r.at, sc = this.proj(a.spot);
     if (a.mode === 'col') { const x1 = a.side === 'L' ? c.colL : c.colR, w = r.wc; return { sc, w, h: r.hc, cx: a.side === 'L' ? x1 - w / 2 : x1 + w / 2, cy: sc.y, ln: { x1, x2: sc.x, y: sc.y } }; }
     const w = r.wo, h = r.ho;
+    /* above or below its part: its line upright, from the name's edge to the part (y1 at the name, y on the part) */
+    if (a.up) { const L = (r.it && r.it.len) || UP, cy = a.up < 0 ? sc.y - L - h / 2 : sc.y + L + h / 2; return { sc, w, h, cx: sc.x, cy, ln: { x1: sc.x, x2: sc.x, y1: a.up < 0 ? cy + h / 2 : cy - h / 2, y: sc.y } }; }
     if (!a.line) return { sc, w, h, cx: sc.x, cy: sc.y, ln: null };
     const cx = a.line > 0 ? sc.x + 22 + w / 2 : sc.x - 22 - w / 2;
     return { sc, w, h, cx, cy: sc.y, ln: { x1: a.line > 0 ? cx - w / 2 : cx + w / 2, x2: sc.x, y: sc.y } };
@@ -254,7 +260,7 @@ export class Names {
     const was = new Map([...this.m.values()].map(r => [r, { at: r.at, shows: r.st.s !== 'hidden', swap: r.next ? r.swap : null }]));
     [...this.m.values()].forEach(r => { r.place = false; r.next = null; r.back = false; });
     /* no room beside the cell (a phone, a tablet held upright, the camera close): names stand on their parts instead */
-    if (s.w < 640 || (c.colL < 140 && right - c.colR < 140)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
+    if (s.w < 640 || this.items.some(it => it.up) || (c.colL < 140 && right - c.colR < 140)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
     /* the names that move go there smoothly: up or down to a new row, along to another point of their part; to the other
        side, from beside the cell onto their part (the camera came close), or past another name, out at the old place and
        in at the new, so that no name crosses the picture or another name; a name that was not showing comes in there */
@@ -265,7 +271,7 @@ export class Names {
       if (!r.place) { if (b.at && !r.at) r.at = b.at; continue; }
       const a = r.at, N = at.get(r), T = N.T, g0 = r.g; r.g = null;
       if (!b.shows || !b.at || this.calm || r.x == null) continue;
-      const same = a.mode === b.at.mode && (a.mode === 'col' ? a.side === b.at.side : a.line === b.at.line);
+      const same = a.mode === b.at.mode && (a.mode === 'col' ? a.side === b.at.side : a.line === b.at.line && (a.up || 0) === (b.at.up || 0));
       /* the same place as before (side, point): a glide on its way goes on as it was; a step out to go elsewhere is
          called off (it comes back in where it is) */
       if (same && a.spot.distanceToSquared(b.at.spot) < 1e-12) { if (b.swap == null) r.g = g0; continue; }
@@ -358,11 +364,17 @@ export class Names {
     const cand = this.items.map(it => ({ r: this.m.get(it.key), it,
       pts: it.spots.map(p => ({ p, sc: this.proj(p) })).filter(o => seen(o.sc)).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
     /* on the part itself; else just beside it, with a short level line that ends on it. A name marked aside (a protein it
-       would hide) tries beside it first */
+       would hide) tries beside it first; a name marked up stands only above (or below) its part, never on it or beside it
+       (it would hide the part), and its upright line is kept free too */
     const tries = cd => {
       const w = cd.r.wo, h = cd.r.ho, t = [];
       cd.pts.forEach(o => {
         const sc = o.sc, on = { o, line: 0, bx: { l: sc.x - w / 2, r: sc.x + w / 2, t: sc.y - h / 2, b: sc.y + h / 2 } };
+        if (cd.it.up) {
+          const k = cd.it.up < 0 ? -1 : 1, L = cd.it.len || UP, top = k < 0 ? sc.y - L - h : sc.y + L;
+          t.push({ o, line: 0, up: k, bx: { l: sc.x - w / 2, r: sc.x + w / 2, t: top, b: top + h }, lx: { l: sc.x - 2, r: sc.x + 2, t: Math.min(sc.y, k < 0 ? top + h : top), b: Math.max(sc.y, k < 0 ? top + h : top) } });
+          return;
+        }
         const by = (cd.it.prefer === -1 ? [-1, 1] : [1, -1]).map(k => { const l = k > 0 ? sc.x + 22 : sc.x - 22 - w; return { o, line: k, bx: { l, r: l + w, t: sc.y - h / 2, b: sc.y + h / 2 } }; });
         if (cd.it.aside) t.push(...by, on); else t.push(on, ...by);
       });
@@ -373,10 +385,10 @@ export class Names {
     const plan = (sticky, only) => {
       const boxes = [], got = new Map(), why = new Map();
       const hit = bx => bx.l < 2 || bx.r > right - 2 || bx.t < 2 || bx.b > bottom - 2 || this.out.concat(boxes).some(o => bx.l < o.r && bx.r > o.l && bx.t < o.b && bx.b > o.t);
-      const take = (cd, t) => { boxes.push({ l: t.bx.l - 3, r: t.bx.r + 3, t: t.bx.t - 3, b: t.bx.b + 3 }); got.set(cd, t); };
+      const take = (cd, t) => { boxes.push({ l: t.bx.l - 3, r: t.bx.r + 3, t: t.bx.t - 3, b: t.bx.b + 3 }); if (t.lx) boxes.push(t.lx); got.set(cd, t); };
       if (sticky) this.order.forEach(k => {
         const cd = cand.find(x => x.it.key === k), a = cd && cd.r.at; if (!a || a.mode !== 'on' || !only.has(cd)) return;
-        const t = tries(cd).find(x => x.line === a.line && x.o.p.distanceToSquared(a.spot) < 1e-12);
+        const t = tries(cd).find(x => x.line === a.line && (x.up || 0) === (a.up || 0) && x.o.p.distanceToSquared(a.spot) < 1e-12);
         if (t && !hit(t.bx)) take(cd, t);
       });
       cand.filter(cd => !got.has(cd) && (!only || only.has(cd))).sort((a, b) => a.pts.length - b.pts.length).forEach(cd => {
@@ -387,10 +399,10 @@ export class Names {
       return { got, why };
     };
     const { use, fresh } = this.choose(plan);
-    use.got.forEach((t, cd) => { cd.r.place = true; cd.r.hid = false; cd.r.at = { mode: 'on', line: t.line, spot: t.o.p }; });
+    use.got.forEach((t, cd) => { cd.r.place = true; cd.r.hid = false; cd.r.at = { mode: 'on', line: t.line, up: t.up || 0, spot: t.o.p }; });
     this.order = [...use.got.keys()].map(cd => cd.it.key);
     this.count = use.got.size; this.left = this.items.length - use.got.size;
-    this.report = cand.map(cd => { const t = use.got.get(cd); return { key: cd.it.key, spots: cd.it.spots.length, seen: cd.pts.length, placed: !!t, side: t && t.line ? (t.line > 0 ? 'R' : 'L') : 'on', y: t && Math.round(t.o.sc.y), why: t ? undefined : fresh.why.get(cd) }; });
+    this.report = cand.map(cd => { const t = use.got.get(cd); return { key: cd.it.key, spots: cd.it.spots.length, seen: cd.pts.length, placed: !!t, side: t && t.up ? (t.up < 0 ? 'T' : 'B') : t && t.line ? (t.line > 0 ? 'R' : 'L') : 'on', y: t && Math.round(t.o.sc.y), why: t ? undefined : fresh.why.get(cd) }; });
   }
 
   /* ---------- every frame the world draws: each name with its part ---------- */
@@ -431,7 +443,7 @@ export class Names {
       let gx = 0, gy = 0, ex = 0, ey = 0;
       if (r.g) { const k = (now - r.g.t0) / GLIDE; if (k >= 1) r.g = null; else { const q = 1 - ease(k); gx = r.g.dx * q; gy = r.g.dy * q; ex = r.g.ex * q; ey = r.g.ey * q; } }
       const cx = t.cx + gx, cy = t.cy + gy, b = { l: cx - t.w / 2, r: cx + t.w / 2, t: cy - t.h / 2, b: cy + t.h / 2 };
-      const ln = t.ln && { x1: t.ln.x1 + gx, y1: t.ln.y + gy, x2: t.ln.x2 + ex, y2: t.ln.y + ey };
+      const ln = t.ln && { x1: t.ln.x1 + gx, y1: (t.ln.y1 ?? t.ln.y) + gy, x2: t.ln.x2 + ex, y2: t.ln.y + ey };
       r.x = cx; r.y = cy; r.ex = ln ? ln.x2 : cx; r.ey = ln ? ln.y2 : cy;
       const fit = r.place && !r.leaving && !r.next ? this.fits(r, t, b, right, bottom, shown, going) : 1, want = fit === 0;
       if (r.place && !r.leaving && !r.next) r.back = !want;

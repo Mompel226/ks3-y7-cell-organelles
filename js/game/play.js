@@ -5,15 +5,15 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611082221';
-import { state, COST, RESPIRE } from './state.js?v=202611082221';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611082221';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611082221';
-import { sound } from './sound.js?v=202611082221';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611090712';
+import { state, COST, RESPIRE } from './state.js?v=202611090712';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611090712';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611090712';
+import { sound } from './sound.js?v=202611090712';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611082221').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611090712').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -813,21 +813,30 @@ export function makePlay(world, quest) {
      cut away, behind the camera, where it cannot be seen), and the camera moves back through the opening until the whole
      nucleus is seen, its parts named. After that it stays open: on the map and on every later visit ('in-nucleus'). */
   const DOOR = N.door, DV = { on: false, hidden: [], open: false };
+  /* how far the camera drifts round the pore at its first stop (radians); the pore is built cut on the plane at this angle
+     (pore.js), so that the cut faces the camera when it then stops beside the pore */
+  const PORE_TURN = 0.35;
   let PD = null;
   /* the pore, built while the pupil reads (the place's first step), its shaders compiled in parallel as the world's are
      (world.js), so that the dive never waits for them; fetched only now (it is needed once) */
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611082221').then(async m => {
-      const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy });
+    PD.ready = import('../world/pore.js?v=202611090712').then(async m => {
+      const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
       P.group.visible = false; P.npc.visible = false; N.group.add(P.group); N.group.updateMatrixWorld(true);
       if (!R.FAST) {
-        const r = world.renderer; r.setRenderTarget(world.glow ? world.composer.renderTarget1 : null);
-        const c = r.compileAsync(P.group, world.camera, scene); r.setRenderTarget(null);
-        await Promise.race([c.catch(() => {}), new Promise(res => setTimeout(res, 6000))]);
+        /* one mesh at a time, the page drawing between (all at once had stopped it for 0.3 s) */
+        const r = world.renderer, meshes = [], waits = [];
+        P.group.traverse(o => { if (o.isMesh) meshes.push(o); });
+        for (const o of meshes) {
+          r.setRenderTarget(world.glow ? world.composer.renderTarget1 : null);
+          waits.push(r.compileAsync(o, world.camera, scene).catch(() => {})); r.setRenderTarget(null);
+          await new Promise(res => setTimeout(res, 0));
+        }
+        await Promise.race([Promise.all(waits), new Promise(res => setTimeout(res, 6000))]);
       }
       return Object.assign(PD, P, { M: m.NPC });
     }).catch(e => { PD = null; throw e; });                 /* fetched again next time */
@@ -877,27 +886,57 @@ export function makePlay(world, quest) {
     step();
   }));
   const setCam = (pos, at, d) => { const cam = world.camera; cam.position.copy(pos); world.controls.target.copy(at); cam.lookAt(at); world.nearFar(d); scaleBar(d); };
-  /* names on the pore, while the camera stops there: on the left the pore (its cytoplasmic ring) and the net of soft
-     protein threads in its channel (its line ends in the channel, between the filaments); on the right the outer
-     membrane (just beside the ring) and the inner membrane, seen through the round window opened in the outer one (just
-     below the pore: a name's part must lie between the two columns of names). One
-     level line each, ending on its part; on a phone each stands on its part (the net beside it, the outer membrane far
-     enough out to stand on purple), never on the Hide text button. The pore's own frame: x is the screen's right, z its
-     down. "Protein net", not "threads": the chromosomes are the threads of this place (the expert review) */
+  /* names on the pore, while the camera stops there: the pore (its cytoplasmic ring) and the net of soft protein threads
+     in its channel (its line ends in the channel, between the filaments); one level line each, ending on its part; on a
+     phone each stands on its part (the net beside it), never on the Hide text button. The pore's own frame: x is the
+     screen's right, z its down. "Protein net", not "threads": the chromosomes are the threads of this place (the expert
+     review) */
   const HUDN = () => [...HUD2(), document.getElementById('qHide')].filter(Boolean);
+  const oneName = (key, html, spots, o = {}) => Object.assign({ key, free: true, html: `<span class="nm__t">${html}</span>`, spots: spots.map(p => pw(p.x, p.y, p.z)) }, o);
   function poreNames() {
-    const P = PD.pts, phone = world.size.w < 640, at = (a, r) => a.map(k => [k, r]);
-    const one = (key, html, spots, o = {}) => Object.assign({ key, free: true, html: `<span class="nm__t">${html}</span>`, spots: spots.map(p => pw(p.x, p.y, p.z)) }, o);
+    const P = PD.pts, phone = world.size.w < 640;
+    /* the ring's points 50 nm from the axis, in its band of proteins (at 60 nm, its outer edge, a line had ended short of
+       the ring: the expert review) */
+    const ringPt = k => V(50 * Math.cos(k), 9, 50 * Math.sin(k));
+    if (phone) {
+      /* a phone: "nuclear pore" above the pore, its line down onto the ring; "protein net" below it, its line up across the
+         ring onto the net, long enough for the name to stand clear of the ring and of the filaments that hang below it (the
+         names had stood on the pore, and "protein net" read as the ring: the expert review). Which side of the ring is at
+         the top of the picture depends on where the pore is on the nucleus, so the points are chosen on the screen: the
+         net's lowest, and the ring's highest of those at least 26 px to the side of it (straight above, the two lines had
+         met in one line through the pore); each line long enough for its name to stand clear of the whole pore */
+      const Nm = quest.names, sc = v => Nm.proj(pw(v.x, v.y, v.z)), sy = v => sc(v).y, round = n => [...Array(n)].map((_, i) => i * 2 * Math.PI / n);
+      const low = round(8).map(k => P.thread(k, 14)).sort((a, b) => sy(b) - sy(a)).slice(0, 3), xn = sc(low[0]).x;
+      const top = round(24).map(ringPt).filter(v => Math.abs(sc(v).x - xn) >= 26).sort((a, b) => sy(a) - sy(b)).slice(0, 4);
+      const edge = round(16).flatMap(k => [V(64 * Math.cos(k), 9, 64 * Math.sin(k)), V(64 * Math.cos(k), -6, 64 * Math.sin(k)), V(52 * Math.cos(k), PD.M.tips, 52 * Math.sin(k))]).map(sy);
+      const above = Math.min(...edge), below = Math.max(...edge);
+      const lenT = Math.max(22, Math.round(sy(top[0]) - above + 10)), len = Math.max(22, Math.round(below - sy(low[0]) + 10));
+      quest.names.set([
+        oneName('d-pore', 'nuclear pore', top, { up: -1, len: lenT }),
+        oneName('d-fg', 'protein net', low, { up: 1, len })
+      ], HUDN(), lr(pw(-98, 0, 0), pw(98, 0, 0)));
+      return;
+    }
     const ringL = [Math.PI - 0.6, Math.PI - 0.35, Math.PI + 0.35, Math.PI + 0.6], netL = [Math.PI - 0.12, Math.PI, Math.PI + 0.12];
-    /* the inner membrane is 54 nm deeper: seen through the window from the camera above the axis, the part of it that shows
-       lies further down than the window itself (the line had ended on the outer membrane, above the window) */
-    const upR = [-0.2, -0.35, -0.5, -0.65], winIn = [[-10, 40], [0, 46], [10, 40], [-6, 32], [6, 52]];
     quest.names.set([
-      one('d-pore', 'nuclear pore', (phone ? [0, 1, 2, 3, 4, 5, 6, 7].map(k => k * Math.PI / 4 + 0.39) : ringL).map(k => P.ring(k))),
-      one('d-fg', 'protein net', (phone ? [0, 1, 2, 3].map(k => k * Math.PI / 2) : netL).map(k => P.thread(k, 12)), { aside: true }),
-      one('d-om', 'outer membrane', (phone ? [-0.8, -1.1, -1.4, Math.PI + 0.8, Math.PI + 1.1] : upR).flatMap(a => phone ? [P.membrane(a, 250), P.membrane(a, 290)] : [P.membrane(a, 84), P.membrane(a, 92)])),
-      one('d-im', 'inner membrane', winIn.map(([dx, dz]) => P.inner(dx, dz)))
+      oneName('d-pore', 'nuclear pore', ringL.map(ringPt)),
+      oneName('d-fg', 'protein net', netL.map(k => P.thread(k, 12)), { aside: true })
     ], HUDN(), lr(pw(-98, 0, 0), pw(98, 0, 0)));
+  }
+  /* the envelope in section, beside the pore (the second stop): the outer membrane named from above, in the cytoplasm, the
+     inner membrane from below, in the nucleus, each with one upright line that ends on its membrane, and the space between
+     them named inside it: no name covers a membrane, and both membranes and the space stay seen (names.js up; the names had
+     stood on the membranes, beside the pore, and hidden them). Each stands where the membranes are flat, clear of the pore
+     and its filaments (more than 74 nm from the axis): on the right of the picture first (side -1), else on the left */
+  const cutFrame = () => lr(pw(...PD.pts.cut(250, PD.M.mid, 1).toArray()), pw(...PD.pts.cut(250, PD.M.mid, -1).toArray()));
+  function cutNames() {
+    const P = PD.pts, NP = PD.M, rs = world.size.w < 640 ? [118, 106, 130, 142] : [125, 150, 175, 100];
+    const on = h => [-1, 1].flatMap(side => rs.map(r => P.cut(r, h, side)));
+    quest.names.set([
+      oneName('d-om', 'outer membrane', on(NP.out - NP.mem / 2), { up: -1 }),
+      oneName('d-gap', 'space between the membranes', on(NP.mid), { small: '<span class="nm__t">space between<br>the membranes</span>', cls: 'nm--in' }),
+      oneName('d-im', 'inner membrane', on(NP.in + NP.mem / 2), { up: 1 })
+    ], HUDN(), cutFrame());
   }
   async function dive() {
     await fly(world.P.nucleus.view.pos, world.P.nucleus.view.at);
@@ -933,51 +972,104 @@ export function makePlay(world, quest) {
     /* the world's ring of this pore (a see-through copy of it) stays until the real pore, the same size, is big enough to be
        read (about 40 pixels), then fades over it (the expert review: a dull speck had replaced the pore just chosen) */
     doorShown(false); T0.visible = true; T0.material.opacity = 1;
-    PD.group.visible = true; PD.npc.visible = false; PD.npc.scale.setScalar(1 / TRUEK); PD.glow(1); PD.setWindow(0);
+    PD.group.visible = true; PD.npc.visible = false; PD.npc.scale.setScalar(1 / TRUEK); PD.glow(1); PD.setLid(0);
+    /* for tools/pore-dive.mjs: how much of the near half is taken away, and the near side's direction */
+    DOOR.lid = PD.lid; DOOR.nearW = pd(PD.nearDir.x, PD.nearDir.y, PD.nearDir.z);
+    DOOR.cutPt = (r, h, side) => pw(...PD.pts.cut(r, h, side).toArray());   /* a point of the cut, in the world (the tool checks that no name covers a membrane) */
     const spark = N.nolSpark.material.uniforms.uOpacity; DV.spark0 = DV.spark0 != null ? DV.spark0 : spark.value; spark.value = 0;
     PD.sway.forEach(u => { u.uOpen.value = 0; u.uCamY.value = 400; });
     /* 1. the dive to the pore: the distance falls by the same factor each moment (camGo), every pore shrinks to its true
        size (0.513 of the world's; the real pore with them), and the real pore's colours deepen as it comes close */
     const at0 = c.target.clone(), off0 = cam.position.clone().sub(at0), d0 = off0.length(), dir0 = off0.normalize();
-    const AL = 0.5, LH = 480, LAT = LH * Math.sin(AL), YH = -10 + LH * Math.cos(AL);         /* the stop: 480 nm from the pore, 29° from its axis (room for its names) */
-    const atH = pw(0, -10, 0), dirH = pd(0, Math.cos(AL), -Math.sin(AL)), dH = LH / 1000;
+    const AL = 0.5, LH = 480;         /* the stop: 480 nm from the pore, 29° from its axis (room for its names) */
+    const PHI = PORE_TURN, turn = (p, f) => [p[0] * Math.cos(f) - p[2] * Math.sin(f), p[1], p[0] * Math.sin(f) + p[2] * Math.cos(f)];
+    const phone = world.size.w < 640, D2 = phone ? 330 : 400, C1y = -10, C2y = NP.mid, Y0 = 70;
+    const nW = pd(0, 1, 0), worldUp = V(0, 1, 0);
+    /* a place round the pore: th from its axis, r from the point (0, cy, 0) on it, on the camera's side turned by f; and the
+       camera's up there (beside the pore the axis then points up the picture) */
+    const orbit = (th, r, cy, f) => {
+      const side = turn([0, 0, -1], f), c = Math.cos(th), s = Math.sin(th);
+      return { pos: turn([0, cy + r * c, -r * s], f), at: [0, cy, 0], up: nW.clone().multiplyScalar(s).addScaledVector(pd(...side), -c).normalize() };
+    };
+    /* on a phone the camera also moves, and the point it looks at with it, so that the names have room (nm, along the
+       picture's right and up): at the first stop up, so that the pore stands lower, its names above and below it, clear of
+       the buttons; beside the pore right and up, so that the pore stands on the left and the names of the section on the
+       right, where the membranes are flat. The first along the picture's up there (the world's up), the second along the
+       pore's axis (the picture's up beside the pore) */
+    const PAN1 = phone ? [0, 36] : [0, 0], PAN2 = phone ? [62, 30] : [0, 0];
+    const panAt = (pos, at, pan, up) => {
+      if (!pan[0] && !pan[1]) return V(0, 0, 0);
+      const v = at.clone().sub(pos).normalize(), u = up.clone().addScaledVector(v, -up.dot(v)).normalize(), rt = v.clone().cross(u).normalize();
+      return rt.multiplyScalar(pan[0] / 1000).addScaledVector(u, pan[1] / 1000);
+    };
+    /* a view of the way round, with k1 of the first stop's move and k2 of the second's */
+    const view = (th, r, cy, f, k1, k2) => {
+      const o = orbit(th, r, cy, f), P = pw(...o.pos), A = pw(...o.at), off = V(0, 0, 0);
+      if (k1) off.addScaledVector(panAt(P, A, PAN1, worldUp), k1);
+      if (k2) off.addScaledVector(panAt(P, A, PAN2, o.up), k2);
+      return { P: P.add(off), A: A.add(off), up: o.up };
+    };
+    const atH = view(AL, LH, C1y, 0, 1, 0).A, dirH = pd(0, Math.cos(AL), -Math.sin(AL)), dH = LH / 1000;
     await moveCam(4600, k => {
       const e = k * k * (3 - 2 * k), d = d0 * Math.pow(dH / d0, e), g = (d0 - d) / (d0 - dH);
       const pk = 1 - (1 - TRUEK) * smooth(0.04, 0.55, e); N.PK.uPoreK.value = pk; PD.npc.scale.setScalar(pk / TRUEK);
       PD.npc.visible = d < 3.3; T0.material.opacity = smooth(2.3, 3.1, d); T0.visible = T0.material.opacity > 0.004;
       if (d < 0.6) diveDeep(true);
       PD.glow(smooth(1.0, 3.0, d));
-      /* as it arrives, a round window opens in the outer membrane beside the pore: the inner membrane shows, 40 nm below */
-      PD.setWindow(smooth(0.95, 0.42, d));
       setCam(at0.clone().lerp(atH, g).addScaledVector(dir0.clone().lerp(dirH, smooth(0, 0.8, e)).normalize(), d), at0.clone().lerp(atH, g), d);
     });
-    T0.visible = false; PD.npc.visible = true; PD.npc.scale.setScalar(1); N.PK.uPoreK.value = TRUEK; diveDeep(true); PD.glow(0); PD.setWindow(1);
-    /* 2. it stops: the pore, its net of protein threads and the two membranes are named, and stay while the names are read
+    T0.visible = false; PD.npc.visible = true; PD.npc.scale.setScalar(1); N.PK.uPoreK.value = TRUEK; diveDeep(true); PD.glow(0);
+    /* 2. it stops: the pore and the net of protein threads in its middle are named, and stay while the names are read
        (memory animations-wait-for-the-reader: 0.5 s, 0.3 s for each other name, 1 s for every 4 words), the camera
-       drifting round the pore (20°), so that it is seen in depth: the filaments reach out, the inner membrane lies below */
-    /* the camera's way, by its height y on the pore's axis (nm): at the stop, 29° from the axis; it comes onto the axis
-       above the pore and looks down it, 45 nm ahead (L: what the scale bar measures); out of the basket, while all is
-       still black, it looks 1.2 µm deep, where the inside is (the bar had said 10 nm with the nucleolus 1.7 µm away) */
-    const PHI = 0.35, turn = (p, f) => [p[0] * Math.cos(f) - p[2] * Math.sin(f), p[1], p[0] * Math.sin(f) + p[2] * Math.cos(f)];
-    const Y1 = -170, path = (y, f = 0) => {
-      const w = smooth(60, YH, y), a = AL * w, L = 45 + (LH - 45) * w + 1155 * smooth(-140, Y1, y);
-      const dir = [0, Math.cos(a), -Math.sin(a)], pos = [0, y, -LAT * w];
-      const at = [pos[0] - dir[0] * L, pos[1] - dir[1] * L, pos[2] - dir[2] * L];
-      return f ? { pos: turn(pos, f), at: turn(at, f), L } : { pos, at, L };
-    };
+       drifting round the pore (PORE_TURN, 20°), so that it is seen in depth: the filaments reach out */
     world.setMoving(false); poreNames();
-    const h0 = path(YH);
-    await moveCam(R.FAST ? 0 : 300 + 500 + 900 + 2000 + 600, k => { const f = PHI * smooth(0, 1, k); setCam(pw(...turn(h0.pos, f)), pw(...turn(h0.at, f)), h0.L / 1000); });
+    await moveCam(R.FAST ? 0 : 3600, k => { const v = view(AL, LH, C1y, PHI * smooth(0, 1, k), 1, 0); setCam(v.P, v.A, LH / 1000); });
     /* the names go where they are (their frame kept: without it they had slid to the picture's edges) */
     quest.names.set([], HUDN(), lr(pw(-98, 0, 0), pw(98, 0, 0))); world.setMoving(true);
-    /* 3. through: down the pore's axis, slowly through the channel; the soft threads bend back before the camera and close
-       behind it; then the rings, the basket and its small ring, and out into the nucleus, where it is black. The pace:
-       it gathers speed, slows to half through the channel and the rings, and slows to a stop just past the basket (the
-       time worked out once from that pace) */
+    /* 3. beside it, the envelope in section (Daniel, 8 Nov 2026: "you clearly see that there is a space between the inner
+       membrane and the outer membrane … think how to do that properly. And take your time"): the camera goes slowly round
+       and down to the side of the pore, level with the middle of the envelope, while the near half of the pore (pore.js: the
+       lid) is taken away. Then the cut, which faces it, shows the outer membrane, the space between the two membranes and
+       the inner membrane, each membrane two rows of lipids, the two joined round the pore; they are named and stay while they
+       are read. On the way round the picture turns, so that at the side the cytoplasm is at the top and the nucleus at the
+       bottom, as a textbook draws the envelope: the camera's up is then the pore's axis (its up along the way round: the way
+       the camera would go next, round the pore) */
+    /* the camera stops 20 nm above the outer membrane, looking a little down into the cut: the space between the membranes
+       then shows its floor (level with the envelope's middle it had looked along the space, past the patch, onto the
+       world's envelope seen from inside, black until the light), and it never goes into the nucleus beside the pore */
+    const TH2 = Math.acos((20 - C2y) / D2);
+    await moveCam(R.FAST ? 0 : 4400, k => {
+      const e = k * k * (3 - 2 * k), r = LH + (D2 - LH) * e, v = view(AL + (TH2 - AL) * e, r, C1y + (C2y - C1y) * e, PHI, 1 - e, e);
+      cam.up.copy(worldUp).lerp(v.up, smooth(0, 0.45, k)).normalize();
+      setCam(v.P, v.A, r / 1000);
+      PD.setLid(smooth(0.3, 0.75, k));
+    });
+    PD.setLid(1);
+    world.setMoving(false); cutNames();
+    const PHI2 = 0.12;          /* while the names are read the camera drifts a little further round: the cut seen in depth */
+    await moveCam(R.FAST ? 0 : 6400, k => { const v = view(TH2, D2, C2y, PHI + PHI2 * smooth(0, 1, k), 0, 1); cam.up.copy(v.up); setCam(v.P, v.A, D2 / 1000); });
+    quest.names.set([], HUDN(), cutFrame()); world.setMoving(true);
+    /* 4. the near half is put back as the camera rises over the pore onto its axis, looking down its middle (the lid comes
+       back only once the camera is above it: it had been taken away where the camera passes) */
+    const F2 = PHI + PHI2;
+    await moveCam(R.FAST ? 0 : 3800, k => {
+      const e = k * k * (3 - 2 * k), r = D2 + (Y0 - C2y - D2) * e, v = view(TH2 * (1 - e), r, C2y, F2, 0, 1 - e);
+      cam.up.copy(v.up); setCam(v.P, v.A, r / 1000);
+      PD.setLid(1 - smooth(0.35, 0.85, k));
+    });
+    PD.setLid(0);
+    const downUp = orbit(0, 1, C2y, F2).up;          /* the camera's up while it looks down the axis */
+    /* 5. through: down the middle of the pore, slowly, slowest where it passes the two membranes (Daniel: "The speed as you
+       go through the pore should be nice and slow, beautiful"); the soft threads bend back before the camera and close
+       behind it; then the basket and its small ring, and out into the nucleus, where it is black. It looks down the axis,
+       L nm ahead (what the scale bar measures): the envelope's middle from above the pore, 45 nm ahead in it, and out of
+       the basket, while all is still black, 1.2 µm deep, where the inside is (the bar had said 10 nm with the nucleolus
+       1.7 µm away) */
+    const Y1 = -170, Lof = y => 45 + (Y0 - C2y - 45) * smooth(10, Y0, y) + 1155 * smooth(-140, Y1, y);
     const NS = 400, ys = [], ts = [0];
-    for (let i = 0; i <= NS; i++) ys.push(YH + (Y1 - YH) * i / NS);
-    /* (the expert review: the doors had lasted 0.6 s and the basket's ring 1.25 s: now about 1.6 s through the net) */
-    const pace = y => (0.3 + 0.7 * smooth(YH, YH - 70, y) * smooth(Y1, Y1 + 30, y)) * (1 - 0.74 * Math.exp(-Math.pow((y + 16) / 40, 2)));
+    for (let i = 0; i <= NS; i++) ys.push(Y0 + (Y1 - Y0) * i / NS);
+    /* slowest where it passes the two membranes (the envelope's middle ± about 45 nm), quicker through the basket */
+    const pace = y => (0.25 + 0.75 * smooth(Y0, Y0 - 35, y) * smooth(Y1, Y1 + 30, y)) * (1 - 0.62 * Math.exp(-Math.pow((y - C2y) / 42, 2))) * (1 + 0.9 * smooth(-62, -90, y) * smooth(-158, -134, y));
     for (let i = 1; i <= NS; i++) ts.push(ts[i - 1] + Math.abs(ys[i] - ys[i - 1]) / pace((ys[i] + ys[i - 1]) / 2));
     const T = ts[NS], yAt = k => { const t = k * T; let i = 1; while (i < NS && ts[i] < t) i++; const f = (t - ts[i - 1]) / Math.max(1e-9, ts[i] - ts[i - 1]); return ys[i - 1] + (ys[i] - ys[i - 1]) * f; };
     /* the light: from the moment the camera is out of the basket, its front spreads from the pore at a steady pace, about
@@ -987,15 +1079,16 @@ export function makePlay(world, quest) {
     const C = pw(0, -150, 0), nolD = C.distanceTo(inN(N.nucleolus.position));
     let lr0 = 0, lt0 = 0;
     const lightR = () => { if (!lt0) return 0; if (R.FAST) return 8; const t = (performance.now() - lt0) / 1000; return 0.55 * smooth(0, 0.25, t) + 1.1 * t + 0.15 * t * t; };
-    await moveCam(5600, k => {
-      const y = yAt(k), p = path(y, PHI * smooth(60, YH, y));
-      PD.setWindow(smooth(YH - 60, YH - 5, y));                 /* the window closes as the camera goes down */
+    await moveCam(10000, k => {
+      const y = yAt(k), L = Lof(y);
       PD.sway.forEach(u => { u.uCamY.value = y; u.uOpen.value = smooth(170, 70, y); });
-      setCam(pw(...p.pos), pw(...p.at), p.L / 1000);
+      cam.up.copy(downUp); setCam(pw(0, y, 0), pw(0, y - L, 0), L / 1000);
+      /* inside the pore no scale bar: it measures L nm ahead, and the rings close by read wrong against it (the expert review) */
+      if (bar) bar.hidden = y < 12;
       if (y < -140 && !lt0) { lt0 = performance.now(); N.REV.uRevC.value.copy(C); sound.wake(); }
       if (lt0) { lr0 = lightR(); N.REV.uRevR.value = lr0; spark.value = DV.spark0 * smooth(nolD - 0.3, nolD + 0.6, lr0); }
     });
-    /* 4. the nucleus is opened behind the camera (nothing of the window can be seen from here: it is more than 70° from
+    /* 6. the nucleus is opened behind the camera (nothing of the opening can be seen from here: it is more than 70° from
        where the camera looks), the pore and its patch are put away, and the camera moves back through the opening until
        the whole nucleus is seen, every pore growing back to the world's size. As the view widens, a light spreads from
        the pore through the nucleus, its front a little ahead of the camera's view, and shows the chromosomes and the
@@ -1013,16 +1106,17 @@ export function makePlay(world, quest) {
       lr0 = Math.max(lr0, lightR(), k >= 1 ? 8 : 0); N.REV.uRevR.value = lr0;
       spark.value = DV.spark0 * smooth(nolD - 0.3, nolD + 0.6, lr0);
       const at = at1.clone().lerp(v.at, g);
+      cam.up.copy(downUp).lerp(V(0, 1, 0), smooth(0, 0.6, e)).normalize();
       setCam(at.clone().addScaledVector(dir1.clone().lerp(dir2, smooth(0, 0.85, e)).normalize(), d), at, d);
       /* the rest of the cell comes back once the camera is out of the nucleus (the cytosol's lights are not drawn inside it) */
       if (DV.hidden.length && cam.position.clone().sub(N0).multiply(V(1, 1 / N.sy, 1)).length() > N.r + 0.02) diveDeep(false);
     });
-    diveDeep(false);
+    diveDeep(false); cam.up.set(0, 1, 0);
     N.PK.uPoreK.value = 1; N.REV.uRevK.value = 0; spark.value = DV.spark0; if (bar) bar.hidden = true;
     DV.on = false;
     await live(world.landed({ pos: cam.position.toArray(), at: c.target.toArray() }, false));
     PD.dispose(); N.group.remove(PD.group); PD = { ready: Promise.resolve(null), done: true };
-    quest.say('You entered the nucleus through a nuclear pore, about 120 nanometres (nm) across: if the cell were a football pitch, a pore would be nearly as wide as a door. Small molecules pass through a pore freely; a large molecule passes only together with a carrier protein.<br>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>. (The game draws the pores and the chromosomes larger than they are.)', 'ok');
+    quest.say('You entered the nucleus through a nuclear pore, about 120 nanometres (nm) across: if the cell were a football pitch, a pore would be nearly as wide as a door. Small molecules pass freely through the protein net in a pore; a large molecule passes only together with a carrier protein.<br>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>. (The game draws the pores and the chromosomes larger than they are.)', 'ok');
     insideNames();
     await quest.next(); quest.names.set([]);
   }

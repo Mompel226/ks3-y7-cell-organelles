@@ -18,14 +18,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/app.css?v=202611082221">
-<link rel="stylesheet" href="css/game.css?v=202611082221">
-<link rel="stylesheet" href="css/mito.css?v=202611082221">
+<link rel="stylesheet" href="css/app.css?v=202611090712">
+<link rel="stylesheet" href="css/game.css?v=202611090712">
+<link rel="stylesheet" href="css/mito.css?v=202611090712">
 <!-- the 3D game's modules, fetched all at once, not one after another as each asks for the next (5 Nov 2026, speed);
      the list is the static imports of js/game/main.js; tools/stamp.mjs keeps their ?v= -->
 <link rel="modulepreload" href="js/vendor/three/build/three.module.min.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/build/three.core.min.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/world.js?v=202611082221">
+<link rel="modulepreload" href="js/world/world.js?v=202611090712">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/EffectComposer.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/shaders/CopyShader.js?v=0.185.1">
@@ -35,28 +35,28 @@
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/shaders/LuminosityHighPassShader.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/cellbuild.js?v=202611082221">
+<link rel="modulepreload" href="js/world/cellbuild.js?v=202611090712">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/magic.js?v=202611082221">
-<link rel="modulepreload" href="js/world/mitoparts.js?v=202611082221">
-<link rel="modulepreload" href="js/world/mito-shapes.js?v=202611082221">
-<link rel="modulepreload" href="js/game/names.js?v=202611082221">
-<link rel="modulepreload" href="js/game/quest.js?v=202611082221">
-<link rel="modulepreload" href="js/game/icons.js?v=202611082221">
-<link rel="modulepreload" href="js/game/state.js?v=202611082221">
-<link rel="modulepreload" href="js/game/sound.js?v=202611082221">
-<link rel="modulepreload" href="js/game/final.js?v=202611082221">
-<link rel="modulepreload" href="js/game/simplecard.js?v=202611082221">
-<link rel="modulepreload" href="js/game/play.js?v=202611082221">
-<link rel="modulepreload" href="js/world/tracks.js?v=202611082221">
-<link rel="modulepreload" href="js/game/actors.js?v=202611082221">
-<link rel="modulepreload" href="js/game/intro.js?v=202611082221">
+<link rel="modulepreload" href="js/world/magic.js?v=202611090712">
+<link rel="modulepreload" href="js/world/mitoparts.js?v=202611090712">
+<link rel="modulepreload" href="js/world/mito-shapes.js?v=202611090712">
+<link rel="modulepreload" href="js/game/names.js?v=202611090712">
+<link rel="modulepreload" href="js/game/quest.js?v=202611090712">
+<link rel="modulepreload" href="js/game/icons.js?v=202611090712">
+<link rel="modulepreload" href="js/game/state.js?v=202611090712">
+<link rel="modulepreload" href="js/game/sound.js?v=202611090712">
+<link rel="modulepreload" href="js/game/final.js?v=202611090712">
+<link rel="modulepreload" href="js/game/simplecard.js?v=202611090712">
+<link rel="modulepreload" href="js/game/play.js?v=202611090712">
+<link rel="modulepreload" href="js/world/tracks.js?v=202611090712">
+<link rel="modulepreload" href="js/game/actors.js?v=202611090712">
+<link rel="modulepreload" href="js/game/intro.js?v=202611090712">
 <!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
 <script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
 </head>
 <body>
 <div class="top">
-  <div class="upbar"><a class="up" href="https://nlcsbiology.com/biology-hub/#revision">← Back to IGCSE Revision</a><div class="lessonbar" id="lessonBar" hidden></div><span class="upbtns"><button class="pill" id="btnRestart" type="button">↺ Start <span class="lg">the game </span>again</button><button class="pill" id="btnTheme" type="button" hidden></button></span></div>
+  <div class="upbar"><a class="up" href="https://nlcsbiology.com/biology-hub/#revision">← Back to IGCSE Revision</a><div class="lessonbar" id="lessonBar" hidden></div><span class="upbtns"><button class="pill" id="btnHow" type="button" aria-controls="howto">How to play</button><button class="pill" id="btnRestart" type="button">↺ Start <span class="lg">the game </span>again</button><button class="pill" id="btnTheme" type="button" hidden></button></span></div>
   <div class="head">
     <div>
       <div class="eyebrow">KS3 Science · Year 7 Biology</div>
@@ -86,6 +86,46 @@
   <div class="lens" id="lens" hidden></div>
   <div class="intro" id="intro" hidden></div>
   <div class="loading" id="loading"><div class="loading__orb"></div><p>Shrinking you to the size of a protein…</p></div>
+  <!-- How the game works: the first thing a new game shows, while the cell loads behind it (Daniel, 8 Nov 2026: "this is
+       the first thing that you should show, and then they go into shrinking you to the size of a protein … make it fun").
+       How to play, at the top, shows it again. The script below shows it before the game's code has loaded. -->
+  <div class="howto" id="howto" hidden role="dialog" aria-labelledby="howto-h">
+    <div class="howto__card">
+      <div class="howto__m">
+      <p class="howto__eyebrow">Your mission</p>
+      <p class="howto__mission">Make <span class="hl">amylase</span> and release it from the cell.</p>
+      <p class="howto__why">Amylase is the enzyme in your saliva that digests starch.</p>
+      </div>
+      <div class="howto__w">
+      <h2 class="howto__h" id="howto-h">How the game works</h2>
+      <ul class="howto__list">
+        <li><span class="howto__i" aria-hidden="true">🔬</span><span><b>You are inside one cell</b> of a salivary gland: the cell that makes saliva.</span></li>
+        <li><span class="howto__i" aria-hidden="true">📍</span><span><b>Each place in the cell does one job.</b> Press a glowing place to go there.</span></li>
+        <li><span class="howto__i" aria-hidden="true">💤</span><span><b>A place wakes when you carry what it needs.</b> You choose the order of some places.</span></li>
+        <li><span class="howto__i" aria-hidden="true">✅</span><span><b>After each place, answer its checks.</b> Stuck? Use a hint.</span></li>
+        <li><span class="howto__i" aria-hidden="true">✦</span><span><span class="hl">Jobs done + every check right = ✦ done</span>, like a level in a game.</span></li>
+        <li><span class="howto__i" aria-hidden="true">🔊</span><span><b>Hard words:</b> press UK or US to hear them. <b>Music:</b> press 🔈 at the top.</span></li>
+      </ul>
+      </div>
+      <button class="btn next pulse howto__go" id="howtoGo" type="button">✦ Shrink me and start</button>
+    </div>
+  </div>
+  <script>
+  /* a new game (nothing done or started at the start place) shows How the game works first; How to play shows it again,
+     with "Back to the game". main.js waits for the first press (howto-done) before the intro */
+  (function () {
+    var box = document.getElementById('howto'), go = document.getElementById('howtoGo'), how = document.getElementById('btnHow'), stage = document.getElementById('stage'), first = true;
+    try { var s = JSON.parse(localStorage.getItem('cellgame.state') || 'null'); first = !(s && ((s.done && s.done.arrive) || (s.step && s.step.arrive))); } catch (e) {}
+    var H = window.HOWTO = { done: !first };
+    var show = function (on) { box.hidden = !on; stage.classList.toggle('is-howto', on); };
+    show(first);
+    go.addEventListener('click', function () {
+      show(false);
+      if (!H.done) { H.done = true; document.dispatchEvent(new Event('howto-done')); } else if (how) how.focus({ preventScroll: true });
+    });
+    if (how) how.addEventListener('click', function () { go.textContent = 'Back to the game'; go.classList.remove('pulse'); show(true); go.focus({ preventScroll: true }); });
+  })();
+  </script>
   <noscript><p>This game needs JavaScript to draw the cell.</p></noscript>
 </main>
 <div class="final" id="final" hidden></div>
@@ -105,45 +145,28 @@
   <div class="wb__list" id="wbList"></div>
 </aside>
 
-<section class="about" aria-labelledby="about-h">
-  <h2 id="about-h">How the game works</h2>
-  <div class="about__grid">
-    <div>
-      <h3>For pupils</h3>
-      <p>You are inside one cell of a salivary gland. Your mission: make the enzyme amylase and release it from the cell.</p>
-      <p>In this game, each place of the cell does one job. A place wakes when you carry what it needs, so you can choose the order of some places. Every step waits for you.</p>
-      <p>After each place, check what you learned: a first letter, the word list or a hint is there if you are stuck. A place is done (✦) when you have done its jobs and every check is right, like finishing a level of a game: then what it gave you wakes the next places.</p>
-      <p>🔈 Sound, at the top left: music for your journey from the moment you dive in, by the film composer Scott Buckley, and soft sounds when a place wakes or you collect something.</p>
-      <p>Hard words have UK and US buttons: press one to hear how to say the word. They are under the word's meaning, in the word bank and under each place's definition. The recordings are from the Cambridge Dictionary. The music pauses while a word plays.</p>
-    </div>
-    <div>
-      <h3>For the teacher</h3>
-      <p>A pupil signed in with their school Google account has every check and every finished place saved for you, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the computer.</p>
-      <p>The world shows the true shapes and places of the parts of a salivary gland cell; the colours and the light are made magical, and molecules are drawn much larger than they are.</p>
-      <p>"See the real thing" shows real diagrams, electron micrographs and a real cell in 3D.</p>
-    </div>
-  </div>
-</section>
-
 <footer>
   <p><b>Y7 Biology practical: cell structures and organelles</b> · Something wrong, or a suggestion? Please contact me: <a href="mailto:dmompelriera@nlcsjeju.kr">dmompelriera@nlcsjeju.kr</a></p>
-  <p>Checked against Daniel's Year 7 Cells lessons (slides and knowledge organiser) and the research named in each "Did you know?". The 3D cell was made for this page, after LadyofHats' public-domain <i>Animal cell structure</i>. Diagrams: domdomegg (CC BY 4.0) and LadyofHats (public domain), Wikimedia Commons. Electron micrographs: Janelia Research Campus, OpenOrganelle, dataset jrc_hela-2 (CC BY 4.0), and Louisa Howard, Dartmouth College (public domain). three.js (MIT).</p>
-  <p>Music: <a href="https://www.scottbuckley.com.au/library/the-distant-sun/" target="_blank" rel="noopener">'The Distant Sun'</a>, <a href="https://www.scottbuckley.com.au/library/adrift-among-infinite-stars/" target="_blank" rel="noopener">'Adrift Among Infinite Stars'</a> and <a href="https://www.scottbuckley.com.au/library/penumbra/" target="_blank" rel="noopener">'Penumbra'</a> by Scott Buckley, released under CC-BY 4.0, <a href="https://www.scottbuckley.com.au" target="_blank" rel="noopener">www.scottbuckley.com.au</a> (made smaller for this page, and each set to the same loudness). Sounds: the Versilian Community Sample Library, Versilian Studios (CC0). How to say the hard words: the UK and US recordings of the <a href="https://dictionary.cambridge.org" target="_blank" rel="noopener">Cambridge Dictionary</a>, played from its own site and named beside each word.</p>
-  <p>Code: AGPL-3.0. Teaching material: CC BY-NC-SA 4.0: free for teaching, not for selling.</p>
+  <details class="credits">
+    <summary>Sources, credits and licences</summary>
+    <p>Checked against Daniel's Year 7 Cells lessons (slides and knowledge organiser) and the research named in each "Did you know?". The 3D cell was made for this page, after LadyofHats' public-domain <i>Animal cell structure</i>. Diagrams: domdomegg (CC BY 4.0) and LadyofHats (public domain), Wikimedia Commons. Electron micrographs: Janelia Research Campus, OpenOrganelle, dataset jrc_hela-2 (CC BY 4.0), and Louisa Howard, Dartmouth College (public domain). three.js (MIT).</p>
+    <p>Music: <a href="https://www.scottbuckley.com.au/library/the-distant-sun/" target="_blank" rel="noopener">'The Distant Sun'</a>, <a href="https://www.scottbuckley.com.au/library/adrift-among-infinite-stars/" target="_blank" rel="noopener">'Adrift Among Infinite Stars'</a> and <a href="https://www.scottbuckley.com.au/library/penumbra/" target="_blank" rel="noopener">'Penumbra'</a> by Scott Buckley, released under CC-BY 4.0, <a href="https://www.scottbuckley.com.au" target="_blank" rel="noopener">www.scottbuckley.com.au</a> (made smaller for this page, and each set to the same loudness). Sounds: the Versilian Community Sample Library, Versilian Studios (CC0). How to say the hard words: the UK and US recordings of the <a href="https://dictionary.cambridge.org" target="_blank" rel="noopener">Cambridge Dictionary</a>, played from its own site and named beside each word.</p>
+    <p>Code: AGPL-3.0. Teaching material: CC BY-NC-SA 4.0: free for teaching, not for selling.</p>
+  </details>
 </footer>
 
 <script src="https://accounts.google.com/gsi/client?hl=en-GB" async defer></script>
-<script src="js/config.js?v=202611082221"></script>
-<script src="js/signin.js?v=202611082221"></script>
-<script src="js/lesson.js?v=202611082221"></script>
-<script src="js/glossary.js?v=202611082221"></script>
-<script src="js/words.js?v=202611082221"></script>
-<script src="js/say.js?v=202611082221"></script>
-<script src="js/story.js?v=202611082221"></script>
-<script src="js/questions.js?v=202611082221"></script>
-<script src="js/final-data.js?v=202611082221"></script>
-<script src="js/core.js?v=202611082221"></script>
-<script src="js/checks.js?v=202611082221"></script>
-<script type="module" src="js/game/main.js?v=202611082221"></script>
+<script src="js/config.js?v=202611090712"></script>
+<script src="js/signin.js?v=202611090712"></script>
+<script src="js/lesson.js?v=202611090712"></script>
+<script src="js/glossary.js?v=202611090712"></script>
+<script src="js/words.js?v=202611090712"></script>
+<script src="js/say.js?v=202611090712"></script>
+<script src="js/story.js?v=202611090712"></script>
+<script src="js/questions.js?v=202611090712"></script>
+<script src="js/final-data.js?v=202611090712"></script>
+<script src="js/core.js?v=202611090712"></script>
+<script src="js/checks.js?v=202611090712"></script>
+<script type="module" src="js/game/main.js?v=202611090712"></script>
 </body>
 </html>

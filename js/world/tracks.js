@@ -58,7 +58,7 @@
    its vesicle, z out of the picture. Units: µm, like the rest of the world.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611082221';
+import { magicStandard } from './magic.js?v=202611090712';
 
 const nm = 0.001, DEG = Math.PI / 180;
 /* dynein, dynactin and the adaptor in the motor's frame, in nm, worked out once from the sizes above: the drawing,

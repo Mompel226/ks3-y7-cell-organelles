@@ -28,10 +28,18 @@
    two envelopes have a hole there along the same lines (cellbuild.js uHole), so the patch fits it with nothing between, and
    at its edge it has the envelope's own look. Close up each lipid head shows: a pattern worked out for every point of the
    screen, sharp however close the camera comes, and faded where a head would be smaller than about two pixels.
+   Each membrane is a layer 7 nm thick: its outer faces (towards the cytoplasm, the pore and the nucleus) and its faces
+   towards the space between the two membranes are both drawn, so the space is really there.
+   The cut (8 Nov 2026; Daniel, of a round window that had shown the inner membrane: "I don't think that is very clear …
+   you clearly see that there is a space between the inner membrane and the outer membrane … think how to do that
+   properly"): the pore is drawn in two halves on either side of a plane through its axis, as a textbook draws the envelope
+   in section. The near half (towards where the camera stops beside it) is a lid that the dive takes away and puts back;
+   then the cut faces show each membrane in section, two rows of lipid heads with their tails between, pink and peach as
+   at the way in, and the space between the two membranes. No protein is cut: each goes with the half its middle is in.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, CUT } from './magic.js?v=202611082221';
+import { PAL, magicStandard, CUT } from './magic.js?v=202611090712';
 
 /* the sizes above, in nm (play.js reads them for the camera's way through) */
 export const NPC = {
@@ -99,8 +107,8 @@ const strip = g => { ['uv', 'aS', 'aRoot', 'aPh', 'aAmp'].forEach(a => g.attribu
 /* the threads' motion, in the vertex shader (one draw for all of them): each sways a little, more towards its tip; near the
    camera (uCamY, its height on the axis, nm; most 22 nm ahead of it, so that they are seen opening) the channel's threads
    bend back towards the wall and a little the way it goes (uOpen 0 … 1): the doors open as it comes and close behind it */
-function swaying(m, open) {
-  const u = m.userData.sway = { uCamY: { value: 400 }, uOpen: { value: 0 } };
+function swaying(m, open, shared) {
+  const u = m.userData.sway = shared || { uCamY: { value: 400 }, uOpen: { value: 0 } };
   const before = m.onBeforeCompile, key = m.customProgramCacheKey;
   m.onBeforeCompile = (sh, r) => {
     before(sh, r);
@@ -124,7 +132,7 @@ function swaying(m, open) {
    close up, its lipid heads, packed 0.85 nm apart (a jittered grid on the plane's x, z: each head a soft disc 0.9 nm
    across, a little lighter, on the darker tails between) */
 function membraneLook(m) {
-  const u = m.userData.mem = { uInner: { value: new THREE.Color(0x4f42b8) }, uRmax: { value: NPC.patch }, uHeads: { value: 1 }, uWin: { value: 0 }, uWinC: { value: new THREE.Vector2(0, 122) } };
+  const u = m.userData.mem = { uInner: { value: new THREE.Color(0x4f42b8) }, uRmax: { value: NPC.patch }, uHeads: { value: 1 } };
   const before = m.onBeforeCompile, key = m.customProgramCacheKey;
   m.onBeforeCompile = (sh, r) => {
     before(sh, r);
@@ -134,11 +142,8 @@ function membraneLook(m) {
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvXZ = aXZ; vT = aT; vON = normal;');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
-        uniform vec3 uInner; uniform float uRmax; uniform float uHeads; uniform float uWin; uniform vec2 uWinC; varying vec2 vXZ; varying float vT; varying vec3 vON;
-        float winEdge() { return uWin - distance(vXZ, uWinC); }   /* how far inside the round window a point is, nm (below 0: outside) */
+        uniform vec3 uInner; uniform float uRmax; uniform float uHeads; varying vec2 vXZ; varying float vT; varying vec3 vON;
         vec2 hh22(vec2 p) { return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453); }`)
-      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-        if (uWin > 0.0 && vT < 0.08 && winEdge() > 0.0) discard;`)
       .replace('#include <color_fragment>', `#include <color_fragment>
         {
           diffuseColor.a *= 1.0 - smoothstep(uRmax, uRmax + 20.0, length(vXZ));   /* beyond the hole it fades over the envelope */
@@ -155,11 +160,37 @@ function membraneLook(m) {
             vec3 c = mix(diffuseColor.rgb * 0.5, diffuseColor.rgb * 1.4 + vec3(0.07, 0.05, 0.12), head) * (0.9 + 0.2 * id);
             diffuseColor.rgb = mix(diffuseColor.rgb, c, k);
           }
-        }`)
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        if (uWin > 0.0 && vT < 0.08) { float e = winEdge(); totalEmissiveRadiance += vec3(0.62, 0.55, 1.0) * (1.0 - smoothstep(0.0, 2.5, -e)) * step(-6.0, e); }`);
+        }`);
   };
   m.customProgramCacheKey = () => key() + '|patch';
+  return m;
+}
+
+/* a membrane in section (the cut faces): across it (aV 0 … 7 nm, 0 its outer face) two rows of lipid heads, one at each
+   face, their tails between, a head every 0.85 nm along it (aU, nm); the colours of the lipids at the way in (pink heads,
+   peach tails: cellbuild.js); seen from further away, where a head is smaller than about two pixels, the same as bands */
+function bilayerLook(m) {
+  const before = m.onBeforeCompile, key = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => {
+    before(sh, r);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float aU; attribute float aV; varying float vU; varying float vV;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvU = aU; vV = aV;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vU; varying float vV;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        {
+          float px = max(fwidth(vU), fwidth(vV)), a = vU / 0.85;
+          vec2 hA = vec2((fract(a) - 0.5) * 0.85, vV - 0.45), hB = vec2((fract(a + 0.5) - 0.5) * 0.85, vV - 6.55);
+          float head = max(smoothstep(0.47, 0.3, length(hA)), smoothstep(0.47, 0.3, length(hB)));
+          float tail = smoothstep(0.17, 0.05, abs(hA.x)) * step(0.85, vV) * step(vV, 3.45) + smoothstep(0.17, 0.05, abs(hB.x)) * step(3.55, vV) * step(vV, 6.15);
+          vec3 HEAD = vec3(1.0, 0.33, 0.58), TAIL = vec3(1.0, 0.69, 0.39);
+          float band = 1.0 - smoothstep(1.3, 1.8, min(vV, 7.0 - vV));      /* from further away: a row of heads at each face */
+          vec3 coarse = mix(TAIL * 0.8, HEAD * 0.9, band), fine = mix(mix(TAIL * 0.55, TAIL, tail), HEAD, head);
+          diffuseColor.rgb = mix(coarse, fine, smoothstep(0.6, 0.25, px));
+        }`);
+  };
+  m.customProgramCacheKey = () => key() + '|bilayer';
   return m;
 }
 
@@ -172,11 +203,16 @@ export async function buildPore(env) {
   const pause = () => new Promise(r => setTimeout(r, 0)), T0 = performance.now(), took = [];
   const g = new THREE.Group(); g.name = 'pore-dive';
   const npc = new THREE.Group(); npc.name = 'pore-complex'; g.add(npc);
-  const mats = [];
-  const M = (o, f) => { mats.push(f); return o; };
-  /* ---------- the membranes: one surface turned round the axis, from the outer membrane's outer face, round the pore's
-     edge (the pore membrane, where the two membranes join), to the inner membrane's inner face ---------- */
+  /* the lid: the near half of the membranes and of the complex (the cut, below) */
+  const lidM = new THREE.Group(); lidM.name = 'pore-lid-membranes'; g.add(lidM);
+  const lidP = new THREE.Group(); lidP.name = 'pore-lid-complex'; npc.add(lidP);
+  const mats = [], lidMats = [];
+  /* ---------- the membranes. Two surfaces turned round the axis: the outer faces (from the outer membrane's outer face,
+     round the pore's edge, the pore membrane, where the two membranes join, to the inner membrane's inner face) and,
+     7 nm in from them, the faces towards the space between the membranes; each in two halves (the lid: the cut, below) ---------- */
   const { p0, n0, e1, e2, R: ER, sy } = env;
+  const CUT = env.cut || 0, TWO = Math.PI * 2;
+  const isNear = a => (((a - CUT) % TWO) + TWO) % TWO > Math.PI;          /* in the lid's half */
   const T = new THREE.Vector3(), S = new THREE.Vector3(), Nn = new THREE.Vector3(), out = new THREE.Vector3();
   /* the point of the envelope over the plane's (x, z) nm, h nm in along its normal, in the pore's own nm */
   const surf = (x, z, h) => {
@@ -186,85 +222,149 @@ export async function buildPore(env) {
     out.copy(S).addScaledVector(Nn, h / 1000).sub(p0).multiplyScalar(1000);
     return [out.dot(e1), out.dot(n0), out.dot(e2)];
   };
-  {
-    /* the flats go 20 nm past the hole, lifted by 1 nm there and fading (the shader), so that no crack shows between them
-       and the envelope's flat facets (the expert review: "a dotted arc where the patch meets the envelope") */
-    const prof = [], nF = 34, nB = 34, rb = NPC.bend, rad = (NPC.out - NPC.in) / 2, RE = NPC.patch + 20, lift = r => r > NPC.patch ? (r - NPC.patch) / 20 : 0;
-    prof.push([RE, NPC.out + 1, 0]);
-    for (let i = 0; i <= nF; i++) prof.push([NPC.patch * Math.pow(rb / NPC.patch, i / nF), NPC.out, 0]);
-    for (let i = 1; i < nB; i++) { const a = Math.PI / 2 + Math.PI * i / nB; prof.push([rb + rad * Math.cos(a), NPC.mid + rad * Math.sin(a), i / nB]); }
-    for (let i = 0; i <= nF; i++) prof.push([rb * Math.pow(NPC.patch / rb, i / nF), NPC.in, 1]);
-    prof.push([RE, NPC.in - lift(RE), 1]);
-    const nA = 160, P = [], XZ = [], TT = [], idx = [];
+  const rb = NPC.bend, rad = (NPC.out - NPC.in) / 2, radL = rad - NPC.mem, MID = NPC.mid, RE = NPC.patch + 20, nF = 34, nB = 34;
+  /* a profile: [r, h (nm), t (0 the outer membrane … 1 the inner)] from the far edge of the outer membrane round the pore to
+     the far edge of the inner one. The outer faces' flats go 20 nm past the hole, lifted by 1 nm there and fading (the
+     shader), so that no crack shows between them and the envelope's flat facets (the expert review: "a dotted arc where the
+     patch meets the envelope") */
+  const profile = (top, bottom, bend, edge) => {
+    const prof = [], lift = r => r > NPC.patch ? (r - NPC.patch) / 20 : 0;
+    if (edge) prof.push([RE, top + 1, 0]);
+    for (let i = 0; i <= nF; i++) prof.push([NPC.patch * Math.pow(rb / NPC.patch, i / nF), top, 0]);
+    for (let i = 1; i < nB; i++) { const q = Math.PI / 2 + Math.PI * i / nB; prof.push([rb + bend * Math.cos(q), MID + bend * Math.sin(q), i / nB]); }
+    for (let i = 0; i <= nF; i++) prof.push([rb * Math.pow(NPC.patch / rb, i / nF), bottom, 1]);
+    if (edge) prof.push([RE, bottom - lift(RE), 1]);
+    return prof;
+  };
+  const profO = profile(NPC.out, NPC.in, rad, true), profL = profile(NPC.out - NPC.mem, NPC.in + NPC.mem, radL, false);
+  /* a profile turned through the angles a0 … a1 (the edges exactly on the cut) */
+  const revolve = (prof, a0, a1, n) => {
+    const P = [], XZ = [], TT = [], idx = [];
     for (let i = 0; i < prof.length; i++) {
       const [r, h, t] = prof[i];
-      for (let j = 0; j < nA; j++) {
-        const a = j / nA * Math.PI * 2, x = r * Math.cos(a), z = r * Math.sin(a);
-        P.push(...surf(x, z, h)); XZ.push(x, z); TT.push(t);
-      }
-      if (i === prof.length >> 1) { took.push(performance.now() - T0); await pause(); }
+      for (let j = 0; j <= n; j++) { const q = a0 + (a1 - a0) * j / n, x = r * Math.cos(q), z = r * Math.sin(q); P.push(...surf(x, z, h)); XZ.push(x, z); TT.push(t); }
     }
-    for (let i = 0; i + 1 < prof.length; i++) for (let j = 0; j < nA; j++) {
-      const a = i * nA + j, b = i * nA + (j + 1) % nA, c = a + nA, d = b + nA;
-      idx.push(a, c, b, b, c, d);
+    for (let i = 0; i + 1 < prof.length; i++) for (let j = 0; j < n; j++) {
+      const A = i * (n + 1) + j, B = A + 1, C = A + n + 1, D = C + 1;
+      idx.push(A, C, B, B, C, D);
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
     geo.setAttribute('aXZ', new THREE.Float32BufferAttribute(XZ, 2));
     geo.setAttribute('aT', new THREE.Float32BufferAttribute(TT, 1));
     geo.setIndex(idx); geo.computeVertexNormals();
-    /* the same material as the world's outer envelope (cellbuild.js), so its edge cannot be told from it */
-    const m = membraneLook(magicStandard({ color: PAL.nucleus, transparent: true, opacity: 0.92, side: THREE.DoubleSide, roughness: 0.3, depthWrite: true }, { rim: PAL.envelope, rimK: 1.1, rimPow: 2.0 }));
-    const mesh = M(new THREE.Mesh(geo, m), m); mesh.name = 'pore-membranes'; g.add(mesh);
+    return geo;
+  };
+  /* a cut face, in the half-plane at angle q: each membrane in section, from the patch's edge along the outer membrane,
+     round the pore membrane, and back along the inner membrane (aU along it, nm; aV across, 0 at its outer face) */
+  const capStrip = q => {
+    const path = [];
+    for (let i = 0; i <= nF; i++) { const r = NPC.patch * Math.pow(rb / NPC.patch, i / nF); path.push([[r, NPC.out], [r, NPC.out - NPC.mem], 0]); }
+    for (let i = 1; i < nB; i++) { const w = Math.PI / 2 + Math.PI * i / nB, c = Math.cos(w), sn = Math.sin(w); path.push([[rb + rad * c, MID + rad * sn], [rb + radL * c, MID + radL * sn], i / nB]); }
+    for (let i = 0; i <= nF; i++) { const r = rb * Math.pow(NPC.patch / rb, i / nF); path.push([[r, NPC.in], [r, NPC.in + NPC.mem], 1]); }
+    const ACROSS = 6, P = [], U = [], Vv = [], TT = [], idx = [];
+    let u = 0;
+    for (let i = 0; i < path.length; i++) {
+      const [[ro, ho], [rl, hl], t] = path[i];
+      if (i) { const [[ro0, ho0], [rl0, hl0]] = path[i - 1]; u += Math.hypot((ro + rl) / 2 - (ro0 + rl0) / 2, (ho + hl) / 2 - (ho0 + hl0) / 2); }
+      for (let j = 0; j <= ACROSS; j++) {
+        const f = j / ACROSS, r = ro + (rl - ro) * f, h = ho + (hl - ho) * f;
+        P.push(...surf(r * Math.cos(q), r * Math.sin(q), h)); U.push(u); Vv.push(NPC.mem * f); TT.push(t);
+      }
+    }
+    for (let i = 0; i + 1 < path.length; i++) for (let j = 0; j < ACROSS; j++) {
+      const A = i * (ACROSS + 1) + j, B = A + 1, C = A + ACROSS + 1, D = C + 1;
+      idx.push(A, C, B, B, C, D);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    geo.setAttribute('aU', new THREE.Float32BufferAttribute(U, 1)); geo.setAttribute('aV', new THREE.Float32BufferAttribute(Vv, 1));
+    geo.setIndex(idx); geo.computeVertexNormals();
+    return geo;
+  };
+  /* the same look as the world's outer envelope (cellbuild.js), solid, so its edge cannot be told from it; the lid has its
+     own copy, the same program, so that it alone can fade */
+  const memLook = () => membraneLook(magicStandard({ color: PAL.nucleus, transparent: true, opacity: 1, side: THREE.DoubleSide, roughness: 0.3, depthWrite: true }, { rim: PAL.envelope, rimK: 1.1, rimPow: 2.0 }));
+  const memMat = memLook(), memLid = memLook();
+  /* the faces towards the space between the membranes: one soft colour, lit evenly (a light of their own), so that the
+     space reads as one space between the two (the inner membrane's own deep blue had made its face there almost black) */
+  const lumenLook = () => magicStandard({ color: 0x8b78dc, emissive: 0x2c2266, emissiveIntensity: 0.9, roughness: 0.7, side: THREE.DoubleSide, transparent: true, opacity: 1, depthWrite: true }, { rim: 0xc8bcff, rimK: 0.4 });
+  const lumenMat = lumenLook(), lumenLid = lumenLook();
+  mats.push(memMat, memLid, lumenMat, lumenLid); lidMats.push(memLid, lumenLid);
+  {
+    const o = new THREE.Mesh(revolve(profO, CUT, CUT + Math.PI, 80), memMat); o.name = 'pore-membranes'; g.add(o);
+    const l = new THREE.Mesh(revolve(profL, CUT, CUT + Math.PI, 80), lumenMat); l.name = 'pore-membranes-space'; g.add(l);
+    /* the space closed where the patch ends, in the far half (inside the membranes, so seen only through the cut): looking
+       along the space from beside the pore had shown, past the patch, the world's envelope seen from inside, dark */
+    const endR = NPC.patch - 6, end = [];
+    for (let i = 0; i <= 8; i++) end.push([endR, NPC.out - NPC.mem + (NPC.in - NPC.out + 2 * NPC.mem) * i / 8, 0.5]);
+    const w = new THREE.Mesh(revolve(end, CUT, CUT + Math.PI, 80), lumenMat); w.name = 'pore-space-end'; g.add(w);
+  }
+  took.push(performance.now() - T0); await pause();
+  {
+    const o = new THREE.Mesh(revolve(profO, CUT + Math.PI, CUT + TWO, 80), memLid); o.name = 'pore-membranes-lid'; lidM.add(o);
+    const l = new THREE.Mesh(revolve(profL, CUT + Math.PI, CUT + TWO, 80), lumenLid); l.name = 'pore-membranes-space-lid'; lidM.add(l);
+    const capMat = bilayerLook(magicStandard({ color: 0xffffff, side: THREE.DoubleSide, roughness: 0.6, emissive: 0x3a0f26, emissiveIntensity: 0.3 }, { rim: 0xffd2e8, rimK: 0.1 }));
+    mats.push(capMat);
+    const caps = new THREE.Mesh(mergeGeometries([capStrip(CUT), capStrip(CUT + Math.PI)]), capMat); caps.name = 'pore-cut-faces'; g.add(caps);
   }
   took.push(performance.now() - T0); await pause();
   /* ---------- the complex: proteins in gold, the world's colour for a pore (deeper close up, so that each part keeps its
      shape in the light; the inner ring darker than the outer ones) ---------- */
-  const ringMat = magicStandard({ color: 0xd8993a, emissive: 0x8a5a10, emissiveIntensity: 1.3, roughness: 0.55, envMapIntensity: 0.35 }, { rim: 0xffe2a8, rimK: 0.35 });
-  const innerMat = magicStandard({ color: 0xa9622a, emissive: 0x5a3008, emissiveIntensity: 1.0, roughness: 0.6, envMapIntensity: 0.3 }, { rim: 0xffc890, rimK: 0.3 });
-  const knobMat = magicStandard({ color: 0xebbd62, emissive: 0x9a6a20, emissiveIntensity: 1.3, roughness: 0.5, envMapIntensity: 0.35 }, { rim: 0xfff0c8, rimK: 0.35 });
-  [ringMat, innerMat, knobMat].forEach(m => mats.push(m));
-  const cr = [], nr = [], ir = [], kn = [];
+  const goldMats = () => [
+    magicStandard({ color: 0xd8993a, emissive: 0x8a5a10, emissiveIntensity: 1.3, roughness: 0.55, envMapIntensity: 0.35 }, { rim: 0xffe2a8, rimK: 0.35 }),
+    magicStandard({ color: 0xa9622a, emissive: 0x5a3008, emissiveIntensity: 1.0, roughness: 0.6, envMapIntensity: 0.3 }, { rim: 0xffc890, rimK: 0.3 }),
+    magicStandard({ color: 0xebbd62, emissive: 0x9a6a20, emissiveIntensity: 1.3, roughness: 0.5, envMapIntensity: 0.35 }, { rim: 0xfff0c8, rimK: 0.35 })];
+  const [ringMat, innerMat, knobMat] = goldMats(), [ringLid, innerLid, knobLid] = goldMats().map(m => { m.transparent = true; return m; });
+  [ringMat, innerMat, knobMat, ringLid, innerLid, knobLid].forEach(m => mats.push(m)); lidMats.push(ringLid, innerLid, knobLid);
+  /* each part goes with the half its middle is in, by its angle round the axis: no protein is cut */
+  const half = () => ({ far: [], near: [] }), cr = half(), nr = half(), ir = half(), kn = half();
+  const put = (list, a, geo) => (isNear(a) ? list.near : list.far).push(geo);
   for (let k = 0; k < 8; k++) {
     const a = k * Math.PI / 4, s = k * 3.1;
     /* the cytoplasmic and the nuclear rings: two rings of Y-shaped parts each, head to tail (16 a ring), the outer reaching
        60 nm from the axis */
-    cr.push(arcBlob(54.5, a + 0.06, 3, 44, 11, 14, s + 1), arcBlob(45.5, a - 0.13, 0, 36, 9.5, 12, s + 2));
-    nr.push(arcBlob(54.5, a - 0.06, -57, 44, 11, 14, s + 3), arcBlob(45.5, a + 0.13, -54, 36, 9.5, 12, s + 4));
+    put(cr, a + 0.06, arcBlob(54.5, a + 0.06, 3, 44, 11, 14, s + 1)); put(cr, a - 0.13, arcBlob(45.5, a - 0.13, 0, 36, 9.5, 12, s + 2));
+    put(nr, a - 0.06, arcBlob(54.5, a - 0.06, -57, 44, 11, 14, s + 3)); put(nr, a + 0.13, arcBlob(45.5, a + 0.13, -54, 36, 9.5, 12, s + 4));
     /* the inner ring: each of its eight spokes two parts above two, round the channel (56 nm across), with a gap between
        spokes; a smaller part joins each to the pore membrane */
     [-17, -37].forEach((y, i) => {
-      ir.push(placed(blob(9, 9.5, 12.5, s + 5 + i), 37, a, y), placed(blob(5, 7, 9, s + 7 + i), 44.5, a, y + (i ? 3 : -3)));
+      put(ir, a, placed(blob(9, 9.5, 12.5, s + 5 + i), 37, a, y)); put(ir, a, placed(blob(5, 7, 9, s + 7 + i), 44.5, a, y + (i ? 3 : -3)));
     });
     /* where each cytoplasmic filament is held: a round part on the ring */
-    kn.push(placed(blob(5.5, 5, 5.5, s + 9), 51, a + 0.26, 11));
+    put(kn, a + 0.26, placed(blob(5.5, 5, 5.5, s + 9), 51, a + 0.26, 11));
   }
-  [[cr, ringMat, 'ring-cyto'], [nr, ringMat, 'ring-nuclear'], [ir, innerMat, 'ring-inner'], [kn, knobMat, 'knobs']].forEach(([list, m, name]) => {
-    const mesh = new THREE.Mesh(mergeGeometries(list.map(x => { x.deleteAttribute('uv'); return x; })), m); mesh.name = name; npc.add(mesh);
+  [[cr, ringMat, ringLid, 'ring-cyto'], [nr, ringMat, ringLid, 'ring-nuclear'], [ir, innerMat, innerLid, 'ring-inner'], [kn, knobMat, knobLid, 'knobs']].forEach(([list, m, ml, name]) => {
+    const merge = l => mergeGeometries(l.map(x => { x.deleteAttribute('uv'); return x; }));
+    const mesh = new THREE.Mesh(merge(list.far), m); mesh.name = name; npc.add(mesh);
+    const lid = new THREE.Mesh(merge(list.near), ml); lid.name = name + '-lid'; lidP.add(lid);
   });
   took.push(performance.now() - T0); await pause();
   /* ---------- the threads: filaments into the cytoplasm, the basket into the nucleus, and the soft threads of the channel ---------- */
-  const filMat = swaying(magicStandard({ color: 0xe2ba6a, emissive: 0x8a5a14, emissiveIntensity: 1.3, roughness: 0.5, envMapIntensity: 0.35 }, { rim: 0xfff0c8, rimK: 0.4 }), false);
+  const filLook = shared => swaying(magicStandard({ color: 0xe2ba6a, emissive: 0x8a5a14, emissiveIntensity: 1.3, roughness: 0.5, envMapIntensity: 0.35 }, { rim: 0xfff0c8, rimK: 0.4 }), false, shared);
   /* the soft threads: a pale light of their own (cyan beside the gold), the "doors" */
-  const fgMat = swaying(magicStandard({ color: 0x62d2e6, emissive: 0x137a90, emissiveIntensity: 0.4, roughness: 0.5, envMapIntensity: 0.25 }, { rim: 0xc8f6ff, rimK: 0.45 }), true);
-  mats.push(filMat, fgMat);
-  const fil = [], fg = [];
+  const fgLook = shared => swaying(magicStandard({ color: 0x62d2e6, emissive: 0x137a90, emissiveIntensity: 0.4, roughness: 0.5, envMapIntensity: 0.25 }, { rim: 0xc8f6ff, rimK: 0.45 }), true, shared);
+  const filMat = filLook(), fgMat = fgLook(), filLid = filLook(filMat.userData.sway), fgLid = fgLook(fgMat.userData.sway);
+  filLid.transparent = true; fgLid.transparent = true;
+  mats.push(filMat, fgMat, filLid, fgLid); lidMats.push(filLid, fgLid);
+  const fil = half(), fg = half();
   for (let k = 0; k < 8; k++) {
     const a = k * Math.PI / 4 + 0.26, lean = rr(-0.25, 0.25), at = (r, y, da = 0) => new THREE.Vector3(r * Math.cos(a + da), y, r * Math.sin(a + da));
     /* a cytoplasmic filament (Nup358: a chain of folded parts, so beaded), 45 nm into the cytoplasm */
     const c = new THREE.CatmullRomCurve3([at(51, 14), at(50, 27, lean * 0.3), at(47, 41, lean * 0.7), at(43 + rr(-4, 4), NPC.tips, lean)]);
-    fil.push(thread(c, 30, 6, s => 1.7 + 1.3 * Math.pow(Math.sin(s * Math.PI * 7), 2) * (1 - 0.4 * s), 2.6));
+    put(fil, a, thread(c, 30, 6, s => 1.7 + 1.3 * Math.pow(Math.sin(s * Math.PI * 7), 2) * (1 - 0.4 * s), 2.6));
     /* a basket filament (Tpr: a long coiled coil, so thin), 70 nm into the nucleus, to the distal ring */
     const b = new THREE.CatmullRomCurve3([at(52, -64, -0.26), at(50, -84, -0.24), at(39, -112, -0.2), at(NPC.distalR + 2, NPC.distal + 3, -0.18)]);
-    fil.push(thread(b, 28, 5, () => 1.35, 0.5));
+    put(fil, a - 0.22, thread(b, 28, 5, () => 1.35, 0.5));
   }
-  {
-    const ring = new THREE.TorusGeometry(NPC.distalR, 2.6, 8, 48); ring.rotateX(Math.PI / 2); ring.translate(0, NPC.distal, 0);
+  /* the basket's distal ring, in two halves, one with each half of the pore */
+  [[CUT, fil.far], [CUT + Math.PI, fil.near]].forEach(([q, list]) => {
+    const ring = new THREE.TorusGeometry(NPC.distalR, 2.6, 8, 24, Math.PI); ring.rotateX(Math.PI / 2); ring.rotateY(-q); ring.translate(0, NPC.distal, 0);
     const n = ring.attributes.position.count;
     ring.setAttribute('aS', new THREE.BufferAttribute(new Float32Array(n), 1)); ring.setAttribute('aRoot', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
     ring.setAttribute('aPh', new THREE.BufferAttribute(new Float32Array(n), 1)); ring.setAttribute('aAmp', new THREE.BufferAttribute(new Float32Array(n), 1));
-    ring.deleteAttribute('uv'); fil.push(ring);
-  }
+    ring.deleteAttribute('uv'); list.push(ring);
+  });
   /* the channel's soft threads (FG repeats): from the inner ring's wall, and from the edges of the two outer rings, towards
      the middle, so that they fill the channel; each about 1 nm thick */
   took.push(performance.now() - T0); await pause();
@@ -277,7 +377,7 @@ export async function buildPore(env) {
         const t = j / 4;
         pts.push(root.clone().addScaledVector(inw, L * t).addScaledVector(side, rr(-3.5, 3.5) * t).add(new THREE.Vector3(0, dy * t + rr(-2.5, 2.5) * t, 0)));
       }
-      fg.push(thread(new THREE.CatmullRomCurve3(pts), 16, 5, s => 0.4 - 0.1 * s, 1.6));
+      put(fg, a, thread(new THREE.CatmullRomCurve3(pts), 16, 5, s => 0.4 - 0.1 * s, 1.6));
     }
   };
   /* so many that they fill the channel, crossing its middle (a net, the expert review: "a pore reads as an open door") */
@@ -285,31 +385,45 @@ export async function buildPore(env) {
   fgFrom(41, -2, -6, 22);
   fgFrom(41, -52, 6, 22);
   took.push(performance.now() - T0); await pause();
-  const filMesh = new THREE.Mesh(mergeGeometries(fil), filMat); filMesh.name = 'filaments';
-  const fgMesh = new THREE.Mesh(mergeGeometries(fg), fgMat); fgMesh.name = 'fg-threads';
+  const filMesh = new THREE.Mesh(mergeGeometries(fil.far), filMat); filMesh.name = 'filaments';
+  const fgMesh = new THREE.Mesh(mergeGeometries(fg.far), fgMat); fgMesh.name = 'fg-threads';
   [filMesh, fgMesh].forEach(m => { m.frustumCulled = false; npc.add(m); });
+  const filL = new THREE.Mesh(mergeGeometries(fil.near), filLid); filL.name = 'filaments-lid';
+  const fgL = new THREE.Mesh(mergeGeometries(fg.near), fgLid); fgL.name = 'fg-threads-lid';
+  [filL, fgL].forEach(m => { m.frustumCulled = false; lidP.add(m); });
   /* where to name and to aim (nm) */
   const pts = {
     ring: k => new THREE.Vector3(NPC.ring * Math.cos(k), 9, NPC.ring * Math.sin(k)),
     thread: (k, r = 12) => new THREE.Vector3(r * Math.cos(k), -12, r * Math.sin(k)),
-    inner: (dx, dz) => { const [x, y, z] = surf(dx, 122 + dz, NPC.in); return new THREE.Vector3(x, y, z); },
-    membrane: (k, r = 118) => { const [x, y, z] = surf(r * Math.cos(k), r * Math.sin(k), 0); return new THREE.Vector3(x, y, z); }
+    membrane: (k, r = 118) => { const [x, y, z] = surf(r * Math.cos(k), r * Math.sin(k), 0); return new THREE.Vector3(x, y, z); },
+    /* a point of the cut, r nm from the axis, h nm in from the outer face (side 1: the edge at CUT; -1: the other) */
+    cut: (r, h, side = 1) => { const q = side > 0 ? CUT : CUT + Math.PI, [x, y, z] = surf(r * Math.cos(q), r * Math.sin(q), h); return new THREE.Vector3(x, y, z); }
   };
   /* how the proteins look: far away (1) as the world's pores (their colour, their glow), so that the real pore takes over
      from the world's ring unseen; close up (0) deeper and glowing much less, so that each part keeps its shape (a strong
      glow had made it one white blur) */
   const FAR = new THREE.Color(0xffd58a), FARE = new THREE.Color(0x9a6a18);
-  const glowMats = [[ringMat, 0.06, 1.3], [innerMat, 0.05, 1.0], [knobMat, 0.08, 1.3], [filMat, 0.1, 1.3], [fgMat, 0.22, 0.3]].map(([m, near, far]) => [m, near, far, m.color.clone(), m.emissive.clone()]);
+  const glowMats = [[ringMat, 0.06, 1.3], [innerMat, 0.05, 1.0], [knobMat, 0.08, 1.3], [filMat, 0.1, 1.3], [fgMat, 0.22, 0.3],
+    [ringLid, 0.06, 1.3], [innerLid, 0.05, 1.0], [knobLid, 0.08, 1.3], [filLid, 0.1, 1.3], [fgLid, 0.22, 0.3]].map(([m, near, far]) => [m, near, far, m.color.clone(), m.emissive.clone()]);
   const glow = k => glowMats.forEach(([m, near, far, c0, e0]) => {
     m.emissiveIntensity = near + (far - near) * k;
-    if (m !== fgMat) { m.color.copy(c0).lerp(FAR, k); m.emissive.copy(e0).lerp(FARE, k); }
+    if (m !== fgMat && m !== fgLid) { m.color.copy(c0).lerp(FAR, k); m.emissive.copy(e0).lerp(FARE, k); }
   });
   took.push(performance.now() - T0);
-  /* a round window in the outer membrane just beside the pore (k 0 … 1: its radius, up to 42 nm), where the inner membrane
-     shows, 40 nm below: the two membranes of the envelope, seen at once (the expert review: "the two membranes are never
-     seen"); its edge glows, as the edges of the game's cut-away views do */
-  const memMat = mats[0].userData.mem, setWindow = k => { memMat.uWin.value = 42 * k; };
-  const win = { x: memMat.uWinC.value.x, z: memMat.uWinC.value.y, r: 42 };
-  return { took, group: g, npc, pts, glow, setWindow, win, sway: [filMat.userData.sway, fgMat.userData.sway], fg: fgMat.userData.sway, mats, surf,
+  /* the lid (k 0: in place … 1: taken away): it fades, moving a little out towards the near side, and is then not drawn.
+     nearDir: the direction from the axis to the middle of its half (where the camera stops to see the cut) */
+  const nearDir = new THREE.Vector3(Math.cos(CUT - Math.PI / 2), 0, Math.sin(CUT - Math.PI / 2));
+  /* the membranes of the lid fade a little ahead of its proteins (as k², the proteins as k): bright gold at half its
+     strength reads more than lilac on the dark inside, so the proteins had seemed back about a second before their
+     membranes, floating in front of the cut (the expert review) */
+  const memLids = new Set([memLid, lumenLid]);
+  const setLid = k => {
+    lidMats.forEach(m => { m.opacity = 1 - (memLids.has(m) ? k * k : k); m.depthWrite = k < 0.02; });
+    lidM.visible = lidP.visible = k < 0.999;
+    lidM.position.copy(nearDir).multiplyScalar(30 * k); lidP.position.copy(nearDir).multiplyScalar(30 * k);
+    lid.k = k;
+  };
+  const lid = { k: 0 };
+  return { took, group: g, npc, pts, glow, setLid, lid, nearDir, cut: CUT, sway: [filMat.userData.sway, fgMat.userData.sway], fg: fgMat.userData.sway, mats, surf,
     dispose() { g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); mats.forEach(m => m.dispose()); } };
 }
