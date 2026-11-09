@@ -295,7 +295,7 @@
     { g: 'Investigations', w: [
       { k: 'independent-variable', en: 'independent variable', ko: '조작 변인 (독립 변인)',       zh: '自变量',         d: 'The thing you change in an experiment, to see what effect it has. On a graph, you plot it on the x-axis (across).' },
       { k: 'dependent-variable', en: 'dependent variable',  ko: '종속 변인',               zh: '因变量',         d: 'The thing you measure in an experiment, to see how the independent variable affects it. On a graph, you plot it on the y-axis (up).' },
-      { k: 'control-variable',  en: 'control variable',    ko: '통제 변인',               zh: '控制变量',       also: ['control variables', 'controlled variable', 'controlled variables'], d: 'Something you keep the same in an experiment, so that the test is fair.' }
+      { k: 'control-variable',  en: 'control variable',    ko: '통제 변인',               zh: '无关变量',       also: ['control variables', 'controlled variable', 'controlled variables'], d: 'Something you keep the same in an experiment, so that the test is fair.' }
     ]}
   ];
   const BY = {};
