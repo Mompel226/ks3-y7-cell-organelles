@@ -156,10 +156,13 @@ export class Names {
      spot: the one side its name may stand on, beside it; for a spot at the edge of a large part, so that the name stands
      outside the part and its short line ends on it, never over the part: a ribosome at its true size, 9 Nov 2026) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
-     frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in).
+     frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in);
+     solid: parts on the world (Object3D) that no name may cover, as they are drawn (the ellipse round each), when a
+     name could land on a large part that is not its own: the ribosome waiting in the cytosol at its true size (10 Nov
+     2026: "cytosol" stood on it). Used where the names stand on their parts (layOn).
      A name whose key stays in the next list is the same name: it moves to its new place, never out and in again. */
-  set(list, keepOut, frame) {
-    this.items = list; this.edges = frame || null;
+  set(list, keepOut, frame, solid) {
+    this.items = list; this.edges = frame || null; this.solid = solid || null;
     if (keepOut) {
       this.keepOut = keepOut;
       /* a box that grows (the bag fills as the pupil gains items; the mitochondria's scale bar, as the camera zooms) never
@@ -211,6 +214,32 @@ export class Names {
   keeps(pad = this.pad || 6) {
     const lr = this.layer.getBoundingClientRect(); this.pad = pad;
     this.out = (this.keepOut || []).map(e => e && e.getBoundingClientRect()).filter(r => r && r.width).map(r => ({ l: r.left - lr.left - pad, r: r.right - lr.left + pad, t: r.top - lr.top - pad, b: r.bottom - lr.top + pad }));
+  }
+  /* the solid parts on the screen (px, the names' layer), each as the ellipse round its outline, with a margin: from the
+     points of its drawn meshes, projected (a box from the corners of the part's 3D box would be far larger than a round
+     part looks); a part out of sight, or partly behind the camera, gives none */
+  solids(pad = 3) {
+    const out = [], v = new THREE.Vector3();
+    (this.solid || []).forEach(o => {
+      for (let x = o; x; x = x.parent) if (!x.visible) return;
+      o.updateMatrixWorld(true);
+      let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity, front = true;
+      o.traverseVisible(m => {
+        const P = m.isMesh && m.geometry && m.geometry.attributes.position; if (!P) return;
+        const step = Math.max(1, Math.floor(P.count / 2000));
+        for (let i = 0; i < P.count; i += step) {
+          const s = this.proj(v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld)); if (!s.front) front = false;
+          l = Math.min(l, s.x); r = Math.max(r, s.x); t = Math.min(t, s.y); b = Math.max(b, s.y);
+        }
+      });
+      if (front && l < r) out.push({ x: (l + r) / 2, y: (t + b) / 2, rx: (r - l) / 2 + pad, ry: (b - t) / 2 + pad });
+    });
+    return out;
+  }
+  /* does a name's box cover a solid part (the ellipse round it)? The box's point nearest the ellipse's middle is inside it */
+  static onSolid(bx, e) {
+    const dx = (Math.max(bx.l, Math.min(e.x, bx.r)) - e.x) / e.rx, dy = (Math.max(bx.t, Math.min(e.y, bx.b)) - e.y) / e.ry;
+    return dx * dx + dy * dy < 1;
   }
   /* can the camera see this point of a part? Nothing solid between them, or only the part itself (its own envelope);
      a part hidden from view (the Year 7 cell hides the rest) blocks nothing */
@@ -360,6 +389,7 @@ export class Names {
      one another or the bag; a name with no free spot is left out (the panel lists every place) */
   layOn(right, bottom) {
     this.keeps(4);
+    const solid = this.solids();
     const seen = sc => sc.front && sc.x > 0 && sc.x < right && sc.y > 0 && sc.y < bottom;
     /* alt: other parts of the same kind its name may stand on when its own spots have no room, each only if nothing
        hides it (the mitochondrion on a phone's map: it lies small among other names) */
@@ -387,7 +417,7 @@ export class Names {
        then the others, the fewest spots first */
     const plan = (sticky, only) => {
       const boxes = [], got = new Map(), why = new Map();
-      const hit = bx => bx.l < 2 || bx.r > right - 2 || bx.t < 2 || bx.b > bottom - 2 || this.out.concat(boxes).some(o => bx.l < o.r && bx.r > o.l && bx.t < o.b && bx.b > o.t);
+      const hit = bx => bx.l < 2 || bx.r > right - 2 || bx.t < 2 || bx.b > bottom - 2 || this.out.concat(boxes).some(o => bx.l < o.r && bx.r > o.l && bx.t < o.b && bx.b > o.t) || solid.some(e => Names.onSolid(bx, e));
       const take = (cd, t) => { boxes.push({ l: t.bx.l - 3, r: t.bx.r + 3, t: t.bx.t - 3, b: t.bx.b + 3 }); if (t.lx) boxes.push(t.lx); got.set(cd, t); };
       if (sticky) this.order.forEach(k => {
         const cd = cand.find(x => x.it.key === k), a = cd && cd.r.at; if (!a || a.mode !== 'on' || !only.has(cd)) return;

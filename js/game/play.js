@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611100010';
-import { state, COST, RESPIRE } from './state.js?v=202611100010';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611100010';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611100010';
-import { sound } from './sound.js?v=202611100010';
-import { magicStandard } from '../world/magic.js?v=202611100010';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611100738';
+import { state, COST, RESPIRE } from './state.js?v=202611100738';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611100738';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611100738';
+import { sound } from './sound.js?v=202611100738';
+import { magicStandard } from '../world/magic.js?v=202611100738';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611100010').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611100738').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -870,7 +870,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611100010').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611100738').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1726,9 +1726,15 @@ export function makePlay(world, quest) {
     return (props.mem = keep(g));
   }
   /* the camera looks along the cut, 10° from above: the cytosol above the membrane, the inside of the ER below it */
-  const rerClose = () => { membrane(); const f = rerFace(), a = THREE.MathUtils.degToRad(10), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize();
-    return nanoIn({ at: ep(0, 14), dir: cd, up: f.n.clone(), dist: 0.17 }, NEAR_HIDE().concat([W.groups.rer])); };
-  const rerNames = list => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUD(), lr(ep(-34, 0), ep(34, 0)));
+  /* the camera's eye level with the middle of the membrane, looking a little up (about 5°) at what it frames: from there
+     the membrane is only its cut face, a thin band between the cytosol above and the inside below. From 10° above, its
+     top surface stretched back as a wide pink plane and the name "cytosol" stood on it (Daniel, 10 Nov 2026: "it's
+     labeling the membrane itself rather than the cytosol") */
+  const RER_AT = 14, RER_DIST = 0.17;
+  const rerClose = () => { membrane(); const f = rerFace(), a = -Math.asin(RER_AT / 1000 / RER_DIST), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize();
+    return nanoIn({ at: ep(0, RER_AT), dir: cd, up: f.n.clone(), dist: RER_DIST }, NEAR_HIDE().concat([W.groups.rer])); };
+  /* solid: the large parts no name may cover (the ribosome, before it docks too, while it waits in the cytosol; the vesicle) */
+  const rerNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUD(), lr(ep(-34, 0), ep(34, 0)), solid.filter(Boolean));
   /* the membrane's name below its cut face, the channel's below its own (a name on or beside a thin part hides it) */
   /* (a phone's picture is about 130 nm wide: its spots nearer the middle, last, and shorter words) */
   const memName = () => ['e-mem', 'membrane of the rough ER', [ep(-60, 0), ep(-50, 0), ep(50, 0), ep(60, 0), ep(-26, 0), ep(26, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }];
@@ -1736,7 +1742,7 @@ export function makePlay(world, quest) {
   /* the two sides' names away from the middle, where the ribosome, the chain and amylase are (on a phone the inside's name
      had touched the chain) */
   const twoEdges = (a, b) => [a[0].concat(b[0]), { sides: a[1].sides.concat(b[1].sides) }];
-  const sides = () => [['e-cyt', 'cytosol', ...twoEdges(edge(ep(0, 50), 0.05), edge(ep(0, 42), 0.02))],
+  const sides = () => [['e-cyt', 'cytosol', ...twoEdges(twoEdges(edge(ep(0, 50), 0.05), edge(ep(0, 42), 0.02)), edge(ep(0, 25), 0.02))],
     (([sp, o]) => ['e-in', 'inside the rough ER', sp, Object.assign(o, { small: '<span class="nm__t">inside the<br>rough ER</span>' })])(edge(ep(0, -33), 0.045, 0.016))];
   /* the ribosome docked: its large part on the channel (turned so that the large part faces the membrane) */
   const seat = () => ep(0, 3 + 16.5);
@@ -1840,7 +1846,7 @@ export function makePlay(world, quest) {
     const ves = keep(token('vesicle', TSZ.ves)); const c = ep(30, 3 + 35); ves.position.copy(ep(30, 3)); ves.scale.setScalar(0.05);
     await Promise.all([tween(a, { to: c, ms: 1600 }), tween(ves, { to: c, ms: 1600, scale: 1 })]);
     const g = new THREE.Group(); g.position.copy(c); keep(g); a.position.set(0, 0, 0); g.add(a); ves.position.set(0, 0, 0); g.add(ves);
-    rerNames([memName(), ...sides(), ['e-ves', 'vesicle', ...edge(c, 0.034)]]);
+    rerNames([memName(), ...sides(), ['e-ves', 'vesicle', ...edge(c, 0.034)]], [g]);
     quest.say('The vesicle is about 70 nm across: fourteen times as wide as the amylase inside it.', 'ok');
     await wait(R.TEST ? 0 : 2200);
     quest.names.set([], HUD());
