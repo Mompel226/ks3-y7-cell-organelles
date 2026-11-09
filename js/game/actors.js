@@ -7,7 +7,7 @@
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611091659';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611091831';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
@@ -107,8 +107,9 @@ export function chain(points, colors) {
 }
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-let STILL = false;
-export function setStill(v) { STILL = v; }
+let STILL = false, QUICK = false;
+/* still: every move jumps to its end; keepPauses (Reduce motion, not the tests): a wait still lasts its time */
+export function setStill(v, keepPauses = false) { STILL = v; QUICK = v && !keepPauses; }
 /* move an object to a point (or along a curve) and resolve when it is there */
 export function tween(obj, { to, path, ms = 1200, scale, spin = 0, fade } = {}) {
   const p0 = obj.position.clone(), s0 = obj.scale.x, t0 = performance.now();
@@ -126,7 +127,7 @@ export function tween(obj, { to, path, ms = 1200, scale, spin = 0, fade } = {}) 
     step();
   });
 }
-export const wait = ms => new Promise(r => setTimeout(r, STILL ? 0 : ms));
+export const wait = ms => new Promise(r => setTimeout(r, QUICK ? 0 : ms));
 
 /* a short shower of sparkles where something happens */
 /* (size and near for a magnified view, where a burst is nanometres across) */

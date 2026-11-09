@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091659';
-import { state, COST, RESPIRE } from './state.js?v=202611091659';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091659';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091659';
-import { sound } from './sound.js?v=202611091659';
-import { magicStandard } from '../world/magic.js?v=202611091659';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091831';
+import { state, COST, RESPIRE } from './state.js?v=202611091831';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091831';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091831';
+import { sound } from './sound.js?v=202611091831';
+import { magicStandard } from '../world/magic.js?v=202611091831';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611091659').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611091831').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -45,7 +45,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); chrUndim(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -159,12 +159,12 @@ export function makePlay(world, quest) {
     const at = y => centred(t, V(C.at.x, y, C.at.z + 0.1));
     if (C.s !== -1) await turnTo(C, -1, 500);
     await tween(t, { path: curve([t.position.clone(), at(-C.mouth - 0.12).add(V(jit(0.1), 0, 0)), at(-C.mouth)]), ms: 900 });
-    const shut = wait(R.FAST ? 0 : 540).then(() => turnTo(C, 0, 560));
+    const shut = wait(R.TEST ? 0 : 540).then(() => turnTo(C, 0, 560));
     await tween(t, { to: at(0), ms: 650 });
     await shut;
     await wait(300);
     const open = turnTo(C, 1, 640);
-    await wait(R.FAST ? 0 : 545);
+    await wait(R.TEST ? 0 : 545);
     await tween(t, { to: at(C.mouth), ms: 620 });
     await open;
     const back = turnTo(C, -1, 900);
@@ -533,12 +533,12 @@ export function makePlay(world, quest) {
          open side shuts behind it; held for a moment, both sides shut; the carrier opens to the matrix and pyruvate
          leaves; once it is clear, the empty carrier changes back, open to the space between the membranes */
       if (C.s !== 1) await turnTo(C, 1, 500);
-      const shut = wait(R.FAST ? 0 : 900).then(() => turnTo(C, 0, 600));
+      const shut = wait(R.TEST ? 0 : 900).then(() => turnTo(C, 0, 600));
       await tween(t, { to: pW(-20, -25.5, -3.4), ms: 1100 });
       await shut;
       await wait(300);
       const open = turnTo(C, -1, 650);
-      await wait(R.FAST ? 0 : 550);
+      await wait(R.TEST ? 0 : 550);
       await tween(t, { to: pW(-20, -30.4, -3.4), ms: 800 });
       await open;
       const back = turnTo(C, 1, 900);
@@ -578,16 +578,16 @@ export function makePlay(world, quest) {
          reaction, two in the Krebs cycle, which the IB view shows); its hydrogen is what the next step carries to the chain */
       const co2 = [], hyd = [];
       await Promise.all(halves.map((h, j) => (async () => {
-        await wait(R.FAST ? 0 : j * 700);
+        await wait(R.TEST ? 0 : j * 700);
         const s0 = h.scale.x;
         for (let k = 0; k < 3; k++) {
-          nburst(h.position, 0xffe7a0, 10); await wait(R.FAST ? 0 : 300);
+          nburst(h.position, 0xffe7a0, 10); await wait(R.TEST ? 0 : 300);
           const c = molAt('co2', h.position.clone()), a = k * 2.1 + j * 1.3; co2.push(c);
           tween(c, { to: h.position.clone().addScaledVector(pD(Math.cos(a), Math.sin(a), 0), 0.0026), ms: 800 });
           const hh = halo(keep(token('default', 0.00013)), 0.45, 0xffffff); hh.position.copy(h.position); hyd.push(hh);
           tween(hh, { to: h.position.clone().addScaledVector(pD(Math.cos(a + 2.4), Math.sin(a + 2.4) + 1.4, 0), 0.003), ms: 900 });
           await scaleTo(h, s0 * (1 - (k + 1) * 0.28), 500);
-          await wait(R.FAST ? 0 : 650);
+          await wait(R.TEST ? 0 : 650);
         }
         await scaleTo(h, s0 * 0.001, 450); drop(h);
       })()));
@@ -597,13 +597,13 @@ export function makePlay(world, quest) {
       ok(ib('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.', 'The link reaction and the Krebs cycle oxidize the pyruvate, step by step: <b>carbon dioxide</b> is released (<dfn data-w="decarboxylation">decarboxylation</dfn>), and hydrogen is removed (<dfn data-w="dehydrogenation">dehydrogenation</dfn>), carried by reduced NAD and FADH₂. The oxygen waits in the matrix: it is used in the next step.'));
       /* time to read the three names and the sentence before the camera moves back (2.6 s had been too short: Daniel, 5 Nov
          2026, "it zooms out too early") */
-      await wait(R.FAST ? 0 : 5000);
+      await wait(R.TEST ? 0 : 5000);
       /* one still view from the matrix to the cytosol: the carbon dioxide leaves the way the oxygen came, straight between the
          lipids, each by its own way, and out of the top of the picture; the oxygen stays in view (the review: the camera had
          followed it out into an empty cytosol and come back) */
       quest.names.set([]);
       await camGo(fitView(-16, -42, 14, 60), 1800);
-      await Promise.all(co2.map((c, i) => { const u = -27 + Math.random() * 20, p0 = c.position.clone(); return wait(R.FAST ? 0 : i * 260 + Math.random() * 300).then(() => tween(c, { path: curve([p0, pW(u + jit(2), -27.5), pW(u + jit(1), -25.5), pW(u + jit(3), -15 + jit(3)), pW(u + jit(1), -3.5), pW(u + jit(3), 6 + jit(2)), pW(u + jit(4), 26)]), ms: R.FAST ? 0 : 4400 + Math.random() * 1400 })); }));
+      await Promise.all(co2.map((c, i) => { const u = -27 + Math.random() * 20, p0 = c.position.clone(); return wait(R.TEST ? 0 : i * 260 + Math.random() * 300).then(() => tween(c, { path: curve([p0, pW(u + jit(2), -27.5), pW(u + jit(1), -25.5), pW(u + jit(3), -15 + jit(3)), pW(u + jit(1), -3.5), pW(u + jit(3), 6 + jit(2)), pW(u + jit(4), 26)]), ms: R.FAST ? 0 : 4400 + Math.random() * 1400 })); }));
       co2.forEach(drop);
       props.hyd = hyd;
       /* what stays for the next step, named again: the white dots are the hydrogen, beside the oxygen */
@@ -677,7 +677,7 @@ export function makePlay(world, quest) {
     props.hyd = null;
     const near = O2.map((t, i) => pW(pump4[0] - 9 - (i % 3) * 2.2 + jit(0.6), -63 - Math.floor(i / 3) * 4.5 - (i % 2) * 1.5, -1.2 - Math.random()));
     const drift = Promise.all(O2.map((t, i) => tween(t, { path: curve([t.position.clone(), pW(-6 + jit(3), -50 + jit(4)), near[i]]), ms: R.FAST ? 0 : 3800 + i * 200 })));
-    const hGo = Promise.all(hyd.map((h, k) => wait(R.FAST ? 0 : 600 + k * 220).then(() => tween(h, { to: arm, ms: R.FAST ? 0 : 2600 }))));
+    const hGo = Promise.all(hyd.map((h, k) => wait(R.TEST ? 0 : 600 + k * 220).then(() => tween(h, { to: arm, ms: R.FAST ? 0 : 2600 }))));
     await camGo(fitView(pump4[0] - 4, -78, -42, 50), 2200);
     /* part 1: the space inside the fold is named before it fills (the review); the hydrogen reaches the first protein, its
        energy passes along the chain (a light, protein to protein), and the three pumps move hydrogen ions into the fold */
@@ -687,7 +687,7 @@ export function makePlay(world, quest) {
     const pulse = keep(token('default', 0.0004)); pulse.position.copy(arm);
     tween(pulse, { path: curve(PT.parts.pumps.map(p => pW(p.x - 1.5, p.n, p.w + 2.5))), ms: R.FAST ? 0 : 2400 }).then(() => drop(pulse));
     HC.start = performance.now();
-    await Promise.all([wait(R.FAST ? 0 : HC.dur + 1300), drift]);
+    await Promise.all([wait(R.TEST ? 0 : HC.dur + 1300), drift]);
     HC.full = true;
     /* the oxygen is not named here: its own button says "oxygen" (a name beside it said the same word twice) */
     nanoNames([p4name, ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
@@ -699,7 +699,7 @@ export function makePlay(world, quest) {
     const out = [];
     await Promise.all(O2.map((t, i) => {
       const p0 = t.position.clone(), end = pW(pump4[0] - 1.2 + jit(0.6), -70 + (i - 2.5) * 1.3, -2.2);
-      return wait(R.FAST ? 0 : i * 320).then(() => tween(t, { path: curve([p0, pW(pump4[0] - 5 + jit(1), -68 + jit(2)), end]), ms: R.FAST ? 0 : 1800 })).then(async () => {
+      return wait(R.TEST ? 0 : i * 320).then(() => tween(t, { path: curve([p0, pW(pump4[0] - 5 + jit(1), -68 + jit(2)), end]), ms: R.FAST ? 0 : 1800 })).then(async () => {
         const hs = [0, 1, 2, 3].map(k => { const h = halo(keep(token('default', 0.00013)), 0.4, 0xffffff); h.position.copy(end).addScaledVector(pD(Math.cos(k * 1.57), Math.sin(k * 1.57), 0), 0.0016); return h; });
         await Promise.all(hs.map(h => tween(h, { to: end, ms: 600 })));
         hs.forEach(drop); drop(t);
@@ -707,7 +707,7 @@ export function makePlay(world, quest) {
       });
     }));
     props.water = out; props.o2 = null;
-    await wait(R.FAST ? 0 : 800);
+    await wait(R.TEST ? 0 : 800);
     nanoNames([p4name, ['nm-wat', 'water', out.slice(0, 6).map(w => w.position.clone())], ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
     ok(ib('At the last protein in the chain, oxygen joins with hydrogen from the smaller molecules: <b>water</b> is produced.', 'At the end of the chain, in complex IV, oxygen accepts electrons and protons: <b>water</b> is produced. Oxygen is the terminal electron acceptor.'));
     await quest.next();
@@ -823,13 +823,15 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611091659').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611091831').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
       P.group.visible = false; P.npc.visible = false; N.group.add(P.group); N.group.updateMatrixWorld(true);
-      if (!R.FAST) {
-        /* one mesh at a time, the page drawing between (all at once had stopped it for 0.3 s) */
+      if (!R.TEST) {
+        /* one mesh at a time, the page drawing between (all at once had stopped it for 0.3 s); with Reduce motion too (only
+           the tests skip it): there the shaders had been made at the first frame of the pore, a stop of several seconds while
+           its names' pause ran out, so they showed for 0.2 s */
         const r = world.renderer, meshes = [], waits = [];
         P.group.traverse(o => { if (o.isMesh) meshes.push(o); });
         for (const o of meshes) {
@@ -838,10 +840,37 @@ export function makePlay(world, quest) {
           await new Promise(res => setTimeout(res, 0));
         }
         await Promise.race([Promise.all(waits), new Promise(res => setTimeout(res, 6000))]);
+        warmDraw(P);
       }
       return Object.assign(PD, P, { M: m.NPC });
     }).catch(e => { PD = null; throw e; });                 /* fetched again next time */
     return PD.ready;
+  }
+  /* the pore, the inside of the nucleus and the open nucleus drawn once, out of sight, into a small picture, while the pupil
+     reads: every mesh's data goes to the graphics chip now, not at a frame of the dive (9 Nov 2026, Daniel: "make sure that
+     you optimize it so everything is pre-stored or buffered, so the movement of the camera is smooth"; at CPU ×6 the press,
+     the moment the real pore appears and the opening of the nucleus had each stopped the picture about 0.1 s). Only with
+     the glow on: its shaders are the ones compiled; nothing of this reaches the screen */
+  function warmDraw(P) {
+    if (!world.glow) return;
+    const r = world.renderer, rt = new THREE.WebGLRenderTarget(64, 64, { type: world.composer.renderTarget1.texture.type });
+    const vis = [], cull = [], show = o => { if (o) { vis.push([o, o.visible]); o.visible = true; } };
+    [P.group, P.npc, N.chromatin, N.nucleolus, N.nolSpark, N.rim].forEach(show);
+    P.group.traverse(o => { if (o.isMesh || o.isPoints || o.isLine) { cull.push([o, o.frustumCulled]); o.frustumCulled = false; } });
+    const geo = [N.outerEnv.geometry, N.innerEnv.geometry];
+    try {
+      r.setRenderTarget(rt); r.render(scene, world.camera);
+      N.outerEnv.geometry = N.outerEnv.userData.geo.cut; N.innerEnv.geometry = N.innerEnv.userData.geo.cut;
+      r.render(scene, world.camera);
+    } catch (e) { /* a picture never drawn here is drawn at its first frame, as before */ }
+    N.outerEnv.geometry = geo[0]; N.innerEnv.geometry = geo[1];
+    r.setRenderTarget(null); rt.dispose();
+    vis.forEach(([o, v]) => { o.visible = v; }); cull.forEach(([o, c]) => { o.frustumCulled = c; });
+  }
+  /* the pore is kept after the dive, for ↺ the dive again, and let go when the pupil leaves the place */
+  function poreFree() {
+    if (PD && PD.dispose) { PD.dispose(); N.group.remove(PD.group); }
+    PD = null;
   }
   /* the pore's own frame (nm, pore.js) and the world */
   const pw = (x, y, z) => PD.group.localToWorld(V(x, y, z));
@@ -863,12 +892,13 @@ export function makePlay(world, quest) {
     diveDeep(false); N.PK.uPoreK.value = 1; N.REV.uRevK.value = 0; N.REV.uRevR.value = 0; N.HOLE.uHoleR.value = 0;
     if (PD && PD.group) { PD.group.visible = false; PD.npc.visible = false; }
     DOOR.torus.visible = false;
-    if (DV.open && PD && PD.dispose) { PD.dispose(); N.group.remove(PD.group); PD = { ready: Promise.resolve(null), done: true }; }
     if (!DV.open) {
       doorShown(true); world.nucDive = false; world.nucLook();
       /* a pupil who leaves from inside the closed nucleus goes back out at once (the flight to the map would cross it) */
       const nv = world.P.nucleus.view, inside = world.camera.position.clone().sub(N0).multiply(V(1, 1 / N.sy, 1)).length() < N.r + 0.05;
       if (inside || world.camera.position.distanceTo(doorW()) < 1.2) { world.camera.position.fromArray(nv.pos); world.controls.target.fromArray(nv.at); world.camera.lookAt(world.controls.target); }
+      /* left during ↺ the dive again: the nucleus open again, as the saved game says */
+      if (state.flag('in-nucleus')) world.setNucleus(true);
     }
     N.nolSpark.material.uniforms.uOpacity.value = DV.spark0 != null ? DV.spark0 : N.nolSpark.material.uniforms.uOpacity.value;
     if (bar) bar.hidden = true;
@@ -939,16 +969,23 @@ export function makePlay(world, quest) {
       oneName('d-im', 'inner membrane', on(NP.in + NP.mem / 2), { up: 1 })
     ], HUDN(), cutFrame());
   }
-  async function dive() {
+  /* again: ↺ the dive again (Daniel, 9 Nov 2026: "once you have seen the animation, there's no way to re-see the
+     animation … a little button to re-enter into the nucleus with the same animation"), right after the dive (beside Next)
+     or from the place's end card: the nucleus closed again, the same dive from the nucleus's view without the press, and
+     open again at the end; the saved game is unchanged */
+  async function dive(again = false) {
+    if (again) { world.setNucleus(false); doorShown(true); quest.names.set([]); }
     await fly(world.P.nucleus.view.pos, world.P.nucleus.view.at);
     const ready = porePrep();
     const P0 = doorW();
+    if (!again) {
     const glowRing = keep(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.04, 8, 24), new THREE.MeshBasicMaterial({ color: 0xfff1a8, transparent: true })));
     glowRing.position.copy(P0); glowRing.lookAt(P0.clone().add(DOOR.n));
     await press(() => P0.clone().add(V(0, 0.35, 0)), 'Enter through a nuclear pore', { side: 't' });
     /* the ring that marked the pore fades (it had gone in one frame) */
     { const t0 = performance.now(); W.anim.push(function f() { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 350); glowRing.material.opacity = 1 - k; if (k >= 1) { W.anim.splice(W.anim.indexOf(f), 1); drop(glowRing); } }); }
     /* the pore is usually ready long before the press; if not, the wait is said only after 0.4 s */
+    }
     const slow = setTimeout(() => quest.say('Getting the nuclear pore ready…'), R.FAST ? 1e9 : 400);
     /* the pore could not be fetched (no connection): the pupil goes in as on a later visit, never stuck */
     let got = null; try { got = await live(ready); } catch (e) { if (e === STALE) throw e; }
@@ -956,6 +993,7 @@ export function makePlay(world, quest) {
     if (!got) {
       world.setNucleus(true); state.setFlag('in-nucleus');
       const v = nucView(); await fly(v.pos, v.at, 2000);
+      if (again) { insideNames(); return; }
       quest.say('You are inside the nucleus. The threads are the <b>chromosomes</b>.', 'ok');
       insideNames(); await quest.next(); quest.names.set([]); return;
     }
@@ -1025,6 +1063,7 @@ export function makePlay(world, quest) {
        drifting round the pore (PORE_TURN, 20°), so that it is seen in depth: the filaments reach out */
     world.setMoving(false); poreNames();
     await moveCam(R.FAST ? 0 : 3600, k => { const v = view(AL, LH, C1y, PHI * smooth(0, 1, k), 1, 0); setCam(v.P, v.A, LH / 1000); });
+    if (R.CALM) await wait(3600);          /* Reduce motion: no drift, but the names stay as long */
     /* the names go where they are (their frame kept: without it they had slid to the picture's edges) */
     quest.names.set([], HUDN(), lr(pw(-98, 0, 0), pw(98, 0, 0))); world.setMoving(true);
     /* 3. beside it, the envelope in section (Daniel, 8 Nov 2026: "you clearly see that there is a space between the inner
@@ -1049,6 +1088,7 @@ export function makePlay(world, quest) {
     world.setMoving(false); cutNames();
     const PHI2 = 0.12;          /* while the names are read the camera drifts a little further round: the cut seen in depth */
     await moveCam(R.FAST ? 0 : 6400, k => { const v = view(TH2, D2, C2y, PHI + PHI2 * smooth(0, 1, k), 0, 1); cam.up.copy(v.up); setCam(v.P, v.A, D2 / 1000); });
+    if (R.CALM) await wait(6400);
     quest.names.set([], HUDN(), cutFrame()); world.setMoving(true);
     /* 4. the nucleus whole again first: beside the pore the camera moves a little back and up while the near half comes
        back, so that the cut is covered again before the camera goes over the pore (Daniel, 9 Nov 2026: "make sure that
@@ -1127,11 +1167,31 @@ export function makePlay(world, quest) {
     N.PK.uPoreK.value = 1; N.REV.uRevK.value = 0; spark.value = DV.spark0; if (bar) bar.hidden = true;
     DV.on = false;
     await live(world.landed({ pos: cam.position.toArray(), at: c.target.toArray() }, false));
-    PD.dispose(); N.group.remove(PD.group); PD = { ready: Promise.resolve(null), done: true };
+    if (again) { insideNames(); return; }
     quest.say('<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only together with a carrier protein.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>', 'ok');
     insideNames();
-    await quest.next(); quest.names.set([]);
+    /* Next, or ↺ the dive again (as often as wanted; the message stays) */
+    for (;;) {
+      const nx = quest.next(), ab = R.h('button', { type: 'button', class: 'btn ghost again' }, '↺ Watch the dive again');
+      quest.step.do.appendChild(ab);
+      const pick = await live(Promise.race([nx.then(() => 'next'), new Promise(r => ab.addEventListener('click', () => r('again'), { once: true }))]));
+      ab.remove();
+      if (pick === 'next') break;
+      const nb = quest.step.do.querySelector('.btn.next'); if (nb) nb.remove();
+      await dive(true);
+    }
+    quest.names.set([]);
   }
+  /* ↺ the dive again from the nucleus's end card (quest.js): only in the nucleus, once the pupil has been in, and not while
+     a dive plays */
+  document.addEventListener('dive-again', e => {
+    const b = e.detail && e.detail.btn;
+    if (quest.cur !== 'nucleus' || DV.on || !state.flag('in-nucleus')) return;
+    if (b) b.disabled = true;
+    /* on a phone the end card is below the picture: the picture first comes into view */
+    const st = document.getElementById('stage'); if (st && st.getBoundingClientRect().top < 0) st.scrollIntoView({ block: 'start', behavior: R.FAST ? 'auto' : 'smooth' });
+    dive(true).catch(err => { if (err !== STALE) throw err; }).finally(() => { if (b) b.disabled = false; });
+  });
   function chr1Mat() { const m = W.chromosomes[0].mesh.material; if (!props.chrDim) { props.chrDim = m.color.getHex(); m.color.setHex(0xb9a6ff); m.emissive.setHex(0x2a1f6a); } return m; }
   /* a thread pressed lights up along its whole length (Daniel, 9 Nov 2026: "As you click on the different chromosomes,
      it'd be nice if you could lit up the different chromosomes, so they actually, the students understand what a

@@ -197,6 +197,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .fact__src{font-size:13px;color:var(--qp-ink2);margin-top:4px!important}
 .qp__real{margin:14px 0 0;width:100%;font:900 16.5px/1.2 var(--sans);color:#1B1240;background:linear-gradient(180deg,#E9E2FF,#CDBDF7);border:1.5px solid #B9A6FF;border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left}
 .qp__real:hover{border-color:var(--qp-accent)}
+.qp__real:disabled{opacity:.6;cursor:default}
 /* the IB switch and the IB words (quest.js ibSwitch), in IB blue; levels: SL and HL blue, HL only rose, beyond grey
    (memory level-colours-never-blank: a filled tint, never a blank box) */
 .qp__ib{display:inline-flex;align-items:center;gap:8px;font:800 15px/1 var(--sans);color:#2E3A8C;background:#E7E9F7;border:1.5px solid #9EA9F0;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer}

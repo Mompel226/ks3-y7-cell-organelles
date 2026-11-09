@@ -166,6 +166,7 @@ window.STORY = {
     ],
     done: 'You carry the copy of the amylase gene. Next it needs a <b>ribosome</b>: the nucleolus makes the parts of ribosomes.',
     explore: '🔬 Explorer: how a cell copies a gene',
+    again: '↺ Dive through a nuclear pore again',   /* the end card's button: the dive again (play.js dive-again; Daniel, 9 Nov 2026) */
     fact: { text: 'The DNA in one of your cells is about 2 metres long, but it fits into a nucleus about 6 µm across.', src: 'Annunziato 2008, Nature Education 1:26 (open)' },
     fact2: { text: 'Some people have more copies of the amylase gene than others. People from groups that have eaten foods rich in starch for thousands of years have more copies, on average.', src: 'Perry et al. 2007, Nature Genetics 39:1256' }
   },

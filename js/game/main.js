@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611091659';
-import { Names } from './names.js?v=202611091659';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611091659';
-import { makePlay } from './play.js?v=202611091659';
-import { setStill, wait } from './actors.js?v=202611091659';
-import { state } from './state.js?v=202611091659';
-import { ICON } from './icons.js?v=202611091659';
-import { intro } from './intro.js?v=202611091659';
-import { sound } from './sound.js?v=202611091659';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611091659';
+import { World, MAP_VIEW } from '../world/world.js?v=202611091831';
+import { Names } from './names.js?v=202611091831';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611091831';
+import { makePlay } from './play.js?v=202611091831';
+import { setStill, wait } from './actors.js?v=202611091831';
+import { state } from './state.js?v=202611091831';
+import { ICON } from './icons.js?v=202611091831';
+import { intro } from './intro.js?v=202611091831';
+import { sound } from './sound.js?v=202611091831';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611091831';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -25,7 +25,7 @@ catch (e) {
   $('#loading').innerHTML = '<p><b>This computer cannot draw the 3D cell.</b> Try another browser (Chrome, Edge or Safari), or another computer.</p>';
   throw e;
 }
-setStill(R.FAST);
+setStill(R.FAST, R.CALM);
 const names = new Names(world, $('#names'));
 const quest = new Quest({ world, names, panel: $('#quest'), hots: $('#hots'), bag: $('#bag'), onPlace: go });
 const play = makePlay(world, quest);
@@ -211,7 +211,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611091659').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611091831').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -221,7 +221,7 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611091659').then(m => {
+  import('../ib/view.js?v=202611091831').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -231,10 +231,10 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611091659').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611091831').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611091659').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611091831').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));

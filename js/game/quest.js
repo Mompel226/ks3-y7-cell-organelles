@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611091659';
-import { state, COST } from './state.js?v=202611091659';
-import { sound } from './sound.js?v=202611091659';
-import { finalLine } from './final.js?v=202611091659';
+import { ICON } from './icons.js?v=202611091831';
+import { state, COST } from './state.js?v=202611091831';
+import { sound } from './sound.js?v=202611091831';
+import { finalLine } from './final.js?v=202611091831';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611091659').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611091659';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611091831').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611091831';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -290,20 +290,23 @@ export class Quest {
       document.removeEventListener('progress', paint);
       won.innerHTML = `<div class="qp__done">${ICON.star}<div>${paras(P.done)}</div></div>
         ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
+        ${P.again ? `<button type="button" class="qp__real qp__again">${esc(P.again)}</button>` : ''}
         ${P.explore ? `<button type="button" class="qp__real qp__explore${P.ib ? ' qp__explore--ib' : ''}">${esc(P.explore)}</button>` : ''}`;
       R.terms(won);
       this.ibSwitch(id);
       /* See the real thing, before the place's extension (now, or once lens.js is here) */
       const lensBtn = () => {
-        if (!HAS_LENS || !HAS_LENS(id) || !won.isConnected || $('.qp__real:not(.qp__explore)', won)) return;
+        if (!HAS_LENS || !HAS_LENS(id) || !won.isConnected || $('.qp__real:not(.qp__explore):not(.qp__again)', won)) return;
         const rb = h('button', { type: 'button', class: 'qp__real' }, `🔍 See the real thing: ${esc(P.title.split(':')[0].toLowerCase())}`);
-        won.insertBefore(rb, $('.qp__explore', won));
+        won.insertBefore(rb, $('.qp__again', won) || $('.qp__explore', won));
         rb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('lens', { detail: id })));
       };
       if (HAS_LENS) lensBtn(); else lensReady.then(lensBtn);
       /* the place's extension, again at any time: the nucleus's Explorer film (how a cell copies a gene); the way in's and the
          mitochondria's IB extension, "From glucose to ATP" (main.js) */
       const xb = $('.qp__explore', won); if (xb) xb.addEventListener('click', () => document.dispatchEvent(new CustomEvent('explore', { detail: id })));
+      /* the nucleus: its dive through a pore again (play.js) */
+      const ab = $('.qp__again', won); if (ab) ab.addEventListener('click', () => document.dispatchEvent(new CustomEvent('dive-again', { detail: { id, btn: ab } })));
       nav.hidden = false; if (first) $('.qp__mapbtn', nav).textContent = 'Go to the map →';
       /* the place is done now: the map wakes what it gave (main.js), and the pupil sees it at once */
       if (now) { sound.gain(); document.dispatchEvent(new CustomEvent('place-complete', { detail: id })); this.scrollTo(won); }

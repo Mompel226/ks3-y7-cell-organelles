@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611091659';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611091659';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611091831';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611091831';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -29,7 +29,10 @@ const store = {
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
 const params = new URLSearchParams(location.search);
-const FAST = params.has('ibstill') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+/* ?ibstill (the tests): every move jumps and the holds go; Reduce motion: every move jumps, but each hold is still shown for
+   its time, its names on a still picture (Daniel, 9 Nov 2026: "Nothing should disappear") */
+const TEST = params.has('ibstill');
+const FAST = TEST || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 /* a paragraph's level chip: [sl], [hl], [x], with an IB code after it ([hl C1.2.8]) */
 function paras(t) {
@@ -83,7 +86,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611091659', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611091831', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -92,7 +95,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611091659' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611091831' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -355,7 +358,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     if (replay) for (const ph of phasesOf(sst)) {
       /* a hold: nothing moves while what takes part is named, then the step goes on (memory name-it-on-the-picture) */
       if (ph.hold) {
-        if (FAST) continue;
+        if (TEST) continue;
         stage.showLabels(ph.labs || {}); stage.setRest(true);
         await new Promise(r => setTimeout(r, ph.hold)); if (my !== token) return;
         stage.showLabels({}); stage.setRest(false); continue;

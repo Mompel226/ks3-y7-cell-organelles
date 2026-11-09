@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611091659';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611091659';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611091831';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611091831';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -316,6 +316,10 @@ export class World {
     cam.fov = 2 * Math.atan(k * H / 2) / rad;
     cam.updateProjectionMatrix();
     this.emit('resize');
+    /* drawn again at once, at the new size: a canvas whose size changes is cleared, and until the next frame the browser
+       showed it empty, a black blink (the panel's words change the picture's size; so does a smaller picture on a slow
+       computer, 9 Nov 2026) */
+    if (this.compiled && this.running && !document.hidden && !this.hold) { if (this.glow) this.composer.render(0); else this.renderer.render(this.scene, this.camera); }
     this.kick();
   }
 
@@ -366,8 +370,10 @@ export class World {
     if (document.hidden || this.hold) { this.running = false; return; }
     const dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
     const t = this.still ? 4 : Math.max(0, (now - this.t0) / 1000);   /* rAF's time can be a little before t0 */
-    this.renderFrame(t, dt);
+    /* judged before the frame is drawn: a smaller picture (measure) clears the canvas, and drawn before it the frame had
+       been shown empty, a black blink (9 Nov 2026, Daniel: "sometimes I get the screen blinking in black") */
     this.measure(dt);
+    this.renderFrame(t, dt);
     requestAnimationFrame(this.loop);
   }
   renderFrame(t, dt = 0.016) {
@@ -386,13 +392,23 @@ export class World {
   }
   /* a slow computer: fewer pixels first, then no glow */
   measure(dt) {
-    if (this.still) return;
+    if (this.still || this.degrading) return;
+    /* never during a move the game makes (a flight, the dive into the nucleus: world.flying): there a smaller picture or a
+       new set of shaders showed as a blink or a stop (9 Nov 2026); those frames are not counted, and the speed is judged
+       again at the next still moment (a place's first step, where the pupil reads) */
+    if (this.flying) { this.frames = []; return; }
     this.frames.push(dt); if (this.frames.length < 90) return;
     const avg = this.frames.reduce((a, b) => a + b, 0) / this.frames.length; this.frames = [];
     if (avg > 0.034) {
       const pr = this.renderer.getPixelRatio();
       if (pr > 1.01) { this.renderer.setPixelRatio(Math.max(1, pr - 0.5)); this.resize(); }
-      else if (this.glow) { this.glow = false; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; }
+      else if (this.glow) {
+        /* no glow: the shaders for drawing straight to the screen are made first, in parallel, and the glow stays on until
+           they are ready (switched at once, every shader was made again in one go: the picture stopped 4 s on this Mac) */
+        this.degrading = true; const r = this.renderer;
+        r.toneMapping = THREE.ACESFilmicToneMapping; r.setRenderTarget(null);
+        r.compileAsync(this.scene, this.camera).catch(() => {}).then(() => { this.glow = false; this.degrading = false; this.frames = []; this.kick(); });
+      }
     }
   }
 }

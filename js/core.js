@@ -28,8 +28,13 @@
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
   const params = new URLSearchParams(location.search);
-  /* ?still=1 (tests, and a computer that asks for less motion): every animation jumps to its end */
-  const FAST = params.has('still') || params.has('manifest') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* ?still=1 (tests, and a computer that asks for less motion): every animation jumps to its end. TEST: the tests only,
+     where the pauses go too; CALM: a computer that asks for less motion, where every pause keeps its time, so that each
+     moment a pause shows (its names, its words) is seen as a still (Daniel, 9 Nov 2026: "Nothing should disappear.
+     Everything was there for a reason.") */
+  const TEST = params.has('still') || params.has('manifest');
+  const CALM = !TEST && !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const FAST = TEST || CALM;
 
   /* ---------------- the lesson record ---------------- */
   const L0 = window.Lesson || { check() {}, done() {}, restart() {}, restartAll() {}, record: () => ({ q: {} }) };
@@ -216,6 +221,6 @@
     }
     document.dispatchEvent(new Event('cellgame:core'));
   }
-  window.REV = { $, $$, h, esc, store, ans, L, qDone, manifest, FAST, WORD, lang, params, terms, closeTip, say: sayHtml };
+  window.REV = { $, $$, h, esc, store, ans, L, qDone, manifest, FAST, TEST, CALM, WORD, lang, params, terms, closeTip, say: sayHtml };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
