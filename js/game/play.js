@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611092139';
-import { state, COST, RESPIRE } from './state.js?v=202611092139';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611092139';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611092139';
-import { sound } from './sound.js?v=202611092139';
-import { magicStandard } from '../world/magic.js?v=202611092139';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611092229';
+import { state, COST, RESPIRE } from './state.js?v=202611092229';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611092229';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611092229';
+import { sound } from './sound.js?v=202611092229';
+import { magicStandard } from '../world/magic.js?v=202611092229';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611092139').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611092229').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -45,7 +45,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -870,7 +870,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611092139').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611092229').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1414,31 +1414,107 @@ export function makePlay(world, quest) {
     await quest.next('Back to the map');
   }
 
-  /* ---------------- nucleolus ---------------- */
+  /* ---------------- nucleolus ----------------
+     True sizes (9 Nov 2026; Daniel: "these two parts are extremely huge. They are as big as chromosomes, and that's not the
+     case. Ribosomes are very small. So please zoom in or do whatever you need to do to actually represent the ribosome on
+     its real size"; memory true-relative-sizes): the camera zooms to the nucleolus's edge, a view about 250 nm across with
+     a scale bar, and each part is built there at its true size: the small part about 25 nm across, the large part about
+     30 nm (a whole ribosome is 25 to 30 nm; the small part has about a third of its mass), from a strand of RNA made here
+     (2 nm thick) and proteins (about 5 nm) that came in from the cytoplasm. The two stand side by side, named, so their
+     sizes compare. The chromosomes and the sparkles, drawn larger than life, are hidden while the camera is close. The
+     parts are then sent off: from far away they are far too small to see, so a glow shows each one on its way to a pore */
   const NOL = () => inN(N.nucleolus.position);
+  const NS = { tick: 0, close: false, f: null };
+  /* the close view's frame: the point of the nucleolus's surface facing the place's view, the way out of the surface (dir),
+     and two ways along it (right, up); an offset in nm. The camera looks along the surface, 18° above it, so the
+     nucleolus's edge lies across the foot of the picture like a horizon, the parts just above it against the nucleus
+     (looking straight at the surface, the picture had been pink from edge to edge: nowhere to see where you are); on the
+     screen the way out is up and `up` is across */
+  function nolFrame() {
+    if (NS.f) return NS.f;
+    const c = NOL(), vp = V(...world.P.nucleolus.view.pos), dir = vp.clone().sub(c).normalize();
+    N.group.updateMatrixWorld(true);
+    const hit = new THREE.Raycaster(vp, dir.clone().negate()).intersectObject(N.nucleolus, false)[0];
+    const S = hit ? hit.point.clone() : c.clone().addScaledVector(dir, 0.75);
+    const right = new THREE.Vector3().crossVectors(V(0, 1, 0), dir).normalize(), up = new THREE.Vector3().crossVectors(dir, right).normalize();
+    return (NS.f = { S, dir, right, up });
+  }
+  const nolPt = (x, y, z) => { const f = nolFrame(); return f.S.clone().addScaledVector(f.right, x / 1000).addScaledVector(f.up, y / 1000).addScaledVector(f.dir, z / 1000); };
+  /* each part's place and true size (token sizes: the small part 1.49 s wide and 0.87 s high, the large 1.96 s by 1.45 s) */
+  const PART = { small: { at: () => nolPt(0, -32, 20), s: 0.0168 }, large: { at: () => nolPt(0, 32, 23), s: 0.01535 } };
+  function nolBar(on) {
+    if (on && !NS.tick) { const f = () => { if (!NS.tick) return; scaleBar(world.camera.position.distanceTo(world.controls.target)); NS.tick = requestAnimationFrame(f); }; NS.tick = requestAnimationFrame(f); }
+    else if (!on && NS.tick) { cancelAnimationFrame(NS.tick); NS.tick = 0; if (bar) bar.hidden = true; }
+  }
+  /* close: what is drawn larger than life hidden, the scale bar on, the camera to the edge; far: back to the place's view */
+  async function nolZoom(close) {
+    if (close === NS.close) return;
+    if (close) {
+      /* (and every nuclear pore at its true size, 120 nm across, as in the dive: drawn twice as wide, the pores of the far
+         side had stood in the picture as rings far larger than the parts) */
+      N.chromatin.visible = false; N.nolSpark.visible = false; N.PK.uPoreK.value = 0.513; NS.close = true; nolBar(true);
+      const f = nolFrame();
+      const a = THREE.MathUtils.degToRad(18), cd = f.right.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.dir, Math.sin(a)).normalize();
+      await camGo({ at: nolPt(0, 0, 32), dir: cd, up: f.dir.clone(), dist: 0.3 }, R.FAST ? 0 : 3400);
+    } else {
+      NS.close = false;
+      await camGo({ at: V(...world.P.nucleus.view.at), dir: V(...world.P.nucleus.view.pos).sub(V(...world.P.nucleus.view.at)).normalize(), up: V(0, 1, 0), dist: V(...world.P.nucleus.view.pos).distanceTo(V(...world.P.nucleus.view.at)) }, R.FAST ? 0 : 3200);
+      nolBar(false); N.PK.uPoreK.value = 1; world.nucLook();
+    }
+  }
+  /* leaving the place: the chromosomes and the sparkles as the nucleus's look says, no scale bar */
+  function nolOff() { if (NS.close || NS.tick) { NS.close = false; nolBar(false); N.PK.uPoreK.value = 1; world.nucLook(); } }
+  /* the two parts named beside them, on level lines (never on them: their names had stood on the parts and hidden them;
+     on a phone too, aside: the small part's on its left, the large part's on its right, so neither stands on the other part) */
+  const nolNames = () => quest.names.set(['small', 'large'].filter(k => props[k]).map(k => ({ key: 'nol-' + k, free: true, aside: true, prefer: k === 'small' ? -1 : 1, html: `<span class="nm__t">${k === 'small' ? 'small part' : 'large part'}</span>`, spots: [props[k].position.clone()] })),
+    HUD(), lr(nolPt(0, -48, 20), nolPt(0, 48, 20)));
+  /* a part at its true size; its glow much less than a token's elsewhere (a bright glow spread far beyond it and made the
+     large part look larger than it is), on copies of the shared materials */
+  const makePart = kind => { const t = keep(token(kind, PART[kind].s)); t.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.emissiveIntensity *= 0.25; } }); t.position.copy(PART[kind].at()); t.userData.kind = kind; return (props[kind] = t); };
   async function build(kind) {
-    const v = nucView(); if (world.camera.position.distanceTo(v.pos) > 0.6) { await fly(world.P.nucleolus.view.pos, world.P.nucleolus.view.at); }
-    const c = NOL(), at = c.clone().add(V(0.9, kind === 'small' ? -0.2 : 0.5, 0.6));
-    await press(() => at.clone().add(V(0, 0.38, 0)), 'Build', { cost: COST.parts / 2 });
-    /* its RNA is made here, in the nucleolus; its proteins were made in the cytoplasm and enter through nuclear pores */
-    const rna = keep(token('rna', 0.3)); rna.position.copy(c).add(V(0.35, 0.05, 0.55)); rna.scale.setScalar(0.15);
-    await tween(rna, { to: rna.position.clone(), ms: 800, scale: 1 });
-    const prots = W.pores.slice().sort((a, b) => a.distanceTo(at) - b.distanceTo(at)).slice(0, 2).map(p => { const t = keep(token('protein', 0.15)); t.position.copy(p); return t; });
-    await Promise.all(prots.map(t => tween(t, { to: at, ms: 1200 })));
-    await tween(rna, { to: at, ms: 500, scale: 0.5 });
+    if (!NS.close) { const v = world.P.nucleolus.view; if (world.camera.position.distanceTo(V(...v.pos)) > 0.6) await fly(v.pos, v.at); }
+    await nolZoom(true);
+    if (kind === 'large' && !props.small) makePart('small');
+    nolNames();
+    const f = nolFrame(), at = PART[kind].at();
+    await press(() => at.clone().addScaledVector(f.dir, 0.03), 'Build', { cost: COST.parts / 2 });
+    /* its RNA is made here: a strand grows up out of the nucleolus and folds up where the part forms */
+    const S0 = at.clone().addScaledVector(f.dir, -0.02), pts = [];
+    for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push(S0.clone().lerp(at, t).addScaledVector(f.up, Math.sin(t * 11) * 0.007 * (1 - t * 0.6)).addScaledVector(f.right, Math.cos(t * 8) * 0.004)); }
+    const rna = keep(ribbon(new THREE.CatmullRomCurve3(pts), { color: 0xffb35c, radius: 0.0012, segs: 120 }));
+    const t0 = performance.now();
+    await live(new Promise(r => { const g = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 1800); rna.userData.grow(k); world.kick(); if (k < 1) requestAnimationFrame(g); else r(); }; g(); }));
+    /* its proteins came into the nucleus from the cytoplasm, through nuclear pores: they arrive from the side */
+    const n = kind === 'small' ? 6 : 9, prots = [...Array(n)].map((_, i) => { const t = keep(token('protein', 0.0025)); t.position.copy(at).addScaledVector(f.up, (i % 2 ? 1 : -1) * (0.05 + 0.006 * i)).addScaledVector(f.dir, 0.06 + 0.007 * i); return t; });
+    await Promise.all(prots.map((t, i) => wait(R.TEST ? 0 : i * 140).then(() => tween(t, { to: at.clone().addScaledVector(f.up, Math.cos(i * 2.4) * 0.006).addScaledVector(f.dir, Math.sin(i * 2.4) * 0.004), ms: 1200 }))));
+    /* together they fold into the part */
+    const part = makePart(kind); part.scale.setScalar(0.3);
+    await Promise.all([tween(part, { to: at, ms: 700, scale: 1 }), ...prots.map(t => tween(t, { to: at, ms: 600, scale: 0.4 }))]);
     [rna, ...prots].forEach(drop);
-    const part = keep(token(kind, 0.42)); part.position.copy(at); burst(scene, at, { n: 24, r: 0.35 });
-    props[kind] = part;
-    quest.say(kind === 'small' ? 'The small part of a ribosome: RNA made here, and proteins made in the cytoplasm.' : 'The large part of a ribosome: RNA and proteins too.', 'ok');
+    burst(scene, at, { n: 18, r: 0.02 });
+    nolNames();
+    quest.say(kind === 'small'
+      ? 'The small part of a ribosome: RNA made here, and proteins made in the cytoplasm. It is about 25 nanometres (nm) across: if the cell were a football pitch, it would be smaller than a football.'
+      : 'The large part of a ribosome: RNA and proteins too. It is about 30 nm across: larger than the small part.', 'ok');
   }
   async function out() {
-    const parts = ['small', 'large'].map(k => props[k] || (() => { const t = keep(token(k, 0.42)); t.position.copy(NOL()).add(V(0.9, k === 'small' ? -0.2 : 0.5, 0.6)); return t; })());
+    await nolZoom(true);
+    const parts = ['small', 'large'].map(k => props[k] || makePart(k));
+    nolNames();
+    const f = nolFrame();
+    /* each part, pressed, drifts away from the nucleolus (out of the close view), its glow on */
     for (const p of parts) {
-      await press(() => p.position.clone().add(V(0, 0.4, 0)), p.userData.kind === 'small' ? 'small part' : 'large part', { cls: 'tok', side: 't' });
-      const pore = W.pores.slice().sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position))[0];
-      await tween(p, { to: pore, ms: 1100, scale: 0.6 });
-      drop(p);
+      await press(() => p.position.clone().addScaledVector(f.dir, 0.03), p.userData.kind === 'small' ? 'small part' : 'large part', { cls: 'tok', side: 't' });
+      haloSprite(p, 0.035, 0xfff1a8);
+      quest.names.set(quest.names.items.filter(it => it.key !== 'nol-' + p.userData.kind), HUD(), lr(nolPt(0, -48, 20), nolPt(0, 48, 20)));
+      await tween(p, { to: p.position.clone().addScaledVector(f.dir, 0.16).addScaledVector(f.up, p.userData.kind === 'small' ? -0.03 : 0.03), ms: 1400 });
     }
+    quest.names.set([], HUD());
+    /* from far away they are far too small to see: the glows show them on their way out through the nearest pores */
+    await nolZoom(false);
+    quest.say('From here the two parts are far too small to see: the glows show where they are.');
+    await Promise.all(parts.map((p, i) => { const pore = W.pores.slice().sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position))[i]; return wait(R.TEST ? 0 : i * 500).then(() => tween(p, { to: pore, ms: 2200 })); }));
+    parts.forEach(drop);
     await quest.gain('parts', NOL());
     await quest.next('Back to the map');
   }

@@ -15,11 +15,11 @@
    (in muscle, the glycerol phosphate shuttle passes them to FAD in the inner membrane: Mráček et al. 2013, BBA 1827:401).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611092139';
-import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611092139';
-import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611092139';
-import { bilayer, MEM } from './membrane.js?v=202611092139';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611092139';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611092229';
+import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611092229';
+import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611092229';
+import { bilayer, MEM } from './membrane.js?v=202611092229';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611092229';
 
 /* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
 const PROTS = ['vdac', 'mpc_ims', 'mpc_occ', 'mpc_mat'];
