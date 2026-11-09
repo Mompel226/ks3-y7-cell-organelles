@@ -30,7 +30,7 @@ export const REAL = {
   ] },
   nucleus: { em: [
     where('nucleus', 'Electron micrograph of a slice through a whole nucleus: a long oval outlined in violet, with the thin cytoplasm round it, and a small white box on the lower edge of the oval, near its left end.',
-      'a slice through the whole nucleus (violet line) of the same cell, with the thin layer of cytoplasm round it.'),
+      'a slice through the whole nucleus of the same cell. The violet line is the edge of the nucleus, the nuclear envelope: its two membranes are too thin to see separately at this size. The grey band between the violet line and the edge of the cell is cytoplasm, only a thin layer here.'),
     { src: 'img/real/nucleus.jpg', credit: HELA,
       alt: 'Electron micrograph of the lower edge of a nucleus: the nucleus above, a grey double line of membranes across the picture, and under it a purple line with three gaps; cytoplasm and a round mitochondrion below.',
       cap: `<b>The nuclear envelope</b> (purple line) is the edge of the nucleus: the nucleus is above it, the cytoplasm below. Its two membranes show as a grey double line, and the purple line has a gap at each <b>nuclear pore</b>, a hole through both membranes. ${ONE_CELL}` }

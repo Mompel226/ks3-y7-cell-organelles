@@ -208,15 +208,42 @@ export function makeStage(wrap, { onFrame } = {}) {
   let numList = [], numBoxes = [];
   function setNums(list) { numList = list || []; }
   function placeNums() {
-    /* only when an atom is large enough on the screen to carry its number */
-    const show = rest || true, k = pxPerNm() * 0.15;  /* a number shows when a bond (0.15 nm) is at least 10 px long */
+    /* a molecule's numbers show only where they can be read: no two of its badges touching on the screen (9 Nov 2026,
+       Daniel: "when the molecule is seen from far away, having the number is just very, very annoying"; a bond of 10 px had
+       been enough, and the badges had stood on each other). Each badge stands beside its atom, outward from the middle of
+       its molecule, touching the atom's edge, so that the carbon itself still shows ("you should maybe see a little bit of
+       the carbon so it's obvious that what you're labeling is the carbon"), and larger. A molecule: the numbered atoms less
+       than 0.4 nm apart, joined in groups (a glucose's six carbons; a phosphate's charges); its numbers all or none, full
+       size when they fit, else small, else none. Atoms marked off (not named by the step) count only for the middle */
+    const P = numList.map(it => project(it.p)), G = numList.map((_, i) => i);
+    const top = i => { while (G[i] !== i) i = G[i] = G[G[i]]; return i; };
+    for (let i = 0; i < numList.length; i++) for (let j = i + 1; j < numList.length; j++) if (numList[i].p.distanceTo(numList[j].p) < 0.4) G[top(i)] = top(j);
+    const mid = {};      /* each molecule's middle on the screen */
+    numList.forEach((_, i) => { const r = top(i), m = mid[r] || (mid[r] = { x: 0, y: 0, k: 0, out: false }); m.x += P[i][0]; m.y += P[i][1]; m.k++; if (!P[i][2]) m.out = true; });
+    const atomPx = 0.052 * pxPerNm();      /* a carbon's ball on the screen (mol.js ELR) */
+    const at = (i, half) => {
+      const m = mid[top(i)], cx = m.x / m.k, cy = m.y / m.k; let dx = P[i][0] - cx, dy = P[i][1] - cy; const L = Math.hypot(dx, dy);
+      if (L < 0.5) { dx = 0; dy = -1; } else { dx /= L; dy /= L; }
+      const d = atomPx + half - Math.min(4, half * 0.3);
+      return [P[i][0] + dx * d, P[i][1] + dy * d];
+    };
+    const SIZES = [{ half: 11, cls: '' }, { half: 8, cls: ' sm' }];
+    const pick = {};     /* each molecule's size: one of SIZES, or none */
+    for (const r of Object.keys(mid)) {
+      const on = numList.map((it, i) => i).filter(i => top(i) === +r && !numList[i].off);
+      if (!on.length || mid[r].out) continue;
+      pick[r] = SIZES.find(S => { const Q = on.map(i => at(i, S.half)); for (let a = 0; a < Q.length; a++) for (let b = a + 1; b < Q.length; b++) if (Math.hypot(Q[a][0] - Q[b][0], Q[a][1] - Q[b][1]) < 2 * S.half + 1) return false; return true; });
+      /* and the atoms themselves far enough apart to tell which badge is whose */
+      if (pick[r] && on.length > 1 && atomPx < 3) pick[r] = null;
+    }
     let n = 0; numBoxes = [];
-    if (show && k >= (W < 560 ? 8.5 : 10)) for (const it of numList) {
-      const p = project(it.p); if (!p[2]) continue;
-      numBoxes.push({ l: p[0] - 9, r: p[0] + 9, t: p[1] - 9, b: p[1] + 9 });
+    for (let i = 0; i < numList.length; i++) {
+      const it = numList[i], S = pick[top(i)]; if (it.off || !S) continue;
+      const p = at(i, S.half), half = S.half;
+      numBoxes.push({ l: p[0] - half, r: p[0] + half, t: p[1] - half, b: p[1] + half });
       let b = badge[n]; if (!b) { b = document.createElement('b'); b.className = 'ibv__num'; nums.appendChild(b); badge.push(b); }
       if (b.textContent !== String(it.n)) b.textContent = it.n;
-      b.className = 'ibv__num' + (it.cls ? ' ' + it.cls : '');
+      b.className = 'ibv__num' + (it.cls ? ' ' + it.cls : '') + S.cls;
       b.style.transform = `translate(${p[0].toFixed(1)}px, ${p[1].toFixed(1)}px) translate(-50%, -50%)`; b.style.display = '';
       n++;
     }

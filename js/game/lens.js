@@ -28,7 +28,7 @@ import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js?v
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { MeshoptDecoder } from '../vendor/three/examples/jsm/libs/meshopt_decoder.module.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { REAL } from './real.js?v=202611091831';
+import { REAL } from './real.js?v=202611092139';
 const R = window.REV, { $, $$, h, esc } = R;
 
 const SIMPLE = { src: 'img/diagram/simple-animal-cell.svg', vb: [730.39, 560.42], credit: 'Diagram: domdomegg, Wikimedia Commons, CC BY 4.0 (ribosomes added by the Cells Lab)' };
@@ -56,7 +56,7 @@ const PART = {
 
 /* the parts of the real cell model each place lights (the ER: rough and smooth together, as the data has them) */
 const REAL3D = {
-  nucleus: { parts: ['w_nucleus', 'w_nucleolus'], name: 'nucleus', nuc: 1 }, nucleolus: { parts: ['w_nucleolus'], name: 'nucleolus', nuc: 0.6 },
+  nucleus: { parts: ['w_nucleus', 'w_nucleolus'], name: 'nucleus', nuc: 1, cell: 1 }, nucleolus: { parts: ['w_nucleolus'], name: 'nucleolus', nuc: 0.6 },
   mito: { parts: ['w_mito'], name: 'mitochondria' }, rer: { parts: ['w_er'], name: 'endoplasmic reticulum (rough and smooth together)' },
   ser: { parts: ['w_er'], name: 'endoplasmic reticulum (rough and smooth together)' }, golgi: { parts: ['w_golgi'], name: 'Golgi apparatus' },
   wayin: { parts: ['w_cell'], name: 'cell membrane' }, exit: { parts: ['w_cell'], name: 'cell membrane' }
@@ -110,7 +110,7 @@ function bigPieces(geo) {
 function loadModel() {
   if (model) return model;
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611091831'));
+  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611092139'));
 }
 function viewer(pane, id) {
   const R3 = REAL3D[id], wrap = pane.querySelector('.lens__3d');
@@ -129,9 +129,12 @@ function viewer(pane, id) {
     root.traverse(o => {
       if (!o.isMesh) return;
       const name = o.name || (o.parent && o.parent.name), lit = R3.parts.includes(name);
-      /* the nucleus's views: its envelope, see-through, and the large nucleoli inside it; nothing else */
+      /* the nucleus's views: its envelope, see-through, and the large nucleoli inside it; the nucleus's own view also the
+         cell membrane round it, pale and see-through (Daniel, 9 Nov 2026: "just seeing the nucleus without the cell membrane
+         as reference … it's a bit confusing … see how the nucleus is within the whole cell"); nothing else */
       if (R3.nuc) {
         if (name === 'w_nucleus') { o.geometry = smoothed(o.geometry); o.material = envelopeMat(R3.nuc); o.renderOrder = 2; }
+        else if (name === 'w_cell' && R3.cell) { o.material = new THREE.MeshStandardMaterial({ color: COL.w_cell, roughness: 0.5, transparent: true, opacity: 0.13, depthWrite: false, side: THREE.DoubleSide }); o.renderOrder = 1; }
         else if (name === 'w_nucleolus') { o.geometry = bigPieces(smoothed(o.geometry)).geo; o.material = new THREE.MeshStandardMaterial({ color: COL.w_nucleolus, emissive: COL.w_nucleolus, emissiveIntensity: 0.22, roughness: 0.45 }); }
         else o.visible = false;
         return;
@@ -140,7 +143,7 @@ function viewer(pane, id) {
     });
     scene.add(root);
     /* look at the lit part, close enough to see it, far enough to see where it is in the cell */
-    const lit = new THREE.Box3(); root.traverse(o => { if (o.isMesh && (R3.nuc ? (o.name || (o.parent && o.parent.name)) === 'w_nucleus' : R3.parts.includes(o.name || (o.parent && o.parent.name)))) lit.expandByObject(o); });
+    const lit = new THREE.Box3(); root.traverse(o => { if (o.isMesh && (R3.nuc ? (o.name || (o.parent && o.parent.name)) === (R3.cell ? 'w_cell' : 'w_nucleus') : R3.parts.includes(o.name || (o.parent && o.parent.name)))) lit.expandByObject(o); });
     const all = new THREE.Box3().setFromObject(root), box = lit.isEmpty() ? all : lit;
     const c = box.getCenter(new THREE.Vector3()), r = Math.max(box.getSize(new THREE.Vector3()).length() / 2, all.getSize(new THREE.Vector3()).length() / 7);
     /* the nucleus fills the view, also in a narrow one (a phone): far enough for its width to fit */
@@ -193,7 +196,9 @@ const NUC_NOTE = `<div class="lens__note"><p class="lens__ch">One nucleolus, or 
 /* the real 3D's caption: what it is, then a line a sentence ("Drag to turn it" is on the picture) */
 const r3dCap = R3 => `<div class="lens__capt"><p class="lens__ch">${R3.nuc ? 'The nucleus of one real human cell' : 'One real human cell'} <span class="lens__soft">(a HeLa cell, a kind of cell grown in laboratories)</span></p><ul class="lens__pts">${(R3.nuc
   ? ['Rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next.',
-    'Only the nucleus is shown: its envelope, the two membranes round it (violet, drawn see-through), and inside it the nucleoli (pink).',
+    ...(R3.cell ? ['The cell membrane (pale blue, see-through) shows where the nucleus is in the whole cell. Its flat faces are the edges of the part that was imaged.',
+      'The nucleus: its envelope, the two membranes round it (violet, drawn see-through), and inside it the nucleoli (pink). Nothing else of the cell is shown.']
+      : ['Only the nucleus is shown: its envelope, the two membranes round it (violet, drawn see-through), and inside it the nucleoli (pink).']),
     'Its three nucleoli are each about 4 to 6 µm long: larger than in most cells, because this cell grows fast and makes many ribosomes.',
     'The computer program that found them in the micrographs also marked many small specks; they are not shown here.']
   : ['Rebuilt in 3D from thousands of electron micrographs, each about 5 nanometres from the next.', `The ${esc(R3.name)} is in colour; the rest is pale.`,
@@ -222,7 +227,7 @@ export function openLens(id) {
       <figcaption class="lens__capt"><p class="lens__ch"><span class="lens__ring" aria-hidden="true"></span>${esc(cap1(P.name))}, ringed in yellow</p><p class="lens__cr">${esc(D.credit)}.</p></figcaption></figure>
       <div class="lens__both"><p class="lens__ch">Both are right</p><p>The cell world is a picture made for this game. The game makes things brighter, and some of them larger, so that you can find them.</p></div></div>
     ${real.em ? `<div class="lens__pane" data-p="em" hidden>${real.em.map(e => `<figure class="lens__fig"><img src="${e.src}" alt="${esc(e.alt)}" loading="lazy">${capHTML(e.cap, e.credit)}</figure>`).join('')}</div>` : ''}
-    ${REAL3D[id] ? `<div class="lens__pane" data-p="r3d" hidden>${REAL3D[id].nuc ? NUC_NOTE + '<p class="lens__key"><span style="--c:#8f80ff">nuclear envelope (see-through)</span><span style="--c:#e05cb4">nucleolus</span></p>' : ''}<div class="lens__3d"><p class="lens__wait">Loading the real cell…</p><p class="lens__drag">✋ Drag to turn it</p></div>${r3dCap(REAL3D[id])}</div>` : ''}
+    ${REAL3D[id] ? `<div class="lens__pane" data-p="r3d" hidden>${REAL3D[id].nuc ? NUC_NOTE + '<p class="lens__key">' + (REAL3D[id].cell ? '<span style="--c:#7fd8ff">cell membrane (see-through)</span>' : '') + '<span style="--c:#8f80ff">nuclear envelope (see-through)</span><span style="--c:#e05cb4">nucleolus</span></p>' : ''}<div class="lens__3d"><p class="lens__wait">Loading the real cell…</p><p class="lens__drag">✋ Drag to turn it</p></div>${r3dCap(REAL3D[id])}</div>` : ''}
     <div class="lens__pane" data-p="size" hidden>${sizeHTML(P)}</div>
   </div>`;
   box.hidden = false;

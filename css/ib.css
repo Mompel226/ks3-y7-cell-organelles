@@ -168,9 +168,10 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 /* a long name in a crowded close-up may take two lines on a phone (the insulin path's tyrosine, 7 Nov 2026) */
 @media (max-width:560px){.ibv__lab--two span{white-space:normal;max-width:8.6em;text-align:center}}
 .ibv__lab .k{color:#FFD27A}
-.ibv__num{position:absolute;left:0;top:0;display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:#FFD27A;color:#1b1640;font:900 11.5px/1 var(--ibv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.4);will-change:transform}
+.ibv__num{position:absolute;left:0;top:0;display:grid;place-items:center;min-width:21px;height:21px;padding:0 4px;border-radius:11px;background:#FFD27A;color:#1b1640;font:900 13.5px/1 var(--ibv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.4);will-change:transform}
 .ibv__num.old{background:#C9CFE0;color:#2a3046}
 .ibv__num.neg{background:#ff5d6c;color:#fff;min-width:15px;height:15px;font-size:13px;box-shadow:0 0 0 1.5px #3a0a14}
+.ibv__num.sm{min-width:16px;height:16px;padding:0 3px;border-radius:8px;font-size:10.5px;box-shadow:0 0 0 1px #1b1640}   /* a molecule at the middle distance (stage.js placeNums) */
 .ibv__bar{position:absolute;left:0;top:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;color:#fff;font:800 13.5px/1 var(--ibv-sans);text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .ibv__bar i{display:block;height:9px;border:solid #fff;border-width:0 2px 2px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
 
@@ -282,3 +283,23 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__ovp em{margin-left:5px;font-style:normal;color:#FFD27A}
 .ibv__ovp b.is-ib em{color:#5a2a00}
 .ibv__ovin.is-narrow .ibv__ovn--k{max-width:none}
+
+/* ---------- how to say a key word (js/say.js, 9 Nov 2026): its lines under the meaning, in a word's tip (always dark) and
+   in the Words list (the sheet's colours); the game's page has the same lines in css/app.css, the view's own page does not
+   load that, so the whole look is here; a finger-sized button, as in the game ---------- */
+.ibv .says{display:grid;gap:7px;margin-top:8px;padding-top:7px}
+.ibv .says .say{--r-pill:999px;margin:0;font-size:14px;gap:5px 8px}
+.ibv .says .say__b{font-size:13.5px;font-weight:800;padding:5px 12px 5px 9px;min-height:32px}
+.ibv .says .say__b svg{width:15px;height:15px}
+.ibv .says .say__src,.ibv .says .say__c{font-size:12.5px}
+.ibv .says__r{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.ibv .says__w{font-weight:800}
+.ibv .says__r .say{flex:1 1 12em}
+.ibv-tip .says{border-top:1px solid rgba(255,226,154,.3)}
+.ibv-tip .says .say{--grey:#C9CEE8;--ink:#fff;--edge:rgba(255,226,154,.55);--card:#1c2147;--accent:#FFD27A;--accent-tint:#3a3466}
+.ibv-tip .says .say__g{color:#E4E7F7}
+.ibv-tip .says__w{color:#FFE7A8}
+.ibv__w .says{border-top:1px dashed var(--ibv-rule)}
+.ibv__w .says .say{--grey:var(--ibv-ink2);--ink:var(--ibv-ink);--edge:var(--ibv-rule);--card:var(--ibv-sheet);--accent:var(--ibv-accent-ink);--accent-tint:color-mix(in srgb,var(--ibv-accent) 14%,var(--ibv-sheet))}
+.ibv__w .says .say__g{color:var(--ibv-ink2)}
+.ibv__w .says__w{color:var(--ibv-ink)}

@@ -22,9 +22,9 @@
    reacting atom 0.35–0.45 nm from the substrate's.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611091831';
-import { loadProts, protein } from './prot.js?v=202611091831';
-import { disposeGroup, glow } from './stage.js?v=202611091831';
+import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611092139';
+import { loadProts, protein } from './prot.js?v=202611092139';
+import { disposeGroup, glow } from './stage.js?v=202611092139';
 
 const NAME = { glucose: 'glucose', g6p: '<i>glucose 6-phosphate</i>', f6p: '<i>fructose 6-phosphate</i>', fbp: '<i>fructose 1,6-bisphosphate</i>', dhap: '<i>dihydroxyacetone phosphate</i>',
   g3p: 'triose phosphate', bpg: '<i>1,3-bisphosphoglycerate</i>', pg3: '<i>3-phosphoglycerate</i>', pg2: '<i>2-phosphoglycerate</i>', pep: '<i>phosphoenolpyruvate</i>', pyruvate: 'pyruvate',
@@ -240,16 +240,22 @@ export async function build(stage, { V }) {
     G: { bpg: 1, adpt: 1 }, H: { pg3: 1 }, I: { pg2: 1 }, J: { pep: 1, adpt: 1 }, K: { pyr: 1, nadh: 1 }, L: { pyry: 1 }, M: { ethanal: 1, nadhy: 1 } };
   const run = (s, ms = [1300, 1000, 2300, 1200]) => [{ to: { cam: vi(s), ['k' + s]: 1 }, ms: ms[0] }, { to: { ['k' + s]: 1.999 }, ms: ms[1] }, { hold: 1700, labs: HOLD[s] },
     { to: { ['k' + s]: 3 }, ms: ms[2] }, { to: { ['k' + s]: 4 }, ms: ms[3] }];
+  /* nums: the carbon numbers a step shows, only those its words name: all six where the words follow all of them (glucose
+     before the first station), else the carbons the reaction changes (Daniel, 9 Nov 2026: "just
+     show the numbers when it actually makes sense … when there is a reaction happening, what carbon is reacting? Is it
+     number 1? Is it number 6? That might be worth it, but not showing all of them"); none where it says none. Each step
+     looked at (9 Nov 2026): the two pyruvates at the end (their words name all six) are too small for numbers, which hid
+     one of them, so none there */
   const steps = [
-    { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { glucose: 1 }, pic: 'Above, each shape is one enzyme at its true size, and the gold dot is the molecule. The last two, on the right, are a yeast cell\'s.' },
-    { phases: run('A'), labs: { g6p: 1, adp: 1 } },
-    { phases: run('B'), labs: { f6p: 1 } },
-    { phases: run('C'), labs: { fbp: 1, adp: 1 } },
-    { phases: run('D'), labs: { dhap: 1, g3pt: 1 } },
-    { phases: run('E'), labs: { g3pd: 1, g3pt: 2 } },
+    { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { glucose: 1 }, nums: 'all', pic: 'Above, each shape is one enzyme at its true size, and the gold dot is the molecule. The last two, on the right, are a yeast cell\'s.' },
+    { phases: run('A'), labs: { g6p: 1, adp: 1 }, nums: [6] },
+    { phases: run('B'), labs: { f6p: 1 }, nums: [1, 2] },
+    { phases: run('C'), labs: { fbp: 1, adp: 1 }, nums: [1] },
+    { phases: run('D'), labs: { dhap: 1, g3pt: 1 }, nums: [3, 4] },
+    { phases: run('E'), labs: { g3pd: 1, g3pt: 2 }, nums: [3, 4] },
     { phases: run('F', [1600, 1300, 2600, 1200]), labs: { bpg: 1, nadh: 1, nadhd: 2 } },
     { phases: run('G', [1600, 1200, 2300, 1200]), labs: { pg3: 1, atpt: 1 } },
-    { phases: run('H'), labs: { pg2: 1 } },
+    { phases: run('H'), labs: { pg2: 1 }, nums: [5, 6] },
     { phases: run('I'), labs: { pep: 1, water: 1 } },
     { phases: run('J', [1500, 1200, 2300, 1200]), labs: { pyr: 1, atpt: 1, pyrd: 2 } },
     { phases: [{ to: { cam: vi('J') }, ms: 400 }], labs: { pyr: 1, pyrd: 1 }, board: '<b>For each glucose</b><span>ATP used: 2</span><span>ATP made: 4</span><span class="b">Net: 2 ATP</span><span class="b">2 reduced NAD</span><span class="b">2 pyruvate</span>' },

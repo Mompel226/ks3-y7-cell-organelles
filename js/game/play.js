@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091831';
-import { state, COST, RESPIRE } from './state.js?v=202611091831';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091831';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091831';
-import { sound } from './sound.js?v=202611091831';
-import { magicStandard } from '../world/magic.js?v=202611091831';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611092139';
+import { state, COST, RESPIRE } from './state.js?v=202611092139';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611092139';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611092139';
+import { sound } from './sound.js?v=202611092139';
+import { magicStandard } from '../world/magic.js?v=202611092139';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611091831').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611092139').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -45,7 +45,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -714,6 +714,42 @@ export function makePlay(world, quest) {
   }
   /* the dam: the hydrogen ions flow back only through ATP synthase, which turns in steps, one for each ion, and makes ATP
      (mitoparts.js ionStream, atpMaker) */
+  /* a small name that moves with what it names (9 Nov 2026, Daniel, of the dam: "the ATP label and few hydrogen ions, they
+     are static … show that the little yellow dots are hydrogen ions … labeling all of the ATP molecules … showing ADP and
+     then converting it into ATP"): a sprite drawn over everything, the same size on the screen at any distance (22 px
+     high), above its part, its words changed when the part changes. The names on level lines (names.js) stay for what
+     stands still */
+  const TAGS = {};
+  function tagTex(text) {
+    if (TAGS[text]) return TAGS[text];
+    const c = document.createElement('canvas'), g = c.getContext('2d'), F = '800 44px Nunito, Arial, sans-serif';
+    g.font = F; const w = Math.ceil(g.measureText(text).width) + 44; c.width = w; c.height = 68;
+    g.font = F; g.fillStyle = 'rgba(28,20,44,0.92)'; g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 3;
+    g.beginPath(); if (g.roundRect) g.roundRect(2, 2, w - 4, 64, 30); else g.rect(2, 2, w - 4, 64); g.fill(); g.stroke();
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, w / 2, 36);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    return (TAGS[text] = { t, aspect: w / 68 });
+  }
+  function moveTag(sp, text, parent, local, lift) {      /* lift: px between the part and its tag */
+    const T = tagTex(text); if (sp.material.map !== T.t) { sp.material.map = T.t; sp.material.needsUpdate = true; }
+    const a = parent.localToWorld(local.clone()), b = parent.localToWorld(local.clone().add(V(1, 0, 0)));
+    const pa = world.project(a), pb = world.project(b), px = Math.max(0.01, Math.hypot(pb.x - pa.x, pb.y - pa.y));   /* px for 1 unit here */
+    /* above its part on the SCREEN (the camera's up, carried into the part's own frame), lift px clear of it */
+    const upW = V(0, 1, 0).applyQuaternion(world.camera.quaternion), upL = parent.worldToLocal(a.clone().add(upW)).sub(local).normalize();
+    const h = 22 / px; sp.scale.set(h * T.aspect, h, 1); sp.position.copy(local).addScaledVector(upL, (lift + 11) / px);
+    /* never over a name, the corner box or the panel, nor cut by the picture's edge: there it fades out, and back in when
+       clear (a fade, never a blink: memory label-lines-never-cross) */
+    const c = world.project(parent.localToWorld(sp.position.clone())), cr = world.canvas.getBoundingClientRect(), hw = 11 * T.aspect + 4;
+    const box = { l: cr.left + c.x - hw, r: cr.left + c.x + hw, t: cr.top + c.y - 15, b: cr.top + c.y + 15 };
+    const over = r => r.width > 0 && box.l < r.right && box.r > r.left && box.t < r.bottom && box.b > r.top;
+    const s = world.size, clear = c.inFront && c.x - hw > 4 && c.x + hw < s.w - (world.inset.right || 0) - 4 && c.y - 15 > 4 && c.y + 15 < s.h - (world.inset.bottom || 0) - 4
+      && ![...document.querySelectorAll('#names .nm')].some(e => e.style.visibility !== 'hidden' && over(e.getBoundingClientRect())) && !HUD2().some(e => over(e.getBoundingClientRect()));
+    const m = sp.material; m.opacity += ((clear ? 1 : 0) - m.opacity) * 0.18; sp.visible = m.opacity > 0.02;
+  }
+  /* the dam's tags, made once (on the two ATP synthases, which stay in the world) and hidden when the pupil leaves */
+  let damTags = null;
+  function damTagsOff() { if (damTags) [damTags.h, ...damTags.m.flat()].forEach(sp => { sp.visible = false; sp.material.opacity = 0; }); }
+  const newTag = parent => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex('ATP').t, transparent: true, opacity: 0, depthTest: false, depthWrite: false })); sp.renderOrder = 30; sp.visible = false; parent.add(sp); return sp; };
   async function dam() {
     mitoLoop(true); patch(); setLid(1); quest.names.set([]);
     const G = PT.geo, HC = hCrowd(); HC.on = true; HC.full = true;
@@ -726,6 +762,17 @@ export function makePlay(world, quest) {
     /* one ion followed, brighter, through the first ATP synthase */
     if (!props.follow) { props.follow = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), new THREE.MeshStandardMaterial({ color: H_COL, emissive: H_COL, emissiveIntensity: 1.1, roughness: 0.3 })); haloSprite(props.follow, 1.1, 0xd9ff9e); A[0].add(props.follow); }
     const fol = props.follow;
+    /* the tags: one on the ion followed ("hydrogen ion"), one on each molecule made at a head ("ADP + phosphate", then
+       "ATP" once the phosphate has joined, until it has gone) */
+    if (!damTags) damTags = { h: newTag(A[0]), m: props.flow.map((F, i) => F.m.made.map(() => newTag(A[i]))) };
+    const TG = damTags;
+    const tagsDraw = () => {
+      if (fol.visible) moveTag(TG.h, 'hydrogen ion', A[0], fol.position, 8); else { TG.h.visible = false; TG.h.material.opacity = 0; }
+      props.flow.forEach((F, i) => F.m.made.forEach((m, j) => {
+        const sp = TG.m[i][j], on = F.m.seen(m) && (m.userData.leave || 0) < 0.85;
+        if (on) moveTag(sp, (m.userData.join || 0) > 0.6 ? 'ATP' : 'ADP + phosphate', A[i], m.position, 12); else { sp.visible = false; sp.material.opacity = 0; }
+      }));
+    };
     const names = extra => nanoNames([['nm-atp', 'ATP synthase<br>(a protein)', A.map(a => a.localToWorld(V(0, 12, 0))), 'ATP synthase', true],
       ['nm-hi2', 'many<br>hydrogen ions', crowdSpots(), 'many hydrogen ions'],
       ['nm-few', 'few<br>hydrogen ions', HC.homes.slice(HC.N + 3).map(h => PT.group.localToWorld(h.clone())), 'few hydrogen ions'], ...extra], G.uc - 21, G.uc + 21, G.nR - 16);
@@ -739,16 +786,16 @@ export function makePlay(world, quest) {
       const now = performance.now(); T += R.FAST ? T1 : Math.min(0.1, (now - last) / 1000) * 2; last = now;
       props.flow.forEach(F => { F.rotor.rotation.y = F.s.rotorY(T); F.s.update(T, true); F.m.update(T, true); });   /* both the same way, with their ions */
       const kf = 8 * Math.floor(Math.max(0, T - 1e-6) / 8); fol.visible = props.flow[0].s.ionAt(kf, T, fol.position) > 0;
+      tagsDraw();
       world.kick && world.kick(); requestAnimationFrame(tick);
     };
     tick();
     await live(new Promise(res => { const f = () => (T >= T1 || quest.session !== s0 ? res() : requestAnimationFrame(f)); f(); }));
-    /* ATP is named where it is made: the near side of each head, where a new one forms every eight ions */
-    const site = a => { const rr = a.userData.measured ? 6.7 : 4.9; return a.localToWorld(V(Math.cos(Math.PI / 3) * rr, 13.2, Math.sin(Math.PI / 3) * rr)); };
-    names([['nm-atpm', 'ATP', A.map(site)]]);
+    /* (each ATP is named by its own tag as it is made; the one fixed name "ATP" at the head had not shown that it is made
+       again and again) */
     ok(ib('As the hydrogen ions flow back through it, the ring of ATP synthase turns, and it makes <b>ATP</b>. The cell uses the energy in ATP for its work.', 'As the protons flow back through it, down their gradient (<dfn data-w="chemiosmosis">chemiosmosis</dfn>), the ring of ATP synthase turns, and it phosphorylates ADP: <b>ATP</b>. The cell uses the energy in ATP for its work.'));
     await quest.next();
-    run = false;
+    run = false; damTagsOff();
   }
   async function release() {
     mitoLoop(true); patch(); setLid(1);
@@ -823,7 +870,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611091831').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611092139').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);

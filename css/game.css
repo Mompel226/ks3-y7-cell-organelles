@@ -380,7 +380,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .cf__n{margin:8px 0 4px;font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent)}
 .cf__t{font-size:17px;line-height:1.5}
 .cf__t p{margin:0}.cf__t p+p{margin-top:.45em}
-.cf__do{margin-top:12px}
+.cf__do{margin-top:12px;display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:10px;flex-wrap:wrap}   /* Back (after Next in the page) on the left */
 /* two columns where there is room (the film beside its words, so the window fits a laptop's screen); one on a phone */
 .cf{width:min(980px,100%)}
 .cf__grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:8px}

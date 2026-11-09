@@ -27,7 +27,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { magicStandard } from './magic.js?v=202611091831';
+import { magicStandard } from './magic.js?v=202611092139';
 
 /* the mitochondria's own random numbers: the rest of the seeded world stays exactly as it was */
 function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -258,7 +258,7 @@ let ATP_DATA = null;
 /* the measured model (atp-synthase.js, written by tools/atp-synthase.py), fetched the first time it is needed */
 export async function loadATP() {
   /* a download that fails (slow school Wi-Fi) must not stop the place: then the drawn one stands in, and says so */
-  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611091831')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
+  if (ATP_MEASURED && !ATP_DATA) try { ATP_DATA = (await import('./atp-synthase.js?v=202611092139')).ATP_SYNTHASE; } catch (e) { console.warn('ATP synthase: the measured shape did not load, the drawn one is used', e); }
   return ATP_DATA;
 }
 /* is the ATP synthase drawn now the measured one? (the film's source line says which) */
@@ -712,6 +712,7 @@ export function atpMaker(AS, mats = nucleotideMats()) {
         sp.set(Math.cos(site) * rr, 12 + 1.2, Math.sin(site) * rr); far.copy(sp).multiplyScalar(1.6).setY(16 + 3 * leave);
         m.position.copy(far).lerp(sp, arrive * (1 - leave)); m.position.y += 4 * leave;
         m.userData.pi.position.set(1.6 - 0.83 * join, 0.4 - 0.52 * join, 0); m.userData.p3.visible = false; m.userData.pi.visible = true;
+        m.userData.join = join; m.userData.leave = leave;      /* read by the tags that name it (play.js dam) */
       });
     }
   };

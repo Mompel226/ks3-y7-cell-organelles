@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611091831';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611091831';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611092139';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611092139';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -33,6 +33,7 @@ const params = new URLSearchParams(location.search);
    its time, its names on a still picture (Daniel, 9 Nov 2026: "Nothing should disappear") */
 const TEST = params.has('ibstill');
 const FAST = TEST || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+let numsNow = null;     /* the carbon numbers the step on show names (show(), below) */
 
 /* a paragraph's level chip: [sl], [hl], [x], with an IB code after it ([hl C1.2.8]) */
 function paras(t) {
@@ -81,12 +82,26 @@ function termsIn(root, tipHost) {
   });
 }
 
+/* how to say a key word (Daniel, 9 Nov 2026: "find the audios from the Cambridge website for all words here ... hydrophobic
+   ... when I click on it, it doesn't allow me the option to listen to it"): js/say.js (labs-shared/say/say.js, copied here
+   by tools/practicals-sync.mjs; the game's page and glucose-to-atp/ both load it), the same lines as the game's (core.js
+   sayHtml): a word it knows whole gives one line, its spelling guide and the Cambridge Dictionary's UK and US recordings
+   (or one Wikimedia Commons recording); a phrase gives a named line for each hard word in it (ATP synthase: ATP, synthase).
+   A press plays and never closes the meaning (say.js hears it first); in the game the music pauses while a word plays. */
+function sayHtml(w) {
+  const S = window.Say; if (!S || !w) return '';
+  const name = String(w.en).replace(/\s*\([^)]*\)/g, '').trim(), list = S.words(name);
+  if (!list.length) return '';
+  const whole = list.length === 1 && list[0].toLowerCase() === name.toLowerCase();
+  return '<div class="says">' + list.map(x => whole ? S.html(x) : `<div class="says__r"><span class="says__w">${esc(x)}</span>${S.html(x)}</div>`).join('') + '</div>';
+}
+
 /* in the game, the view brings its own styles (the game's page does not load them) */
 function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611091831', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611092139', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -95,7 +110,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611091831' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611092139' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -194,7 +209,9 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     scene.draw(K, t, dt);
     /* the atoms no name may cover (a chapter of molecules) */
     stage.setAvoid(scene.avoid ? scene.avoid() : []);
-    stage.setNums(scene.nums ? scene.nums(K) : []);
+    /* the carbon numbers the step names (a step's nums: 'all' or a list; none without), and any charges; the others are
+       passed marked off, so that stage.js knows where each molecule's middle is (it shows numbers only where they can be read) */
+    stage.setNums(scene.nums ? scene.nums(K).map(it => it.cls || numsNow === 'all' || (Array.isArray(numsNow) && numsNow.includes(+it.n)) ? it : Object.assign({ off: true }, it)) : []);
     /* no name stands on the board, the key, the hint, or on what the chapter marks (the Krebs wheel's seat names) */
     const ko = [];
     if (!boardEl.hidden) { const b = boardEl.getBoundingClientRect(), s0 = stageEl.getBoundingClientRect(); if (b.width) ko.push({ l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }); }
@@ -327,6 +344,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   async function show(s, { replay = true } = {}) {
     const my = ++token; si = s;
     const st = steps[s], sst = scene.steps[s] || { phases: [] };
+    numsNow = sst.nums || null;
     window.IBV.at = { ci, si: s, rest: false };
     countEl.textContent = `Step ${s + 1} of ${steps.length}`;
     textEl.innerHTML = paras(st.t); termsIn(textEl);
@@ -426,7 +444,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     const w = window.KS3_GLOSSARY && window.KS3_GLOSSARY.by[b.dataset.w]; if (!w) return;
     if (tipFor === b) { closeTip(); return; } closeTip();
     const l = lang(), tr = l === 'en' ? '' : `<div class="tr">${l !== 'zh' ? `<span lang="ko"><i>한국어</i>${esc(w.ko)}</span>` : ''}${l !== 'ko' ? `<span lang="zh-Hans"><i>中文</i>${esc(w.zh)}</span>` : ''}</div>`;
-    tip = document.createElement('div'); tip.className = 'ibv-tip'; tip.setAttribute('role', 'note'); tip.innerHTML = `<b>${esc(w.en)}</b>: ${esc(w.d)}${tr}`;
+    tip = document.createElement('div'); tip.className = 'ibv-tip'; tip.setAttribute('role', 'note'); tip.innerHTML = `<b>${esc(w.en)}</b>: ${esc(w.d)}${tr}${sayHtml(w)}`;
     root.appendChild(tip); tipFor = b;
     const r = b.getBoundingClientRect(), R = root.getBoundingClientRect(), tw_ = tip.offsetWidth, th = tip.offsetHeight;
     let x = Math.max(8, Math.min(r.left - R.left, R.width - tw_ - 8)), y = r.bottom - R.top + 6;
@@ -442,7 +460,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     const G = window.KS3_GLOSSARY; if (!G) return;
     const keys = []; [...CHAPTERS, ...Object.values(EXPLORE)].forEach(c => (c.steps || []).forEach(s => (s.t.match(/data-w="([^"]+)"/g) || []).forEach(m => { const k = m.slice(8, -1); if (!keys.includes(k)) keys.push(k); })));
     const l = lang();
-    $('.ibv__wblist').innerHTML = keys.map(k => G.by[k]).filter(Boolean).map(w => `<details class="ibv__w"><summary><b>${esc(w.en)}</b>${l !== 'en' && l !== 'zh' ? `<span lang="ko">${esc(w.ko)}</span>` : ''}${l !== 'en' && l !== 'ko' ? `<span lang="zh-Hans">${esc(w.zh)}</span>` : ''}</summary><p>${esc(w.d)}</p></details>`).join('');
+    $('.ibv__wblist').innerHTML = keys.map(k => G.by[k]).filter(Boolean).map(w => `<details class="ibv__w"><summary><b>${esc(w.en)}</b>${l !== 'en' && l !== 'zh' ? `<span lang="ko">${esc(w.ko)}</span>` : ''}${l !== 'en' && l !== 'ko' ? `<span lang="zh-Hans">${esc(w.zh)}</span>` : ''}</summary><p>${esc(w.d)}</p>${sayHtml(w)}</details>`).join('');
     $$('.ibv__langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
   }
   wbtn.addEventListener('click', () => { const on = wb.hidden; wb.hidden = !on; wbtn.setAttribute('aria-expanded', String(on)); if (on) fillWords(); });

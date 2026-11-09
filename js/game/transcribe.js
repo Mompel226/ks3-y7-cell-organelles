@@ -176,17 +176,17 @@ function film(wrap) {
     }
     hbs.instanceMatrix.needsUpdate = true;
   }
-  function ladder(u, p, t, hl, hb) {
+  function ladder(u, p, spin, hl, hb) {
     const A = [], B = [], C = [], c = p - 0.5;
     Object.values(letters).forEach(m => { m.opacity = smooth(0.6, 0.95, u) * fade; });
     for (let i = 0; i < N; i++) {
       const q = P[i], x = X(i);
-      const phi = (1 - u) * (i * 0.62 + t * 0.35), o = smooth(2.7, 1.3, Math.abs(i - c));
+      const phi = (1 - u) * ((i - (N - 1) / 2) * 0.62 + spin), o = smooth(2.7, 1.3, Math.abs(i - c));
       const top = new THREE.Vector3(x, YT * Math.cos(phi) + LIFT * o, YT * Math.sin(phi)), bot = new THREE.Vector3(x, YB * Math.cos(phi), YB * Math.sin(phi));
       const mid = new THREE.Vector3(x, 0, (top.z + bot.z) / 2);
       place(q.a, top, mid, LB); place(q.b, bot, mid, LB);
       /* each sugar's phosphate, half-way to the next sugar: the sugar-phosphate backbone */
-      const nx = X(i + 1), phiN = (1 - u) * ((i + 1) * 0.62 + t * 0.35), oN = smooth(2.7, 1.3, Math.abs(i + 1 - c));
+      const nx = X(i + 1), phiN = (1 - u) * ((i + 1 - (N - 1) / 2) * 0.62 + spin), oN = smooth(2.7, 1.3, Math.abs(i + 1 - c));
       q.a.ph.visible = q.b.ph.visible = i < N - 1;
       q.a.ph.position.set((x + nx) / 2, (YT * Math.cos(phi) + LIFT * o + YT * Math.cos(phiN) + LIFT * oN) / 2, (YT * Math.sin(phi) + YT * Math.sin(phiN)) / 2);
       q.b.ph.position.set((x + nx) / 2, (YB * Math.cos(phi) + YB * Math.cos(phiN)) / 2, (YB * Math.sin(phi) + YB * Math.sin(phiN)) / 2);
@@ -282,18 +282,24 @@ function film(wrap) {
   size(); addEventListener('resize', size);
   const S = { z: 0, L: 0, u: 0, p: -6, hl: 0, hb: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
   const t0 = performance.now();
+  /* the helix's slow turn, added up frame by frame, slower as it untwists, and kept within half a turn while it is a helix
+     (where a whole turn cannot be seen): untwisting then undoes at most half a turn (9 Nov 2026, Daniel: the untwisting
+     "a bit too hectic"; it had undone every turn since the helix appeared, several turns in under two seconds) */
+  let spin = 0, lastT = 0;
   const loop = () => {
     if (!alive) return;
     const now = performance.now(), k = S.ms ? Math.min(1, (now - S.t0) / S.ms) : 1, e = k * k * (3 - 2 * k);
     if (S.from) ['z', 'L', 'u', 'p', 'hl', 'hb'].forEach(n => { S[n] = S.from[n] + (S.to[n] - S.from[n]) * (n === 'p' && S.lin ? k : e); });
     const t = R.FAST ? 0 : (now - t0) / 1000;
+    spin += Math.max(0, t - lastT) * 0.35 * (1 - S.u); lastT = t;
+    if (S.u < 0.001) spin = ((spin + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
     /* the chromatin fades as the view reaches the DNA between two beads, where the ladder (the same DNA, drawn base by
        base) takes its place; the tilt of the far view goes as it comes close */
     chromatin(S.L);
     const near = smooth(1.45, 1.9, S.z);
     chrom.visible = near < 0.999; histMat.opacity = dnaMat.opacity = 1 - near; histMat.depthWrite = dnaMat.depthWrite = near < 0.5;
     fade = near; root.visible = near > 0.001; ladderMats.forEach(m => { m.opacity = near; m.depthWrite = near > 0.5; }); hbMat.opacity = near;
-    ladder(S.u, S.p, t, S.hl, S.hb);
+    ladder(S.u, S.p, spin, S.hl, S.hb);
     all.rotation.z = -0.32 * (1 - smooth(0.9, 1.9, S.z));
     /* on a phone, as the copy grows above the DNA, the view rises and steps back a little, so that the copy's name fits */
     const tall = cam.userData.narrow ? smooth(6, 9, S.p) : 0;
@@ -323,7 +329,9 @@ function film(wrap) {
         S.lin = !!to.lin; S.t0 = performance.now(); S.ms = R.FAST ? 0 : (to.ms || 1200); S.done = res;
       });
     },
-    stop() { alive = false; removeEventListener('resize', size); renderer.dispose(); renderer.domElement.remove(); }
+    stop() { alive = false; removeEventListener('resize', size); renderer.dispose(); renderer.domElement.remove(); },
+    /* where the film stands (read by tools/copyfilm-check.mjs): its numbers and the helix's turn */
+    peek: () => ({ z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb, spin })
   };
 }
 
@@ -331,7 +339,7 @@ const STEPS = [
   { t: 'This is how a cell copies a gene, drawn millions of times bigger.\nA <dfn data-w="chromosome">chromosome</dfn> is one very long thread of DNA and protein. Here is a short piece of it, packed into a fibre 30 nanometres (nm) wide: about 30 millionths of a millimetre.' },
   { t: 'Closer: the DNA is wound round small balls of protein, the <dfn data-w="histone">histones</dfn>, like thread round beads. This keeps 2 metres of DNA tidy inside a nucleus.', go: { z: 1, L: 1, ms: 2800 } },
   { t: 'Closer again, between two beads: the DNA itself. It is two strands, twisted round each other: a double helix, only 2 nm wide.', go: { z: 2, ms: 3000 } },
-  { t: 'Here it is drawn untwisted, so that you can see each part.\nDNA is a chain of building blocks, the <dfn data-w="nucleotide">nucleotides</dfn>. Each one is a sugar, a phosphate and a <dfn data-w="dna-base">base</dfn>. There are four bases: A, T, C and G (adenine, thymine, cytosine and guanine).', go: { u: 1, hl: 1, ms: 1800 } },
+  { t: 'Here it is drawn untwisted, so that you can see each part.\nDNA is a chain of building blocks, the <dfn data-w="nucleotide">nucleotides</dfn>. Each one is a sugar, a phosphate and a <dfn data-w="dna-base">base</dfn>. There are four bases: A, T, C and G (adenine, thymine, cytosine and guanine).', go: [{ u: 1, ms: 4500 }, { hl: 1, ms: 900 }] },
   { t: 'The bases of the two strands form pairs: A with T, and C with G.\n<dfn data-w="hydrogen-bond">Hydrogen bonds</dfn> join the two bases of each pair: two between A and T, three between C and G. A hydrogen bond is weak, so the two strands can be separated.', go: { hb: 1, hl: 0, ms: 1600 }, key: 1 },
   { t: 'Where a gene is copied, its DNA is unwound from the histones. An <dfn data-w="enzyme">enzyme</dfn>, RNA polymerase, joins the gene and separates the two strands there, like opening a zip: the hydrogen bonds between the bases break.', go: { p: 0, ms: 1900 }, key: 1 },
   { t: 'Building blocks of <dfn data-w="rna">RNA</dfn> arrive, one at a time. Each one fits against a base of <b>one</b> strand only, held by hydrogen bonds: U against A, A against T, G against C, and C against G.\n(RNA has U where DNA has T.)', go: { p: 5, ms: 5 * 1150, lin: true }, key: 2 },
@@ -351,10 +359,11 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <p class="cf__x">Explorer: beyond the Year 7 list</p>
       <p class="cf__n" aria-live="polite"></p><div class="cf__t" aria-live="polite"></div>
       <p class="cf__key" hidden></p>
-      <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button></div>
+      <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
     </div></div></div>`;
     box.hidden = false;
-    const F = film($('.cf__3d', box)), nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn', box), kEl = $('.cf__key', box);
+    const F = film($('.cf__3d', box)); box.peek = F.peek;
+    const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), kEl = $('.cf__key', box), back = $('.cf__do .btn.back', box);
     /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
       '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];
@@ -363,15 +372,24 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     const esc1 = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', esc1);
     $('.close-x', box).addEventListener('click', close);
-    const show = async () => {
-      const s = STEPS[i]; busy = true; btn.disabled = true;
+    /* where the film stands at the end of step k: every move of the steps up to it, in turn (a step's go is one move or a
+       list of moves) */
+    const moves = k => [].concat(STEPS[k].go || []);
+    const stateAt = k => { const st = { z: 0, L: 0, u: 0, p: -6, hl: 0, hb: 0 }; for (let j = 0; j <= k; j++) moves(j).forEach(g => Object.keys(st).forEach(n => { if (g[n] != null) st[n] = g[n]; })); return st; };
+    /* back (9 Nov 2026, Daniel: "you can only go forward and not backward"): the film plays in reverse to the end of the
+       step before, as long as that step took (1.2 to 4.5 s): everything is worked out from a few numbers, so any moment can
+       be drawn and nothing jumps. Both buttons wait while a step plays */
+    const show = async (dir = 1) => {
+      const s = STEPS[i]; busy = true; btn.disabled = true; back.disabled = true;
       nEl.textContent = `${i + 1} of ${STEPS.length}`; tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
       kEl.hidden = !s.key; kEl.innerHTML = KEY[s.key || 0];
-      if (s.go) await F.go(s.go);
-      busy = false; btn.disabled = false;
+      if (dir > 0) { for (const g of moves(i)) await F.go(g); }
+      else { const ms = moves(i + 1).reduce((a, g) => a + (g.ms || 1200), 0); await F.go(Object.assign(stateAt(i), { ms: Math.max(1200, Math.min(4500, ms)) })); }
+      busy = false; btn.disabled = false; back.disabled = i === 0;
       btn.textContent = i === STEPS.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });
     };
     btn.addEventListener('click', () => { if (busy) return; if (i === STEPS.length - 1) { close(); return; } i++; show(); });
+    back.addEventListener('click', () => { if (busy || i === 0) return; i--; show(-1); });
     show();
   });
 }

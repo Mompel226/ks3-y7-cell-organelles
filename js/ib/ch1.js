@@ -14,10 +14,10 @@
    to O6, and the hydrogen of O6 leaves as a hydrogen ion: glucose 6-phosphate and ADP (mol.js Reaction).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611091831';
-import { loadProts, protein, surfacePoints } from './prot.js?v=202611091831';
-import { bilayer, MEM } from './membrane.js?v=202611091831';
-import { disposeGroup, glow } from './stage.js?v=202611091831';
+import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611092139';
+import { loadProts, protein, surfacePoints } from './prot.js?v=202611092139';
+import { bilayer, MEM } from './membrane.js?v=202611092139';
+import { disposeGroup, glow } from './stage.js?v=202611092139';
 
 const lerp3 = (pts, f) => { const n = pts.length - 1, i = Math.max(0, Math.min(n - 1, Math.floor(f * n))), k = f * n - i, e = k * k * (3 - 2 * k); return pts[i].clone().lerp(pts[i + 1], e); };
 const qAxis = (a, t) => new THREE.Quaternion().setFromAxisAngle(a, t);
@@ -163,7 +163,7 @@ export async function build(stage, { V }) {
     trapped: { html: '<i>glucose 6-phosphate</i>: it cannot leave', side: 'r', pts: molPts('g') }
   };
   const steps = [
-    { phases: [{ to: { cam: 0 }, ms: 400 }, { to: { cam: 1 }, ms: 2600 }], labs: { glucose: 1 }, pic: 'Every size is true: the bar shows the scale. Cholesterol and glycoproteins are left out of this membrane. Drag the picture to turn it a little.' },
+    { phases: [{ to: { cam: 0 }, ms: 400 }, { to: { cam: 1 }, ms: 2600 }], labs: { glucose: 1 }, nums: 'all', pic: 'Every size is true: the bar shows the scale. Cholesterol and glycoproteins are left out of this membrane. Drag the picture to turn it a little.' },
     { phases: [{ to: { cam: 0 }, ms: 1800 }, { to: { bounce: 1 }, ms: 2600 }, { to: { bounce: 0 }, ms: 10 }], labs: { polar: 1, tails: 1, heads: 2, outside: 2 } },
     { phases: [{ to: { cam: 2 }, ms: 2400 }, { to: { g: 1 }, ms: 2600 }], labs: { glut: 1, glucose: 1, outside: 2, inside: 2 } },
     /* the real order (Daniel, 8 Nov 2026: "make sure that it matches the reality ... in terms of timing"): glucose binds in
@@ -173,7 +173,7 @@ export async function build(stage, { V }) {
     /* the enzyme and ATP are named first, while they are seen, and the phosphate group moves in a step of its own (Daniel,
        6 Nov 2026: "you label it at the end after you've seen the transformation ... Suddenly, you label ADP, but not ATP") */
     { phases: [{ to: { cam: 3, g: 4 }, ms: 2800 }, { to: { atp: 1 }, ms: 2400 }], labs: { hk: 1, atp: 1, glucose: 1 } },
-    { phases: [{ to: { hk: 1 }, ms: 4200 }], labs: { g6p: 1, adp: 1, hk: 2, pgrp: 2 } },
+    { phases: [{ to: { hk: 1 }, ms: 4200 }], labs: { g6p: 1, adp: 1, hk: 2, pgrp: 2 }, nums: [6] },
     { phases: [{ to: { cam: 4, out: 1 }, ms: 2400 }, { to: { trap: 1 }, ms: 4200 }], labs: { trapped: 1, glut: 1 } },
     { phases: [{ to: { cam: 5 }, ms: 2400 }], labs: { glut: 1, hk: 1, g6p: 1, mem: 2, o2b: 2 } }
   ];
