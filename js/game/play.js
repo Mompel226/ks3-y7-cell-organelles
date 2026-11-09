@@ -5,15 +5,15 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611090843';
-import { state, COST, RESPIRE } from './state.js?v=202611090843';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611090843';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611090843';
-import { sound } from './sound.js?v=202611090843';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091131';
+import { state, COST, RESPIRE } from './state.js?v=202611091131';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091131';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091131';
+import { sound } from './sound.js?v=202611091131';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611090843').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611091131').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -137,7 +137,7 @@ export function makePlay(world, quest) {
       const x = xs[i], a = t.position.clone();
       return tween(t, { path: curve([a, V((a.x + x) / 2 + jit(), -2.1, -0.2), V(x + jit(), -1.25, 0.06), V(x, -0.6, 0.12), V(x, 0, 0.14), V(x + jit(0.1), 0.45, 0.12), V(x + jit(), 0.68, 0.12)]), ms: R.FAST ? 0 : 4200 + i * 500 });
     }));
-    quest.say(ib('Oxygen is a small molecule: it passes straight through the two layers of lipids. It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.', 'Oxygen is small and non-polar: it passes straight between the phospholipids, down its <dfn data-w="concentration-gradient">concentration gradient</dfn>, from the blood, where its concentration is higher, into the cell, where it is lower. This is simple <dfn data-w="diffusion">diffusion</dfn>.'), 'ok');
+    quest.say(ib('<p>Oxygen is a small molecule: it passes straight through the two layers of lipids.</p><p>It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.</p>', '<p>Oxygen is small and non-polar: it passes straight between the phospholipids, down its <dfn data-w="concentration-gradient">concentration gradient</dfn>.</p><p>It goes from the blood, where its concentration is higher, into the cell, where it is lower. This is simple <dfn data-w="diffusion">diffusion</dfn>.</p>'), 'ok');
     await quest.gain('oxygen', ox[0].position, 2); ox.forEach(drop);
   }
   /* a carrier protein changes shape, from its pose now to pose s (cellbuild.js carrier: -1 open to the outside, 0 shut on
@@ -249,7 +249,7 @@ export function makePlay(world, quest) {
       f();
     }));
     W.anim.push(function flowOn() { const p = inPlasma(); if (!t.parent || p.x > 9) { W.anim.splice(W.anim.indexOf(flowOn), 1); drop(t); return; } t.position.copy(p); });
-    quest.say(ib('Carbon dioxide passes straight through the two layers of lipids, into the blood. It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.', 'Carbon dioxide is small and non-polar: it passes straight between the phospholipids, by simple diffusion, into the blood. It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.'), 'ok');
+    quest.say(ib('<p>Carbon dioxide passes straight through the two layers of lipids, into the blood.</p><p>It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.</p>', '<p>Carbon dioxide is small and non-polar: it passes straight between the phospholipids, by simple diffusion, into the blood.</p><p>It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.</p>'), 'ok');
     await quest.next('Check what you learned');
   }
 
@@ -822,7 +822,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611090843').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611091131').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1127,7 +1127,7 @@ export function makePlay(world, quest) {
     DV.on = false;
     await live(world.landed({ pos: cam.position.toArray(), at: c.target.toArray() }, false));
     PD.dispose(); N.group.remove(PD.group); PD = { ready: Promise.resolve(null), done: true };
-    quest.say('You entered the nucleus through a nuclear pore, about 120 nanometres (nm) across: if the cell were a football pitch, a pore would be nearly as wide as a door. Small molecules pass freely through the protein net in a pore; a large molecule passes only together with a carrier protein.<br>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>. (The game draws the pores and the chromosomes larger than they are.)', 'ok');
+    quest.say('<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only together with a carrier protein.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>', 'ok');
     insideNames();
     await quest.next(); quest.names.set([]);
   }
@@ -1336,7 +1336,7 @@ export function makePlay(world, quest) {
   async function where() {
     const r = props.rib || (() => { const t = keep(token('ribosome', 0.42)); t.position.copy(RIB); return t; })();
     await quest.choose(['On the rough ER', 'Here, floating in the cytosol', 'Inside the nucleus'], 0, async (i) => {
-      if (i === 1) quest.say('Then amylase would stay in the cytosol, and it could never reach a vesicle or leave the cell. Proteins that leave the cell are made on the <b>rough ER</b>.', 'no');
+      if (i === 1) quest.say('<p>Then amylase would stay in the cytosol, and it could never reach a vesicle or leave the cell.</p><p>Proteins that leave the cell are made on the <b>rough ER</b>.</p>', 'no');
       else quest.say('Ribosomes make proteins in the cytoplasm, never inside the nucleus. The signal takes this one to the <b>rough ER</b>.', 'no');
       await wait(300);
     });
@@ -1420,7 +1420,7 @@ export function makePlay(world, quest) {
     await Promise.all([tween(sm, { to: sm.position.clone().add(V(-0.9, 1.0, 0.6)), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().add(V(0.9, 1.4, 0.6)), ms: 1300, fade: 0 })]);
     drop(sm); drop(lg);
     if (props.channel) { drop(props.channel); props.channel = null; }
-    quest.say('All 511 amino acids are joined. At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane. Without its signal, amylase has 496 amino acids.', 'ok');
+    quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids.</p>', 'ok');
   }
   async function fold() {
     const inside = insideAt();
@@ -1688,7 +1688,7 @@ export function makePlay(world, quest) {
     quest.names.set([]);
     /* dynein's two heads land on the microtubule; now it walks */
     await moveFor(1100, k => r.mot.reach(k * k * (3 - 2 * k)));
-    quest.say('Dynein now walks and carries your vesicle. Each time one head steps, your vesicle moves on, most often 8 nm. Some steps are longer, and some go backwards or to the side. A real one walks about 70 times faster: about 900 nm every second.', 'ok');
+    quest.say('<p>Dynein now walks and carries your vesicle.</p><p>Each time one head steps, your vesicle moves forward, most often 8&nbsp;nm. Some steps are longer, and some go backwards or to the side.</p><p>A real one walks about 70 times faster: about 900&nbsp;nm every second.</p>', 'ok');
     /* the camera follows dynein, so that it stays in the free part of the picture as it walks 48 nm */
     const walked = closeView({ at: r.at.clone().addScaledVector(r.a, TRUE.walk), a: r.a });
     await Promise.all([(async () => { for (let i = 0; i < STEPS.length; i++) await moveFor(560, e => r.mot.pose(i, e)); })(), camGo(walked, STEPS.length * 560)]);
@@ -1853,11 +1853,12 @@ export function makePlay(world, quest) {
     const G = W.groups, P = world.P;
     const show = [
       ['rer', P.rer.center, [nameOf('rer', 'rough ER', P.rer.spots, [G.rer])]],
-      /* the nucleus closed (the pupil has not been inside yet: the inside is seen first in the dive), what an electron
-         microscope shows of it from outside: its pores */
+      /* the nucleus closed (the pupil has not been inside yet: the inside is seen first in the dive): named "nucleus", as in
+         the Year 7 view before (Daniel, 9 Nov 2026: it had been named "nuclear pore", for its pores, and "it should be
+         nucleus") */
       world.nucOpen ? ['nucleus-inside', P.nucleolus.center, [nameOf('nucleolus', 'nucleolus', P.nucleolus.spots, [N.group]),
         nameOf('chromosomes', 'chromosome', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group])]]
-        : ['nucleus-inside', inN(N.front[0].p), [nameOf('pores', 'nuclear pore', N.front.slice(0, 30).map(f => inN(f.p)), [N.group])]],
+        : ['nucleus-inside', inN(N.front[0].p), [nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group])]],
       ['ser', P.ser.center, [nameOf('ser', 'smooth ER', P.ser.spots, [G.ser])]],
       ['golgi', P.golgi.center, [nameOf('golgi', 'Golgi apparatus', P.golgi.spots, [G.golgi])]],
       ['granules', P.exit.center, [nameOf('vesicles', 'vesicle', W.granules.slice(0, 40).filter((g, i) => i % 4 === 0).map(g => g.p.clone()), [G.granules])]],
