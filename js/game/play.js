@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611092229';
-import { state, COST, RESPIRE } from './state.js?v=202611092229';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611092229';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611092229';
-import { sound } from './sound.js?v=202611092229';
-import { magicStandard } from '../world/magic.js?v=202611092229';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611100010';
+import { state, COST, RESPIRE } from './state.js?v=202611100010';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611100010';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611100010';
+import { sound } from './sound.js?v=202611100010';
+import { magicStandard } from '../world/magic.js?v=202611100010';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611092229').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611100010').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -45,7 +45,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); nanoOff(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -870,7 +870,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611092229').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611100010').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1519,71 +1519,169 @@ export function makePlay(world, quest) {
     await quest.next('Back to the map');
   }
 
+  /* ---------------- ribosomes and the rough ER, at their true sizes ----------------
+     (9 Nov 2026; Daniel, after the nucleolus: "do the same for any other organelle. If your building parts are huge and
+     they shouldn't be huge, please be respectful with size"; his "Yes, build it" to the plan): close up, every molecule at
+     its true size, with the scale bar: the copy (mRNA) a thread 2 nm thick, the ribosome about 30 nm (its large part above
+     the copy, its small part below), each carrier (transfer RNA) about 7 nm long with its amino acid (about 1 nm), the chain
+     a string of amino acids from the ribosome; at the rough ER its membrane at its true thickness (about 6 nm: two layers of
+     lipids), the channel in it, the enzyme that removes the signal (about 5 nm), amylase (about 5 nm across) and the
+     vesicle that buds (about 70 nm). What the world draws larger than life nearby (its ribosomes, four times their size so
+     that the map shows them; the microtubules; the cytosol's motes and dust; the rough ER's sheet; the blood, drawn with
+     no fog) is hidden while the camera is close (nanoIn), what is far fades into the cytosol (nanoFog), and all of it
+     comes back while the camera goes out (nanoOut) or when the pupil leaves (reset: nanoOff). The rough ER is seen as a
+     section, its cut face showing the membrane's two layers. Every press, choice and check is as before.
+     Proof: tools/true-size.mjs B and C */
+  const TSZ = { mrna: 0.001, rib: 0.0154, small: 0.0168, large: 0.01535, car: 0.0075, aa: 0.0011, bead: 0.00055, amy: 0.0024, ves: 0.035, enz: 0.0025 };
+  const NZ = { on: false, hidden: [] };
+  const groupsOf = names => names.map(k => W.groups[k]).filter(Boolean);
+  /* what is far away fades into the cytosol while the camera is close: a mitochondrion 2 µm behind a ribosome must not
+     look as small as the ribosome beside the scale bar (drawn in perspective, it did). The fog follows the camera's
+     distance, so it thickens as the camera comes in and thins as it goes out; only its numbers change (no new shader) */
+  const FOGC = new THREE.Color(0x52648c);
+  function nanoFog() {
+    const fog = scene.fog, o = NZ.fog0 || (NZ.fog0 = { c0: fog.color.clone(), n0: fog.near, f0: fog.far }), { c0, n0, f0 } = o, run = NZ.fogRun = (NZ.fogRun || 0) + 1;
+    /* once the close-up ends, the world's own fog comes back over 0.9 s (never in one frame) */
+    let tOff = 0;
+    const f = () => {
+      if (run !== NZ.fogRun) return;
+      if (!NZ.on && !tOff) tOff = performance.now();
+      const w = tOff ? 1 - smooth(0, 1, R.FAST ? 1 : (performance.now() - tOff) / 900) : 1;
+      const d = world.camera.position.distanceTo(world.controls.target), k = smooth(0, 1, Math.log(20 / d) / Math.log(20 / 0.16));
+      const nn = n0 + (Math.min(n0, d * 1.75) - n0) * w, nf = f0 + (Math.min(f0, d * 13) - f0) * w;
+      if (Math.abs(nn - fog.near) > 1e-6 || Math.abs(nf - fog.far) > 1e-6) { fog.near = nn; fog.far = nf; fog.color.copy(c0).lerp(FOGC, k * w); world.kick(); }   /* a still picture is not drawn again */
+      if (w > 0) requestAnimationFrame(f);
+    };
+    f();
+  }
+  async function nanoIn(view, hide) {
+    if (!NZ.on) { hide.forEach(o => { if (o && o.visible) { o.visible = false; NZ.hidden.push(o); } }); NZ.on = true; nolBar(true); nanoFog(); }
+    await camGo(view, R.FAST ? 0 : 3200);
+  }
+  /* the close-up ends: the scale bar and the close-up's membrane go, and what the world hid comes back; all but its
+     ribosomes (four times their size) when ribs is false */
+  const bigRibs = () => groupsOf(['free-ribosomes']).concat([W.groups.rer && W.groups.rer.children.find(o => o.name === 'rer-ribosomes')]);
+  function nanoOff(ribs = true) {
+    if (NZ.on) { NZ.on = false; nolBar(false); if (props.mem) props.mem.visible = false; }
+    const late = ribs ? [] : bigRibs();
+    NZ.hidden = NZ.hidden.filter(o => { if (late.includes(o)) return true; o.visible = true; return false; });
+  }
+  /* on the way out, the world comes back while the camera flies: about 0.45 µm away its rough ER's sheet and the cytosol
+     (the close-up's membrane and scale bar go); about 1.5 µm away its ribosomes, four times their size, which beside a
+     molecule at its true size would look larger than a vesicle (at the end of the flight, the world had been missing its
+     rough ER for two seconds) */
+  async function nanoOut(placeView) {
+    const at = V(...placeView.at), pos = V(...placeView.pos), s0 = quest.session; let on = true;
+    const watch = () => {
+      if (!on || quest.session !== s0) return;
+      const d = world.camera.position.distanceTo(world.controls.target);
+      if (d > 1.5) { nanoOff(true); return; }
+      if (d > 0.45 && NZ.on) nanoOff(false);
+      requestAnimationFrame(watch);
+    };
+    watch();
+    await camGo({ at, dir: pos.clone().sub(at).normalize(), up: V(0, 1, 0), dist: pos.distanceTo(at) }, R.FAST ? 0 : 3000);
+    on = false; nanoOff(true);
+  }
+  /* a molecule at its true size glows little (a token's glow spread far beyond it), on copies of the shared materials */
+  const calm = t => { t.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material = o.material.clone(); o.material.emissiveIntensity *= 0.3; } }); return t; };
+  const NEAR_HIDE = () => groupsOf(['free-ribosomes', 'microtubules', 'cytosol', 'dust', 'blood']).concat([W.groups.rer && W.groups.rer.children.find(o => o.name === 'rer-ribosomes')]);
+
   /* ---------------- ribosomes ---------------- */
   const RIB = world.P.ribosome.center;
+  /* the close view's frame round the ribosome place: the camera's way (rd), the picture's right and up; offsets in nm */
+  function ribFrame() {
+    if (props.rf) return props.rf;
+    const c = RIB.clone(), rd = V(...world.P.ribosome.view.pos).sub(c).normalize(), right = new THREE.Vector3().crossVectors(V(0, 1, 0), rd).normalize(), up = new THREE.Vector3().crossVectors(rd, right).normalize();
+    return (props.rf = { c, rd, right, up });
+  }
+  const rp = (x, y, z = 0) => { const f = ribFrame(); return f.c.clone().addScaledVector(f.right, x / 1000).addScaledVector(f.up, y / 1000).addScaledVector(f.rd, z / 1000); };
+  const ribClose = () => nanoIn({ at: rp(-22, 8), dir: ribFrame().rd.clone(), up: ribFrame().up.clone(), dist: 0.16 }, NEAR_HIDE());
+  /* the copy: a thread across the picture; the ribosome reads it a codon (3 bases, about 1 nm) at a time */
+  const makeCopy = () => { const curve = new THREE.CatmullRomCurve3([...Array(13)].map((_, i) => rp(-90 + i * 15, 1.4 * Math.sin(i * 0.9)))); const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 220 })); m.userData.grow(1); props.copy = curve; return curve; };
+  const ribPos = k => rp(-40 + k * 1.1, 0);
+  const makeRib = k => { const t = calm(keep(token('ribosome', TSZ.rib))); t.position.copy(ribPos(k)); return (props.rib = t); };
+  const ribNames = list => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, key === 'r-copy' ? { up: 1 } : {}, o || {})), HUD(), lr(rp(-62, 0), rp(30, 0)));
+  /* a large part's name stands beside its edge, on the screen's right or left, and its short line ends on the part: beside
+     its middle, the name covered half a ribosome (names.js sides) */
+  const edge = (c, ...rads) => { const R = new THREE.Vector3().setFromMatrixColumn(world.camera.matrixWorld, 0).normalize(); return [rads.flatMap(rad => [c.clone().addScaledVector(R, rad), c.clone().addScaledVector(R, -rad)]), { sides: rads.flatMap(() => [1, -1]) }]; };
   async function assemble() {
     await fly(world.P.ribosome.view.pos, world.P.ribosome.view.at);
-    const curve = new THREE.CatmullRomCurve3([RIB.clone().add(V(-1.6, -0.3, 0)), RIB.clone().add(V(-0.5, 0.05, 0.1)), RIB.clone().add(V(0.6, -0.05, 0)), RIB.clone().add(V(1.7, 0.25, -0.1))]);
-    const rib = keep(ribbon(curve, { radius: 0.035 })); rib.userData.grow(1); props.copy = curve;
-    const s = keep(token('small', 0.42)), l = keep(token('large', 0.42));
-    s.position.copy(RIB).add(V(-0.8, -1.4, 0.4)); l.position.copy(RIB).add(V(0.9, 1.5, 0.3));
-    await press(() => RIB.clone().add(V(0, 0.9, 0)), 'Join', {});
-    await tween(s, { to: curve.getPointAt(0.12).add(V(0, -0.16, 0)), ms: 900 });
-    await tween(l, { to: curve.getPointAt(0.12).add(V(0, 0.22, 0)), ms: 900 });
+    await ribClose();
+    if (!props.copy) makeCopy();
+    const s = calm(keep(token('small', TSZ.small))), l = calm(keep(token('large', TSZ.large)));
+    s.position.copy(rp(-40, -34, 5)); l.position.copy(rp(-40, 40, 5));
+    const copyName = ['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1), rp(20, 1)]];
+    ribNames([copyName, ['r-s', 'small part', ...edge(s.position, 0.011)], ['r-l', 'large part', ...edge(l.position, 0.014)]]);
+    await press(() => rp(-40, 22), 'Join', {});
+    await tween(s, { to: rp(-40, -5.9), ms: 900 });
+    await tween(l, { to: rp(-40, 6.5), ms: 900 });
     drop(s); drop(l);
-    const r = keep(token('ribosome', 0.42)); r.position.copy(curve.getPointAt(0.12)); props.rib = r;
-    burst(scene, r.position, { n: 30, r: 0.5 });
-    quest.say('A whole ribosome, on the copy of the gene.', 'ok');
+    const r = makeRib(0);
+    burst(scene, r.position, { n: 20, r: 0.02 });
+    ribNames([copyName, ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(ribFrame().up, 0.005), 0.0135)]]);
+    quest.say('A whole ribosome, on the copy of the gene. It is about 30 nanometres (nm) across, and the copy is a thread only 2 nm thick.', 'ok');
     state.use('parts');
   }
   const CODES = [[0, '▲'], [1, '●'], [2, '■'], [3, '◆'], [1, '●'], [0, '▲']];
   async function translate() {
-    const curve = props.copy || new THREE.CatmullRomCurve3([RIB.clone().add(V(-1.6, -0.3, 0)), RIB.clone().add(V(1.7, 0.25, -0.1))]);
-    if (!props.copy) { const rib = keep(ribbon(curve, { radius: 0.035 })); rib.userData.grow(1); }
-    const r = props.rib || (() => { const t = keep(token('ribosome', 0.42)); t.position.copy(curve.getPointAt(0.12)); return t; })();
+    await ribClose();
+    if (!props.copy) makeCopy();
+    const r = props.rib || makeRib(0), F = ribFrame();
     const beads = [], colors = [];
     let chainObj = null;
+    ribNames([['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1)]], ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.005), 0.0135)]]);
     for (let k = 0; k < CODES.length; k++) {
       const [ci, sym] = CODES[k];
-      const at = curve.getPointAt(0.12 + k * 0.12);
-      await tween(r, { to: at, ms: 500 });
-      const code = quest.hot(() => r.position.clone().add(V(0, -0.62, 0)), `code: <b class="sym s${ci}">${sym}</b>`, { cls: 'code', side: 'b', aria: 'the code' });
+      await tween(r, { to: ribPos(k), ms: 500 });
+      const code = quest.hot(() => r.position.clone().addScaledVector(F.up, -0.019), `code: <b class="sym s${ci}">${sym}</b>`, { cls: 'code', side: 'b', aria: 'the code' });
       code.el.disabled = true;
-      /* three amino acids float near, each on its carrier; the carrier whose end has the same shape and colour fits */
+      /* three amino acids float near, each on its carrier (transfer RNA, about 7 nm); the carrier whose end has the same
+         shape and colour fits */
       const opts = [ci, (ci + 1) % 4, (ci + 2) % 4].sort(() => Math.random() - 0.5);
       const toks = opts.map((c, i) => {
-        const t = keep(token('amino', 0.3)); t.children[0].material = t.children[0].material.clone(); t.children[0].material.color.setHex(AMINO_COLORS[c]); t.children[0].material.emissive.setHex(AMINO_COLORS[c]);
-        const cr = token('carrier', 0.3); cr.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.color.setHex(AMINO_COLORS[c]); o.material.emissive.setHex(AMINO_COLORS[c]); } }); cr.position.y = -0.2; t.add(cr);
-        t.position.copy(r.position).add(V(-0.95 + i * 0.95, 1.05, 0.35)); return { t, c };
+        const t = keep(token('amino', TSZ.aa)); t.children[0].material = t.children[0].material.clone(); t.children[0].material.color.setHex(AMINO_COLORS[c]); t.children[0].material.emissive.setHex(AMINO_COLORS[c]);
+        const cr = token('carrier', TSZ.car); cr.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.color.setHex(AMINO_COLORS[c]); o.material.emissive.setHex(AMINO_COLORS[c]); o.material.emissiveIntensity *= 0.4; } }); cr.position.copy(F.up).multiplyScalar(-TSZ.car * 0.25); t.add(cr);
+        t.position.copy(r.position).addScaledVector(F.right, (-14 + i * 14) / 1000).addScaledVector(F.up, 0.03).addScaledVector(F.rd, 0.006); return { t, c };
       });
       await new Promise(done => {
         toks.forEach(({ t, c }) => {
-          const b = quest.hot(() => t.position.clone().add(V(0, 0.4, 0)), `<b class="sym s${c}">${['▲', '●', '■', '◆'][c]}</b>`, { cls: 'tok aa', aria: 'the carrier with a ' + ['triangle', 'circle', 'square', 'diamond'][c] });
+          const b = quest.hot(() => t.position.clone().addScaledVector(F.up, 0.008), `<b class="sym s${c}">${['▲', '●', '■', '◆'][c]}</b>`, { cls: 'tok aa', aria: 'the carrier with a ' + ['triangle', 'circle', 'square', 'diamond'][c] });
           b.done.then(async () => {
-            if (c !== ci) { quest.say('That carrier does not match the code. Look at its shape and colour.', 'no'); const p0 = t.position.clone(); await tween(t, { to: p0.clone().add(V(0, -0.2, 0)), ms: 200 }); await tween(t, { to: p0, ms: 200 }); return; }
+            if (c !== ci) { quest.say('That carrier does not match the code. Look at its shape and colour.', 'no'); const p0 = t.position.clone(); await tween(t, { to: p0.clone().addScaledVector(F.up, -0.003), ms: 200 }); await tween(t, { to: p0, ms: 200 }); return; }
             if (!quest.energy(COST.translate / CODES.length)) return;
             quest.clearHots(); quest.say('');
-            await tween(t, { to: r.position.clone().add(V(0, 0.42, 0)), ms: 450 });
+            await tween(t, { to: r.position.clone().addScaledVector(F.up, 0.008), ms: 450 });
             toks.forEach(x => drop(x.t));
-            colors.push(ci); beads.push(r.position.clone().add(V(0.15 * (beads.length % 2), 0.75 + beads.length * 0.17, 0)));
+            /* the chain leaves the large part's tunnel, at its top: one more amino acid at its root */
+            colors.push(ci);
+            beads.length = 0; for (let q = 0; q < colors.length; q++) beads.push(r.position.clone().addScaledVector(F.up, (17 + 1.15 * (colors.length - 1 - q)) / 1000).addScaledVector(F.right, ((q % 2) - 0.5) * 0.0008));
             if (chainObj) drop(chainObj);
-            chainObj = keep(chain(beads, colors));
+            chainObj = keep(chain(beads, colors, TSZ.bead));
             done();
           });
         });
       });
     }
     props.chain = chainObj;
-    quest.say('The ribosome reads the copy and joins the amino acids in its order: the start of the amylase chain.', 'ok');
+    ribNames([['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1)]], ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.005), 0.0135)],
+      ['r-chain', 'the chain of amino acids', beads.slice(-3).map(b => b.clone())]]);
+    quest.say('The ribosome reads the copy and joins the amino acids in its order: the start of the amylase chain. Each amino acid is about 1 nm across.', 'ok');
     state.use('amino'); state.use('mrna');
   }
   async function where() {
-    const r = props.rib || (() => { const t = keep(token('ribosome', 0.42)); t.position.copy(RIB); return t; })();
+    await ribClose();
+    if (!props.copy) makeCopy();
+    const r = props.rib || makeRib(0);
     await quest.choose(['On the rough ER', 'Here, floating in the cytosol', 'Inside the nucleus'], 0, async (i) => {
       if (i === 1) quest.say('<p>Then amylase would stay in the cytosol, and it could never reach a vesicle or leave the cell.</p><p>Proteins that leave the cell are made on the <b>rough ER</b>.</p>', 'no');
       else quest.say('Ribosomes make proteins in the cytoplasm, never inside the nucleus. The signal takes this one to the <b>rough ER</b>.', 'no');
       await wait(300);
     });
+    /* from far away the ribosome is far too small to see: a glow shows it on its way to the rough ER */
+    quest.names.set([], HUD());
+    haloSprite(r, 0.05, 0xfff1a8);
+    await nanoOut(world.P.ribosome.view);
     const go = world.P.rer.center.clone().add(V(0.6, 0.8, 1.2));
     await Promise.all([tween(r, { to: go, ms: 2200 }), props.chain ? tween(props.chain, { to: go.clone().sub(r.position), ms: 2200 }) : null]);
     await quest.gain('chain', go);
@@ -1603,31 +1701,68 @@ export function makePlay(world, quest) {
     const hit = ray.intersectObjects(sheets, false)[0];
     const p = hit ? hit.point : at, n = hit && hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : cam.clone().sub(at).normalize();
     if (n.dot(cam.clone().sub(p)) < 0) n.negate();
-    return (props.face = { p, n });
+    const right = new THREE.Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize(), along = new THREE.Vector3().crossVectors(n, right).normalize();
+    return (props.face = { p, n, right, along });
   }
-  const dockAt = () => rerFace().p.clone().addScaledVector(rerFace().n, 0.08);
-  const insideAt = () => rerFace().p.clone().addScaledVector(rerFace().n, -0.32);
+  /* offsets in nm: x along the membrane (across the picture), y out of it (up: the cytosol; down, negative: inside the ER) */
+  const ep = (x, y, z = 0) => { const f = rerFace(); return f.p.clone().addScaledVector(f.right, x / 1000).addScaledVector(f.n, y / 1000).addScaledVector(f.along, z / 1000); };
+  const dockAt = () => ep(0, 0);
+  const insideAt = () => ep(4, -16);
+  /* the membrane close up, at its true thickness, as a section (a textbook's diagram): cut where the ribosome docks, it
+     runs away from the camera from there, so its cut face shows its two layers of lipids: the heads (pink, about 1 nm)
+     on each side of the tails (paler), about 6 nm in all; a piece 1 µm wide, its ends out of the picture. The channel is a
+     protein through the membrane, cut open too, with the tunnel that the chain goes through (Daniel's "be respectful
+     with size": seen from above, its flat top had filled the picture, and neither its thickness nor its inside showed) */
+  function membrane() {
+    if (props.mem) { props.mem.visible = true; return props.mem; }
+    const f = rerFace(), g = new THREE.Group(); g.position.copy(f.p);
+    g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.right, f.n, f.along.clone().negate()));   /* x across, y out to the cytosol, z away from the camera */
+    const head = magicStandard({ color: 0xff9ac8, roughness: 0.5 }, { rim: 0xffd6ea, rimK: 0.4 }), tail = magicStandard({ color: 0xfff0f5, roughness: 0.7 }, { rim: 0xffffff, rimK: 0.15 });
+    const prot = magicStandard({ color: 0x5fe0d0, emissive: 0x1a6a60, emissiveIntensity: 0.4, roughness: 0.4 }, { rim: 0xc8fff6, rimK: 0.5 });
+    const box = (x0, x1, y0, y1, z0, z1, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry((x1 - x0) / 1000, (y1 - y0) / 1000, (z1 - z0) / 1000), m); b.position.set((x0 + x1) / 2000, (y0 + y1) / 2000, (z0 + z1) / 2000); g.add(b); };
+    const slab = (x0, x1, z0, z1) => { box(x0, x1, 1.8, 3, z0, z1, head); box(x0, x1, -1.8, 1.8, z0, z1, tail); box(x0, x1, -3, -1.8, z0, z1, head); };
+    slab(-500, -3.6, 0, 500); slab(3.6, 500, 0, 500); slab(-3.6, 3.6, 6, 500);
+    box(-3.6, -1.1, -3.6, 3.6, 0, 6, prot); box(1.1, 3.6, -3.6, 3.6, 0, 6, prot); box(-1.1, 1.1, -3.6, 3.6, 4.6, 6, prot);
+    return (props.mem = keep(g));
+  }
+  /* the camera looks along the cut, 10° from above: the cytosol above the membrane, the inside of the ER below it */
+  const rerClose = () => { membrane(); const f = rerFace(), a = THREE.MathUtils.degToRad(10), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize();
+    return nanoIn({ at: ep(0, 14), dir: cd, up: f.n.clone(), dist: 0.17 }, NEAR_HIDE().concat([W.groups.rer])); };
+  const rerNames = list => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUD(), lr(ep(-34, 0), ep(34, 0)));
+  /* the membrane's name below its cut face, the channel's below its own (a name on or beside a thin part hides it) */
+  /* (a phone's picture is about 130 nm wide: its spots nearer the middle, last, and shorter words) */
+  const memName = () => ['e-mem', 'membrane of the rough ER', [ep(-60, 0), ep(-50, 0), ep(50, 0), ep(60, 0), ep(-26, 0), ep(26, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }];
+  const chName = () => ['e-ch', 'channel', [ep(0, -3.6)], { up: 1, len: 40 }];
+  /* the two sides' names away from the middle, where the ribosome, the chain and amylase are (on a phone the inside's name
+     had touched the chain) */
+  const twoEdges = (a, b) => [a[0].concat(b[0]), { sides: a[1].sides.concat(b[1].sides) }];
+  const sides = () => [['e-cyt', 'cytosol', ...twoEdges(edge(ep(0, 50), 0.05), edge(ep(0, 42), 0.02))],
+    (([sp, o]) => ['e-in', 'inside the rough ER', sp, Object.assign(o, { small: '<span class="nm__t">inside the<br>rough ER</span>' })])(edge(ep(0, -33), 0.045, 0.016))];
+  /* the ribosome docked: its large part on the channel (turned so that the large part faces the membrane) */
+  const seat = () => ep(0, 3 + 16.5);
+  const makeDocked = () => { const t = calm(keep(token('ribosome', TSZ.rib))); t.quaternion.setFromUnitVectors(V(0, 1, 0), rerFace().n.clone().negate()); t.position.copy(seat()); return (props.rib = t); };
   async function dock() {
     await fly(world.P.rer.view.pos, world.P.rer.view.at);
-    const r = keep(token('ribosome', 0.42)); r.position.copy(dockAt()).addScaledVector(rerFace().n, 1.1).add(V(0, 0.5, 0)); props.rib = r;
-    const sig = keep(chain([r.position.clone().add(V(0, 0.75, 0)), r.position.clone().add(V(0.1, 0.92, 0))], [0, 1]));
-    props.sig = sig;
-    await press(() => r.position.clone().add(V(0, 0.75, 0)), 'Dock', {});
-    const ch = keep(new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.05, 8, 20), new THREE.MeshBasicMaterial({ color: 0x9ff3ff })));
-    ch.position.copy(dockAt()); ch.lookAt(dockAt().add(rerFace().n)); props.channel = ch;
-    const seat = dockAt().addScaledVector(rerFace().n, 0.3);
-    await Promise.all([tween(r, { to: seat, ms: 1100 }), tween(sig, { to: seat.clone().sub(r.position), ms: 1100 })]);
-    quest.say('The ribosome sits on a channel in the membrane of the rough ER.', 'ok');
+    await rerClose();
+    const f = rerFace();
+    const r = calm(keep(token('ribosome', TSZ.rib))); r.quaternion.setFromUnitVectors(V(0, 1, 0), f.n.clone().negate()); r.position.copy(ep(-28, 46)); props.rib = r;
+    const sig = keep(chain([ep(-28, 46 - 17), ep(-27.5, 46 - 18.2)], [0, 1], TSZ.bead)); props.sig = sig;
+    rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
+    await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
+    await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 })]);
+    rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(seat(), 0.0135)]]);
+    quest.say('The ribosome sits on a channel in the membrane of the rough ER. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
   }
-  /* the ribosome joins amino acids from one count to another: a counter under it, and the chain flowing inside the ER */
+  /* the ribosome joins amino acids from one count to another: a counter under it, and the chain flowing down through the
+     channel, inside the ER */
   async function count(r, from, to, ms) {
-    const counter = quest.hot(() => r.position.clone().add(V(0, -0.85, 0)), 'amino acids: ' + from, { cls: 'count', side: 'b' }); counter.el.disabled = true;
-    const t0 = performance.now(), inside = insideAt(), flow = [], s0 = quest.session;
+    const counter = quest.hot(() => r.position.clone().addScaledVector(rerFace().n, 0.024), 'amino acids: ' + from, { cls: 'count', side: 't' }); counter.el.disabled = true;
+    const t0 = performance.now(), flow = [], s0 = quest.session;
     await live(new Promise(res => {
       const f = () => {
         const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms);
         counter.el.querySelector('span').textContent = 'amino acids: ' + Math.round(from + (to - from) * k);
-        if (!R.FAST && flow.length < 16 && Math.random() < 0.3 && quest.session === s0) { const b = keep(token('amino', 0.12)); b.position.copy(r.position); flow.push(b); tween(b, { to: inside.clone().add(V((Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.3, 0)), ms: 900 }); }
+        if (!R.FAST && flow.length < 18 && Math.random() < 0.3 && quest.session === s0) { const b = keep(token('amino', TSZ.aa)); b.position.copy(ep(0, 2)); flow.push(b); tween(b, { to: ep((Math.random() - 0.5) * 16, -8 - Math.random() * 12, (Math.random() - 0.5) * 8), ms: 1200 }); }
         if (k < 1) requestAnimationFrame(f); else res();
       };
       f();
@@ -1635,60 +1770,82 @@ export function makePlay(world, quest) {
     flow.forEach(drop);
     return counter;
   }
-  const blob = (n) => keep(chain(Array.from({ length: n }, (_, i) => insideAt().add(V(Math.cos(i) * 0.25, Math.sin(i * 1.7) * 0.18, Math.sin(i) * 0.2))), Array.from({ length: n }, (_, i) => i % 4)));
-  const ribAt = () => props.rib || (() => { const t = keep(token('ribosome', 0.42)); t.position.copy(dockAt()).addScaledVector(rerFace().n, 0.3); return (props.rib = t); })();
+  /* the chain inside the ER: a string of amino acids, loose */
+  const blob = (n) => keep(chain(Array.from({ length: n }, (_, i) => ep(4 + Math.cos(i * 0.9) * 3, -9 - i * 0.55 + Math.sin(i * 1.7) * 1.2, Math.sin(i * 0.9) * 2)), Array.from({ length: n }, (_, i) => i % 4), TSZ.bead));
+  const ribAt = () => props.rib || makeDocked();
   async function grow() {
+    await rerClose();
     /* the signal leaves the ribosome's tunnel when about 60 amino acids are joined: the count starts there */
     const r = ribAt();
-    await press(() => r.position.clone().add(V(0, 0.75, 0)), 'Go', { cost: COST.grow });
+    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
+    await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow });
     await count(r, 60, 150, 2400);
     if (props.blob) drop(props.blob);
-    props.blob = blob(4);
+    props.blob = blob(14);
+    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [ep(4, -14)]]]);
     quest.say('The chain grows through the channel, inside the rough ER.', 'ok');
   }
   async function cut() {
+    await rerClose();
     const r = ribAt();
-    if (!props.blob) props.blob = blob(4);
-    const sig = props.sig || keep(chain([insideAt().add(V(0.25, 0.1, 0)), insideAt().add(V(0.35, 0, 0))], [0, 1]));
-    await press(() => insideAt().addScaledVector(rerFace().n, 0.5).add(V(0.4, 0.2, 0)), 'Cut', {});
-    await tween(sig, { to: sig.position.clone().add(V(0.6, -0.4, 0.3)), ms: 900, fade: 0 });
+    if (!props.blob) props.blob = blob(14);
+    const sig = props.sig || keep(chain([ep(-3, -5), ep(-4, -6)], [0, 1], TSZ.bead));
+    /* the enzyme that removes the signal: a protein in the membrane beside the channel, about 5 nm */
+    const enz = calm(keep(token('protein', TSZ.enz))); enz.position.copy(ep(-6, -1.5));
+    rerNames([memName(), ...sides(), ['e-enz', 'enzyme', [enz.position.clone()]]]);
+    await press(() => ep(-6, -14), 'Cut', { side: 'b' });
+    await tween(sig, { to: sig.position.clone().addScaledVector(rerFace().right, -0.012).addScaledVector(rerFace().n, -0.01), ms: 900, fade: 0 });
     drop(sig); props.sig = null;
     quest.say('The signal is removed. The ribosome goes on joining amino acids.', 'ok');
     const counter = await count(r, 150, 511, 3600);
     counter.remove();
-    drop(props.blob); props.blob = blob(8);
+    drop(props.blob); props.blob = blob(30);
     /* the end of the copy: the ribosome releases the chain, and its two parts separate and leave the membrane */
-    const sm = keep(token('small', 0.42)), lg = keep(token('large', 0.42));
-    sm.position.copy(r.position).add(V(0, -0.16, 0)); lg.position.copy(r.position).add(V(0, 0.22, 0));
+    const up = rerFace().n;
+    const sm = calm(keep(token('small', TSZ.small))), lg = calm(keep(token('large', TSZ.large)));
+    lg.position.copy(r.position).addScaledVector(up, -0.0065); sm.position.copy(r.position).addScaledVector(up, 0.0059);
     drop(r); props.rib = null;
-    await Promise.all([tween(sm, { to: sm.position.clone().add(V(-0.9, 1.0, 0.6)), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().add(V(0.9, 1.4, 0.6)), ms: 1300, fade: 0 })]);
-    drop(sm); drop(lg);
-    if (props.channel) { drop(props.channel); props.channel = null; }
+    await Promise.all([tween(sm, { to: sm.position.clone().addScaledVector(up, 0.06).addScaledVector(rerFace().right, -0.03), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().addScaledVector(up, 0.07).addScaledVector(rerFace().right, 0.03), ms: 1300, fade: 0 })]);
+    drop(sm); drop(lg); drop(enz);
+    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [ep(4, -16)]]]);
     quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids.</p>', 'ok');
   }
   async function fold() {
+    await rerClose();
     const inside = insideAt();
-    await press(() => inside.clone().add(V(0, 0.55, 0)), 'Fold', {});
-    if (props.blob) { await tween(props.blob, { to: props.blob.position.clone(), ms: 200, scale: 0.4 }); drop(props.blob); props.blob = null; }
-    const a = keep(token('amylase', 0.34)); a.position.copy(inside); a.scale.setScalar(0.2);
-    await tween(a, { to: inside, ms: 900, scale: 1 }); burst(scene, inside, { n: 40, r: 0.6 });
+    await press(() => inside.clone().addScaledVector(rerFace().n, -0.014), 'Fold', { side: 'b' });
+    if (props.blob) { await tween(props.blob, { to: props.blob.position.clone(), ms: 200, scale: 0.6 }); drop(props.blob); props.blob = null; }
+    const a = keep(token('amylase', TSZ.amy)); a.position.copy(inside); a.scale.setScalar(0.3);
+    await tween(a, { to: inside, ms: 900, scale: 1 }); burst(scene, inside, { n: 18, r: 0.01 });
     props.amylase = a;
-    const site = quest.hot(() => a.position.clone().add(V(0.05, 0.1, 0.42)), 'active site', { cls: 'tag', side: 'r' }); site.el.disabled = true;
-    quest.say('Amylase, folded into its shape. Starch fits into its <b>active site</b>.', 'ok');
+    rerNames([memName(), ...sides(), ['e-amy', 'amylase', [inside.clone()]]]);
+    const site = quest.hot(() => a.position.clone().addScaledVector(rerFace().n, 0.003), 'active site', { cls: 'tag', side: 'r' }); site.el.disabled = true;
+    quest.say('Amylase, folded into its shape: about 5 nm across. Starch fits into its <b>active site</b>.', 'ok');
     await quest.next(); site.remove();
   }
   async function bud() {
+    await rerClose();
     const inside = insideAt();
-    const a = props.amylase || (() => { const t = keep(token('amylase', 0.34)); t.position.copy(inside); return (props.amylase = t); })();
+    const a = props.amylase || (() => { const t = keep(token('amylase', TSZ.amy)); t.position.copy(inside); return (props.amylase = t); })();
     if (!state.has('lipids')) {
       quest.say('Every vesicle removes a piece of the ER membrane, so the ER needs new <b>lipids</b> first. The <b>smooth ER</b> makes them: go there, then return here.', 'no');
       return false;
     }
-    await press(() => a.position.clone().add(V(0, 0.6, 0)), 'Bud', {});
+    rerNames([memName(), ...sides(), ['e-amy', 'amylase', [a.position.clone()]]]);
+    await press(() => a.position.clone().addScaledVector(rerFace().n, -0.012), 'Bud', { side: 'b' });
     state.use('lipids'); state.use('chain');
-    const ves = keep(token('vesicle', 0.55)); ves.position.copy(a.position); ves.scale.setScalar(0.3);
-    await tween(ves, { to: a.position, ms: 900, scale: 1 });
-    const g = new THREE.Group(); g.position.copy(a.position); keep(g); a.position.set(0, 0, 0); g.add(a); ves.position.set(0, 0, 0); g.add(ves);
+    /* a piece of the membrane closes round amylase and pinches off into the cytosol: the vesicle grows up out of the
+       membrane (its foot on the membrane), about 70 nm across, amylase rising into it from inside the ER; it leaves, and
+       from far away it is too small to see, so a glow shows it on its way */
+    const ves = keep(token('vesicle', TSZ.ves)); const c = ep(30, 3 + 35); ves.position.copy(ep(30, 3)); ves.scale.setScalar(0.05);
+    await Promise.all([tween(a, { to: c, ms: 1600 }), tween(ves, { to: c, ms: 1600, scale: 1 })]);
+    const g = new THREE.Group(); g.position.copy(c); keep(g); a.position.set(0, 0, 0); g.add(a); ves.position.set(0, 0, 0); g.add(ves);
+    rerNames([memName(), ...sides(), ['e-ves', 'vesicle', ...edge(c, 0.034)]]);
+    quest.say('The vesicle is about 70 nm across: fourteen times as wide as the amylase inside it.', 'ok');
+    await wait(R.TEST ? 0 : 2200);
+    quest.names.set([], HUD());
+    haloSprite(g, 0.06, 0xfff1a8);
+    await nanoOut(world.P.rer.view);
     await tween(g, { to: g.position.clone().addScaledVector(rerFace().n, 1.0).add(V(0.6, 1.2, 0)), ms: 1400 });
     await quest.gain('amylase', g.position);
     drop(g); props.amylase = null;

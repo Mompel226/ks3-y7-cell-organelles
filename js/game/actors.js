@@ -7,7 +7,7 @@
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611092229';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611100010';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
@@ -100,9 +100,9 @@ export function ribbon(curve, { color = 0xff9f43, radius = 0.045, segs = 160 } =
   return m;
 }
 /* a chain of amino acids: beads along a curve */
-export function chain(points, colors) {
+export function chain(points, colors, r = 0.075) {      /* r: a bead's radius (µm); at true size an amino acid is about 0.0006 */
   const g = new THREE.Group();
-  points.forEach((p, i) => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), mat('a' + (colors[i] % 4), AMINO_COLORS[colors[i] % 4])); b.position.copy(p); g.add(b); });
+  points.forEach((p, i) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 10), mat('a' + (colors[i] % 4), AMINO_COLORS[colors[i] % 4])); b.position.copy(p); g.add(b); });
   return g;
 }
 

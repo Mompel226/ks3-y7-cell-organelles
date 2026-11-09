@@ -152,7 +152,9 @@ export class Names {
      cross another part; with no room there it is left out), up (-1: the name stands above its part, 1: below it, its line
      ONE upright line that ends on the part; for a thin part that a name on it or beside it would hide, such as a membrane
      seen in section: memory label-lines-never-cross, "above or below, never across"), len (px: that upright line's length,
-     when the name must stand clear of more than its part: the net inside the ring of a pore) }];
+     when the name must stand clear of more than its part: the net inside the ring of a pore), sides (1 or -1 for each
+     spot: the one side its name may stand on, beside it; for a spot at the edge of a large part, so that the name stands
+     outside the part and its short line ends on it, never over the part: a ribosome at its true size, 9 Nov 2026) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in).
      A name whose key stays in the next list is the same name: it moves to its new place, never out and in again. */
@@ -362,7 +364,7 @@ export class Names {
     /* alt: other parts of the same kind its name may stand on when its own spots have no room, each only if nothing
        hides it (the mitochondrion on a phone's map: it lies small among other names) */
     const cand = this.items.map(it => ({ r: this.m.get(it.key), it,
-      pts: it.spots.map(p => ({ p, sc: this.proj(p) })).filter(o => seen(o.sc)).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
+      pts: it.spots.map((p, i) => ({ p, i, sc: this.proj(p) })).filter(o => seen(o.sc)).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, i: -1, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
     /* on the part itself; else just beside it, with a short level line that ends on it. A name marked aside (a protein it
        would hide) tries beside it first; a name marked up stands only above (or below) its part, never on it or beside it
        (it would hide the part), and its upright line is kept free too */
@@ -375,8 +377,9 @@ export class Names {
           t.push({ o, line: 0, up: k, bx: { l: sc.x - w / 2, r: sc.x + w / 2, t: top, b: top + h }, lx: { l: sc.x - 2, r: sc.x + 2, t: Math.min(sc.y, k < 0 ? top + h : top), b: Math.max(sc.y, k < 0 ? top + h : top) } });
           return;
         }
-        const by = (cd.it.prefer === -1 ? [-1, 1] : [1, -1]).map(k => { const l = k > 0 ? sc.x + 22 : sc.x - 22 - w; return { o, line: k, bx: { l, r: l + w, t: sc.y - h / 2, b: sc.y + h / 2 } }; });
-        if (cd.it.aside) t.push(...by, on); else t.push(on, ...by);
+        const k1 = cd.it.sides && o.i >= 0 ? cd.it.sides[o.i] : 0;
+        const by = (k1 ? [k1] : cd.it.prefer === -1 ? [-1, 1] : [1, -1]).map(k => { const l = k > 0 ? sc.x + 22 : sc.x - 22 - w; return { o, line: k, bx: { l, r: l + w, t: sc.y - h / 2, b: sc.y + h / 2 } }; });
+        if (k1) t.push(...by); else if (cd.it.aside) t.push(...by, on); else t.push(on, ...by);
       });
       return t;
     };
