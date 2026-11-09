@@ -5,15 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091600';
-import { state, COST, RESPIRE } from './state.js?v=202611091600';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091600';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091600';
-import { sound } from './sound.js?v=202611091600';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611091659';
+import { state, COST, RESPIRE } from './state.js?v=202611091659';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611091659';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611091659';
+import { sound } from './sound.js?v=202611091659';
+import { magicStandard } from '../world/magic.js?v=202611091659';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611091600').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611091659').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -44,7 +45,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); }
+  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); chrUndim(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -822,7 +823,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611091600').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611091659').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1132,26 +1133,86 @@ export function makePlay(world, quest) {
     await quest.next(); quest.names.set([]);
   }
   function chr1Mat() { const m = W.chromosomes[0].mesh.material; if (!props.chrDim) { props.chrDim = m.color.getHex(); m.color.setHex(0xb9a6ff); m.emissive.setHex(0x2a1f6a); } return m; }
+  /* a thread pressed lights up along its whole length (Daniel, 9 Nov 2026: "As you click on the different chromosomes,
+     it'd be nice if you could lit up the different chromosomes, so they actually, the students understand what a
+     chromosome is … they're just clicking a label. They don't actually see what a chromosome is, and the idea is to see
+     that the long tubes are the chromosomes"): a glowing sleeve, a little wider than the thread, grows along it from one
+     end to the other at the same speed on every thread (so the longest takes longest), the light running round all its
+     coils; it stays lit while its name is read, brighter than white (so that it glows), and the other threads are dimmed
+     meanwhile, so that it stands out whole. Drawn after the see-through parts of the nucleus (renderOrder, as the copy's
+     ribbon), its mesh built in the world's frame */
+  let chrSaved = null;                                 /* the dimmed threads' own colours, put back by chrUndim (and reset) */
+  function chrUndim() { if (!chrSaved) return; chrSaved.forEach(([m, c, e]) => { m.color.copy(c); m.emissiveIntensity = e; }); chrSaved = null; }
+  function chrDim(except) {
+    chrUndim();
+    chrSaved = W.chromosomes.filter(c => c !== except).map(c => { const m = c.mesh.material; return [m, m.color.clone(), m.emissiveIntensity]; });
+    chrSaved.forEach(([m]) => { m.color.multiplyScalar(0.45); m.emissiveIntensity *= 0.4; });
+  }
+  function lightThread(ch, color, glow) {
+    const n = ch.curve.points.length, pts = [];
+    for (let i = 0; i <= n * 2; i++) pts.push(inN(ch.curve.getPointAt(i / (n * 2))));
+    const segs = n * 3, geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), segs, ch.mesh.geometry.parameters.radius * 1.4, 8, false);
+    const m = keep(new THREE.Mesh(geo, magicStandard({ color, emissive: color, emissiveIntensity: glow, roughness: 0.35, transparent: true, opacity: 1 }, { rim: 0xe8fbff, rimK: 0.45 })));
+    m.renderOrder = 6; m.name = 'lit-chr' + ch.n;
+    chrDim(ch);
+    const per = 8 * 6, ms = n * 11, t0 = performance.now();
+    geo.setDrawRange(0, 0);
+    m.userData.done = live(new Promise(res => {
+      const f = () => {
+        if (!m.parent) return res();
+        const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms);
+        geo.setDrawRange(0, Math.round(segs * k) * per); world.kick();
+        if (k < 1) requestAnimationFrame(f); else res();
+      };
+      f();
+    }));
+    return m;
+  }
+  const unlight = m => { if (!m) return; drop(m); m.geometry.dispose(); m.material.dispose(); chrUndim(); };
   async function findchr() {
     const v = nucView(); if (world.camera.position.distanceTo(v.pos) > 0.5) await fly(v.pos, v.at);
     chr1Mat();
-    const picks = [0, 3, 6, 9, 12].map(i => W.chromosomes[i]).filter(Boolean);
+    /* the threads with a button: chromosome 1 and the four seen best from the nucleus's view, spread round the picture
+       (measured at a laptop, a large screen and a phone, the same: of each thread's length, the part in the picture and in
+       front of the nucleolus and of every other thread, 0: 88 %, 2: 93-96 %, 9: 83-99 %, 12: 93 %, 8: 79 %; the threads
+       pressed before, 3, 6, 9 and 12, had been 64 %, 28 %, 99 % and 93 %, so that two of them, lit, hardly showed) */
+    const picks = [0, 2, 9, 12, 8].map(i => W.chromosomes[i]).filter(Boolean);
     const OTHER = [7, 14, 21, 11];                     /* each other chromosome shown has its own number */
+    let lit = null, named = null;                      /* the thread lit now and its button: one at a time (the one before
+                                                          goes dark and its name goes, so the buttons left are those not
+                                                          yet tried, and no name stands on a lit thread) */
+    const s0 = quest.session;
     await new Promise(done => {
       picks.forEach((ch, pi) => {
         const at = () => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.18, 0));
         const b = quest.hot(at, '?', { cls: 'q3', aria: 'a chromosome' });
-        b.done.then(() => {
+        b.done.then(async () => {
+          if (quest.session !== s0) return;
+          unlight(lit); lit = null;
           if (ch.n === 1) {
             quest.clearHots();
+            quest.say('This whole thread is <b>chromosome 1</b>: the largest kind of chromosome. (There are two of each kind: one from each parent.)', 'ok');
+            /* the light runs along it in gold; then the thread itself is gold and the light fades from it */
+            const m = lightThread(ch, 0xffc04a, 0.22);
+            try { await m.userData.done; } catch (e) { return; }
             ch.mesh.material.color.setHex(0xffcf6b); ch.mesh.material.emissive.setHex(0x7a4a00);
             burst(scene, inN(ch.curve.getPointAt(0.5)), { n: 40, r: 0.5 });
-            quest.say('<b>Chromosome 1</b>: the largest kind of chromosome. (There are two of each kind: one from each parent.)', 'ok');
+            const t0 = performance.now();
+            W.anim.push(function f() { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 700); m.material.opacity = 1 - k; if (k >= 1 || !m.parent) { W.anim.splice(W.anim.indexOf(f), 1); unlight(m); } });
             done();
           } else {
             const k = OTHER[(pi - 1) % OTHER.length];
+            if (named) named.remove();
             b.el.querySelector('span').textContent = 'chromosome ' + k; b.el.disabled = true; b.el.classList.add('no');
-            quest.say(`That is chromosome ${k}. Find chromosome 1, the largest kind.`);
+            quest.say(`This whole thread is chromosome ${k}. Find chromosome 1, the largest kind.`);
+            lit = lightThread(ch, 0x10b8ff, 0.5); named = b;
+            /* its name moves above the thread, so that it covers none of it; below it when the space above is under the box
+               at the top left (on a phone a thread near the top of the picture had been hidden by the box and its name) */
+            const P = ch.curve.points, above = inN(P.reduce((a, p) => p.y > a.y ? p : a)).add(V(0, 0.3, 0)), below = inN(P.reduce((a, p) => p.y < a.y ? p : a)).add(V(0, -0.3, 0));
+            const cr = world.canvas.getBoundingClientRect(), sa = world.project(above), ax = cr.left + sa.x, ay = cr.top + sa.y;
+            const boxed = HUD2().some(e => { const r = e.getBoundingClientRect(); return r.width > 0 && ax > r.left - 60 && ax < r.right + 60 && ay > r.top - 30 && ay < r.bottom + 40; });
+            const spot = boxed ? below : above;
+            b.at = () => spot;
           }
         });
       });

@@ -19,9 +19,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices, mergeGeometries } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611091600';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611091600';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611091600';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611091659';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611091659';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611091659';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -525,6 +525,12 @@ export function buildCell(scene) {
      size (built and compiled with the world, so the fade compiles nothing) */
   const doorTorus = new THREE.Mesh(poreGeo, revealOn(magicStandard({ color: 0xffd58a, emissive: 0x9a6a18, emissiveIntensity: 1.3, roughness: 0.3, transparent: true, depthWrite: false }, { rim: 0xfff0c8, rimK: 1.0 }), REV, 'pore', null, PK));
   doorTorus.position.copy(doorP); doorTorus.quaternion.copy(frontPores[0].q); doorTorus.visible = false; doorTorus.name = 'pore-door'; nucleus.add(doorTorus);
+  /* drawn after the real pore's patch of membrane (9 Nov 2026; Daniel: "the yellow round gets cut in half, and then it
+     reappears to be full"): the ring writes no depth (it fades), and the patch, see-through too, stands at the same point,
+     so which of the two was drawn first was left to rounding and changed from frame to frame; when the patch came second
+     it painted over half of the ring, or all of it. Drawn after it, the ring is hidden only where it is really inside the
+     membrane. Between 0 (the patch) and 1 (the cell's other see-through parts, whose order stays as it was) */
+  doorTorus.renderOrder = 0.5;
   /* chromatin: in a working cell each chromosome is a long thin thread in its own territory (never an X: chromosomes
      look like an X only when a cell divides). 14 territories drawn, of the 46; chromosome 1, the largest, is gold */
   const chromatin = new THREE.Group(); chromatin.name = 'chromatin'; nucleus.add(chromatin);
