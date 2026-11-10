@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611100738';
-import { state, COST, RESPIRE } from './state.js?v=202611100738';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611100738';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611100738';
-import { sound } from './sound.js?v=202611100738';
-import { magicStandard } from '../world/magic.js?v=202611100738';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101038';
+import { state, COST, RESPIRE } from './state.js?v=202611101038';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101038';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101038';
+import { sound } from './sound.js?v=202611101038';
+import { magicStandard } from '../world/magic.js?v=202611101038';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611100738').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611101038').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -870,7 +870,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611100738').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611101038').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1561,10 +1561,15 @@ export function makePlay(world, quest) {
   /* the close-up ends: the scale bar and the close-up's membrane go, and what the world hid comes back; all but its
      ribosomes (four times their size) when ribs is false */
   const bigRibs = () => groupsOf(['free-ribosomes']).concat([W.groups.rer && W.groups.rer.children.find(o => o.name === 'rer-ribosomes')]);
+  /* (a place's own close-up drawing, props.close, goes with the scale bar; or, when the world's own drawing of it comes
+     back only once far, NZ.late with NZ.keepClose, at the same moment as that: the Golgi, whose world sacs are drawn far
+     apart, never missing from the picture) */
   function nanoOff(ribs = true) {
     if (NZ.on) { NZ.on = false; nolBar(false); if (props.mem) props.mem.visible = false; }
-    const late = ribs ? [] : bigRibs();
+    if (props.close && (ribs || !NZ.keepClose)) props.close.visible = false;
+    const late = ribs ? [] : bigRibs().concat(NZ.late || []);
     NZ.hidden = NZ.hidden.filter(o => { if (late.includes(o)) return true; o.visible = true; return false; });
+    if (ribs) { NZ.late = null; NZ.keepClose = false; }
   }
   /* on the way out, the world comes back while the camera flies: about 0.45 µm away its rough ER's sheet and the cytosol
      (the close-up's membrane and scale bar go); about 1.5 µm away its ribosomes, four times their size, which beside a
@@ -1725,7 +1730,6 @@ export function makePlay(world, quest) {
     box(-3.6, -1.1, -3.6, 3.6, 0, 6, prot); box(1.1, 3.6, -3.6, 3.6, 0, 6, prot); box(-1.1, 1.1, -3.6, 3.6, 4.6, 6, prot);
     return (props.mem = keep(g));
   }
-  /* the camera looks along the cut, 10° from above: the cytosol above the membrane, the inside of the ER below it */
   /* the camera's eye level with the middle of the membrane, looking a little up (about 5°) at what it frames: from there
      the membrane is only its cut face, a thin band between the cytosol above and the inside below. From 10° above, its
      top surface stretched back as a wide pink plane and the name "cytosol" stood on it (Daniel, 10 Nov 2026: "it's
@@ -1858,98 +1862,309 @@ export function makePlay(world, quest) {
     await quest.next('Back to the map');
   }
 
-  /* ---------------- smooth ER ---------------- */
+  /* ---------------- the smooth ER, the Golgi and the way out, at their true sizes (round 6, 10 Nov 2026) ----------------
+     His "Yes, build it" to the plan (and to the close-up of the sugars): each place close up with the scale bar, every
+     molecule at its true size, the far world faded (nanoFog) and what is drawn larger than life nearby hidden (nanoIn);
+     names beside the parts, never on a large one (names.js solid). Shared here: a close-up's frame (p a point, n the side
+     called up, right across the picture, along towards the camera; offsets in nm), its group (x across, y up, z towards
+     the camera), the camera's distance that fits a width and a height (nm) into the free part of the picture, and the
+     names. */
+  const frameAt = (p, n, camPos) => { const c = camPos.clone().sub(p).normalize(), along = c.addScaledVector(n, -c.dot(n)).normalize(); return { p: p.clone(), n: n.clone(), right: new THREE.Vector3().crossVectors(n, along), along }; };
+  const fp = (F, x, y, z = 0) => F.p.clone().addScaledVector(F.right, x / 1000).addScaledVector(F.n, y / 1000).addScaledVector(F.along, z / 1000);
+  const frameGroup = F => { const g = new THREE.Group(); g.position.copy(F.p); g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.right, F.n, F.along)); return g; };
+  const fitDist = (wNm, hNm) => { const k = world.pxPerUnit(1), s = world.size, ins = world.inset || {}, Wf = s.w - (ins.right || 0), Hf = s.h - (ins.bottom || 0) - (ins.top || 0); return Math.max(k * wNm / 1000 / (0.9 * Wf), k * hNm / 1000 / (0.82 * Hf)); };
+  const PHONE = () => world.size.w < 640;   /* a phone: narrow, the corner box over the picture's top */
+  const closeNames = (F, list, solid = [], w = 40, c = F.p) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUD(), Object.assign(lr(c.clone().addScaledVector(F.right, -w / 1000), c.clone().addScaledVector(F.right, w / 1000)), { on: true }), solid.filter(Boolean));
+  const Y = V(0, 1, 0);
+  /* a lipid at its true size, about 3 nm from its head to the ends of its tails: the head about 0.9 nm, two tails */
+  const LIPM = { head: magicStandard({ color: 0xff9ac8, roughness: 0.5, emissive: 0x5a1838, emissiveIntensity: 0.15 }, { rim: 0xffd6ea, rimK: 0.4 }), tail: magicStandard({ color: 0xfff0f5, roughness: 0.7 }, { rim: 0xffffff, rimK: 0.15 }) };
+  const LIPG = { head: new THREE.SphereGeometry(0.00045, 12, 9), tail: new THREE.CylinderGeometry(0.00011, 0.00011, 0.0021, 6) };
+  function lipid3() {
+    const g = new THREE.Group(); g.userData.kind = 'lipid';
+    const h = new THREE.Mesh(LIPG.head, LIPM.head); h.position.y = 0.00105; h.userData.home = h.position.clone(); g.add(h);
+    [-1, 1].forEach(k => { const t = new THREE.Mesh(LIPG.tail, LIPM.tail); t.position.set(k * 0.00017, -0.00045, 0); t.userData.home = t.position.clone(); g.add(t); });
+    return g;
+  }
+
+  /* ---------------- smooth ER ----------------
+     Close up, one tube of the smooth ER cut through, like a textbook's diagram: 50 nm across (the true width of the world's
+     tubes), its wall a membrane about 6 nm thick, two layers of lipids drawn one by one (the outer layer faces the
+     cytosol, the inner one the inside of the tube), seen straight along the tube, so no surface of it stands behind the
+     names. Join makes a lipid from a head and two tails in the cytosol beside the tube; Add to the membrane puts the three
+     into gaps in the layer that faces the cytosol (the side where the ER makes its lipids); the camera then goes out and a
+     glow spreads along the net. Before: each lipid 650 nm long, about 250 times too big. Proof: tools/true-size.mjs D */
   const SER = world.P.ser.center;
+  const SR = { c: 22, n: [181, 144] };   /* the wall's middle 22 nm from the tube's middle (the wall 19 to 25 nm); lipids in each layer */
+  const GAPS = [82, 90, 98];             /* the three gaps in the outer layer, at the top (degrees) */
+  const serFrame = () => props.sf || (props.sf = frameAt(SER, Y, V(...world.P.ser.view.pos)));
+  const sp = (x, y, z) => fp(serFrame(), x, y, z);
+  const polar = (deg, r) => [Math.cos(deg * Math.PI / 180) * r, Math.sin(deg * Math.PI / 180) * r];
+  const gapDeg = i => { const n0 = SR.n[0]; return Math.round(GAPS[i] / 360 * n0) * 360 / n0; };
+  const gapLocal = (i, r) => { const [x, y] = polar(gapDeg(i), r / 1000); return V(x, y, 0); };
+  const gapDir = i => { const [x, y] = polar(gapDeg(i), 1); return V(x, y, 0); };
+  function serTube() {
+    if (props.close) { props.close.visible = true; return props.close; }
+    const g = frameGroup(serFrame()); g.userData.kind = 'ser-tube';
+    const n0 = SR.n[0], gi = GAPS.map((_, i) => Math.round(GAPS[i] / 360 * n0)), slots = [];
+    for (let i = 0; i < n0; i++) if (!gi.includes(i)) slots.push({ deg: i * 360 / n0, out: 1 });
+    for (let i = 0; i < SR.n[1]; i++) slots.push({ deg: (i + 0.5) * 360 / SR.n[1], out: -1 });
+    const heads = new THREE.InstancedMesh(LIPG.head, LIPM.head, slots.length), tails = new THREE.InstancedMesh(LIPG.tail, LIPM.tail, slots.length * 2);
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V(1, 1, 1);
+    slots.forEach((s, i) => {
+      const [cx, cy] = polar(s.deg, 1), dir = V(cx * s.out, cy * s.out, 0), tan = V(-cy, cx, 0), c = V(cx, cy, 0).multiplyScalar((SR.c + 1.5 * s.out) / 1000);
+      q.setFromUnitVectors(Y, dir);
+      heads.setMatrixAt(i, M.compose(c.clone().addScaledVector(dir, 0.00105), q, one));
+      [-1, 1].forEach((k, j) => tails.setMatrixAt(i * 2 + j, M.compose(c.clone().addScaledVector(dir, -0.00045).addScaledVector(tan, k * 0.00017), q, one)));
+    });
+    heads.instanceMatrix.needsUpdate = true; tails.instanceMatrix.needsUpdate = true;
+    heads.computeBoundingSphere(); tails.computeBoundingSphere();
+    heads.userData.kind = 'ser-heads'; g.add(heads, tails);
+    /* the inside of the tube, faintly tinted, so that inside and outside differ */
+    const lum = new THREE.Mesh(new THREE.CircleGeometry(0.0189, 64), new THREE.MeshBasicMaterial({ color: 0x7fe0c8, transparent: true, opacity: 0.12, depthWrite: false }));
+    lum.position.z = -0.0006; g.add(lum);
+    return (props.close = keep(g));
+  }
+  const serClose = () => { serTube(); const F = serFrame(); return nanoIn({ at: fp(F, 0, 8), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(100, 84) }, NEAR_HIDE().concat(groupsOf(['ser']))); };
+  /* the names: the membrane beside the tube's wall (its line ends on the wall), the cytosol outside, the inside in it */
+  const serBase = () => [
+    PHONE() ? ['s-mem', 'membrane of the smooth ER', [sp(0, -22), sp(-8, -20.5), sp(8, -20.5)], { up: 1, len: 34, small: '<span class="nm__t">smooth ER membrane</span>' }]
+      : ['s-mem', 'membrane of the smooth ER', [sp(-22, 0), sp(22, 0), sp(-15.6, -15.6), sp(15.6, -15.6)], { sides: [-1, 1, -1, 1], small: '<span class="nm__t">smooth ER membrane</span>' }],
+    ['s-cyt', 'cytosol', [sp(-40, 30), sp(40, 30), sp(-40, -27), sp(40, -27), sp(-34, 36), sp(34, 36)], { aside: false }],
+    ['s-in', 'inside the smooth ER', [sp(0, -6), sp(0, -10), sp(0, -2)], { aside: false, small: '<span class="nm__t">inside the<br>smooth ER</span>' }]
+  ];
+  const lipW = (l, y) => props.close.localToWorld(l.position.clone().addScaledVector(Y.clone().applyQuaternion(l.quaternion), y));
+  const newLip = i => { const l = lipid3(); l.position.copy(gapLocal(i, 31)); l.quaternion.setFromUnitVectors(Y, gapDir(i)); props.close.add(l); return l; };
   async function lipid() {
     await fly(world.P.ser.view.pos, world.P.ser.view.at);
+    await serClose();
+    const g = props.close, F = serFrame();
     props.lipids = props.lipids || [];
+    closeNames(F, serBase(), [], 45);
     for (let i = props.lipids.length; i < 3; i++) {
-      await press(() => SER.clone().add(V(0.9, 1.0, 1.4)), `Join (${i + 1} of 3)`, { cost: COST.lipid });
-      const parts = ['lhead', 'ltail', 'ltail'].map((k, j) => { const p = keep(token(k, 0.42)); p.position.copy(SER).add(V(Math.cos(j * 2.1) * 0.8, Math.sin(j * 2.1) * 0.6 + 0.6, 1.3)); return p; });
-      const at = SER.clone().add(V(-0.6 + i * 0.6, 0.4, 1.5));
-      await Promise.all(parts.map(p => tween(p, { to: at, ms: 800 })));
-      parts.forEach(drop);
-      const l = keep(token('lipid', 0.42)); l.position.copy(at); burst(scene, at, { n: 20, r: 0.3, color: 0xffb3d6 });
+      await press(() => g.localToWorld(gapLocal(1, 43)), `Join (${i + 1} of 3)`, { cost: COST.lipid });
+      /* a head and two tails, apart in the cytosol, come together into one lipid */
+      const l = newLip(i);
+      l.children.forEach((c, j) => c.position.add(V(Math.cos(j * 2.1 + 0.4) * 0.0032, Math.sin(j * 2.1 + 0.4) * 0.0032, 0)));
+      await Promise.all(l.children.map(c => tween(c, { to: c.userData.home, ms: 900 })));
+      burst(scene, lipW(l, 0), { n: 14, r: 0.003, size: 0.0006, near: 0.0005, color: 0xffb3d6, ms: 800 });
       props.lipids.push(l);
+      /* the first one: its head and its two tails named */
+      const f = props.lipids[0];
+      closeNames(F, [...serBase(), ['s-head', 'head', [lipW(f, 0.00105)]], ['s-tails', 'two tails', [lipW(f, -0.00045)]]], [], 45);
     }
-    quest.say('Three lipids: each one has a head and two tails.', 'ok');
+    quest.say('Three lipids: each one has a head and two tails, and is about 3 nm long.', 'ok');
   }
   async function layer() {
-    /* a piece of the ER's own membrane, drawn much larger: two layers of lipids, tails inside, with gaps in the top layer
-       (the side towards the cytosol, where new lipids join); the new lipids fill the gaps, then spread through the ER */
-    const base = SER.clone().add(V(0, -0.45, 1.5)), slot = (k, top) => base.clone().add(V(-1.05 + k * 0.42, top ? 0.42 : -0.42, 0));
-    const pale = (l) => { l.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.55; } }); return l; };
-    const old = [];
-    for (let k = 0; k < 6; k++) { const b = keep(pale(token('lipid', 0.42))); b.rotation.z = Math.PI; b.position.copy(slot(k, false)); old.push(b); }
-    for (let k = 0; k < 6; k += 2) { const t = keep(pale(token('lipid', 0.42))); t.position.copy(slot(k, true)); old.push(t); }
-    const tag = quest.hot(() => base.clone().add(V(0, -0.95, 0)), 'the membrane of the ER (drawn much larger)', { cls: 'tag', side: 'b' }); tag.el.disabled = true;
-    const L = props.lipids && props.lipids.length ? props.lipids : [0, 1, 2].map(i => { const l = keep(token('lipid', 0.42)); l.position.copy(SER).add(V(-0.6 + i * 0.6, 0.4, 1.5)); return l; });
-    await press(() => base.clone().add(V(0, 1.5, 0)), 'Add to the membrane', {});
-    await Promise.all(L.map((l, i) => tween(l, { to: slot(1 + i * 2, true), ms: 1000 })));
-    burst(scene, base, { n: 30, r: 0.7, color: 0xffb3d6 });
-    tag.remove();
+    await fly(world.P.ser.view.pos, world.P.ser.view.at);
+    await serClose();
+    const g = props.close, F = serFrame();
+    const L = props.lipids && props.lipids.length === 3 ? props.lipids : [0, 1, 2].map(newLip);
+    const lipName = () => ['s-lip', 'new lipid', [lipW(L[0], 0.00105), lipW(L[2], 0.00105)], { sides: [1, -1] }];
+    closeNames(F, [...serBase(), lipName()], [], 45);
+    await press(() => g.localToWorld(gapLocal(1, 43)), 'Add to the membrane', {});
+    await Promise.all(L.map((l, i) => tween(l, { to: gapLocal(i, SR.c + 1.5), ms: 1100 })));
+    burst(scene, g.localToWorld(gapLocal(1, 25)), { n: 24, r: 0.006, size: 0.0007, near: 0.0006, color: 0xffb3d6 });
+    closeNames(F, [...serBase(), lipName()], [], 45);
     quest.say('The new lipids are part of the membrane of the ER. They spread through it, as far as the rough ER.', 'ok');
-    await live(wave(scene, base, { color: 0xffc8e4, to: 7, ms: R.FAST ? 0 : 2000 }));
-    await quest.gain('lipids', base);
-    L.concat(old).forEach(drop); props.lipids = null;
+    await wait(R.TEST ? 0 : 2000);
+    quest.names.set([], HUD());
+    await nanoOut(world.P.ser.view);
+    await live(wave(scene, SER, { color: 0xffc8e4, to: 7, ms: R.FAST ? 0 : 2000 }));
+    await quest.gain('lipids', SER);
+    props.lipids = null;
     await quest.next('Back to the map');
   }
 
-  /* ---------------- Golgi apparatus ---------------- */
+  /* ---------------- Golgi apparatus ----------------
+     Close up, the stack cut through, every size true: six sacs, each two membranes (6 nm, two layers of lipids) round a
+     space 18 nm wide, 42 nm apart (electron tomography: the middle of a sac about 20 nm thick, about 10 nm between sacs,
+     the rims swollen; Engel et al. 2015, PNAS 112:11264), about 0.9 µm across, a shallow bowl; seen straight at the cut,
+     a thin slice, so no surface stands behind the names. The vesicle from the rough ER (70 nm, as there) joins the first
+     sac; amylase (about 5 nm: a speck at this size, glowing and named) goes sac by sac: along the sac to its rim, then in
+     a small vesicle (about 60 nm) to the next sac's rim. In the third sac the camera goes close (scale bar about 10 nm)
+     while three sugars join the short chain of sugars that amylase already carries (some salivary amylase carries sugars;
+     the first ones are added in the rough ER). At the top the proteins are sorted: a vesicle to a lysosome about 80 nm,
+     the large vesicle 0.9 µm (as the microtubules carry it), which then fills with amylase. The world's own Golgi (its
+     sacs drawn about 200 nm apart) is hidden while the camera is close and comes back only once it is far.
+     Before: amylase 320 to 360 nm, the vesicles 640 and 840 nm. Proof: tools/true-size.mjs E */
   const G = W.golgi.group;
   const sacPoint = (k) => G.localToWorld(V(1.2, k * 0.2 + 0.25, 0.9));
+  const GS = { n: 6, step: 42, th: 30, w: 450, rise: 60 };
+  const bowl = x => GS.rise * Math.pow(x / GS.w, 2);
+  const sacW = k => GS.w - 12 * k;                    /* half its width */
+  /* the middle of sac k at x (nm): a shallow bowl, the rims fanning out (each rim swells, and between the sacs there is
+     only about 10 nm: without the fan, neighbouring rims crossed) */
+  const sacY = (k, x = 0) => k * GS.step + bowl(x) + (k - 2.5) * 30 * smooth(sacW(k) - 150, sacW(k) - 20, Math.abs(x));
+  function golgiFrame() {
+    if (props.gf) return props.gf;
+    const n = Y.clone().applyQuaternion(G.getWorldQuaternion(new THREE.Quaternion())).normalize();
+    return (props.gf = frameAt(sacPoint(0), n, V(...world.P.golgi.view.pos)));
+  }
+  const gp = (x, y, z) => fp(golgiFrame(), x, y, z);
+  /* sac k's outline, inset nm inside its outer surface: flat, swollen at its rims, its ends rounded */
+  function sacPts(k, inset) {
+    const w = sacW(k) - inset, hf = x => GS.th / 2 - inset + 14 * smooth(w - 90, w - 10, Math.abs(x)), P = [];
+    const cy = sacY(k, w), r = hf(w);
+    for (let i = 0; i <= 40; i++) { const x = -w + 2 * w * i / 40; P.push(new THREE.Vector2(x, sacY(k, x) + hf(x))); }
+    for (let i = 1; i < 12; i++) { const a = Math.PI / 2 - Math.PI * i / 12; P.push(new THREE.Vector2(w + r * Math.cos(a), cy + r * Math.sin(a))); }
+    for (let i = 0; i <= 40; i++) { const x = w - 2 * w * i / 40; P.push(new THREE.Vector2(x, sacY(k, x) - hf(x))); }
+    for (let i = 1; i < 12; i++) { const a = -Math.PI / 2 - Math.PI * i / 12; P.push(new THREE.Vector2(-w + r * Math.cos(a), cy + r * Math.sin(a))); }
+    return P;
+  }
+  function golgiStack() {
+    if (props.close) { props.close.visible = true; return props.close; }
+    const g = frameGroup(golgiFrame()); g.userData.kind = 'golgi-stack';
+    const head = magicStandard({ color: 0xeaa632, roughness: 0.4, emissive: 0x4a2c04, emissiveIntensity: 0.2 }, { rim: 0xffe0a0, rimK: 0.4 });
+    const tail = magicStandard({ color: 0xfff3d6, roughness: 0.7 }, { rim: 0xffffff, rimK: 0.15 });
+    const lumM = new THREE.MeshBasicMaterial({ color: 0xffe2a8, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
+    const band = (k, a, b, m, kind) => {
+      const s = new THREE.Shape(sacPts(k, a)); s.holes.push(new THREE.Path(sacPts(k, b)));
+      const geo = new THREE.ExtrudeGeometry(s, { depth: 3, bevelEnabled: false }); geo.translate(0, 0, -1.5); geo.scale(0.001, 0.001, 0.001);
+      const mesh = new THREE.Mesh(geo, m); if (kind) { mesh.userData.kind = kind; mesh.userData.k = k; } g.add(mesh);
+    };
+    for (let k = 0; k < GS.n; k++) {
+      band(k, 0, 1.2, head, 'golgi-sac'); band(k, 1.2, 4.8, tail); band(k, 4.8, 6, head);
+      const lg = new THREE.ShapeGeometry(new THREE.Shape(sacPts(k, 6))); lg.scale(0.001, 0.001, 0.001);
+      const l = new THREE.Mesh(lg, lumM); l.position.z = -0.0016; l.userData.kind = 'golgi-lumen'; l.userData.k = k; g.add(l);
+    }
+    return (props.close = keep(g));
+  }
+  /* the views: the stack's right half with what joins it from below; the top, where the large vesicle forms */
+  const GV = { stack: [230, 40, 700, 620], top: [0, 560, 1080, 1270], stackP: [230, 150, 700, 620], topP: [0, 620, 2100, 1270] };
+  async function golgiClose(which, ms) {
+    golgiStack(); const F = golgiFrame(), [x, y, w, h] = PHONE() ? GV[which + 'P'] : GV[which];
+    NZ.late = groupsOf(['golgi']); NZ.keepClose = true;
+    /* (and the world's lysosomes: one stood beside the small vesicle to a lysosome, and looked like it) */
+    if (!NZ.on) return nanoIn({ at: gp(x, y), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(w, h) }, NEAR_HIDE().concat(groupsOf(['golgi', 'lysosomes'])));
+    await camGo({ at: gp(x, y), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(w, h) }, R.FAST ? 0 : (ms || 1800));
+  }
+  const gNames = (list, solid) => closeNames(golgiFrame(), [['g-sac', 'a sac of the Golgi', [330, 250, -330, 120].map(x => gp(x, sacY(5, x) + 15)), { up: -1, len: 34, small: '<span class="nm__t">a Golgi sac</span>' }], ...list], solid, 300);
+  /* spots round a large round part's edge, each name beside it on the outer side: right, up-right, down-right, then left */
+  const rimSpots = (F, c, r) => { const P = [], S = []; [0, 40, -40, 180, 140, 220].forEach(d => { const a = d * Math.PI / 180; P.push(c.clone().addScaledVector(F.right, Math.cos(a) * r).addScaledVector(F.n, Math.sin(a) * r)); S.push(Math.cos(a) > 0 ? 1 : -1); }); return [P, { sides: S }]; };
+  const OUTSM = { small: '<span class="nm__t">vesicle:<br>out of the cell</span>' }, LYSSM = { small: '<span class="nm__t">to a<br>lysosome</span>' };
+  const speckName = a => ['g-amy', 'amylase', ...edge(a.getWorldPosition(V()), 0.0045)];
+  /* a speck of amylase that can be found: a soft glow round it */
+  const amySpeck = () => { const a = calm(token('amylase', TSZ.amy)); haloSprite(a, 0.009, 0xfff1a8); return a; };
   async function join() {
     await fly(world.P.golgi.view.pos, world.P.golgi.view.at);
-    const v = keep(token('vesicle', 0.32)); const a = token('amylase', 0.18); v.add(a); v.position.copy(sacPoint(0)).add(V(0.3, -1.2, 0.6));
-    await press(() => v.position.clone().add(V(0, -0.5, 0)), 'Join', { side: 'b' });
-    await tween(v, { to: sacPoint(0), ms: 1000 });
-    await tween(v, { to: sacPoint(0), ms: 400, scale: 0.2 });
-    drop(v); burst(scene, sacPoint(0), { n: 24, r: 0.3 });
-    props.k = 0;
+    await golgiClose('stack');
+    const F = golgiFrame(), x0 = 260, end = gp(x0, sacY(0, x0) - GS.th / 2 - 36);
+    const v = calm(keep(token('vesicle', TSZ.ves))), a = amySpeck(); v.add(a); v.position.copy(gp(x0 - 60, -170));
+    gNames([['g-ves', 'vesicle from the rough ER', ...edge(v.position, 0.034)], speckName(a)], [v]);
+    await press(() => v.position.clone().addScaledVector(F.n, -0.055), 'Join', { side: 'b' });
+    await tween(v, { to: end, ms: 1100 });
+    /* the vesicle's membrane joins the membrane of the first sac: amylase is inside the sac */
+    scene.attach(a); kept.push(a);
+    await Promise.all([tween(v, { to: end.clone().addScaledVector(F.n, 0.022), ms: 700, scale: 0.2, fade: 0 }), tween(a, { to: gp(x0, sacY(0, x0)), ms: 1000 })]);
+    drop(v); burst(scene, gp(x0, sacY(0, x0)), { n: 16, r: 0.012, size: 0.002, near: 0.001 });
+    props.amy = a; props.k = 0;
+    gNames([speckName(a)]);
+    quest.say('The vesicle from the rough ER, about 70 nm across, joins the first sac. Your amylase is inside it.', 'ok');
+  }
+  /* three sugars join the end of the short chain that amylase carries, close up */
+  const SUGM = magicStandard({ color: 0x8fe3a0, roughness: 0.45, emissive: 0x1f5a2a, emissiveIntensity: 0.25 }, { rim: 0xd8ffe0, rimK: 0.5 });
+  const sugarAt = (a, i) => V(0.0004 * Math.sin(i * 1.3), 0.00265 + i * 0.00082, 0.0003 * Math.cos(i * 1.7));
+  async function sugars(a) {
+    const F = golgiFrame(), view = { at: a.position.clone(), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(34, 28) };
+    const glow = a.children.find(c => c.isSprite); if (glow) glow.visible = false;   /* close up it would fill the picture */
+    await camGo(view, R.FAST ? 0 : 2000);
+    const bead = () => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.0004, 12, 9), SUGM); b.userData.kind = 'sugar'; return b; };
+    if (!a.userData.sugars) { a.userData.sugars = [0, 1].map(i => { const b = bead(); b.position.copy(sugarAt(a, i)); a.add(b); return b; }); }
+    const chainW = () => a.localToWorld(sugarAt(a, a.userData.sugars.length - 1).clone());
+    const body = a.children.find(c => c.isMesh && !c.userData.kind);   /* names keep off amylase itself, not off its sugars */
+    closeNames(F, [['g-amy2', 'amylase', ...edge(a.position.clone(), 0.0036)], ['g-sug', 'sugars', [chainW(), chainW()], { sides: [1, -1] }]], [body], 8, a.position);
+    quest.say('In the sacs, the Golgi apparatus modifies proteins: it adds sugars to some of them.');
+    for (let i = 2; i < 5; i++) {
+      const b = bead(); a.add(b); const to = sugarAt(a, i); b.position.copy(to).add(V(0.004 * (i % 2 ? 1 : -1), 0.003, 0));
+      await tween(b, { to, ms: 800 });
+      a.userData.sugars.push(b);
+      burst(scene, a.localToWorld(to.clone()), { n: 8, r: 0.0012, size: 0.00025, near: 0.0002, color: 0xc8ffd0, ms: 600 });
+      closeNames(F, [['g-amy2', 'amylase', ...edge(a.position.clone(), 0.0036)], ['g-sug', 'sugars', [chainW(), chainW()], { sides: [1, -1] }]], [body], 8, a.position);
+    }
+    await wait(R.TEST ? 0 : 1600);
+    quest.names.set([], HUD());
+    await golgiClose('stack', 2000);
+    if (glow) glow.visible = true;
   }
   async function through() {
-    const m = keep(token('amylase', 0.16)); props.k = props.k || 0; m.position.copy(sacPoint(props.k));
+    await golgiClose('stack');
+    const F = golgiFrame();
+    const a = props.amy || (() => { const t = keep(amySpeck()); t.position.copy(gp(260, sacY(0, 260))); return (props.amy = t); })();
+    props.k = props.k || 0;
     while (props.k < 5) {
-      await press(() => m.position.clone().add(V(0.5, 0.1, 0)), `Next sac (${props.k + 2} of 6)`, { side: 'r' });
-      props.k++; await tween(m, { to: sacPoint(props.k), ms: 600 });
-      if (props.k === 2) quest.say('In the sacs, the Golgi apparatus modifies proteins: it adds sugars to some of them.');
+      gNames([speckName(a)]);
+      await press(() => a.position.clone().addScaledVector(F.right, 0.03), `Next sac (${props.k + 2} of 6)`, { side: 'r' });
+      const k = props.k, w = sacW(k), w1 = sacW(k + 1);
+      /* along the sac to its rim; a small vesicle buds from the rim with amylase in it, goes to the next sac's rim and joins
+         it; amylase moves into the next sac */
+      await tween(a, { to: gp(w - 24, sacY(k, w - 24)), ms: 700 });
+      const sv = calm(keep(token('vesicle', 0.03))); sv.position.copy(gp(w + 22, sacY(k, w))); sv.scale.setScalar(0.2);
+      await Promise.all([tween(sv, { to: sv.position.clone(), ms: 500, scale: 1 }), tween(a, { to: gp(w + 22, sacY(k, w)), ms: 500 })]);
+      const up = gp(w1 + 22, sacY(k + 1, w1));
+      await Promise.all([tween(sv, { to: up, ms: 800 }), tween(a, { to: up, ms: 800 })]);
+      await Promise.all([tween(sv, { to: gp(w1 - 6, sacY(k + 1, w1)), ms: 500, scale: 0.2, fade: 0 }), tween(a, { to: gp(w1 - 110, sacY(k + 1, w1 - 110)), ms: 900 })]);
+      drop(sv);
+      props.k++;
+      if (props.k === 2) await sugars(a);
     }
-    drop(m);
+    gNames([speckName(a)]);
   }
   async function sortgame() {
-    const top = sacPoint(5).add(V(0, 0.6, 0));
-    const out = keep(token('vesicle', 0.5)); out.position.copy(top).add(V(-1.2, 0.9, 0.4));
-    const lys = keep(token('vesicle', 0.42)); lys.position.copy(top).add(V(1.4, 0.8, 0.4));
+    await golgiClose('top');
+    const F = golgiFrame(), top = gp(60, sacY(5, 60) + 26);
+    const out = props.outVes || (props.outVes = calm(keep(token('vesicle', 0.45))));
+    out.position.copy(gp(-60, sacY(5, -60) + 15 + 470));
+    const lys = props.lysVes || (props.lysVes = calm(keep(token('vesicle', 0.04))));
+    lys.position.copy(PHONE() ? gp(720, 220) : gp(400, 330));   /* (on a phone further out: its name stands above it, clear of the large vesicle) */
     lys.userData.shell.material = lys.userData.shell.material.clone(); lys.userData.shell.material.color.setHex(0xff9ac0);
-    const labOut = quest.hot(() => out.position.clone().add(V(0, 0.75, 0)), 'vesicle: out of the cell', { cls: 'tag', side: 't' }); labOut.el.disabled = true;
-    const labLys = quest.hot(() => lys.position.clone().add(V(0, 0.68, 0)), 'vesicle: to a lysosome', { cls: 'tag', side: 't' }); labLys.el.disabled = true;
+    gNames([['g-out', 'vesicle: out of the cell', ...rimSpots(F, out.position, 0.45), OUTSM], PHONE() ? ['g-lys', 'vesicle: to a lysosome', [lys.position.clone().addScaledVector(F.n, 0.04)], { up: -1, len: 26 }, LYSSM] : ['g-lys', 'vesicle: to a lysosome', ...rimSpots(F, lys.position, 0.04), LYSSM]].map(([k, h, s, o, sm]) => [k, h, s, Object.assign(o, sm)]), [out, lys]);
     const prots = [['amylase', 0], ['lysosome enzyme', 1], ['amylase', 0], ['amylase', 0], ['lysosome enzyme', 1]];
     for (let i = 0; i < prots.length; i++) {
-      const [name, dest] = prots[i];
-      const p = keep(token(dest ? 'amino' : 'amylase', dest ? 0.26 : 0.16)); p.position.copy(top).add(V(0, -0.1, 0.4));
-      await tween(p, { to: top.clone().add(V(0, 0.2, 0.5)), ms: 400 });
-      const lab = quest.hot(() => p.position.clone().add(V(0, -0.4, 0)), dest ? 'lysosome enzyme · label: to a lysosome' : 'amylase · no label', { cls: 'tag', side: 'b' }); lab.el.disabled = true;
+      const dest = prots[i][1];
+      let p;
+      if (dest) { p = calm(keep(token('protein', 0.003))); const tag = new THREE.Mesh(new THREE.SphereGeometry(0.0007, 10, 8), magicStandard({ color: 0xff5fa8, emissive: 0x6a1038, emissiveIntensity: 0.4 }, { rim: 0xffd0e8, rimK: 0.5 })); tag.position.set(0.0032, 0.001, 0); p.add(tag); haloSprite(p, 0.009, 0xffc8e0); }
+      else p = keep(amySpeck());
+      p.position.copy(top).addScaledVector(F.n, -0.01);
+      await tween(p, { to: top, ms: 400 });
+      const lab = quest.hot(() => p.position.clone().addScaledVector(F.n, -0.012), dest ? 'lysosome enzyme · label: to a lysosome' : 'amylase · no label', { cls: 'tag', side: 'b' }); lab.el.disabled = true;
       await new Promise(done => {
-        const pick = (to, k) => quest.hot(() => to.position.clone().add(V(0, -0.65, 0)), 'Put it here', { side: 'b' }).done.then(async (b) => {
+        const pick = (to, k, at, side) => quest.hot(at, 'Put it here', { side }).done.then(async () => {
           if (k !== dest) { quest.say(dest ? 'Read its label: this lysosome enzyme goes to a lysosome.' : 'Amylase has no label: amylase molecules stick together and are packed into the large vesicle that leaves the cell.', 'no'); return; }
           quest.hots.filter(x => x.el.textContent === 'Put it here').forEach(x => x.remove());
           lab.remove(); quest.say('');
-          await tween(p, { to: to.position, ms: 700, scale: 0.3 }); drop(p);
+          await tween(p, { to: to.position.clone().add(V(0, 0, 0)), ms: 700 }); drop(p);
           done();
         });
-        pick(out, 0); pick(lys, 1);
+        pick(out, 0, () => out.position.clone(), 'c');
+        pick(lys, 1, () => lys.position.clone().addScaledVector(F.n, -0.045), 'b');
       });
     }
-    labOut.remove(); labLys.remove();
-    props.outVes = out; props.lysVes = lys;
     quest.say('Every protein is in the right vesicle.', 'ok');
   }
+  /* the large vesicle, packed with amylase: very many specks, each about 5 nm */
+  const AMYM = magicStandard({ color: 0xf6b84a, roughness: 0.45, emissive: 0x6a4008, emissiveIntensity: 0.25 }, { rim: 0xffe9b0, rimK: 0.5 });
+  const AMYG = new THREE.IcosahedronGeometry(0.0026, 0);
+  function amyCloud(R0, n) {
+    const c = new THREE.InstancedMesh(AMYG, AMYM, n); c.userData.kind = 'amylase-cloud';
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V(1, 1, 1), e = new THREE.Euler();
+    for (let i = 0; i < n; i++) { const r = R0 * Math.cbrt(Math.random()), d = V(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(); q.setFromEuler(e.set(Math.random() * 6.3, Math.random() * 6.3, 0)); c.setMatrixAt(i, M.compose(d.multiplyScalar(r), q, one)); }
+    c.instanceMatrix.needsUpdate = true; c.computeBoundingSphere(); return c;
+  }
   async function packageIt() {
-    const out = props.outVes || (() => { const t = keep(token('vesicle', 0.5)); t.position.copy(sacPoint(5)).add(V(-1.2, 1.5, 0.4)); return t; })();
-    await press(() => out.position.clone().add(V(0, 0.75, 0)), 'Package', {});
-    const fill = token('amylase', 0.22); out.add(fill);
-    burst(scene, out.position, { n: 50, r: 0.7 });
-    if (props.lysVes) { tween(props.lysVes, { to: props.lysVes.position.clone().add(V(2.0, -0.6, -0.8)), ms: 1600, fade: 0 }); }
+    await golgiClose('top');
+    const F = golgiFrame();
+    const out = props.outVes || (props.outVes = calm(keep(token('vesicle', 0.45))));
+    out.position.copy(gp(-60, sacY(5, -60) + 15 + 470));
+    gNames([['g-out', 'vesicle: out of the cell', rimSpots(F, out.position, 0.45)[0], Object.assign(rimSpots(F, out.position, 0.45)[1], OUTSM)]], [out]);
+    await press(() => out.position.clone(), 'Package', { side: 'c' });
+    out.add(amyCloud(0.43, 6000)); out.userData.packed = true;
+    burst(scene, out.position, { n: 50, r: 0.3, size: 0.012, near: 0.006 });
+    if (props.lysVes) tween(props.lysVes, { to: props.lysVes.position.clone().addScaledVector(F.right, 0.25).addScaledVector(F.n, 0.15), ms: 1600, fade: 0 });
+    gNames([['g-out', 'vesicle: out of the cell', rimSpots(F, out.position, 0.45)[0], Object.assign(rimSpots(F, out.position, 0.45)[1], OUTSM)], ['g-pk', 'amylase', [-40, 40, -140].map(d => out.position.clone().addScaledVector(F.right, Math.cos(d * Math.PI / 180) * 0.43).addScaledVector(F.n, Math.sin(d * Math.PI / 180) * 0.43)), { sides: [1, 1, -1] }]], [out]);
+    quest.say('The vesicle is about 0.9 µm across, packed with amylase molecules: each one is a tiny speck at this size.', 'ok');
+    await wait(R.TEST ? 0 : 2200);
+    quest.names.set([], HUD());
+    await nanoOut(world.P.golgi.view);
     await tween(out, { to: out.position.clone().add(V(0.6, 1.1, 0.4)), ms: 1200 });
     await quest.gain('packed', out.position);
     state.use('amylase');
@@ -2190,11 +2405,44 @@ export function makePlay(world, quest) {
     await quest.next('Back to the map');
   }
 
-  /* ---------------- the way out ---------------- */
-  const TOP = world.P.exit.center;
+  /* ---------------- the way out ----------------
+     The vesicle is about 1 µm across (a zymogen granule, as the world draws them), packed with amylase, each molecule
+     about 5 nm: a speck at this size. Close up at the top of the cell, the cell membrane as a section (about 6 nm), the
+     camera level with it (no surface of it behind the names); Release: the two membranes join, an opening widens, the
+     amylase streams out into the lumen, and the opening closes as the vesicle's membrane becomes part of the cell
+     membrane. Then, from far away, a glow shows the amylase flowing on to the duct. Before: one amylase molecule almost
+     half the vesicle's width (about 90 times too big), and 14 streaming out about 50 times too big.
+     Proof: tools/true-size.mjs F */
+  const TOP = world.P.exit.center, FUSE = V(0.2, 16.05, 0.5), GR = 0.5;
+  const exitFrame = () => props.xf || (props.xf = frameAt(FUSE, Y, V(...world.P.exit.view.pos)));
+  const xp = (x, y, z) => fp(exitFrame(), x, y, z);
+  const granule = () => { const v = keep(token('vesicle', GR)); v.add(amyCloud(GR - 0.03, 7000)); return v; };
+  /* the cell membrane close up: two halves that meet where the vesicle joins it, each 3 µm wide, running away from the
+     camera; heads (pink, about 1 nm) on each side of the tails (paler), about 6 nm in all */
+  function exitMembrane() {
+    if (props.close) { props.close.visible = true; return props.close; }
+    const g = frameGroup(exitFrame()); g.userData.kind = 'cell-membrane';
+    const head = magicStandard({ color: 0xff9ac8, roughness: 0.5 }, { rim: 0xffd6ea, rimK: 0.4 }), tail = magicStandard({ color: 0xfff0f5, roughness: 0.7 }, { rim: 0xffffff, rimK: 0.15 });
+    g.userData.halves = [-1, 1].map(s => {
+      const h = new THREE.Group();
+      [[1.8, 3, head], [-1.8, 1.8, tail], [-3, -1.8, head]].forEach(([y0, y1, m]) => { const b = new THREE.Mesh(new THREE.BoxGeometry(3, (y1 - y0) / 1000, 0.5), m); b.position.set(s * 1.5, (y0 + y1) / 2000, -0.25); h.add(b); });
+      g.add(h); return h;
+    });
+    return (props.close = keep(g));
+  }
+  /* the camera's eye level with the membrane: the view's middle a little below it (where the vesicle is) */
+  const exitClose = () => { exitMembrane(); const F = exitFrame(), at = PHONE() ? -150 : -380, dist = PHONE() ? fitDist(2100, 1500) : fitDist(1560, 1440), a = Math.asin(-at / 1000 / dist), dir = F.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(F.n, Math.sin(a)).normalize();
+    /* (hidden too while close: the world's other vesicles, whose amylase it draws as one large core, the centrioles, the
+       light's beams and the neighbouring cells of the gland, whose vesicles and edges stood round the close-up) */
+    return nanoIn({ at: xp(0, at), dir, up: F.n.clone(), dist }, NEAR_HIDE().concat(groupsOf(['membrane', 'apex', 'granules', 'centrosome', 'beam', 'acinus']))); };
+  const xBase = () => [
+    ['x-mem', 'cell membrane', [xp(-640, 0), xp(640, 0), xp(-560, 0), xp(560, 0)], { up: -1, len: 30 }],
+    ['x-out', 'outside the cell', [xp(-420, 230), xp(420, 230), xp(-560, 160), xp(560, 160), xp(-760, 200), xp(760, 200)], { aside: false, small: '<span class="nm__t">outside<br>the cell</span>' }],
+    ['x-in', 'inside the cell', [xp(-640, -260), xp(640, -260), xp(-640, -560), xp(640, -560), xp(-780, -500), xp(780, -500)], { aside: false, small: '<span class="nm__t">inside<br>the cell</span>' }]
+  ];
   async function smell() {
     await fly(world.P.exit.view.pos, world.P.exit.view.at);
-    const ves = keep(token('vesicle', 0.5)); ves.add(token('amylase', 0.22)); ves.position.copy(TOP).add(V(0.6, -0.5, 1.1)); props.ves = ves;
+    const ves = props.ves || (props.ves = granule()); ves.position.copy(TOP).add(V(0.6, -0.5, 1.1));
     await press(() => TOP.clone().add(V(-2.2, 0.3, 1.4)), '🍞 Smell the bread', {});
     W.nerve.tube.visible = true; W.nerve.end.visible = true;
     const look = { pos: [9, 9.5, 14], at: [3, 6.5, -1] };
@@ -2207,20 +2455,57 @@ export function makePlay(world, quest) {
     quest.say('The message reaches the vesicles at the top of the cell.', 'ok');
   }
   async function fuse() {
-    const ves = props.ves || (() => { const t = keep(token('vesicle', 0.5)); t.add(token('amylase', 0.22)); t.position.copy(TOP).add(V(0.6, -0.5, 1.1)); return (props.ves = t); })();
-    const at = V(0.2, 16.05, 0.5);
-    await tween(ves, { to: at.clone().add(V(0, -0.35, 0)), ms: 1200 });
-    await press(() => ves.position.clone().add(V(0, -0.75, 0)), 'Release', { side: 'b' });
-    /* the vesicle's membrane joins the cell membrane: it flattens into it, and its amylase streams into the lumen */
-    const path = W.lumen.path;
-    const flow = [];
-    for (let i = 0; i < 14; i++) { const a = keep(token('amylase', 0.12)); a.position.copy(at); flow.push(a); }
-    ves.children.slice(1).forEach(c => ves.remove(c));
-    await Promise.all([tween(ves, { to: at.clone().add(V(0, 0.1, 0)), ms: 1400, scale: 0.15 }), ...flow.map((a, i) => new Promise(r => setTimeout(() => tween(a, { path: new THREE.CatmullRomCurve3([at.clone(), path.getPointAt(0.05 + i * 0.01), path.getPointAt(0.3 + i * 0.03)]), ms: 2600 }).then(r), R.FAST ? 0 : i * 120)))]);
-    drop(ves); flow.forEach(drop);
-    burst(scene, at, { n: 50, r: 0.8, color: 0xc8fff0 });
+    const ves = props.ves || (() => { const t = granule(); t.position.copy(TOP).add(V(0.6, -0.5, 1.1)); return (props.ves = t); })();
+    await exitClose();
+    const F = exitFrame(), cloud = ves.children.find(c => c.userData.kind === 'amylase-cloud');
+    await tween(ves, { to: xp(0, -(GR * 1000 + 4)), ms: 1400 });
+    const someSpeck = (x, y) => { const M = new THREE.Matrix4(), v = V(), aim = xp(x, y); let best = null, bd = Infinity; for (let i = 0; i < cloud.count; i += 7) { cloud.getMatrixAt(i, M); v.setFromMatrixPosition(M); const w = cloud.localToWorld(v.clone()), d = w.distanceTo(aim); if (d < bd) { bd = d; best = w; } } return best; };
+    closeNames(F, [...xBase(), ['x-ves', 'vesicle', ...rimSpots(F, ves.position, GR)], ['x-amy', 'amylase', [someSpeck(-445, -560), someSpeck(445, -420), someSpeck(-420, -320)], { sides: [-1, 1, -1] }]], [ves], 700);
+    await press(() => xp(GR * 1000 + 30, -GR * 1000), 'Release', { side: 'r' });
+    /* the membranes join: an opening widens; the vesicle flattens into it; its amylase streams out into the lumen */
+    quest.names.set([], HUD());
+    const [L, Rh] = props.close.userData.halves, gap = 0.21;
+    scene.attach(cloud);
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V(1, 1, 1), n = cloud.count, from = [], to = [], mid = [], t0s = [];
+    for (let i = 0; i < n; i++) {
+      cloud.getMatrixAt(i, M); const p = V().setFromMatrixPosition(M); from.push(p);
+      const ox = (Math.random() - 0.5) * 0.36, ex = ox * 2.4 + (Math.random() - 0.5) * 0.9;
+      mid.push(cloud.worldToLocal(xp(ox * 1000, 12)));
+      to.push(cloud.worldToLocal(xp(ex * 1000, 60 + Math.random() * 520, (Math.random() - 0.5) * 200)));
+      t0s.push(Math.pow(Math.random(), 0.7) * 1500);
+    }
+    const t0 = performance.now(), s0 = quest.session, T = R.FAST ? 0 : 3400;
+    await live(new Promise(res => {
+      const f = () => {
+        if (quest.session !== s0) return res();
+        const t = R.FAST ? 1e9 : performance.now() - t0, open = smooth(0, 900, t) * (1 - smooth(2600, 3400, t));
+        L.position.x = -gap * open; Rh.position.x = gap * open;
+        const k = smooth(200, 1700, t); ves.scale.set(1 + 0.15 * k, Math.max(0.02, 1 - k), 1 + 0.15 * k); ves.position.copy(xp(0, -(GR * 1000 + 4) * Math.max(0.02, 1 - k)));
+        if (ves.userData.shell) { const m = ves.userData.shell.material; m.opacity = 0.42 * (1 - smooth(1700, 2800, t)); }
+        for (let i = 0; i < n; i++) {
+          const u = Math.max(0, Math.min(1, (t - 300 - t0s[i]) / 1500)), e = u * u * (3 - 2 * u);
+          const p = e < 0.5 ? from[i].clone().lerp(mid[i], e * 2) : mid[i].clone().lerp(to[i], e * 2 - 1);
+          cloud.setMatrixAt(i, M.compose(p, q, one));
+        }
+        cloud.instanceMatrix.needsUpdate = true; cloud.computeBoundingSphere(); world.kick && world.kick();
+        if (t < T + 1500) requestAnimationFrame(f); else res();
+      };
+      f();
+    }));
+    L.position.x = 0; Rh.position.x = 0; drop(ves); props.ves = null; kept.push(cloud);
+    burst(scene, xp(0, 40), { n: 40, r: 0.12, size: 0.006, near: 0.004, color: 0xc8fff0 });
+    closeNames(F, [...xBase(), ['x-amy', 'amylase', [xp(-300, 380), xp(300, 380), xp(0, 300)].map(p => { let best = p, bd = Infinity; const v = V(); for (let i = 0; i < n; i += 9) { cloud.getMatrixAt(i, M); v.setFromMatrixPosition(M); const w = cloud.localToWorld(v.clone()), d = w.distanceTo(p); if (d < bd) { bd = d; best = w; } } return best; })]], [], 700);
     quest.say('Exocytosis: the amylase leaves the cell and enters the duct.', 'ok');
-    await quest.gain('saliva', at);
+    await wait(R.TEST ? 0 : 2400);
+    quest.names.set([], HUD());
+    await nanoOut(world.P.exit.view);
+    drop(cloud);
+    /* from far away each molecule is far too small to see: glows show the amylase flowing on, to the duct */
+    const path = W.lumen.path, glows = [];
+    for (let i = 0; i < 10; i++) { const g = keep(new THREE.Group()); haloSprite(g, 0.09, 0xc8fff0); g.position.copy(FUSE); glows.push(g); }
+    await Promise.all(glows.map((g, i) => new Promise(r => setTimeout(() => tween(g, { path: new THREE.CatmullRomCurve3([FUSE.clone(), path.getPointAt(0.05 + i * 0.01), path.getPointAt(0.3 + i * 0.03)]), ms: 2600 }).then(r), R.FAST ? 0 : i * 140))));
+    glows.forEach(drop);
+    await quest.gain('saliva', FUSE);
     state.use('top');
   }
   async function flatten() { await quest.next('Back to the map'); }

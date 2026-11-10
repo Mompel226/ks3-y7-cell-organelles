@@ -157,6 +157,8 @@ export class Names {
      outside the part and its short line ends on it, never over the part: a ribosome at its true size, 9 Nov 2026) }];
      keepOut: elements on the world (the bag, the tools) that no name may cover;
      frame: { l, r } (Vector3), the left and right edges of what is named, when it is not the whole cell (the way in);
+     with on: true, the names stand on (or beside) their parts at every size, never in columns (a close-up at true size,
+     where a name's side matters: `sides`);
      solid: parts on the world (Object3D) that no name may cover, as they are drawn (the ellipse round each), when a
      name could land on a large part that is not its own: the ribosome waiting in the cytosol at its true size (10 Nov
      2026: "cytosol" stood on it). Used where the names stand on their parts (layOn).
@@ -291,7 +293,7 @@ export class Names {
     const was = new Map([...this.m.values()].map(r => [r, { at: r.at, shows: r.st.s !== 'hidden', swap: r.next ? r.swap : null }]));
     [...this.m.values()].forEach(r => { r.place = false; r.next = null; r.back = false; });
     /* no room beside the cell (a phone, a tablet held upright, the camera close): names stand on their parts instead */
-    if (s.w < 640 || this.items.some(it => it.up) || (c.colL < 140 && right - c.colR < 140)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
+    if (s.w < 640 || (this.edges && this.edges.on) || this.items.some(it => it.up) || (c.colL < 140 && right - c.colR < 140)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
     /* the names that move go there smoothly: up or down to a new row, along to another point of their part; to the other
        side, from beside the cell onto their part (the camera came close), or past another name, out at the old place and
        in at the new, so that no name crosses the picture or another name; a name that was not showing comes in there */
