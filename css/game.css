@@ -149,6 +149,16 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step.is-now::before{background:var(--qp-accent)}
 .step.is-done{opacity:.8}
 .step.is-done::before{content:"✓";background:#2E9F64}
+/* ↻ beside a finished step: watch it again (Daniel, 9 Nov 2026); its words show at once on pointing or focus (no title) */
+.step__again{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:6px;vertical-align:middle;border:1.5px solid color-mix(in srgb,var(--qp-accent) 55%,transparent);border-radius:50%;background:var(--paper,#fff);color:var(--qp-accent);font:800 17px/1 inherit;cursor:pointer}
+.step__again:hover,.step__again:focus-visible{background:var(--qp-accent);color:#fff;outline:none}
+.step__again::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;padding:4px 9px;border-radius:8px;background:#1c142c;color:#fff;font:700 13px/1.3 inherit;opacity:0;pointer-events:none}
+.step__again:hover::after,.step__again:focus-visible::after{opacity:1}
+.is-watching .step__again{opacity:.35;pointer-events:none}
+.step.is-done.is-watching{opacity:1;border-color:var(--qp-accent);background:color-mix(in srgb,var(--qp-accent) 9%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--qp-accent) 22%,transparent)}
+.step__watch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 0;font-weight:800;color:var(--qp-accent)}
+.step__watch .step__stop{padding:4px 12px;font-size:14px}
+.hot3__b.is-auto{transform:scale(.94);filter:brightness(1.12)}
 .step__t p{margin:0}
 .step__do{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .step__do:empty{display:none}

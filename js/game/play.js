@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101304';
-import { state, COST, RESPIRE } from './state.js?v=202611101304';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101304';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101304';
-import { sound } from './sound.js?v=202611101304';
-import { magicStandard } from '../world/magic.js?v=202611101304';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101734';
+import { state, COST, RESPIRE } from './state.js?v=202611101734';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101734';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101734';
+import { sound } from './sound.js?v=202611101734';
+import { magicStandard } from '../world/magic.js?v=202611101734';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611101304').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611101734').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -907,7 +907,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611101304').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611101734').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1329,7 +1329,7 @@ export function makePlay(world, quest) {
     await new Promise(done => {
       picks.forEach((ch, pi) => {
         const at = () => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.18, 0));
-        const b = quest.hot(at, '?', { cls: 'q3', aria: 'a chromosome' });
+        const b = quest.hot(at, '?', { cls: 'q3', aria: 'a chromosome', right: ch.n === 1 });
         b.done.then(async () => {
           if (quest.session !== s0) return;
           unlight(lit); lit = null;
@@ -1707,7 +1707,7 @@ export function makePlay(world, quest) {
       });
       await new Promise(done => {
         toks.forEach(({ t, c }) => {
-          const b = quest.hot(() => t.position.clone().addScaledVector(F.up, 0.008), `<b class="sym s${c}">${['▲', '●', '■', '◆'][c]}</b>`, { cls: 'tok aa', aria: 'the carrier with a ' + ['triangle', 'circle', 'square', 'diamond'][c] });
+          const b = quest.hot(() => t.position.clone().addScaledVector(F.up, 0.008), `<b class="sym s${c}">${['▲', '●', '■', '◆'][c]}</b>`, { cls: 'tok aa', aria: 'the carrier with a ' + ['triangle', 'circle', 'square', 'diamond'][c], right: c === ci });
           b.done.then(async () => {
             if (c !== ci) { quest.say('That carrier does not match the code. Look at its shape and colour.', 'no'); const p0 = t.position.clone(); await tween(t, { to: p0.clone().addScaledVector(F.up, -0.003), ms: 200 }); await tween(t, { to: p0, ms: 200 }); return; }
             if (!quest.energy(COST.translate / CODES.length)) return;
@@ -2184,7 +2184,7 @@ export function makePlay(world, quest) {
       await tween(p, { to: top, ms: 400 });
       const lab = quest.hot(() => p.position.clone().addScaledVector(F.n, -0.012), dest ? 'lysosome enzyme · label: to a lysosome' : 'amylase · no label', { cls: 'tag', side: 'b' }); lab.el.disabled = true;
       await new Promise(done => {
-        const pick = (to, k, at, side) => quest.hot(at, 'Put it here', { side }).done.then(async () => {
+        const pick = (to, k, at, side) => quest.hot(at, 'Put it here', { side, right: k === dest }).done.then(async () => {
           if (k !== dest) { quest.say(dest ? 'Read its label: this lysosome enzyme goes to a lysosome.' : 'Amylase has no label: amylase molecules stick together and are packed into the large vesicle that leaves the cell.', 'no'); return; }
           quest.hots.filter(x => x.el.textContent === 'Put it here').forEach(x => x.remove());
           lab.remove(); quest.say('');
@@ -2430,7 +2430,7 @@ export function makePlay(world, quest) {
       await new Promise(done => {
         order.forEach(i => {
           const to = i === 0 ? up : down, at = i === 0 ? past(here, up) : past(X, down);
-          quest.hot(() => at.clone(), 'this one', { side: 'c', aria: i === 0 ? 'the microtubule that goes up' : 'the microtubule that lies across the cell' }).done.then(async (b) => {
+          quest.hot(() => at.clone(), 'this one', { side: 'c', aria: i === 0 ? 'the microtubule that goes up' : 'the microtubule that lies across the cell', right: i === 0 }).done.then(async (b) => {
             if (!quest.energy(COST.step)) return;
             quest.clearHots();
             if (i === 1) {
@@ -2631,7 +2631,58 @@ export function makePlay(world, quest) {
   const ACT = { look, oxygen, carriers, amino, co2, mlook, minside, split, feed, respire, water, dam, release, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
     assemble, translate, where, dock, grow, cut, fold, bud, lipid, layer, join, through, sortgame, package: packageIt, grab, maze, smell, fuse, flatten,
     simple, full, organelles, mission };
+  /* ---------------- ↻ a finished step again (round 8, 10 Nov 2026) ----------------
+     Daniel, 9 Nov 2026: "add … circle arrow … to repeat next to every action in case the students want to re-see the
+     animation … you just replay that section … Otherwise, to replay an animation, they have to click restart
+     everything"; his "Yes, build it" to the plan, the replay playing by itself. A finished step's ↻ (quest.js againBtn)
+     plays that step's own code again in watch mode: each button it uses shows for a moment and presses itself (of
+     several, the right one: quest.hot right), a choice picks its right answer, Next waits a moment, nothing is said
+     again and no item flies to the bag (quest.js). Nothing of the game changes: while it plays, every change to the
+     saved game does nothing (items, energy, flags, saving), and what the step needs is there; the step that was running
+     stops, as when a pupil leaves. Then main.js sets the place up again as when the pupil comes back to it, at the step
+     they were on. Stop ends it early. With Reduce motion the moves jump and the pauses keep their time, so the stills
+     show. The dive replays as its own ↺ does (dive(true)); the mitochondrion is seen whole again before ✂ Cut it open.
+     Proof: tools/replay-check.mjs */
+  const REWIND = { mlook: () => setLid(0) };
+  async function watch(id, i, li) {
+    const name = STORY_STEPS(id)[i] && STORY_STEPS(id)[i].play;
+    const keep0 = { has: state.has, use: state.use, add: state.add, spend: state.spend, setFlag: state.setFlag, setStep: state.setStep, finish: state.finish, save: state.save };
+    const W8 = { session: ++quest.session, active: true };
+    state.has = item => W8.active && quest.session === W8.session ? true : keep0.has.call(state, item);
+    state.spend = (...a) => W8.active ? true : keep0.spend.apply(state, a);
+    ['use', 'add', 'setFlag', 'setStep', 'finish', 'save'].forEach(k => { state[k] = (...a) => { if (!W8.active) return keep0[k].apply(state, a); }; });
+    quest.clearHots(); quest.names.set([]); reset();
+    /* a camera that the stopped step was still moving (track() keeps it moving until its step lands it) is landed here, or
+       the replay's first wait for a still camera (settle) would wait for ever */
+    if (world.flying) world.landed({ pos: world.camera.position.toArray(), at: world.controls.target.toArray() }, false);
+    quest.panel.querySelectorAll('.step.is-now .step__do').forEach(d => { d.innerHTML = ''; });   /* the stopped step's own buttons go */
+    quest.watching = W8; quest.step = { li, do: li.querySelector('.step__do'), say: li.querySelector('.step__say'), i };
+    li.classList.add('is-watching');
+    const bar = R.h('p', { class: 'step__watch', role: 'status' }, '<span>↻ Watching this step again</span>');
+    const stop = R.h('button', { type: 'button', class: 'btn ghost step__stop' }, '■ Stop'); bar.appendChild(stop); li.appendChild(bar);
+    stop.addEventListener('click', () => { if (quest.session === W8.session) { W8.stopped = true; quest.session++; } });
+    quest.scrollTo(li);
+    /* it ends when the step has played, or at once on Stop or when the pupil leaves; a stopped step goes no further (its
+       waits throw, and its watched buttons and pauses never come: quest.js), so nothing of it can change the game after */
+    let tick = 0;
+    const stopped = new Promise(res => { tick = setInterval(() => { if (W8.stopped || quest.session !== W8.session) res(); }, 100); });
+    try {
+      if (REWIND[name]) REWIND[name]();
+      const played = (name === 'enter' ? dive(true) : ACT[name] ? ACT[name]() : Promise.resolve());
+      played.catch(e => { if (e !== STALE) console.error(e); });
+      await Promise.race([played, stopped]);
+    } catch (e) { if (e !== STALE) console.error(e); }
+    finally {
+      clearInterval(tick);
+      Object.assign(state, keep0); W8.active = false; quest.watching = null;
+      li.classList.remove('is-watching'); bar.remove(); quest.clearHots();
+    }
+    return quest.cur === id && (quest.session === W8.session || !!W8.stopped);   /* still in the place (played to its end, or stopped): set it up again (main.js) */
+  }
+  const STORY_STEPS = id => (window.STORY[id] || {}).steps || [];
+
   return {
+    watch,
     run: (name) => Promise.resolve().then(() => ACT[name] ? ACT[name]() : quest.next()).catch(e => { if (e === STALE) return false; throw e; }),
     reset
   };

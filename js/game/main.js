@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611101304';
-import { Names } from './names.js?v=202611101304';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611101304';
-import { makePlay } from './play.js?v=202611101304';
-import { setStill, wait } from './actors.js?v=202611101304';
-import { state } from './state.js?v=202611101304';
-import { ICON } from './icons.js?v=202611101304';
-import { intro } from './intro.js?v=202611101304';
-import { sound } from './sound.js?v=202611101304';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611101304';
+import { World, MAP_VIEW } from '../world/world.js?v=202611101734';
+import { Names } from './names.js?v=202611101734';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611101734';
+import { makePlay } from './play.js?v=202611101734';
+import { setStill, wait } from './actors.js?v=202611101734';
+import { state } from './state.js?v=202611101734';
+import { ICON } from './icons.js?v=202611101734';
+import { intro } from './intro.js?v=202611101734';
+import { sound } from './sound.js?v=202611101734';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611101734';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -111,6 +111,18 @@ async function go(id) {
   await quest.openPlace(id, (name) => play.run(name));
   looks();
 }
+/* ↻ beside a finished step (quest.js againBtn): that step plays again by itself (play.js watch); then the place is set up
+   again as when the pupil comes back to it, at the step they were on (Daniel, 9 Nov 2026) */
+let watchingNow = false;
+document.addEventListener('step-again', async e => {
+  const { id, i, li } = e.detail || {};
+  if (busy || watchingNow || quest.cur !== id) return;
+  watchingNow = true;
+  document.documentElement.classList.add('is-watching');
+  let back = false;
+  try { back = await play.watch(id, i, li); } finally { watchingNow = false; document.documentElement.classList.remove('is-watching'); }
+  if (back && quest.cur === id) go(id);
+});
 /* Hide text / Show text: the panel goes, so that only the picture shows, in the middle (Daniel, 8 Nov 2026: "if the
    students want to have everything centered and no text on the right to see just basically the image and see the
    animations, the students should be able to do so"); while it is hidden, the button glows when the panel gets
@@ -211,7 +223,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611101304').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611101734').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -221,7 +233,7 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611101304').then(m => {
+  import('../ib/view.js?v=202611101734').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -231,10 +243,10 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611101304').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611101734').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611101304').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611101734').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));

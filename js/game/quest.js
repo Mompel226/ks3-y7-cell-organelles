@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611101304';
-import { state, COST } from './state.js?v=202611101304';
-import { sound } from './sound.js?v=202611101304';
-import { finalLine } from './final.js?v=202611101304';
+import { ICON } from './icons.js?v=202611101734';
+import { state, COST } from './state.js?v=202611101734';
+import { sound } from './sound.js?v=202611101734';
+import { finalLine } from './final.js?v=202611101734';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611101304').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611101304';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611101734').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611101734';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -40,7 +40,8 @@ export class Quest {
   }
 
   /* ---------- buttons on the world, following their 3D point ---------- */
-  hot(at, label, { cls = '', icon = '', side = 'c', aria } = {}) {
+  /* right: of several buttons at once, the right one (a step watched again presses it by itself: watching below) */
+  hot(at, label, { cls = '', icon = '', side = 'c', aria, right = false } = {}) {
     /* the wrapper follows the 3D point; the button inside stands on it (c), above it (t), below it (b) or beside it */
     const wrap = h('div', { class: 'hot3 ' + cls + ' hot3--' + side });
     const el = h('button', { type: 'button', class: 'hot3__b', 'aria-label': aria || label.replace(/<[^>]+>/g, '') }, (icon ? ICON[icon] || '' : '') + `<span>${label}</span>`);
@@ -49,8 +50,16 @@ export class Quest {
     o.done = new Promise(res => { el.addEventListener('click', () => { if (o.alive) { sound.tap(); res(o); } }); });
     o.remove = () => { o.alive = false; wrap.remove(); this.hots = this.hots.filter(x => x !== o); };
     this.hots.push(o); this.place1(o); if (o.box) this.paint(o);
+    if (this.watchingNow()) {
+      const w = this.watching;
+      setTimeout(() => { if (!o.alive || o.el.disabled || this.watching !== w || this.session !== w.session) return; if (right || !this.hots.some(x => x !== o && x.alive && !x.el.disabled)) { o.el.classList.add('is-auto'); o.el.click(); } }, R.TEST ? 0 : 900);
+    }
     return o;
   }
+  /* a finished step watched again (play.js watch): its buttons press themselves, a choice picks its right answer, Next
+     waits a moment, nothing is said again and no item flies to the bag; with Reduce motion these pauses keep their time
+     (only the tests' ?still=1 skips them), so the stills show */
+  watchingNow() { return !!(this.watching && this.watching.session === this.session); }
   place1(o) {
     const p = typeof o.at === 'function' ? o.at() : o.at; if (!p) return;
     /* a button never leaves the free part of the picture (never under the panel or off the edge): it stays at the edge,
@@ -138,6 +147,7 @@ export class Quest {
   }
   /* an item flies from the world into the bag, then the bag holds it */
   gain(item, from, n = 1) {
+    if (this.watching) return Promise.resolve();
     const slot = this.bag.getBoundingClientRect(), stage = this.hotsEl.getBoundingClientRect();
     const sc = from ? this.w.project(from) : { x: stage.width / 2, y: stage.height / 2 };
     const f = h('span', { class: 'flyer' }, ICON[item] || ICON.star);
@@ -209,6 +219,7 @@ export class Quest {
       const li = h('li', { class: 'step' + (i < from ? ' is-done' : i === from ? ' is-now' : ' is-later') }, `<div class="step__t">${paras(s.text)}</div><div class="step__do"></div><p class="step__say" aria-live="polite"></p>`);
       if (i > from) li.hidden = true;
       ol.appendChild(li);
+      if (i < from) this.againBtn(id, i, li);
     });
     R.terms(ol);
     this.ibSwitch(id);
@@ -222,11 +233,23 @@ export class Quest {
       if (my !== this.session || ok === false) return;
       li.classList.remove('is-now'); li.classList.add('is-done'); this.step.do.innerHTML = ''; this.clearHots();
       state.setStep(id, i + 1);
+      this.againBtn(id, i, li);
     }
     if (my !== this.session) return;
     state.finish(id);
     if (P.task) R.L.done(P.task);
     this.finishPanel(id, true);
+  }
+  /* ↻ beside a finished step whose picture moves (Daniel, 9 Nov 2026: "add … circle arrow … to repeat next to every action
+     in case the students want to re-see the animation"): it plays that step again, by itself (main.js, play.js watch);
+     not for a step that only shows words (story.js watch: false), nor the starch test */
+  againBtn(id, i, li) {
+    const s = STORY[id].steps[i];
+    if (id === 'test' || !s || s.watch === false || $('.step__again', li)) return;
+    const b = h('button', { type: 'button', class: 'step__again', 'aria-label': 'Watch this step again', 'data-tip': 'Watch this step again' }, '↻');
+    const t = $('.step__t', li), last = t && t.lastElementChild;
+    (last || t || li).appendChild(b);
+    b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('step-again', { detail: { id, i, li } })));
   }
   /* the IB switch, in a place whose every check is right (Daniel, 5 Nov 2026: "Don't provide the IB toggle until they
      have completed everything"; it stays after a pupil does the place again): on, each step says what IB adds, each
@@ -247,7 +270,7 @@ export class Quest {
       sw.setAttribute('aria-pressed', String(on)); $('b', sw).textContent = on ? 'on' : 'off';
       root.classList.toggle('ib-on', on);
       const qp = $('.qp', this.panel); if (qp) qp.classList.toggle('qp--ib', on);   /* the Year 7 checks fold away (game.css) */
-      P.steps.forEach((s, i) => { const li = ol.children[i], t = li && $('.step__t', li), b = P.ib[i]; if (t && b && b.text) t.innerHTML = paras(on ? b.text : s.text); });
+      P.steps.forEach((s, i) => { const li = ol.children[i], t = li && $('.step__t', li), b = P.ib[i]; if (t && b && b.text) { t.innerHTML = paras(on ? b.text : s.text); if (li.classList.contains('is-done')) this.againBtn(id, i, li); } });   /* the new words keep their ↻ */
       $$('.step__ib', ol).forEach(x => x.remove());
       if (on) P.ib.forEach((b, i) => {
         const li = ol.children[i]; if (!li) return;
@@ -356,8 +379,9 @@ export class Quest {
   }
 
   /* ---------- inside a step ---------- */
-  say(html, cls = '') { if (!this.step) return; this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); if (html) this.reveal(this.step.say); }
+  say(html, cls = '') { if (!this.step || this.watching) return; this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); if (html) this.reveal(this.step.say); }
   next(label = 'Next step') {
+    if (this.watching) { const w = this.watching; return new Promise(r => setTimeout(() => { if (this.watching === w && this.session === w.session) r(); }, R.TEST ? 0 : 3000)); }   /* stopped: it never resolves, so the stopped step goes no further */
     const b = h('button', { type: 'button', class: 'btn next pulse' }, label + ' →');
     this.step.do.appendChild(b); b.focus({ preventScroll: true }); this.reveal(b, false);
     return new Promise(res => b.addEventListener('click', () => { b.remove(); res(); }, { once: true }));
@@ -365,6 +389,7 @@ export class Quest {
   /* choices written in the step: resolves with the index of the right one; a wrong one calls onWrong(i), which shows what
      really happens, then the pupil chooses again */
   choose(opts, right, onWrong) {
+    if (this.watching) { const w = this.watching; return new Promise(r => setTimeout(() => { if (this.watching === w && this.session === w.session) r(right); }, R.TEST ? 0 : 700)); }
     const box = h('div', { class: 'choices' });
     /* a new order each time they are drawn, so the right one is not always A (memory feedback-questions); data-i keeps
        each choice's own number */
