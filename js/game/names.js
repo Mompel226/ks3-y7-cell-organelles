@@ -142,7 +142,9 @@ export class Names {
     this.calm = world.still || matchMedia('(prefers-reduced-motion: reduce)').matches;
     world.on('frame', () => { try { this.frame(); } catch (e) { console.error(e); } });
     world.on('still', () => this.show());
-    world.on('resize', () => { this.measure([...this.m.values()]); this.dirty = true; this.still = 0; });
+    /* (at once, not at the world's next frame, which on a phone can be 100 ms away: a name never stands under the panel
+       that has just grown, 10 Nov 2026) */
+    world.on('resize', () => { this.measure([...this.m.values()]); this.dirty = true; this.still = 0; this.frame(); });
   }
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
      free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
@@ -168,9 +170,10 @@ export class Names {
     if (keepOut) {
       this.keepOut = keepOut;
       /* a box that grows (the bag fills as the pupil gains items; the mitochondria's scale bar, as the camera zooms) never
-         ends up over a name: from the next frame a name steps back from its new size, and once the camera is still the
-         names are placed again */
-      this.ro = this.ro || new ResizeObserver(() => { this.keeps(); this.dirty = true; this.still = Math.min(this.still, SETTLE - 3); });
+         ends up over a name: a name steps back from its new size at once (before the box is drawn bigger: not at the
+         world's next frame, which on a phone can be 100 ms away; 10 Nov 2026), and once the camera is still the names are
+         placed again */
+      this.ro = this.ro || new ResizeObserver(() => { this.keeps(); this.dirty = true; this.still = Math.min(this.still, SETTLE - 3); this.frame(); this.w.kick && this.w.kick(); });
       this.ro.disconnect(); keepOut.forEach(e => e && this.ro.observe(e));
     }
     const keys = new Set(list.map(it => it.key)), fresh = [];
