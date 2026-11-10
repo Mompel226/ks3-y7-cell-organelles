@@ -5,16 +5,16 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101038';
-import { state, COST, RESPIRE } from './state.js?v=202611101038';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101038';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101038';
-import { sound } from './sound.js?v=202611101038';
-import { magicStandard } from '../world/magic.js?v=202611101038';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101304';
+import { state, COST, RESPIRE } from './state.js?v=202611101304';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101304';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101304';
+import { sound } from './sound.js?v=202611101304';
+import { magicStandard } from '../world/magic.js?v=202611101304';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611101038').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611101304').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -88,18 +88,22 @@ export function makePlay(world, quest) {
      three a little smaller, game.css nm--ib, so that two fit in the membrane's height on a 1280 × 700 laptop); the
      amino acid transporter's only on the right, at its carrier's foot (names.js side). So no line crosses another
      carrier: a name with no room is left out. On a phone each name stands on its part, the membrane's anywhere along it */
+  /* more places for the names, for the closer views while a molecule crosses (beside each carrier, and where oxygen and
+     carbon dioxide cross): appended, so the whole view's names stand where they did */
+  const WAY_NEAR = [-2.9, -0.75, 0.45, 2.3], WAY_NEAR_OUT = [-2.9, -0.75, 1.6, 2.3];   /* (outside: clear of carbon dioxide's way down, x 0.25 to 0.6, even on a phone, where the name is about 1.4 µm wide) */
   const onCarrier = (C, ys) => ys.flatMap(([y, z]) => C.halves.map((h, k) => { h.updateWorldMatrix(true, false); return h.localToWorld(V(k ? 0.2 : -0.2, y, z)); }));
-  const wayNames = again => !again && (quest.names.items[0] || {}).key === 'w-in' ? null : quest.names.set([
-    { key: 'w-in', free: true, small: '<span class="nm__t">Inside: the cytoplasm</span>', html: '<span class="nm__t">Inside the cell:<br>the cytoplasm</span>', spots: [V(-3.7, 1.55, 0.12), V(-3.3, 1.7, 0.12), V(-3.7, 1.3, 0.12), V(1.9, 1.3, 0.12)] },
+  /* solid: the molecule waiting close up, which no name may stand on (on a phone the names stand on their parts) */
+  const wayNames = (again, solid) => !again && (quest.names.items[0] || {}).key === 'w-in' ? null : quest.names.set([
+    { key: 'w-in', free: true, small: '<span class="nm__t">Inside: the cytoplasm</span>', html: '<span class="nm__t">Inside the cell:<br>the cytoplasm</span>', spots: [V(-3.7, 1.55, 0.12), V(-3.3, 1.7, 0.12), V(-3.7, 1.3, 0.12), V(1.9, 1.3, 0.12), ...WAY_NEAR.map(x => V(x, 0.78, 0.12))] },
     ibOn() ? { key: 'w-mem', free: true, side: 'L', cls: 'nm--ib', small: '<span class="nm__t">phospholipid bilayer</span>', html: '<span class="nm__t">Cell membrane:<br>phospholipid bilayer</span>',
-        spots: (world.size.w < 640 ? [-4, -3.4, -2.8, -0.9, -0.2, 0.4, 2.2, 2.9, 3.6] : [-4, -3.7, -3.4]).map(x => V(x, -0.38, 0.2)) }
-      : { key: 'w-mem', free: true, small: '<span class="nm__t">Cell membrane</span>', html: '<span class="nm__t">Cell membrane:<br>two layers of lipids</span>', spots: [V(-3.7, 0, 0.2), V(-3.4, 0, 0.2), V(-4.0, 0, 0.2), V(1.9, 0, 0.2)] },
-    { key: 'w-out', free: true, small: '<span class="nm__t">Outside: the tissue fluid</span>', html: '<span class="nm__t">Outside the cell:<br>the tissue fluid</span>', spots: [V(-3.7, -1.3, 0.1), V(-3.4, -1.2, 0.1), V(1.9, -1.25, 0.1)] },
+        spots: (world.size.w < 640 ? [-4, -3.4, -2.8, -0.9, -0.2, 0.4, 2.2, 2.9, 3.6] : [-4, -3.7, -3.4, -2.9, 0.45]).map(x => V(x, -0.38, 0.2)) }
+      : { key: 'w-mem', free: true, small: '<span class="nm__t">Cell membrane</span>', html: '<span class="nm__t">Cell membrane:<br>two layers of lipids</span>', spots: [V(-3.7, 0, 0.2), V(-3.4, 0, 0.2), V(-4.0, 0, 0.2), V(1.9, 0, 0.2), ...WAY_NEAR.map(x => V(x, 0, 0.2))] },
+    { key: 'w-out', free: true, small: '<span class="nm__t">Outside: the tissue fluid</span>', html: '<span class="nm__t">Outside the cell:<br>the tissue fluid</span>', spots: [V(-3.7, -1.3, 0.1), V(-3.4, -1.2, 0.1), V(1.9, -1.25, 0.1), ...WAY_NEAR_OUT.map(x => V(x, -1.05, 0.1))] },
     { key: 'w-cap', free: true, small: '<span class="nm__t">Capillary (blood)</span>', html: '<span class="nm__t">Capillary,<br>with blood</span>', spots: [V(-3.5, -3.0, -0.7), V(-3.8, -3.3, -0.9), V(1.7, -3.0, -0.7)] }
   ].concat(ibOn() ? [
     { key: 'w-glut', free: true, side: 'L', aside: true, cls: 'nm--ib', small: '<span class="nm__t">glucose transporter</span>', html: '<span class="nm__t">glucose transporter</span>', spots: onCarrier(BL.carriers.glucose, [[0.555, 0.05]]) },
     { key: 'w-aat', free: true, side: 'R', aside: true, cls: 'nm--ib', small: '<span class="nm__t">amino acid transporter</span>', html: '<span class="nm__t">amino acid<br>transporter</span>', spots: onCarrier(BL.carriers.amino, [[-0.45, 0.21]]) }
-  ] : []), [document.querySelector('.hud')], { l: V(-4.7, 0, 0.25), r: V(2.4, 0, 0.25) });
+  ] : []), [document.querySelector('.hud')], { l: V(-4.7, 0, 0.25), r: V(2.4, 0, 0.25) }, solid);
   /* each step starts in the place's view; already there, no flight (the names stay, never a flicker) */
   async function wayFly() {
     world.wayIn(true);
@@ -123,6 +127,23 @@ export function makePlay(world, quest) {
       if (k < 1) requestAnimationFrame(f); else res(); };
     f();
   }));
+  /* the molecules at the membrane's own enlargement (10 Nov 2026, round 7; his "Yes, build it"): the membrane is drawn
+     about 135 times thicker than it is (770 to 830 nm for 6 nm), and so is every molecule now, so that their sizes are right next
+     to the lipids and next to each other. Before, oxygen (590 nm) and carbon dioxide (760 nm) were drawn bigger than glucose
+     (540 nm) and an amino acid (about 500 nm), the opposite of the truth that the steps teach (the larger ones need a
+     carrier). True sizes, longest way, with their atoms' own size: oxygen about 0.42 nm, carbon dioxide about 0.54 nm,
+     glucose about 0.9 nm, an amino acid about 0.8 nm. At this size they are small from the place's view: each has a soft
+     glow, and while one crosses the membrane the camera comes closer (wayZoom), then goes back out (wayBack).
+     Proof: tools/true-size.mjs G */
+  const WAY_K = 135;
+  const WSZ = { oxygen: 0.42 * WAY_K / 1000 / 1.84, co2: 0.54 * WAY_K / 1000 / 2.24, glucose: 0.9 * WAY_K / 1000 / 2.44, amino: 0.8 * WAY_K / 1000 / 1.83 };   /* token sizes: each shape's length in token units */
+  const WGLOW = { oxygen: 0xff9aa2, co2: 0xc8d2e0, glucose: 0xffe08a, amino: 0xc8b8ff };
+  const wayMol = (kind, s = WSZ[kind]) => { const t = keep(token(kind, s)); haloSprite(t, kind === 'oxygen' || kind === 'co2' ? 0.05 : 0.042, WGLOW[kind]); return t; };
+  /* a small name that moves with a molecule (as at the mitochondrion's dam: play.js moveTag), until the molecule goes */
+  const molTag = (t, text) => { const sp = newTag(t); const s0 = quest.session, f = () => { if (!t.parent || quest.session !== s0) { sp.visible = false; return; } moveTag(sp, text, t, V(0, 0, 0), 6); requestAnimationFrame(f); }; f(); return sp; };
+  const WVdir = () => V(...WV.pos).sub(V(...WV.at)).normalize();
+  const wayZoom = (x, y = -0.25, ms = 1700) => camGo({ at: V(x, y, 0.12), dir: WVdir(), up: V(0, 1, 0), dist: fitDist(3300, 2500) }, R.FAST ? 0 : ms);
+  const wayBack = (ms = 1600) => camGo({ at: V(...WV.at), dir: WVdir(), up: V(0, 1, 0), dist: V(...WV.pos).distanceTo(V(...WV.at)) }, R.FAST ? 0 : ms);
   async function oxygen() {
     await wayFly();
     let ri = pickRbc();
@@ -131,14 +152,19 @@ export function makePlay(world, quest) {
     /* two oxygen molecules leave the red blood cell, cross the thin wall of the capillary and the tissue fluid, and pass
        straight between the lipids into the cytoplasm, each by its own wandering way */
     const from = BLD.rbcAt(ri, BLD.t || 0).add(V(0, 0.6, 2.2)), xs = [-0.75, -0.05];
-    const ox = xs.map((x, i) => { const t = keep(token('oxygen', 0.32)); t.position.copy(from).add(V(i ? 0.35 : -0.35, 0, 0)); return t; });
+    const ox = xs.map((x, i) => { const t = wayMol('oxygen'); t.position.copy(from).add(V(i ? 0.35 : -0.35, 0, 0)); return t; });
+    molTag(ox[0], 'oxygen');
     burst(scene, from, { color: 0xff9aa2, n: 30, r: 0.55 });
     quest.say('The red blood cell releases oxygen.');
+    const near = wait(R.TEST ? 0 : 1200).then(() => wayZoom(-0.4, -0.3, 2200));
     await Promise.all(ox.map((t, i) => {
       const x = xs[i], a = t.position.clone();
       return tween(t, { path: curve([a, V((a.x + x) / 2 + jit(), -2.1, -0.2), V(x + jit(), -1.25, 0.06), V(x, -0.6, 0.12), V(x, 0, 0.14), V(x + jit(0.1), 0.45, 0.12), V(x + jit(), 0.68, 0.12)]), ms: R.FAST ? 0 : 4200 + i * 500 });
     }));
+    await near;
     quest.say(ib('<p>Oxygen is a small molecule: it passes straight through the two layers of lipids.</p><p>It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.</p>', '<p>Oxygen is small and non-polar: it passes straight between the phospholipids, down its <dfn data-w="concentration-gradient">concentration gradient</dfn>.</p><p>It goes from the blood, where its concentration is higher, into the cell, where it is lower. This is simple <dfn data-w="diffusion">diffusion</dfn>.</p>'), 'ok');
+    await wait(R.TEST ? 0 : 1800);
+    await wayBack();
     await quest.gain('oxygen', ox[0].position, 2); ox.forEach(drop);
   }
   /* a carrier protein changes shape, from its pose now to pose s (cellbuild.js carrier: -1 open to the outside, 0 shut on
@@ -149,7 +175,8 @@ export function makePlay(world, quest) {
     f();
   }));
   /* where a token stands so that the middle of its shape is at p (an amino acid's two parts are not round its centre) */
-  const centred = (t, p) => { const c = new THREE.Box3().setFromObject(t).getCenter(new THREE.Vector3()); return p.clone().add(t.position).sub(c); };
+  /* (its shape only: not its glow nor its moving name, which stand above it) */
+  const centred = (t, p) => { const b = new THREE.Box3(); t.updateMatrixWorld(true); t.traverse(o => { if (o.isMesh) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld)); } }); return p.clone().add(t.position).sub(b.getCenter(new THREE.Vector3())); };
   /* one molecule through a carrier protein, in the real order (cellbuild.js carrier). The carrier waits open to the
      outside; the molecule moves to its mouth and into its pocket; as it settles there (it binds), the open side shuts
      behind it; for a moment it is held inside, both sides shut; then the carrier opens to the inside, and the molecule
@@ -184,8 +211,8 @@ export function makePlay(world, quest) {
   async function fromBlood(kind, n, x0, size, second) {
     const ts = [];
     for (let i = 0; i < n; i++) {
-      const t = keep(token(kind, size)); t.position.set(x0 - 0.5 + i * 1.0, -2.5, -0.6);
-      if (second) { const b2 = token('amino', size * 0.85); b2.position.set(size * 0.9, size * 0.4, 0); b2.children[0].material = b2.children[0].material.clone(); b2.children[0].material.color.setHex(AMINO_COLORS[1]); t.add(b2); }
+      const t = wayMol(kind, size); t.position.set(x0 - 0.5 + i * 1.0, -2.5, -0.6);
+      if (second) { const b2 = token('amino', size * 0.85); delete b2.userData.kind; b2.position.set(size * 0.9, size * 0.4, 0); b2.children[0].material = b2.children[0].material.clone(); b2.children[0].material.color.setHex(AMINO_COLORS[1]); t.add(b2); }
       ts.push(t);
     }
     await Promise.all(ts.map((t, i) => tween(t, { path: curve([t.position.clone(), V(t.position.x + jit(0.2), -1.9, -0.25), V(x0 - 0.45 + i * 0.9, -1.15, 0.06)]), ms: R.FAST ? 0 : 1700 + i * 250 })));
@@ -195,21 +222,26 @@ export function makePlay(world, quest) {
   async function carriers() {
     await wayFly();
     const C = BL.carriers.glucose; await turnTo(C, -1, 0);
-    const g = await fromBlood('glucose', 2, C.at.x, 0.22);
-    await press(() => g[0].position.clone().add(V(0, -0.3, 0)), 'glucose', { cls: 'tok', side: 'b' });
+    const g = await fromBlood('glucose', 2, C.at.x, WSZ.glucose);
+    molTag(g[0], 'glucose');
+    await wayZoom(C.at.x + 0.2); wayNames(true, [...g, C.group]);   /* (and off the carrier, where the glucose goes through) */
+    await press(() => g[0].position.clone().add(V(0, -0.1, 0)), 'glucose', { cls: 'tok', side: 'b' });
     await quest.choose(ibOn() ? ['Through a glucose transporter (a carrier protein)', 'Straight between the phospholipids'] : ['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
       quest.say(ib('Glucose is a larger molecule: the two layers of lipids stop it.', 'Glucose is polar: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
       await bump(g[0], C.at.x + 1.15);
     });
     quest.say(ib('A <dfn data-w="carrier-protein">carrier protein</dfn> lets glucose pass through the membrane.', 'A <dfn data-w="glucose-transporter">glucose transporter</dfn> lets glucose pass through the membrane: <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, with no ATP.'), 'ok');
     for (const t of g) await viaCarrier(C, t);
+    await wayBack();
     await quest.gain('glucose', g[0].position, 2); g.forEach(drop);
   }
   async function amino() {
     await wayFly();
     const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([turnTo(C, -1, 0), turnTo(G, -1, 0)]);
-    const [a] = await fromBlood('amino', 1, C.at.x - 0.4, 0.28, true);
-    await press(() => a.position.clone().add(V(0, -0.32, 0)), 'amino acid', { cls: 'tok', side: 'b' });
+    const [a] = await fromBlood('amino', 1, C.at.x - 0.4, WSZ.amino, true);
+    molTag(a, 'amino acid');
+    await wayZoom(C.at.x - 0.5); wayNames(true, [a, C.group, G.group]);
+    await press(() => a.position.clone().add(V(0, -0.1, 0)), 'amino acid', { cls: 'tok', side: 'b' });
     await quest.choose(ibOn() ? ['Through its own transporter', 'Through the glucose transporter', 'Straight between the phospholipids'] : ['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
       if (i === 1) {
         quest.say(ib('The carrier protein for glucose lets only glucose pass through. Each kind of carrier protein lets only one kind of substance pass through.', 'The glucose transporter lets only glucose pass through. Each carrier protein is selective: only particles of the right shape and charge fit it.'), 'no');
@@ -227,14 +259,19 @@ export function makePlay(world, quest) {
     });
     quest.say(ib('Its own carrier protein lets the amino acid pass through.', 'Its own carrier protein, an amino acid transporter, lets the amino acid pass through.'), 'ok');
     await viaCarrier(C, a);
+    await wayBack();
     await quest.gain('amino', a.position); drop(a);
   }
   async function co2() {
     await wayFly();
-    const t = keep(token('co2', 0.34)); t.position.set(0.3, 0.7, 0.14); bob(t, 0.03);
-    await press(() => t.position.clone().add(V(0, 0.3, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
+    const t = wayMol('co2'); t.position.set(0.3, 0.7, 0.14); bob(t, 0.03);
+    molTag(t, 'carbon dioxide');
+    await wayZoom(0.3, -0.1); wayNames(true, [t]);
+    await press(() => t.position.clone().add(V(0, 0.1, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
     /* straight between the lipids, out through the tissue fluid and the capillary's thin wall */
     await tween(t, { path: curve([t.position.clone(), V(0.25 + jit(0.1), 0.42, 0.13), V(0.3, 0, 0.14), V(0.25, -0.6, 0.12), V(0.4 + jit(), -1.3, 0.04)]), ms: R.FAST ? 0 : 2200 });
+    wayNames(true, [t]);   /* the names laid again, off it, now that it is in the tissue fluid */
+    await wayBack(1400);
     /* then into the plasma: first along the tissue fluid until it is over the middle of a space between two red blood
        cells, then down into that space, always over it as the blood flows (it never touches a red blood cell); then on
        with the plasma, out of the picture */
@@ -870,7 +907,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611101038').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611101304').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1345,6 +1382,25 @@ export function makePlay(world, quest) {
     for (let i = 0; i <= 12; i++) pts.push(g.curve.getPointAt(i / 12).add(V(0.06, 0.12, 0.08)));
     return new THREE.CatmullRomCurve3(pts);
   }
+  /* the copy (mRNA) at its true thickness, about 2 nm (10 Nov 2026, round 7; before, a thread 70 nm thick, about 35 times
+     too thick): from the nucleus's view far too thin to see, so a soft glow round it shows where it is, as a ribosome or a
+     vesicle on its way does. Both grow together; on its way out both slide through the pore together. Proof:
+     tools/true-size.mjs H */
+  function copyThread(curve, segs = 160) {
+    const g = new THREE.Group(); g.userData.kind = 'mrna-copy';
+    const th = ribbon(curve, { radius: 0.001, segs });
+    /* the glow: soft dots along the thread, in the copy's own orange (a glowing tube had looked like chromosome 1) */
+    const n = segs + 1, glow = glowPoints(n, 0.42), P = glow.geometry.attributes.position, C = glow.geometry.attributes.color, v = new THREE.Vector3();
+    for (let i = 0; i < n; i++) { curve.getPointAt(i / segs, v); P.setXYZ(i, v.x, v.y, v.z); C.setXYZ(i, 1, 0.5, 0.12); }
+    P.needsUpdate = true; C.needsUpdate = true; glow.renderOrder = 7; glow.userData.glow = true;
+    g.add(th, glow);
+    const per = 8 * 6;
+    g.userData.grow = k => { th.userData.grow(k); glow.geometry.setDrawRange(0, Math.round(n * Math.min(1, k))); };
+    /* a stretch of the thread, in segments: from a, n long */
+    g.userData.range = (a, len) => { th.geometry.setDrawRange(a * per, len * per); glow.geometry.setDrawRange(a, len + 1); };
+    g.userData.grow(0);
+    return g;
+  }
   /* the copy: one press (Copy) and it grows along the gene; or, beyond the Year 7 list, a film of how a cell copies a
      gene, step by step, which makes the copy too (transcribe.js; Daniel, 4 Nov 2026: "keep it simple … Unless you could
      add the option") */
@@ -1360,17 +1416,17 @@ export function makePlay(world, quest) {
       if (quest.energy(COST.copy)) { film = pick === 'film'; break; }
       await wait(400);
     }
-    const rib = keep(ribbon(copyCurve(), { radius: 0.035 }));
+    const rib = keep(copyThread(copyCurve()));
     if (film) { await live(openCopyFilm()); rib.userData.grow(1); }
     else {
       const t0 = performance.now();
       await live(new Promise(r => { const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2200); rib.userData.grow(k); if (k < 1) requestAnimationFrame(f); else r(); }; f(); }));
     }
     props.rib = rib;
-    quest.say('The copy of the gene: <b>mRNA</b>.', 'ok');
+    quest.say('The copy of the gene: <b>mRNA</b>. It is only about 2 nm thick: far too thin to see from here, so a glow shows where it is.', 'ok');
   }
   async function exportCopy() {
-    let rib = props.rib; if (!rib) { rib = props.rib = keep(ribbon(copyCurve(), { radius: 0.035 })); rib.userData.grow(1); }
+    let rib = props.rib; if (!rib) { rib = props.rib = keep(copyThread(copyCurve())); rib.userData.grow(1); }
     await quest.choose(['Through a nuclear pore', 'Straight through the two membranes of the nucleus', 'Send the DNA itself, not a copy'], 0, async (i) => {
       if (i === 1) {
         quest.say('The <b>nuclear envelope</b> is two membranes. A large molecule such as mRNA cannot pass through them: it leaves only through a <b>nuclear pore</b>.', 'no');
@@ -1396,14 +1452,14 @@ export function makePlay(world, quest) {
     const side = new THREE.Vector3().crossVectors(out, V(0, 1, 0)).normalize();
     const way = new THREE.CatmullRomCurve3(pts.concat([pore.clone().addScaledVector(out, -0.5), pore.clone().addScaledVector(out, -0.12), pore.clone().addScaledVector(out, 0.2),
       pore.clone().addScaledVector(out, 0.75).addScaledVector(side, 0.15), pore.clone().addScaledVector(out, 1.4).addScaledVector(side, 0.35), pore.clone().addScaledVector(out, 2.1).addScaledVector(side, 0.45)]));
-    const SEG = 320, thread = keep(ribbon(way, { radius: 0.035, segs: SEG })), per = 8 * 6;
+    const SEG = 320, thread = keep(copyThread(way, SEG)), per = 8 * 6;
     const lenSegs = Math.max(6, Math.round(SEG * cc.getLength() / way.getLength()));
     drop(rib); props.rib = null;
     const t0 = performance.now(), MS = R.FAST ? 0 : 3600;
     await live(new Promise(res => {
       const f = () => {
         const k = MS ? Math.min(1, (performance.now() - t0) / MS) : 1, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-        thread.geometry.setDrawRange(Math.round(e * (SEG - lenSegs)) * per, lenSegs * per); world.kick && world.kick();
+        thread.userData.range(Math.round(e * (SEG - lenSegs)), lenSegs); world.kick && world.kick();
         if (k < 1) requestAnimationFrame(f); else res();
       };
       f();

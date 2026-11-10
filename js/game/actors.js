@@ -1,13 +1,14 @@
 /* ============================================================
    actors.js — the moving things of the mini games (4 Nov 2026): molecules, the copy of a gene, ribosome parts, the chain,
-   amylase, lipids, vesicles, a motor protein, the nerve's message. Molecules are drawn thousands of times larger than they
-   are (a glucose molecule is about 1 nanometre across): the page says so. Each token keeps its true shape in outline
+   amylase, lipids, vesicles, a motor protein, the nerve's message. Close up, the camera comes to a molecule's true size
+   (a glucose molecule is about 1 nanometre across; play.js gives each token its size); at the way in, every molecule is
+   drawn at the membrane's own enlargement, about 100 times, and the page says so. Each token keeps its true shape in outline
    (glucose a ring of six, oxygen two atoms, carbon dioxide three in a line, a lipid a head and two tails, a ribosome a
    small and a large part; a ribosome's RNA a wavy thread, a protein a folded lump, the carrier of an amino acid a stem).
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611101038';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611101304';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};

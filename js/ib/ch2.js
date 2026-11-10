@@ -22,9 +22,9 @@
    reacting atom 0.35–0.45 nm from the substrate's.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611101038';
-import { loadProts, protein } from './prot.js?v=202611101038';
-import { disposeGroup, glow } from './stage.js?v=202611101038';
+import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611101304';
+import { loadProts, protein } from './prot.js?v=202611101304';
+import { disposeGroup, glow } from './stage.js?v=202611101304';
 
 const NAME = { glucose: 'glucose', g6p: '<i>glucose 6-phosphate</i>', f6p: '<i>fructose 6-phosphate</i>', fbp: '<i>fructose 1,6-bisphosphate</i>', dhap: '<i>dihydroxyacetone phosphate</i>',
   g3p: 'triose phosphate', bpg: '<i>1,3-bisphosphoglycerate</i>', pg3: '<i>3-phosphoglycerate</i>', pg2: '<i>2-phosphoglycerate</i>', pep: '<i>phosphoenolpyruvate</i>', pyruvate: 'pyruvate',

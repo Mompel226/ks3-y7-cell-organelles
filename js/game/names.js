@@ -223,7 +223,8 @@ export class Names {
   solids(pad = 3) {
     const out = [], v = new THREE.Vector3();
     (this.solid || []).forEach(o => {
-      for (let x = o; x; x = x.parent) if (!x.visible) return;
+      let top = o; for (let x = o; x; x = x.parent) { if (!x.visible) return; top = x; }
+      if (!top.isScene) return;   /* a part already taken away (a molecule that has gone) stops nothing */
       o.updateMatrixWorld(true);
       let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity, front = true;
       o.traverseVisible(m => {
