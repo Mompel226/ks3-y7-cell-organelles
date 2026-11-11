@@ -14,7 +14,7 @@
    Units: nm (the IB view's scenes are in nm).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MOL } from './mol-data.js?v=202611120748';
+import { MOL } from './mol-data.js?v=202611120817';
 
 export const ELC = { C: 0x3a3f4a, H: 0xf4f6fa, O: 0xe8322f, N: 0x3b6cf0, P: 0xff9a1f, S: 0xf2d43a };
 /* ball radii (nm): a fixed part of each element's van der Waals radius (C 0.17 nm), so the bonds show */

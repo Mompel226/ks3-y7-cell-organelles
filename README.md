@@ -168,11 +168,26 @@ camera may come (the cut cell: 20 times, enough to see the wall's band and the m
 that the camera sees (rays against the picture's own parts, each time the picture comes to rest or the pupil has turned
 or zoomed it). Before, "mitochondrion" could end on a mitochondrion that a chloroplast hid, so it seemed to name the
 chloroplast. `tools/plant-check.mjs` tests it at every step.
-**IGCSE names of the leaf.** Once the side quest's five checks are right, the picture of the piece of leaf has a
-switch, **IGCSE names**: the eleven names the IGCSE syllabus asks for (0610 6.2: cuticle, upper and lower epidermis,
-palisade and spongy mesophyll, air space, vascular bundle, xylem, phloem, guard cell, stoma), each on its part in the
-one violet, with a key in the step that says each in plain words. On a phone each name is a numbered pin and the key
-has the numbers.
+**For IGCSE and IB pupils: Your course** (Daniel, 12 Nov 2026: "just like for all the main quest … a toggle for IGCSE
+and then a toggle for IB … only toggles that are activated once the student is done with the key stage 3, and the key
+stage 3 should be easy to understand"). Until the side quest's five checks are all right, nothing of this shows: the
+Year 7 version stands alone. Then the panel has **Your course: IGCSE · IB**, two switches, off at the start, and the end
+card says so. A switch on adds, under the words of every step, a violet box with what that course asks about what the
+step's picture shows; the Year 7 words never change. The words are `COURSE` in `js/plant/text.js`.
+- **IGCSE** (Cambridge 0610, the syllabus for 2026 to 2028; the statement numbers are beside each entry): all 20 steps.
+  Among them: transpiration and the transpiration pull, diffusion, osmosis and active transport, turgid, flaccid and
+  plasmolysis, the two equations of photosynthesis, the five uses of the carbohydrates made, translocation, sources and
+  sinks, the iodine test, chemical digestion, amylase and maltase, the structure of a villus, absorption and the
+  hepatic portal vein, aerobic respiration. The wording is the syllabus's and that of the labs' glossary (one word for
+  one thing: turgid, protein carriers, partially permeable, breaks down … to). On the piece of leaf, IGCSE also puts
+  the twelve names of 0610 6.2.2 on the picture, each on its part in the one violet, with a key in the box; on a phone each
+  name is a numbered pin and the key has the numbers.
+- **IB** (the DP Biology guide, first assessment 2025): 19 steps, every line marked **SL** or **HL** as the guide
+  places its statement, in the guide's own terms (plasma membrane, sap vacuole). The guide has no topic on the human
+  digestive system (no amylase, maltose or villus) and no food tests: the gut steps rest only on its general statements
+  (hydrolysis, enzymes embedded in membranes, capillaries, glucose cotransporters at HL), and the mouth's box says so.
+An independent reader checked every sentence against the syllabus, the guide and the labs' glossary, and against the Plants Lab and the Digestion Lab (12 Nov 2026: one IB line had a level it could not claim; ten sentences were made exact; eight were added from the labs' own words). `tools/plant-check.mjs`
+(J) tests the gate, each step's boxes, the SL/HL fence of the words and the labs' keywords.
 
 **The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
 made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of

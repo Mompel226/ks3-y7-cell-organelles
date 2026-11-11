@@ -18,9 +18,9 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611120748';
-import { gameLook } from './look.js?v=202611120748';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY } from './text.js?v=202611120748';
+import { makeStage, smooth } from '../ib/stage.js?v=202611120817';
+import { gameLook } from './look.js?v=202611120817';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611120817';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -32,12 +32,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611120748'), potato: () => import('./potato.js?v=202611120748'), gut: () => import('./gut.js?v=202611120748'), ring: () => import('./ring.js?v=202611120748') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611120817'), potato: () => import('./potato.js?v=202611120817'), gut: () => import('./gut.js?v=202611120817'), ring: () => import('./ring.js?v=202611120817') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611120748', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611120817', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -74,7 +74,6 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     <div class="plv__main">
       <div class="plv__stage">
         <div class="plv__hots"></div>
-        <button type="button" class="plv__x" aria-pressed="false" hidden><span class="plv__xt" aria-hidden="true"><i></i></span>IGCSE names</button>
         <div class="plv__zoom" hidden><span class="plv__zhint"></span><button type="button" class="plv__zb" data-z="out" aria-label="Zoom out">−</button><button type="button" class="plv__zb" data-z="in" aria-label="Zoom in">+</button><button type="button" class="plv__zb plv__zhome" data-z="home" hidden>Whole view</button></div>
         <div class="plv__paper" hidden></div>
         <div class="plv__veil is-on is-first" aria-hidden="true"></div>
@@ -83,6 +82,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       <aside class="quest plv__panel" aria-label="The steps">
         <div class="qp qp--place">
           <div class="qp__top"><span class="qp__kind">${esc(KIND)}</span><span class="plv__count" aria-live="polite"></span></div>
+          <div class="plv__lv" hidden><span class="plv__lvk">Your course</span><button type="button" class="plv__lvb" data-lv="igcse" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IGCSE</button><button type="button" class="plv__lvb" data-lv="ib" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IB</button></div>
           ${inGame ? '<p class="plv__side"><b>Side quest.</b> This is extra, not part of your mission. Your game waits: press <b>← Back to your mission</b> at any time.</p>' : ''}
           <div class="plv__loop"></div>
           <ol class="steps"></ol>
@@ -149,7 +149,6 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       ko.push({ l: x - bw / 2 - 4, r: x + bw / 2 + 4, t: y - bh / 2 - 4, b: y + bh / 2 + 4 });
     });
     if (scene.keepOut) ko.push(...scene.keepOut());
-    if (!xBtn.hidden) ko.push({ l: xBtn.offsetLeft - 6, r: xBtn.offsetLeft + xBtn.offsetWidth + 6, t: xBtn.offsetTop - 6, b: xBtn.offsetTop + xBtn.offsetHeight + 6 });
     if (!zoomEl.hidden) { const a = stageEl.getBoundingClientRect(), b = zoomEl.getBoundingClientRect(); ko.push({ l: b.left - a.left - 4, r: b.right - a.left + 4, t: b.top - a.top - 4, b: b.bottom - a.top + 4 }); }
     stage.setKeepOut(ko);
     if (!drag.on && drag.home && (drag.yaw || drag.pitch)) { drag.yaw *= 0.86; drag.pitch *= 0.86; if (Math.abs(drag.yaw) + Math.abs(drag.pitch) < 1e-3) { drag.yaw = drag.pitch = 0; drag.home = false; } }
@@ -195,30 +194,37 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     if (ph.to.cam != null) { drag.home = true; Z.home = true; }
     tw = { from, to: ph.to, ms: FAST ? 0 : (ph.ms != null ? ph.ms : 1600), t0: performance.now(), done: res };
   });
-  /* at rest: the step's names. m: the step's moves, when it has a second set of names (labsX, see "the IGCSE names") */
+  /* at rest: the step's names. m: the step's moves, when it has a second set of names (labsX, see "the course layers") */
   const rest = (labs, m) => { xStep = m && m.labsX ? m : null; xLabs = labs || {}; paintX(); stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); stage.setRest(true); at.rest = true; };
   const moving = () => { xStep = null; paintX(); stage.showLabels({}); curLabs = {}; stage.setRest(false); at.rest = false; };
 
-  /* ---------------- the IGCSE names ----------------
-     Daniel, 12 Nov 2026 ("Yes, build it"): a switch on the picture of the piece of leaf. Off (the start): the plain names
-     a Year 7 pupil reads. On: the names the IGCSE syllabus asks a pupil to identify in a leaf (0610 6.2), each on its
-     part, in the one violet of what is beyond the reader's own course; the step's key says each in plain words. On a
-     phone there is no room for eleven names beside the picture: each is a numbered pin on a level line, and the key
-     under the picture has the same numbers. A step has the switch if its moves give labsX. The choice is kept. */
-  /* only once the Year 7 version is done: its five checks all right (Daniel, 12 Nov 2026: "only toggles that are
-     activated once the student is done with the key stage 3", as the IB switch of a place in the game) */
+  /* ---------------- the course layers: IGCSE and IB ----------------
+     Daniel, 12 Nov 2026: "just like for all the main quest, you can always add a toggle for IGCSE and then a toggle for
+     IB … extra information … related to what you're showing here … only toggles that are activated once the student is
+     done with the key stage 3, and the key stage 3 should be easy to understand." So: nothing of this shows until the
+     side quest's five checks are all right (as the IB switch of a place in the game). Then the panel has two switches,
+     "Your course: IGCSE · IB", off at the start. A switch on adds, under the words of every step, a violet box with what
+     that course asks about what the step's picture shows (text.js COURSE); the Year 7 words never change. With IGCSE
+     on, a picture that has a second set of names (its step's labsX: the piece of leaf) shows the names of the IGCSE
+     syllabus, each on its part; on a phone there is no room for eleven names beside the picture, so each is a numbered
+     pin on a level line and the box's key has the same numbers. The choice is kept. */
   const ks3Done = () => { try { const A = JSON.parse(localStorage.getItem('cellgame.answers') || '{}'); return CHECKS.every(q => A[q] && A[q].ok); } catch (e) { return false; } };
-  let xOn = !!store.get('plantX', false), xStep = null, xLabs = {};
-  const xBtn = $('.plv__x');
-  function paintX() {
-    const open = !!xStep && ks3Done(), on = open && xOn; xBtn.hidden = !open; xBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    root.classList.toggle('plv--x', on);
-    curLabs = on ? xStep.labsX : xLabs;
-    const key = root.querySelector('.plv__xkey'); if (key) key.hidden = !on;
-    return key;
+  const LV = Object.assign({ igcse: false, ib: false }, store.get('plantLv', {})), lvEl = $('.plv__lv');
+  let xStep = null, xLabs = {};
+  const lvOn = c => ks3Done() && !!LV[c];
+  function paintX() { curLabs = xStep && lvOn('igcse') ? xStep.labsX : xLabs; }
+  function paintLv() {
+    const open = ks3Done(); lvEl.hidden = !open;
+    ['igcse', 'ib'].forEach(c => { const on = open && !!LV[c]; root.classList.toggle('plv--' + c, on); lvEl.querySelector(`[data-lv="${c}"]`).setAttribute('aria-pressed', on ? 'true' : 'false'); });
   }
-  xBtn.addEventListener('click', () => { if (!xStep || !ks3Done()) return; xOn = !xOn; store.set('plantX', xOn); const key = paintX(); stage.showLabels(curLabs); seenSig = ''; lookForHidden();
-    if (xOn && key) requestAnimationFrame(() => { const p = panel.getBoundingClientRect(), k = key.getBoundingClientRect(); if (k.top < p.top || k.bottom > p.bottom) panel.scrollTo({ top: Math.max(0, panel.scrollTop + k.top - p.top - 10), behavior: FAST ? 'auto' : 'smooth' }); }); });
+  lvEl.addEventListener('click', e => { const b = e.target.closest('.plv__lvb'); if (!b || !ks3Done()) return; const c = b.dataset.lv;
+    LV[c] = !LV[c]; store.set('plantLv', LV); paintLv(); paintX();
+    if (at.rest) { stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); }
+    /* the box just opened, of the step the pupil is on, comes into view */
+    const li = cur >= 0 && liOf(cur), box = LV[c] && li && li.querySelector(`.plv__lvbox[data-lv="${c}"]`);
+    if (box) requestAnimationFrame(() => { const p = panel.getBoundingClientRect(), k = box.getBoundingClientRect(); if (k.top < p.top + 40 || k.bottom > p.bottom) panel.scrollTo({ top: Math.max(0, panel.scrollTop + k.top - p.top - 52), behavior: FAST ? 'auto' : 'smooth' }); }); });
+  document.addEventListener('progress', paintLv);
+  paintLv();
 
   /* ---------------- the steps ---------------- */
   const saved = store.get('plant', {});
@@ -265,7 +271,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     scene = sc; sceneKey = key; K = Object.assign({}, sc.knobs);
     if (sc.group && sc.group.parent !== stage.scene) stage.scene.add(sc.group);
     /* a phone has little room: a name may have a shorter form there (htmlN), the same name in fewer words; a name of
-       the IGCSE set (pin: its number) is a numbered pin there, named in the step's key (see "the IGCSE names") */
+       the IGCSE set (pin: its number) is a numbered pin there, named in the step's key (see "the course layers") */
     const narrow = stage.W < 560, labs = {}; Object.keys(sc.labels || {}).forEach(k => { const d = sc.labels[k];
       const e = narrow && d.pin ? Object.assign({}, d, { html: String(d.pin), cls: (d.cls ? d.cls + ' ' : '') + 'is-pin', gaps: [30, 46, 64, 84, 110, 140] /* a pin stands beside the small picture, not on it */ }) : narrow && d.htmlN ? Object.assign({}, d, { html: d.htmlN }) : Object.assign({}, d);
       /* its line ends only on a point that is in view (see "names point at what is seen") */
@@ -299,8 +305,12 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   function addStep(i) {
     if (liOf(i)) return liOf(i);
     const li = document.createElement('li'); li.className = 'step is-later'; li.dataset.id = STEPS[i].id;
-    const X = XKEY[STEPS[i].id];
-    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${X ? `<div class="y8 plv__xkey" hidden><span class="y8__k">IGCSE</span><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
+    /* the course boxes of the step (shown by the panel's switches, see "the course layers"): IGCSE, with the key of
+       the picture's IGCSE names where it has them; IB, each line marked SL or HL */
+    const id = STEPS[i].id, X = XKEY[id], G = COURSE.igcse[id], B = COURSE.ib[id];
+    const boxes = (G || X ? `<div class="y8 plv__lvbox" data-lv="igcse"><span class="y8__k">IGCSE</span>${X ? `<div class="plv__xkey"><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}${(G || []).map(t => `<p>${t}</p>`).join('')}</div>` : '')
+      + (B ? `<div class="y8 plv__lvbox" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}</div>` : '');
+    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${boxes}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
     ol.appendChild(li); if (R) R.terms(li); return li;
   }
   function again(i) {
@@ -453,7 +463,9 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       if (todo) { todo.hidden = all; todo.innerHTML = `To finish, answer every check: <b>${n} of ${qs.length}</b> right.`; }
       if (all === was) return; const now = was === false; was = all; if (!all) return;
       won.innerHTML = `<div class="qp__done">${starIcon()}<div>${paras(DONE)}</div></div>
-        <aside class="fact"><p class="fact__k">✦ Did you know?</p><p>${FACT.text}</p><p class="fact__src">${esc(FACT.src)}</p></aside>`;
+        <aside class="fact"><p class="fact__k">✦ Did you know?</p><p>${FACT.text}</p><p class="fact__src">${esc(FACT.src)}</p></aside>
+        <div class="y8 plv__lvnote"><span class="y8__k">IGCSE · IB</span><p>${LVNOTE}</p></div>`;
+      paintLv();
       if (now) { const s = sound(); if (s && s.gain) s.gain(); won.scrollIntoView({ block: 'nearest', behavior: FAST ? 'auto' : 'smooth' }); }
     };
     paint(); if (painter) document.removeEventListener('progress', painter); painter = paint; document.addEventListener('progress', paint);
@@ -524,7 +536,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   let closed = false;
   function close() {
     if (closed) return; closed = true; token++;
-    document.removeEventListener('fullscreenchange', onFull); document.removeEventListener('keydown', onKey);
+    document.removeEventListener('fullscreenchange', onFull); document.removeEventListener('keydown', onKey); document.removeEventListener('progress', paintLv);
     if (R && R.closeTip) R.closeTip();
     clearHots(); if (scene && scene.dispose) scene.dispose(); look.dispose(); stage.stop(); root.remove();
     document.documentElement.classList.remove('plv-open');
@@ -537,7 +549,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     get at() { return Object.assign({ scene: sceneKey, id: cur >= 0 ? STEPS[cur].id : '' }, at); },
     stepAtRest: () => !!(at.rest && !tw && !building),
     labels: () => stage.labelState(), stage, steps: STEPS.map(s => s.id),
-    knobs: () => Object.assign({}, K), zoom: () => ({ k: Z.k, r: Z.r, u: Z.u, max: Z.max }), zoomAt, x: () => ({ on: xOn && !xBtn.hidden, there: !xBtn.hidden }),
+    knobs: () => Object.assign({}, K), zoom: () => ({ k: Z.k, r: Z.r, u: Z.u, max: Z.max }), zoomAt, lv: () => ({ there: !lvEl.hidden, igcse: lvOn('igcse'), ib: lvOn('ib') }),
     /* the point of the picture (3D) that a name's line ended on when its screen place was xy */
     labelPoint: (k, xy) => { let best = null, bd = 1e9; (pts3[k] || []).forEach(p => { const q = stage.project(p), d = Math.hypot(q[0] - xy[0], q[1] - xy[1]); if (d < bd) { bd = d; best = p; } }); return best; },
     /* the names now shown whose line ends on a point that is NOT in view (a fresh test, not the kept one) */

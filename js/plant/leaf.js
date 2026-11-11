@@ -36,10 +36,10 @@
    dispose }. Every step can be shown from its start: the picture depends only on the knobs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611120748';
-import { token, riboPart } from '../game/actors.js?v=202611120748';
-import { bilayer } from '../ib/membrane.js?v=202611120748';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120748';
+import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611120817';
+import { token, riboPart } from '../game/actors.js?v=202611120817';
+import { bilayer } from '../ib/membrane.js?v=202611120817';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120817';
 
 /* every size in nm */
 export const S = {
@@ -688,20 +688,21 @@ export async function build(stage, kit) {
     hole: { html: 'a tiny hole: air enters here', htmlN: 'a tiny hole', side: 'r', pts: () => [HOLE.clone().add(V(0, 0, 0)), HOLE.clone().add(V(0, 2500, 0))] },
     one: { html: 'one palisade cell: <b>72 µm</b> long', htmlN: 'palisade cell: <b>72 µm</b>', side: 'l', pts: () => [W(-R0, 12000, 0), W(-R0, 2000, 0), W(-R0, 22000, 0)] },
     sal: { html: 'your salivary gland cell: <b>16 µm</b>', side: 'r', pts: () => [worldOf(sal, V(S.salivary / 2 - 300, 1500, 0)), worldOf(sal, V(S.salivary / 2 - 900, 3400, 0))] },
-    /* the IGCSE names of the piece of leaf (0610 6.2), shown by the switch on the picture (view.js "the IGCSE names");
+    /* the IGCSE names of the piece of leaf (0610 6.2.2: twelve), shown while the panel's IGCSE switch is on (view.js "the course layers");
        pin: the name's number on a phone, the same as in the step's key (text.js XKEY.leaf) */
     /* (small parts first: a name is placed in this order, and a small part has few places for its line) */
-    xstoma: { html: 'stoma', pin: 11, cls: 'plv-xlab', side: 'r', pts: () => [HOLE.clone(), HOLE.clone().add(V(0, -2500, 0)), HOLE.clone().add(V(0, 2500, 0)), HOLE.clone().add(V(0, -5000, 0))] },
-    xguard: { html: 'guard cell', pin: 10, cls: 'plv-xlab', side: 'l', pts: () => [HOLE.clone().add(V(-5100, 0, -200)), HOLE.clone().add(V(-5100, 1500, -200))] },
-    xxylem: { html: 'xylem', pin: 5, cls: 'plv-xlab', side: 'l', pts: () => VEIN.xylem.slice().sort((a, b) => a[0] - b[0]).slice(0, 4).map(o => W(VEIN.x + o[0] - o[2] * 0.92, VEIN.y + o[1], VEIN.z0 - 200)) },
-    xphloem: { html: 'phloem', pin: 6, cls: 'plv-xlab', side: 'l', pts: () => VEIN.phloem.slice().sort((a, b) => a[0] - b[0]).slice(0, 5).map(o => W(VEIN.x + o[0], VEIN.y + o[1], VEIN.z0 - 800)) },
-    xbundle: { html: 'vascular bundle', pin: 4, cls: 'plv-xlab', side: 'l', pts: () => [2.15, 2.5, 2.85, 3.5].map(a => W(VEIN.x + (VEIN.r - 1500) * Math.cos(a), VEIN.y + (VEIN.r - 1500) * 0.96 * Math.sin(a), VEIN.z0 - 4000)) },
-    xair: { html: 'air space', pin: 8, cls: 'plv-xlab', side: 'r', through: true, pts: () => AIR },
+    xstoma: { html: 'stoma', pin: 12, cls: 'plv-xlab', side: 'r', pts: () => [HOLE.clone(), HOLE.clone().add(V(0, -2500, 0)), HOLE.clone().add(V(0, 2500, 0)), HOLE.clone().add(V(0, -5000, 0))] },
+    xguard: { html: 'guard cell', pin: 11, cls: 'plv-xlab', side: 'l', pts: () => [HOLE.clone().add(V(-5100, 0, -200)), HOLE.clone().add(V(-5100, 1500, -200))] },
+    xxylem: { html: 'xylem', pin: 6, cls: 'plv-xlab', side: 'l', pts: () => VEIN.xylem.slice().sort((a, b) => a[0] - b[0]).slice(0, 4).map(o => W(VEIN.x + o[0] - o[2] * 0.92, VEIN.y + o[1], VEIN.z0 - 200)) },
+    xphloem: { html: 'phloem', pin: 7, cls: 'plv-xlab', side: 'l', pts: () => VEIN.phloem.slice().sort((a, b) => a[0] - b[0]).slice(0, 5).map(o => W(VEIN.x + o[0], VEIN.y + o[1], VEIN.z0 - 800)) },
+    xbundle: { html: 'vascular bundle', pin: 5, cls: 'plv-xlab', side: 'l', pts: () => [2.15, 2.5, 2.85, 3.5].map(a => W(VEIN.x + (VEIN.r - 1500) * Math.cos(a), VEIN.y + (VEIN.r - 1500) * 0.96 * Math.sin(a), VEIN.z0 - 4000)) },
+    xair: { html: 'air space', pin: 9, cls: 'plv-xlab', side: 'r', through: true, pts: () => AIR },
     xcut: { html: 'cuticle', pin: 1, cls: 'plv-xlab', side: 'r', pts: () => [2.4, 3.3, 1.5].map(k => W(k * PX, HL + S.epiTop * 0.84 + 700, 7800)) },
     xupper: { html: 'upper epidermis', pin: 2, cls: 'plv-xlab', side: 'l', pts: () => [-3.4, -2.2, -1].map(k => W(k * PX, HL + S.epiTop * 0.5, 6000)) },
-    xlower: { html: 'lower epidermis', pin: 9, cls: 'plv-xlab', side: 'l', pts: () => [-3.3, -2.3, -1.3].map(k => W(k * PX, y0 - 400, -1.6 * PZ)).concat([-3.3, -2.3].map(k => W(k * PX, y0 - S.epiLow * 0.5, 8000))) },
+    xlower: { html: 'lower epidermis', pin: 10, cls: 'plv-xlab', side: 'l', pts: () => [-3.3, -2.3, -1.3].map(k => W(k * PX, y0 - 400, -1.6 * PZ)).concat([-3.3, -2.3].map(k => W(k * PX, y0 - S.epiLow * 0.5, 8000))) },
     xpal: { html: 'palisade mesophyll', pin: 3, cls: 'plv-xlab', side: 'l', pts: () => [W(-R0 + 600, 8000, 6500), W(-R0 + 600, -6000, 6500), W(-R0 + 600, 20000, 6500)].map(p => p.add(V(-3 * PX, 0, 0))) },
-    xspongy: { html: 'spongy mesophyll', pin: 7, cls: 'plv-xlab', side: 'r', pts: () => spo.filter(o => o.p.z > -12000 && o.p.x > 14000).slice(0, 6).map(o => o.p.clone().add(V(0, 0, o.r * 0.9))) },
+    xchl: { html: 'chloroplasts', pin: 4, cls: 'plv-xlab', side: 'r', pts: () => palChl.filter(c => c.p.z > 4000 && c.p.x > 2.4 * PX && c.p.y > -22000 && c.p.y < 26000).slice(0, 10).map(c => c.p.clone()) },
+    xspongy: { html: 'spongy mesophyll', pin: 8, cls: 'plv-xlab', side: 'r', pts: () => spo.filter(o => o.p.z > -12000 && o.p.x > 14000).slice(0, 6).map(o => o.p.clone().add(V(0, 0, o.r * 0.9))) },
     wall: { html: 'cell wall', side: 'r', pts: () => rimPts(1, EDGE_Y).concat(rimPts(-1, EDGE_Y)) },
     membrane: { html: 'cell membrane', side: 'r', pts: () => MEM_Y.map(y => W(RIN - 4, y, 0)).concat(MEM_Y.map(y => W(-RIN + 4, y, 0))) },
     cyto: { html: 'cytoplasm', side: 'r', pts: () => [-27000, -24000, -30000, 16000].map(y => W((vacR(0, y) + RIN) / 2, y, 0)) },
@@ -744,7 +745,7 @@ export async function build(stage, kit) {
   /* ================= the steps' motion (their words: js/plant/text.js, by id) ================= */
   const steps = [
     { id: 'leaf', phases: [{ to: { cam: 0, ghost: 0, open: 0, day: 1 }, ms: 0 }], labs: { light: 1, skin: 2, pal: 1, spongy: 2, hole: 2, vein: 2, wax: 2 },
-      labsX: { xcut: 1, xupper: 1, xpal: 1, xbundle: 1, xxylem: 1, xphloem: 1, xspongy: 1, xair: 1, xlower: 1, xguard: 1, xstoma: 1 } },
+      labsX: { xcut: 1, xupper: 1, xpal: 1, xchl: 1, xbundle: 1, xxylem: 1, xphloem: 1, xspongy: 1, xair: 1, xlower: 1, xguard: 1, xstoma: 1 } },
     { id: 'cell', phases: [{ to: { ghost: 1 }, ms: 1400 }, { to: { cam: 1, sal: 1 }, ms: 3600 }], labs: { one: 1, sal: 1 } },
     { id: 'open', phases: [{ to: { sal: 0, cam: 2 }, ms: 1800 }, { to: { open: 1 }, ms: 2600 }], labs: { membrane: 1, cyto: 1, nucleus: 1, mito: 1, golgi: 2 } },
     { id: 'three', phases: [], labs: {},
