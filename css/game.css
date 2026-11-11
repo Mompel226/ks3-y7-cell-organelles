@@ -207,6 +207,19 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .fact__src{font-size:13px;color:var(--qp-ink2);margin-top:4px!important}
 .qp__real{margin:14px 0 0;width:100%;font:900 16.5px/1.2 var(--sans);color:#1B1240;background:linear-gradient(180deg,#E9E2FF,#CDBDF7);border:1.5px solid #B9A6FF;border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left}
 .qp__real:hover{border-color:var(--qp-accent)}
+/* the two doors of the plant-cell branch (js/plant/, 11 Nov 2026): leaf green, on the way in's end card and the win card */
+/* the side quest's door: a box of its own, marked, so that no pupil takes it for the next step of the mission */
+.qp__side{margin:14px 0 0;padding:10px 12px 12px;border:1.5px dashed #7CC96A;border-radius:14px;background:color-mix(in srgb,#7CC96A 9%,transparent)}
+.qp__sidek,.win__sidek{margin:0 0 4px;font:900 12.5px/1.2 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#9BE08A}
+.qp__sidet{margin:0 0 2px;font-size:.94em}
+.qp__side .qp__plant{margin-top:8px}
+.win__side{margin:10px auto 0;padding:8px 12px 10px;border:1.5px dashed #7CC96A;border-radius:14px;background:rgba(124,201,106,.1);max-width:520px}
+.win__side .win__plant{margin-top:4px}
+@media (max-width:860px){ .win__side{margin-top:5px;padding:6px 10px 8px} .win__sidek{font-size:11px} .win__side .win__plant{margin-top:4px} }
+.qp__plant{color:#12300C;background:linear-gradient(180deg,#E2F6D4,#BDE7A6);border-color:#7CC96A}
+.qp__plant:hover{border-color:#2E7D32}
+.win__plant{display:block;margin:12px auto 0;color:#12300C;background:linear-gradient(180deg,#E2F6D4,#BDE7A6);border:1.5px solid #7CC96A;font-size:16.5px;line-height:1.25;padding:11px 16px;max-width:100%}
+.win__plant:hover,.win__plant:focus-visible{border-color:#fff;outline:2.5px solid #FFE39A;outline-offset:2px}
 .qp__real:disabled{opacity:.6;cursor:default}
 /* the IB switch and the IB words (quest.js ibSwitch), in IB blue; levels: SL and HL blue, HL only rose, beyond grey
    (memory level-colours-never-blank: a filled tint, never a blank box) */

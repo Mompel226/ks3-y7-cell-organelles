@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611111833';
-import { Names } from './names.js?v=202611111833';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611111833';
-import { makePlay } from './play.js?v=202611111833';
-import { setStill, wait } from './actors.js?v=202611111833';
-import { state } from './state.js?v=202611111833';
-import { ICON } from './icons.js?v=202611111833';
-import { intro } from './intro.js?v=202611111833';
-import { sound } from './sound.js?v=202611111833';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611111833';
+import { World, MAP_VIEW } from '../world/world.js?v=202611120025';
+import { Names } from './names.js?v=202611120025';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611120025';
+import { makePlay } from './play.js?v=202611120025';
+import { setStill, wait } from './actors.js?v=202611120025';
+import { state } from './state.js?v=202611120025';
+import { ICON } from './icons.js?v=202611120025';
+import { intro } from './intro.js?v=202611120025';
+import { sound } from './sound.js?v=202611120025';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611120025';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -211,6 +211,7 @@ async function test() {
     <p>You made amylase in a cell of a salivary gland, released it, and it digested starch.</p>
     <div class="win__code"><p>Your code for the final check</p><p class="win__c">${esc(await finalCode())}</p>
       <p>Write it down. You need it to start the final check: press <b>✦ Final check</b> in the list of places, then type your code.</p></div>
+    <div class="win__side"><p class="win__sidek">Side quest · extra: a plant cell, not part of your mission</p><button type="button" class="btn win__plant" data-plant>🌱 Side quest: where does starch come from?</button></div>
     <ol class="win__path">${path.map(([i, t]) => `<li>${ICON[i]}<span>${t}</span></li>`).join('')}</ol>
     <div class="win__acts"><button type="button" class="btn" data-back>Back to the cell</button><button type="button" class="btn ghost" data-final>✦ Final check</button></div>`);
   box.appendChild(end);
@@ -219,11 +220,14 @@ async function test() {
   sound.wake();
   $('[data-back]', end).addEventListener('click', () => { box.hidden = true; go(null); });
   $('[data-final]', end).addEventListener('click', async () => { box.hidden = true; await go(null); openFinal({ focusCode: true }); });
+  /* the door to the plant-cell branch (js/plant/view.js): the card stays as it is under the view, and is there again when
+     the view closes (Daniel, 11 Nov 2026) */
+  $('[data-plant]', end).addEventListener('click', () => document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'test' } })));
 }
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611111833').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611120025').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -233,7 +237,7 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611111833').then(m => {
+  import('../ib/view.js?v=202611120025').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -243,13 +247,27 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611111833').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611120025').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611111833').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611120025').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
+/* the plant-cell branch, "Where glucose comes from" (js/plant/view.js; Daniel, 11 Nov 2026): a view over the whole page,
+   opened from the way in's end card and from the Mission complete card. Nothing of it is fetched before a door is pressed
+   ("Load the branch only when a door is pressed, so the game starts no slower"). The game's 3D rests while it is open, and
+   the game is where the pupil left it when it closes: it uses and gives no item, no energy, and changes no place. */
+let plantOpening = false;
+document.addEventListener('plant', e => {
+  const root = document.documentElement;
+  if (plantOpening || opening || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
+  plantOpening = true;
+  import('../plant/view.js?v=202611120025').then(m => {
+    world.hold = true;
+    m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); } });
+  }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
+});
 
 /* ---------- start ---------- */
 async function start() {

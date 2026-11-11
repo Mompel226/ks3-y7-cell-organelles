@@ -1,0 +1,108 @@
+/* ============================================================
+   plant.css — the plant-cell branch of the Y7 cell game, "Where glucose comes from" (11 Nov 2026), js/plant/view.js:
+   a view over the whole page (or at its own address, plant-cell/), the 3D picture on the left and the game's own panel
+   on the right (a sheet at the bottom on a phone). It is fetched only when a door of the branch is pressed.
+   It stands on the game's styles (css/app.css, css/game.css: the panel, the steps, the checks, the buttons on the parts)
+   and on the shared 3D stage (js/ib/stage.js), whose names and scale bar it dresses as the game's names (.nm).
+   Year 7 sizes (memory year7-text-and-instructions): page text 17 px, nothing a pupil must read under 15 px.
+   The one violet (memory level-colours-never-blank): only the "Year 8" box, #7243C0 on #EDE8FA, dark #B388FF.
+   ============================================================ */
+html.plv-open,html.plv-open body{overflow:hidden}
+html.plv-open .tip{z-index:1100}
+.plv{position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:#0b0f2a;color:#FFF8E6;font-family:var(--sans,'Nunito',system-ui,sans-serif);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+.plv__top{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:8px 14px;background:linear-gradient(180deg,#1a1d52,#0e1233);border-bottom:1.5px solid rgba(255,210,122,.4)}
+.plv__close{flex:none;font:800 15.5px/1 var(--sans,'Nunito',sans-serif);color:#2B1A00;background:linear-gradient(180deg,#FFE7A8,#FFC95E);border:0;border-radius:999px;padding:10px 15px;cursor:pointer;text-decoration:none}
+.plv__close:hover,.plv__close:focus-visible{background:linear-gradient(180deg,#FFF1C8,#FFD27A);outline:2.5px solid #fff;outline-offset:2px}
+.plv__id{min-width:0}
+.plv__eyebrow{font:900 12.5px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.14em;text-transform:uppercase;color:#FFD27A;margin:0 0 3px}
+.plv__id h1{font:800 23px/1.1 var(--serif,'Fraunces',Georgia,serif);margin:0;color:#FFF8E6}
+.plv__by{margin:0 0 0 auto;font:700 15px/1.2 var(--sans,'Nunito',sans-serif);color:#D9D5FA}
+.plv__tools{display:flex;gap:6px}
+.plv__tools .tool__w{position:static;width:auto;height:auto;clip:auto}
+
+.plv__main{display:grid;grid-template-columns:minmax(0,1fr) min(440px,38%);min-height:0}
+.plv__stage{position:relative;overflow:hidden;min-height:0;touch-action:none;cursor:grab;background:radial-gradient(120% 90% at 50% 20%,#1d1f5a 0%,#0b0f2a 70%)}
+.plv__stage:active{cursor:grabbing}
+.plv .ibv__canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.plv__panel.quest{position:relative;top:auto;right:auto;bottom:auto;left:auto;width:auto;max-height:none;margin:12px 12px 12px 0;z-index:3}
+.plv__count{font:800 14px/1 var(--sans,'Nunito',sans-serif);color:var(--qp-ink2)}
+/* in the game: a line that says this is a side quest, and how to return */
+.plv__side{margin:2px 0 8px;padding:7px 10px;border:1.5px dashed #7CC96A;border-radius:12px;background:color-mix(in srgb,#7CC96A 10%,transparent);font-size:.92em}
+.plv__loop{margin:2px 0 8px;padding:4px 6px 0;border-radius:14px;background:color-mix(in srgb,var(--qp-accent) 6%,transparent);border:1.5px solid var(--qp-rule)}
+.plv__all{margin-top:.45em!important;font-weight:800}
+
+/* ---------- the loop, as a small map (view.js loopMap) ---------- */
+.lm{display:block;width:100%;height:auto}
+.lm__a{fill:none;stroke:color-mix(in srgb,var(--qp-ink2) 45%,transparent);stroke-width:2}
+.lm__a.on{stroke:#2E9F64}
+.lm__h{fill:color-mix(in srgb,var(--qp-ink2) 70%,transparent)}
+.lm__n{fill:var(--qp-bg);stroke:var(--qp-ink2);stroke-width:2}
+.lm__n.was{fill:#2E9F64;stroke:#2E9F64}
+.lm__n.on{fill:#F0B43A;stroke:#8A5A00;stroke-width:2.5}
+.lm__t{font:800 13px/1 var(--sans,'Nunito',sans-serif);fill:var(--qp-ink2)}
+.lm__t.on{fill:var(--qp-ink);font-weight:900}
+
+/* ---------- names on the picture: the game's names (.nm), on the shared stage's level lines ---------- */
+.plv .ibv__labs,.plv .ibv__nums{position:absolute;inset:0;pointer-events:none;z-index:2}
+.plv .ibv__ov{display:none}
+.plv .ibv__lab{position:absolute;left:0;top:0;display:flex;align-items:center;will-change:transform;transition:opacity .25s}
+.plv .ibv__lab span{display:block;font:800 16px/1.2 var(--sans,'Nunito',sans-serif);font-style:normal;color:#FFF8E6;background:rgba(14,16,46,.82);border:1.5px solid rgba(255,226,154,.45);border-radius:16px;padding:6px 12px;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.plv .ibv__lab span b{color:#FFD27A;font-weight:900}
+.plv .ibv__lab>i{flex:none;display:block;height:1.6px;background:rgba(255,226,154,.9);box-shadow:none}
+.plv .ibv__lab--r{flex-direction:row-reverse}
+.plv .ibv__bar{position:absolute;left:0;top:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;color:#fff;font:900 15.5px/1 var(--sans,'Nunito',sans-serif);text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.plv .ibv__bar i{display:block;height:9px;border:solid #fff;border-width:0 2.5px 2.5px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
+
+/* ---------- buttons on the parts, the dim between two pictures, the page to read ---------- */
+.plv__hots{position:absolute;inset:0;z-index:4;pointer-events:none}
+.plv__veil{position:absolute;inset:0;z-index:6;background:#0b0f2a;opacity:0;pointer-events:none;transition:opacity .35s ease}
+.plv__veil.is-on{opacity:.78}
+.plv__veil.is-first{opacity:1;transition:none}
+.plv__wait{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:7;margin:0;font:800 17px/1.3 var(--sans,'Nunito',sans-serif);color:#E8E4FF;text-align:center}
+.plv__wait[hidden]{display:none}
+.plv__retry{font:800 16px/1 var(--sans,'Nunito',sans-serif);margin-left:8px;padding:8px 14px;border-radius:999px;border:0;background:#FFD27A;color:#2B1A00;cursor:pointer}
+.plv__paper{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(120% 90% at 50% 30%,#22246a 0%,#0b0f2a 72%)}
+.plv__paper[hidden]{display:none}
+.plv__ring{width:min(640px,100%);background:rgba(14,16,46,.78);border:1.5px solid rgba(255,226,154,.38);border-radius:22px;padding:18px 18px 16px;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.plv__ringk{font:900 13.5px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.14em;text-transform:uppercase;color:#FFD27A;margin:0 0 6px;text-align:center}
+.plv__ringt{margin:8px 4px 0;font-size:17px;text-align:center;color:#FFF8E6}
+.plv__ring .lm__a{stroke:rgba(255,226,154,.75);stroke-width:2.5}
+.plv__ring .lm__h{fill:rgba(255,226,154,.9)}
+.plv__ring .lm__n,.plv__ring .lm__n.was,.plv__ring .lm__n.on{fill:#F0B43A;stroke:#FFF6D6;stroke-width:2}
+.plv__ring .lm__t,.plv__ring .lm__t.on{font:900 16px/1 var(--sans,'Nunito',sans-serif);fill:#FFF8E6}
+.plv__ring .lm__s{font:700 13.5px/1 var(--sans,'Nunito',sans-serif);fill:#D9D5FA}
+
+/* ---------- what belongs to Year 8: one violet box, its level said in words ---------- */
+.y8{margin:8px 0;padding:8px 12px 9px;border-radius:12px;border:1.5px solid #7243C0;border-left:6px solid #7243C0;background:#EDE8FA;color:#22123F;font-weight:500}
+.y8 p{margin:4px 0 0}
+/* a name on the picture that is beyond Year 7: the same violet, with the word that says which course (memory level-colours-never-blank) */
+.plv .plv-x{font:900 10.5px/1 var(--sans,'Nunito',sans-serif);font-style:normal;letter-spacing:.08em;color:#fff;background:#7243C0;border-radius:5px;padding:2px 5px;margin-left:4px;vertical-align:1px}
+.y8__k{display:inline-block;font:900 12.5px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#7243C0;border-radius:6px;padding:4px 7px}
+.y8__eq{font-weight:800}
+.y8 .term{color:#4A1FA8}
+:root[data-theme="dark"] .y8{background:rgba(179,136,255,.14);border-color:#B388FF;color:#F1EAFF}
+:root[data-theme="dark"] .y8__k{background:#B388FF;color:#1B0E3A}
+:root[data-theme="dark"] .y8 .term{color:#D9C6FF}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .y8{background:rgba(179,136,255,.14);border-color:#B388FF;color:#F1EAFF}
+  :root:not([data-theme="light"]) .y8__k{background:#B388FF;color:#1B0E3A}
+  :root:not([data-theme="light"]) .y8 .term{color:#D9C6FF}
+}
+.plv .step__say.ok>.y8{font-weight:500}
+
+/* ---------- a phone: the picture above, the steps on a sheet below (as the game's panel) ---------- */
+@media (max-width:860px){
+  .plv__top{padding:6px 10px;gap:4px 10px}
+  .plv__id h1{font-size:18.5px}
+  .plv__eyebrow{display:none}
+  .plv__by{font-size:13.5px;margin-left:0;flex-basis:100%;order:5}
+  .plv__tools{margin-left:auto}
+  .plv__tools .tool__w{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .plv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  .plv__panel.quest{margin:0;max-height:50svh;border-radius:18px 18px 0 0;border-width:1.5px 0 0;padding:12px 14px 16px}
+  .plv .ibv__lab span{font-size:14.5px;padding:4px 9px;white-space:normal;max-width:11.5em;text-align:center}
+  .plv .ibv__bar{font-size:14px}
+  /* the small map of the loop is left out on a phone (the picture needs the room): its last page shows the loop whole */
+  .plv__loop{display:none}
+}
+@media (max-width:420px){ .plv__by{display:block} .plv__close{padding:9px 12px;font-size:15px} }

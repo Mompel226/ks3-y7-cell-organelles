@@ -209,5 +209,38 @@ window.QS = {
         'More starch was made from the sugar that the saliva contains.',
         'The amylase had changed the orange-brown iodine into starch.',
         'The water in saliva diluted the starch until no colour could form.'],
-    why: 'Iodine solution stays orange-brown when there is no starch. The amylase had digested the starch into maltose, a sugar.' }
+    why: 'Iodine solution stays orange-brown when there is no starch. The amylase had digested the starch into maltose, a sugar.' },
+
+  /* ---------- 14. The plant-cell branch: where glucose comes from (js/plant/, 11 Nov 2026) ----------
+     drawn at the end of the branch (js/plant/view.js), never in a place of the cell (no place has part 14). What they
+     cover: Daniel's Year 7 slides (Plant-and-Animal-Cells s23-24, KO_Cells and Organisation, Bacteria-and-Enzymes s16-17,
+     The Digestive System s35 and s52). Photosynthesis's equation is Year 8: no check asks it. */
+  'p14-sort-plant': { part: 14, kind: 'sort', title: 'Plant cell or both?', short: 'sort',
+    stem: 'Which structures does only a plant cell have, and which do plant cells and animal cells both have? Put each structure in the right box.',
+    bins: [{ t: 'Only plant cells' }, { t: 'Plant cells and animal cells' }],
+    items: [['chloroplast', 0], ['cell wall', 0], ['permanent vacuole', 0], ['nucleus', 1], ['mitochondrion', 1], ['cell membrane', 1], ['ribosome', 1]],
+    why: 'Plant cells have chloroplasts, a cell wall and a permanent vacuole; animal cells do not have them. A nucleus, mitochondria, a cell membrane and ribosomes are in plant cells and in animal cells.' },
+  'p14-gaps-chloroplast': { part: 14, kind: 'gaps', title: 'Chloroplasts', short: 'gaps',
+    text: 'Chloroplasts contain [[chlorophyll]], a green pigment. It absorbs [[light|sunlight]], and the chloroplast uses the energy to make [[glucose]]. The plant stores it as [[starch]].',
+    why: 'Chlorophyll, the green pigment in chloroplasts, absorbs light. The chloroplast uses the energy to make glucose, and the plant stores it as starch.' },
+  'p14-gaps-firm': { part: 14, kind: 'gaps', title: 'A firm cell', short: 'gaps',
+    text: 'The [[cell wall]] is made of [[cellulose]]: it strengthens the cell. The [[permanent vacuole|vacuole]] is filled with [[cell sap|sap]], which keeps the cell [[rigid|firm|turgid]].',
+    why: 'The cell wall, made of cellulose, strengthens the cell and supports the plant. The permanent vacuole is filled with cell sap, which keeps the cell rigid (firm).' },
+  'p14-q-maltose': { part: 14, kind: 'mcq', title: 'Amylase and starch', short: 'q1',
+    stem: 'You eat a potato. What does the amylase in your saliva do to its starch?',
+    a: ['It digests the starch into maltose, a sugar of two glucose molecules.',
+        'It digests the starch into glucose, which then passes into your blood.',
+        'It digests maltose into glucose, while the food is still in your mouth.',
+        'It joins glucose molecules into starch, to store them in your cells.'],
+    why: 'Amylase digests starch into maltose. In the small intestine, maltase then digests maltose into glucose, which passes through the villi into the blood.' },
+  'p14-order-loop': { part: 14, kind: 'order', title: 'The loop of glucose', short: 'order',
+    stem: 'Put the journey of glucose in order, from the light to your cell.',
+    items: ['Light falls on a potato leaf',
+            'Chloroplasts in a palisade cell make glucose',
+            'The plant stores the glucose as starch in a potato',
+            'You eat the potato: amylase digests starch into maltose',
+            'Maltase digests maltose into glucose',
+            'Glucose passes through the villi into your blood',
+            'Glucose enters your cell through a carrier protein'],
+    why: 'Light → chloroplasts make glucose → stored as starch → amylase: starch to maltose → maltase: maltose to glucose → through the villi into the blood → into your cell through a carrier protein.' }
 };

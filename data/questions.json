@@ -54,6 +54,10 @@
    "n": 13,
    "title": "Final check",
    "test": 1
+  },
+  {
+   "n": 14,
+   "title": "Side quest (extra): a plant cell, where glucose comes from"
   }
  ],
  "groups": [],
@@ -859,6 +863,67 @@
     "inside the nucleus",
     "in the cytoplasm"
    ]
+  },
+  {
+   "id": "game-plant",
+   "part": 14,
+   "title": "Side quest: followed glucose from a leaf to the blood",
+   "short": "game",
+   "kind": "task"
+  },
+  {
+   "id": "p14-sort-plant",
+   "part": 14,
+   "title": "Plant cell or both?",
+   "short": "sort",
+   "kind": "sort"
+  },
+  {
+   "id": "p14-gaps-chloroplast",
+   "part": 14,
+   "title": "Chloroplasts",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "chlorophyll",
+    "light",
+    "glucose",
+    "starch"
+   ]
+  },
+  {
+   "id": "p14-gaps-firm",
+   "part": 14,
+   "title": "A firm cell",
+   "short": "gaps",
+   "kind": "gaps",
+   "gaps": [
+    "cell wall",
+    "cellulose",
+    "permanent vacuole",
+    "cell sap",
+    "rigid"
+   ]
+  },
+  {
+   "id": "p14-q-maltose",
+   "part": 14,
+   "title": "Amylase and starch",
+   "short": "q1",
+   "kind": "mcq",
+   "opts": [
+    "It digests the starch into maltose, a sugar of two glucose molecules.",
+    "It digests the starch into glucose, which then passes into your blood.",
+    "It digests maltose into glucose, while the food is still in your mouth.",
+    "It joins glucose molecules into starch, to store them in your cells."
+   ]
+  },
+  {
+   "id": "p14-order-loop",
+   "part": 14,
+   "title": "The loop of glucose",
+   "short": "order",
+   "kind": "order"
   }
  ]
 }

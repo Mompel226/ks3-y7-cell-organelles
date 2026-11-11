@@ -28,7 +28,9 @@ export function glow(size, color = 0xfff4d0, opacity = 1) {
   sp.scale.setScalar(size); sp.renderOrder = 9; return sp;
 }
 
-export function makeStage(wrap, { onFrame } = {}) {
+/* render (11 Nov 2026, the plant-cell branch, js/plant/): a view may draw each frame itself (its own glow, as the game's
+   world does); without it, and always with an overview band, the picture is drawn as before */
+export function makeStage(wrap, { onFrame, render } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false });
   /* at most 1.75 pixels per point, as the game draws (world.js); a slow computer drops to 1 (measure, below) */
   renderer.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -253,10 +255,11 @@ export function makeStage(wrap, { onFrame } = {}) {
   /* ---------------- the scale bar: a round length, 60 to 150 pixels long, bottom left ---------------- */
   function placeBar() {
     const ppn = pxPerNm();
-    const steps = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
-    const Ln = steps.find(x => x * ppn >= 60) || 20000;
+    /* (the plant-cell branch goes out as far as a villus: lengths up to 1 mm, 11 Nov 2026; the IB view never passes 20 µm) */
+    const steps = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000];
+    const Ln = steps.find(x => x * ppn >= 60) || 1000000;
     bar.firstChild.style.width = (Ln * ppn).toFixed(1) + 'px';
-    const txt = Ln >= 1000 ? (Ln / 1000) + ' µm' : Ln + ' nm';
+    const txt = Ln >= 1000000 ? (Ln / 1000000) + ' mm' : Ln >= 1000 ? (Ln / 1000) + ' µm' : Ln + ' nm';
     if (bar.lastChild.textContent !== txt) bar.lastChild.textContent = txt;
     bar.style.transform = `translate(16px, ${H - 36}px)`;
   }
@@ -288,7 +291,7 @@ export function makeStage(wrap, { onFrame } = {}) {
         renderer.setViewport(0, 0, W, H - ovH); renderer.setScissor(0, 0, W, H - ovH);
         renderer.setClearColor(0x070a1f, 1); scene.fog.density = fog; renderer.render(scene, cam);
         renderer.setScissorTest(false);
-      } else renderer.render(scene, cam);
+      } else if (render) render(renderer, scene, cam, dt); else renderer.render(scene, cam);
       placeNums(); placeLabels(); placeBar();
       if (ov) { if (ov.view) placeOvBar(); if (ov.place) ov.place(projectOv, { W, H: ovH, ppn: ov.view ? ovPxPerNm() : 0 }); }
       measure(dt);

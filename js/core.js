@@ -120,7 +120,7 @@
      its page (a word without them keeps its guide and has no button). Any other key word gives a line for each hard word in
      it, the word named (Golgi apparatus: Golgi, apparatus); a simple word has none. SAY_AS: the words a key word's line
      says when its name is not the word to hear. The music pauses while a word plays (js/game/sound.js, the 'say' event). */
-  const SAY_AS = { 'rough-er': ['endoplasmic reticulum'], 'smooth-er': ['endoplasmic reticulum'], 'mitochondria': ['mitochondrion'] };
+  const SAY_AS = { 'rough-er': ['endoplasmic reticulum'], 'smooth-er': ['endoplasmic reticulum'], 'mitochondria': ['mitochondrion'], 'villi': ['villus'] };
   function sayHtml(w) {
     const S = window.Say; if (!S || !w) return '';
     const name = String(w.en).replace(/\s*\([^)]*\)/g, '').trim(), list = SAY_AS[w.k] || S.words(name);

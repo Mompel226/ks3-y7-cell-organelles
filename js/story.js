@@ -27,7 +27,9 @@ window.PARTS = [
   { n: 8, title: 'Smooth ER' }, { n: 9, title: 'Golgi apparatus' }, { n: 10, title: 'Microtubules' },
   { n: 11, title: 'Cell membrane: the way out' }, { n: 12, title: 'Does your amylase work?' },
   /* the final check (js/game/final.js): a test, one go, marked at the end; the board shows its score and its time */
-  { n: 13, title: 'Final check', test: true }
+  { n: 13, title: 'Final check', test: true },
+  /* the plant-cell branch (js/plant/, 11 Nov 2026): not a place of the cell; its checks are drawn at its own end */
+  { n: 14, title: 'Side quest (extra): a plant cell, where glucose comes from' }
 ];
 /* a game finished is one square on the teacher's board (Lesson.done) */
 window.TASKS = {
@@ -42,7 +44,8 @@ window.TASKS = {
   'game-golgi':     { part: 9,  title: 'Game: sorted and packaged the proteins' },
   'game-tracks':    { part: 10, title: 'Game: steered the vesicle to the top of the cell' },
   'game-exit':      { part: 11, title: 'Game: exocytosis after the nerve message' },
-  'game-test':      { part: 12, title: 'Game: tested the amylase on starch' }
+  'game-test':      { part: 12, title: 'Game: tested the amylase on starch' },
+  'game-plant':     { part: 14, title: 'Side quest: followed glucose from a leaf to the blood' }
 };
 
 /* Items the pupil carries between places. icon: js/game/icons.js */
@@ -108,6 +111,12 @@ window.STORY = {
     ],
     done: 'You carry glucose, oxygen and amino acids. The <b>mitochondria</b> are awake now.',
     explore: '🧬 IB extension: from glucose to ATP',
+    /* a door to the plant-cell branch (js/plant/view.js), on the end card once every check is right (quest.js) */
+    /* a SIDE QUEST, said plainly (Daniel, 11 Nov 2026: the game is about the animal cell; the plant story "should be
+       something extra … be very specific that is a side quest … they can decide"): its mark, what it is, and that the
+       mission waits */
+    plant: '🌱 Side quest: where does this glucose come from?',
+    plantNote: 'This is extra: you do not need it for your mission. It is another story, in a plant cell. You can do it now or after your mission: your game waits here.',
     fact: { text: 'A red blood cell is about 7.5 µm across: almost half as wide as this cell. In the narrowest capillaries, red blood cells bend to pass.', src: 'OpenStax, Anatomy and Physiology 2e, 18.2 (open textbook)' }
   },
   mito: {

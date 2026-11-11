@@ -22,6 +22,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the vesicle 900 nm across): the motor protein is probably dynein, its two heads rings 14 nm across, joined with dynactin (38 nm) and an adaptor protein on the vesicle (without them dynein is folded and almost never walks); Attach lands its heads on the microtubule, and it walks seven steps of different sizes (the vesicle moves most often 8 nm, once 16 nm, once back; one head steps round the microtubule and back); then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
 | Cell membrane: the way out | a nerve message (smelling bread); close up, at true sizes, the vesicle (about 1 µm) packed with amylase, each molecule about 5 nm, under the cell membrane (6 nm, cut through): exocytosis, the amylase streaming out into the duct | amylase in saliva |
 | Does your amylase work? | starch and iodine solution: saliva in one well, water (the control) in the other | |
+| A branch, for those who wish: **Where glucose comes from** | follows glucose from a potato leaf (a palisade cell, its chloroplasts, cell wall and permanent vacuole) through starch, the potato, amylase and maltase to the blood (below) | |
 
 **A map, not a corridor.** Daniel: "not just one path. It can fork … but clearly you're gonna need something from one
 place to then continue on the other place". Places sleep (grey, in mist) until the pupil carries what they need, and every
@@ -84,6 +85,74 @@ atom by atom; the sequence of reactions (IRS-1, PI3-kinase, PIP3, Akt, AS160, Ra
 moves to the plasma membrane and fuses with it; its glucose transporters, now in the plasma membrane, let more glucose
 in. Steps wait for Next; every key word opens its meaning, with Korean and Chinese.
 
+**The plant-cell branch: Where glucose comes from.** Year 7 learns animal cells and plant cells, so the game has a branch
+into a plant cell: a palisade cell of a potato leaf. It closes a loop. The glucose that enters the game's cell at the way
+in was made in a leaf: light falls on the leaf; in a palisade cell, chloroplasts make glucose; the plant stores it as
+starch, as a grain in the chloroplast by day and then in the potato; the cell wall and the permanent vacuole keep the cell
+firm; you eat the potato, and your amylase starts to digest the starch into maltose (as it did in well A of the game's
+test); in the small intestine maltase makes glucose, which passes through a villus into the blood and reaches your cell.
+**It is a side quest, and says so** (Daniel, 11 Nov 2026: the game is about the animal cell; the plant story "should be
+something extra … be very specific that is a side quest … they can decide"). Its two doors stand in a dashed green box
+marked **Side quest · extra**, each pressed only if the pupil wishes: **🌱 Side quest: where does this glucose come
+from?** on the way in's last card (once every check of the way in is right), with the line "This is extra: you do not
+need it for your mission. It is another story, in a plant cell. You can do it now or after your mission: your game waits
+here."; and **🌱 Side quest: where does starch come from?** on the Mission complete card, under the code ("a plant cell,
+not part of your mission"). Inside, the header reads "Side quest of the cell game", a line above the steps says how to
+return, and the board's part 14 is named "Side quest (extra)". It also has its own address, for the lesson on plant and animal cells:
+<https://nlcsbiology.com/ks3-y7-cell-organelles/plant-cell/>. It opens over the page; the game under it is untouched (no
+item, no energy, no place changes), and **← Back to your mission** returns to the same card. Nothing of it is loaded until a
+door is pressed, so the game starts no slower.
+It has 20 steps, each of which waits for Next step, with ↻ beside every finished step: a piece of the leaf (about a
+quarter of a millimetre thick), with every structure that the IGCSE syllabus lists for a leaf (0610 6.2: a layer of wax on
+both skins, the upper and lower skin, palisade cells, spongy cells with air spaces, a vein with xylem above and phloem
+below, and tiny holes between two guard cells, which alone in the skin have chloroplasts), and a nucleus in every cell; one palisade cell, 72 µm long and 16 µm wide, beside the game's own salivary gland cell
+(16 µm) for its size; the cell cut open (cell membrane, cytoplasm, nucleus, mitochondria); the three structures that an
+animal cell does not have, each found by pressing **What is this?** (chloroplasts, the cell wall, the permanent vacuole);
+one chloroplast cut open (5 µm), with its stacks of membranes that hold chlorophyll; the molecules at their true sizes,
+with **☀ Light on** and **☾ Light off** (in the light, six carbon dioxide and six water molecules give one glucose and six
+oxygen; in the dark, none; light is only on or off, because the Year 8 lab report is on the rate); glucose joined in a
+chain, starch; the starch grain in the chloroplast; the cell wall from very near (200 nm, cellulose fibres 3 nm wide, the
+next cell's wall beside it); the cell membrane against it (two layers of lipids); the permanent vacuole, with
+**💧 Lose water** and **💧 Take in water** (firm, then soft: the plant wilts); a cell of the potato with its many starch grains,
+and **Add iodine solution** (blue-black); amylase and part of a starch molecule (**Digest**: maltose); then the small intestine, in the order of understanding: first where the food is (a piece of the tube, 25 mm wide, cut in
+half, with the folds of its wall and villi all over them); one villus, cut in half (its wall drawn cell by cell, an
+arteriole that rises to the tip, the net of capillaries under the cells, the venule that leaves, the lacteal in the middle,
+and the artery, vein and lymph vessel that run on in the wall; red blood cells travel through every vessel); five cells of
+its wall, side by side (tall, narrow, each with its nucleus; one goblet cell; the microvilli at their true size, 100 nm
+wide; a capillary with its red blood cells under the cells); the membrane of one microvillus, with maltase attached to it
+(**Digest**: glucose); back at the whole villus (**Absorb**: the glucose crosses the layer of cells and leaves in the
+blood); and the loop, closed. Every size is true: the camera zooms from the leaf (scale bar 20 µm) to the molecules (2 nm), and nothing is
+drawn larger than it is. Photosynthesis and its word equation, which are Year 8, stand once, in a violet box marked Year 8;
+microvilli and the lacteal, which are IGCSE, carry a violet IGCSE mark.
+
+*Whole anatomy (Daniel, 11 Nov 2026: "where are the cells? where is the lacteal? where are these capillaries going? … as
+biologically accurate as possible").* Every tissue of the branch is drawn cell by cell, every vessel begins and ends in
+another vessel, and each picture was compared with the diagrams in Daniel's own slides (IGCSE 6.2 Leaf Structure 8–9 and
+15–16, 2.1 Cell structures 26–27, 7.5 Absorption 13 and 16–18, Year 8 Leaf Structure) and with published micrographs and
+measurements. Three independent expert reviews of the stills were applied (cell sap nearly clear, so that chloroplasts stay
+green; the chloroplast's stacks joined by broad sheets and its two membranes; spongy cells that touch but never pass through
+each other; the hole's two cells joined to the skin; over a hundred mitochondria in the half cell; the enzyme that takes
+carbon dioxide 11 nm; long bent cellulose fibres; separate egg-shaped starch grains; maltase standing outside the membrane
+on one thin thread; loose tissue filling the villus, a link in every gap of its capillary net, red blood cells in the
+capillary beside the five cells, a brush border on every absorbing cell; lobed spongy cells with clear air spaces; the
+front stoma cut exactly in half; rings in the starch grains). *The order of the small intestine's steps* was changed on the same day, on Daniel's word to judge the teaching too: before,
+the pupil met the molecules first and the camera moved back from them, so maltase was met before anyone knew where it was.
+Now the camera goes from the whole (inside the tube) to the part, as it does in the leaf, and the villus is explained
+(its structure) one step before it is used (Absorb). *The words were audited for their biology* (Daniel, the same day; Claude's own reading and an independent biologist, every
+sentence, name, key and definition): no false statement; four wordings made exact (microvilli are "tiny fingers of the
+cell membrane", not folds; "plant cells have …; animal cells do not have them", not "found only in plant cells";
+"turgid" accepted beside "rigid" and "firm"; the gut cells' carrier proteins are not said to be like the one at the
+way in, because their uptake is active). *No plain cut face* (Daniel, the same day: "when you cut the gut, it doesn't look plain like that … add layers, but then
+you have to specify what the layers are"): where the tube of the small intestine is cut, its layers show and are named
+(the lining; connective tissue with blood vessels, which also fills every cut fold; muscle in two layers, the inner one
+cut across its fibres, the outer one along them; a thin outer skin), and the two cut guard cells show a nucleus and
+chloroplasts; the five gut cells drawn see-through hold their mitochondria as well as their nucleus. Not drawn, on purpose: the pits between villi (crypts), muscle and nerves of the villus, the mucus,
+a cell's small organelles inside the gut cells, the membrane round each starch grain of the potato, and the hairs of a potato
+leaf.
+Its five checks and its game square are part 14 of the teacher's board, "Plant cell: where glucose comes from". Twelve
+words joined the word bank, with Korean and Chinese: chloroplast, chlorophyll, photosynthesis, cell wall, cellulose,
+permanent vacuole, cell sap, maltose, maltase, small intestine, villi, wilt.
+
 **The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
 made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of
 places, opens with that code: 20 questions, 30 marks, about 15 minutes. Twelve have one right answer, four ask for every
@@ -140,6 +209,7 @@ selling. Third-party pictures, music and sounds keep their own licences (below).
 | the music | Scott Buckley: 'The Distant Sun', 'Adrift Among Infinite Stars' and 'Penumbra', released under CC-BY 4.0, [www.scottbuckley.com.au](https://www.scottbuckley.com.au) (made smaller, each set to the same loudness: `tools/music.py`) | CC BY 4.0 |
 | the game's sounds (bells, rubbed glasses, wind chimes, a harp note) | Versilian Community Sample Library (VCSL), Versilian Studios, [github.com/sgossner/VCSL](https://github.com/sgossner/VCSL) (`tools/sounds.py`, each note tuned) | CC0 |
 | how to say the hard words | the Cambridge Dictionary's UK and US recordings, played from [dictionary.cambridge.org](https://dictionary.cambridge.org) (never stored here), its name beside each word with a link to the word's page; if Cambridge's will not play, a Wikimedia Commons recording where the word has one (`assets/say/CREDITS.md`, credited as it plays) | Cambridge's own; Commons: CC0, CC BY, CC BY-SA |
+| the sizes of the plant-cell branch (numbers only: no picture was copied or downloaded; every picture of the branch is drawn for this page from these measurements) | the potato leaf and its palisade cell: Stegner, Buchner, Schäfernolte, Holzinger & Neuner 2022, *Crops* 2(4):378–389, doi 10.3390/crops2040026 (palisade layer 72 ± 10 µm, a palisade cell's section 1170 µm², so about 72 × 16 µm). Chloroplast and its stacks: Staehelin 2003, *Photosynthesis Research* 76:185; Kirchhoff et al. 2011, *PNAS* 108:20248. Vacuole: Winter, Robinson & Heldt 1994, *Planta* 193:530. Cell wall and cellulose fibres: Cosgrove 2005, *Nature Reviews Molecular Cell Biology* 6:850, and 2018, *Plant Physiology* 176:16. Starch grains: Zeeman, Kossmann & Smith 2010, *Annual Review of Plant Biology* 61:209; Singh et al. 2003, *Food Chemistry* 81:219. Stacks and the sheets that join them: Austin & Staehelin 2011, *Plant Physiology* 155:1601; Mustárdy & Garab 2003, *Trends in Plant Science* 8:117. Mitochondria in a leaf cell: Preuten et al. 2010, *The Plant Journal* 64:948. Fibres of the wall: Zhang, Zheng & Cosgrove 2016, *The Plant Journal* 85:179. Stomata on both sides of a potato leaf: Stegner et al. 2022. Microvilli: Crawley, Mooseker & Tyska 2014, *Journal of Cell Biology* 207:441. Maltase: Sim et al. 2008, *Journal of Molecular Biology* 375:782. The villus's vessels: casts of the vessels (*World Journal of Gastroenterology* 9:795; the review in *Comprehensive Physiology*). What a leaf and a villus must show: Cambridge IGCSE Biology 0610 (2026–2028) 6.2 and 7.5, and Daniel's own slides. Each number and its source: the headers of `js/plant/leaf.js`, `potato.js` and `gut.js` | the first is CC BY 4.0; the others are cited facts |
 | three.js | the npm package three@0.185.1 (`js/vendor/three/VENDORED.txt`) | MIT |
 
 <details><summary>Behind the scenes</summary>
@@ -178,6 +248,27 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   this computer. The IB switch is in
   `js/game/quest.js` (`ibSwitch`); what IB adds to each step, and each step in IB terms, in `js/story.js` (`ib`).
   The old Explorer film inside a mitochondrion is in the Biology Hub's `Archive/2026-11-05/`.
+- `js/plant/` is the plant-cell branch, Where glucose comes from (its own address: `plant-cell/index.html`; styles
+  `css/plant.css`): `view.js` (the frame: the game's own panel, steps that wait, buttons that stand on the parts, ↻, the
+  small map of the loop, the checks at the end), `text.js` (every word, and the fence: what is Year 7 and what is Year 8),
+  `leaf.js` (one picture from the piece of leaf down to the molecules: the leaf's cells, the palisade cell cut open, its
+  vacuole's membrane lying over the chloroplasts, one chloroplast cut open, the molecules, the wall's fibres; every size
+  and its source in its header), `potato.js` (a cell of the potato and the iodine test), `gut.js` (amylase, maltase, a
+  villus), `ring.js` (the loop as a drawing), `look.js` (the game's own light and glow on the shared 3D stage,
+  `js/ib/stage.js`, which gained one option for it: a view may draw its own frame). The doors are in `js/game/quest.js`
+  (the way in's end card: `STORY.wayin.plant`) and `js/game/main.js` (the Mission complete card; the `plant` event opens
+  the view and rests the game's 3D). Its checks are `p14-…` in `js/questions.js`, its square `game-plant` in
+  `js/story.js` (part 14, after the final check's part, so that no older square moves).
+  `node tools/plant-check.mjs` checks it as a pupil meets it (73 checks: the game loads nothing of it; both doors, one
+  view for two presses, back on the same card, the saved game byte for byte as before; all 20 steps at rest with every
+  main name, no overlap, the buttons inside the picture, Next in view; each drawn shape measured against its cited size,
+  and each size a name states; the anatomy (E13–E28: every cell of the leaf with a nucleus, the wax, the vein, the holes;
+  no spongy cell or starch grain inside another; the villus's cells, microvilli, lacteal, and vessels joined end to end; the
+  tube, its folds and their villi; red blood cells that travel);
+  the scale bar; steps wait, ↻ comes back; the Year 8 box, no phloem, sucrose or "amount",
+  never amylase making glucose; the board's six squares), also `--mobile 1 --w 375 --h 812`, `--w 390 --h 844` and
+  `--calm 1` (Reduce motion). `node tools/plant-look.mjs --out <folder>` photographs every step and every press
+  (`--film 1`: a sheet of frames for each; `--mobile 1`).
 - `js/core.js` and `js/checks.js` come from Chemistry revision (the checks, the word bank, bright and dark, the board's
   question list); `js/signin.js`, `js/lesson.js`, `js/glossary.js`, `js/say.js` and `assets/say/` are copies of the Biology
   Hub's shared files, made by `node tools/practicals-sync.mjs` in the workspace: never edit them here. A new word goes into

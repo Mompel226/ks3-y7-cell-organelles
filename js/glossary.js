@@ -9,6 +9,12 @@
    - Particles follow the model the pupils draw (memory particle-model-in-diagrams).
    - A word of another entry inside a definition becomes a link to that entry (the page and tools/ks3-glossary.mjs share
      the rule in forms() below); link: false keeps a word with two meanings from linking ("separate" particles).
+   11 Nov 2026: 12 words for the cell game's plant-cell branch (group "Plant cells and digestion"; Daniel's Year 7 slides
+   Plant-and-Animal-Cells s23-24, KO_Cells and Organisation, Bacteria-and-Enzymes s16-17, The Digestive System s35 and
+   s52; photosynthesis from Year 8 L1): chloroplast, chlorophyll, photosynthesis, cell wall, cellulose, permanent vacuole,
+   cell sap, maltose, maltase, small intestine, villi, wilt. Korean and Chinese checked by an independent reviewer the
+   same day (the 2022 편수자료 and 표준국어대사전; the 人教版 terms): 액포 and 液泡 for the permanent vacuole (the school terms;
+   "영구 액포" and "永久液泡" are not used), 말테이스, 소장 (작은창자), 小肠绒毛.
    NEVER edit a page's copy (js/glossary.js): edit this file, then run node tools/practicals-sync.mjs (it copies it into
    every KS3 practical) and node tools/ks3-glossary.mjs (it checks the list and writes KS3-GLOSSARY.md, the readable copy).
    ko: the word used in Korean school science; zh: Simplified Chinese as in mainland school chemistry.
@@ -251,6 +257,20 @@
       { k: 'hydrogen-ion',    en: 'hydrogen ion (H⁺)', ko: '수소 이온',        zh: '氢离子',      also: ['hydrogen ions'], d: 'A hydrogen atom that has lost its electron: just one proton, with a positive charge (H⁺).' },
       { k: 'micrometre',      en: 'micrometre (µm)', ko: '마이크로미터',      zh: '微米',        also: ['micrometres'], d: 'A unit of length: one thousandth of a millimetre (1 µm = 0.001 mm). Most cells are 10 to 100 µm across.' },
       { k: 'nanometre',       en: 'nanometre (nm)',  ko: '나노미터',          zh: '纳米',        also: ['nanometres'], d: 'A unit of length: one millionth of a millimetre (1 nm = 0.000001 mm). A glucose molecule is about 1 nm across.' },
+    ]},
+    { g: 'Plant cells and digestion', w: [
+      { k: 'chloroplast',     en: 'chloroplast',     ko: '엽록체',            zh: '叶绿体',      also: ['chloroplasts'], src: 'Y7 Cells', d: 'An organelle in plant cells that contains chlorophyll, a green pigment. Chlorophyll absorbs light, and the chloroplast uses the energy of the light to make glucose (photosynthesis).' },
+      { k: 'chlorophyll',     en: 'chlorophyll',     ko: '엽록소',            zh: '叶绿素',      src: 'Y7 Cells', d: 'The green pigment in chloroplasts. It absorbs light, which gives the energy for photosynthesis.' },
+      { k: 'photosynthesis',  en: 'photosynthesis',  ko: '광합성',            zh: '光合作用',    src: 'Y8 L1', d: 'The process in which a plant uses the energy of light, absorbed by chlorophyll, to make glucose. Carbon dioxide and water are used, and oxygen is released. It happens in chloroplasts.' },
+      { k: 'cell-wall',       en: 'cell wall',       ko: '세포벽',            zh: '细胞壁',      also: ['cell walls'], src: 'Y7 Cells', d: 'A strong layer outside the cell membrane of a plant cell, made of cellulose. It strengthens the cell and supports the plant. Water and dissolved substances pass through it freely.' },
+      { k: 'cellulose',       en: 'cellulose',       ko: '셀룰로스 (셀룰로오스)', zh: '纤维素',   src: 'Y7 Cells', d: 'A carbohydrate: many glucose molecules joined in long chains. The chains lie side by side in strong fibres, which make the cell walls of plants.' },
+      { k: 'permanent-vacuole', en: 'permanent vacuole', ko: '액포',          zh: '液泡',        also: ['vacuole', 'vacuoles', 'permanent vacuoles'], src: 'Y7 Cells', d: 'A large space in a plant cell, surrounded by a membrane and filled with cell sap. While it is full, it keeps the cell rigid (firm), which supports the plant. It is permanent: it stays for the whole life of the cell. Some animal cells have small vacuoles, which last only a short time.' },
+      { k: 'cell-sap',        en: 'cell sap',        ko: '세포액',            zh: '细胞液',      d: 'The liquid in the permanent vacuole of a plant cell: water with sugars, salts and other substances dissolved in it.' },
+      { k: 'maltose',         en: 'maltose',         ko: '엿당 (맥아당)',     zh: '麦芽糖',      src: 'Y7 Cells', d: 'A sugar made of two glucose molecules joined together. Amylase digests starch into maltose.' },
+      { k: 'maltase',         en: 'maltase',         ko: '말테이스',          zh: '麦芽糖酶',    src: 'Y7 Cells', d: 'An enzyme made in the small intestine. It digests maltose into glucose.' },
+      { k: 'small-intestine', en: 'small intestine', ko: '소장 (작은창자)',   zh: '小肠',        src: 'Y7 Cells', d: 'The long, narrow part of the digestive system after the stomach. Digestion is completed there, and small food molecules pass through its wall into the blood.' },
+      { k: 'villi',           en: 'villi',           ko: '융털 (융모)',       zh: '小肠绒毛',    also: ['villus'], src: 'Y7 Cells', d: 'Tiny structures like fingers on the wall of the small intestine. They give the wall a large surface area, and the blood in their capillaries takes the absorbed food molecules to the rest of the body. One of them is a villus.' },
+      { k: 'wilt',            en: 'wilt',            ko: '시들다',            zh: '萎蔫',        also: ['wilts', 'wilted'], d: 'To become soft and bend downwards. A plant wilts when its cells lose water and are no longer rigid.' }
     ]},
     { g: 'Respiration in detail (IB)', w: [
       { k: 'haemoglobin',     en: 'haemoglobin',     ko: '헤모글로빈',        zh: '血红蛋白',    d: 'The red protein inside red blood cells. It binds oxygen in the lungs and releases it in the tissues, where the concentration of oxygen is low.' },

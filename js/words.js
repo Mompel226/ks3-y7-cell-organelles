@@ -11,7 +11,9 @@ window.WORD_KEYS = [
   { g: 'Respiration and the blood', w: ['aerobic-respiration', 'glucose', 'oxygen', 'carbon-dioxide', 'energy', 'diffusion', 'carrier-protein', 'capillary', 'plasma', 'tissue-fluid', 'red-blood-cell'] },
   /* the mitochondria place, every size true (5 Nov 2026) */
   { g: 'Inside a mitochondrion', w: ['cristae', 'matrix', 'intermembrane-space', 'channel-protein', 'micrometre', 'nanometre', 'electron-transport-chain', 'hydrogen-ion', 'atp-synthase', 'atp'] },
-  { g: 'Saliva and the starch test', w: ['salivary-gland', 'saliva', 'starch', 'iodine', 'control-variable'] }
+  { g: 'Saliva and the starch test', w: ['salivary-gland', 'saliva', 'starch', 'iodine', 'control-variable'] },
+  /* the plant-cell branch, "Where glucose comes from" (js/plant/, 11 Nov 2026) */
+  { g: 'Plant cells and digestion', w: ['chloroplast', 'chlorophyll', 'photosynthesis', 'cell-wall', 'cellulose', 'permanent-vacuole', 'cell-sap', 'maltose', 'maltase', 'small-intestine', 'villi', 'wilt'] }
 ];
 /* the bank as the page reads it: each group's words, from the glossary */
 window.WORDS = window.WORD_KEYS.map(g => ({ g: g.g, w: g.w.map(k => window.KS3_GLOSSARY && window.KS3_GLOSSARY.by[k]).filter(Boolean) }));
