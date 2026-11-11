@@ -182,7 +182,7 @@ export class Quest {
       <h2 class="qp__title">Make amylase and release it from the cell</h2>
       <div class="qp__lead">${left ? paras('Go to a place that is <b>awake</b>. A place that is asleep wakes when you carry what it needs.\n<mark class="do">Press a glowing place on the cell, or choose one here.</mark>') : paras('Every place is done. Well done: you made amylase, released it and tested it.\n<mark class="do">Then do the ✦ Final check, last in this list, with the code you got at the end of your journey.</mark>')}</div>
       <ol class="pls">${list.map(row).join('')}${fin}</ol>
-      <p class="qp__note">Molecules in this world are drawn thousands of times larger than they are, so that you can see them.</p>
+      <p class="qp__note">On the map, small things such as ribosomes are drawn larger, so that you can see them. From very near, everything is at its true size.</p>
     </div>`);
     $$('[data-go]', this.panel).forEach(b => b.addEventListener('click', () => { if (b.getAttribute('aria-disabled') !== 'true') this.onPlace(b.dataset.go); else this.whyAsleep(b.dataset.go, b); }));
   }
@@ -292,13 +292,14 @@ export class Quest {
     const P = STORY[id], end = $('.qp__end', this.panel); if (!end) return;
     const qs = state.checks(id), my = this.session, first = id === 'arrive';
     end.hidden = false;
-    end.innerHTML = `<p class="qp__k">Check what you learned</p>
+    end.innerHTML = `${P.more ? '<div class="qp__more"></div>' : ''}<p class="qp__k">Check what you learned</p>
       ${P.ib ? '<p class="qp__ibchk">✓ Your Year 7 checks are all right. While IB is on, they are hidden, because they use the Year 7 words.</p>' : ''}
       <p class="qp__todo" role="status"></p>
       ${qs.map(q => `<div class="q" data-q="${q}"></div>`).join('')}
       <div class="qp__won"></div>
       <div class="qp__nav"${first ? ' hidden' : ''}><button type="button" class="qp__mapbtn">← Back to the map</button></div>`;
     R.terms(end);
+    this.moreBox(id);
     $$('.q', end).forEach(b => window.REVchecks.draw(b));
     $('.qp__mapbtn', end).addEventListener('click', () => this.onPlace(null));
     const todo = $('.qp__todo', end), won = $('.qp__won', end), nav = $('.qp__nav', end);
@@ -342,6 +343,25 @@ export class Quest {
     paint();
     if (!was) document.addEventListener('progress', paint);
     if (fresh) this.scrollTo(end);
+  }
+  /* a return visit to a finished place that gives something again (the way in: glucose and oxygen; the mitochondria:
+     energy): ONE press, never every step again (the audit, 11 Nov 2026: a play went through the mitochondria's eight
+     steps three times and the way in's five twice; ↻ beside each step still plays its film). story.js `more`: needs (the
+     items it uses) or lacks (it gives them only when one is used up), its words, and the press's name; main.js does the
+     giving ('place-more'). The box says what to bring when the press cannot be made. */
+  moreBox(id) {
+    const P = STORY[id], box = $('.qp__more', this.panel); if (!P.more || !box) return;
+    const M = P.more, my = this.session;
+    const can = () => M.needs ? M.needs.every(n => state.has(n)) : M.lacks.some(n => !state.has(n));
+    const draw = said => {
+      if (my !== this.session || !box.isConnected) return;
+      const ok = can();
+      box.innerHTML = `${said ? `<p class="qp__moresaid" role="status">${said}</p>` : ''}<p>${ok ? M.text : M.wait}</p>${ok ? `<button type="button" class="btn next${said ? '' : ' pulse'} qp__morebtn">${esc(M.label)} →</button>` : ''}`;
+      R.terms(box);
+      const b = $('.qp__morebtn', box);
+      if (b) b.addEventListener('click', () => { b.disabled = true; document.dispatchEvent(new CustomEvent('place-more', { detail: { id, done: () => draw(M.did) } })); }, { once: true });
+    };
+    draw('');
   }
   /* resolves true when a place is done (its jobs and every check), false if the pupil leaves it first */
   whenComplete(id) {

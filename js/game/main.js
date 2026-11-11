@@ -10,7 +10,7 @@ import { Names } from './names.js?v=202611120025';
 import { Quest, MAPPED, isAre } from './quest.js?v=202611120025';
 import { makePlay } from './play.js?v=202611120025';
 import { setStill, wait } from './actors.js?v=202611120025';
-import { state } from './state.js?v=202611120025';
+import { state, RESPIRE } from './state.js?v=202611120025';
 import { ICON } from './icons.js?v=202611120025';
 import { intro } from './intro.js?v=202611120025';
 import { sound } from './sound.js?v=202611120025';
@@ -99,9 +99,8 @@ async function go(id) {
   busy = true; names.set([]); play.reset();
   /* the way in shows its membrane bigger, as two layers of lipids (world.wayIn); every other place, the thin film */
   world.wayIn(id === 'wayin');
-  /* a pupil may do the mitochondria again (more energy), or the way in (more glucose and oxygen) */
-  if (id === 'mito' && state.done('mito') && state.has('glucose') && state.has('oxygen')) state.setStep('mito', 0), state.get().done.mito = false, state.save();
-  if (id === 'wayin' && state.done('wayin') && !state.has('glucose')) state.setStep('wayin', 0), state.get().done.wayin = false, state.save();
+  /* a pupil returns to the mitochondria for more energy, or to the way in for more glucose and oxygen: the finished place
+     opens with one press for it (quest.js moreBox, 'place-more' below), never every step again (the audit, 11 Nov 2026) */
   setInset();
   if (id === 'test') { busy = false; return test(); }
   const P = world.P[id];
@@ -111,6 +110,21 @@ async function go(id) {
   await quest.openPlace(id, (name) => play.run(name));
   looks();
 }
+/* a return visit's one press (quest.js moreBox): the way in gives two glucose and two oxygen again, as its steps did; the
+   mitochondria use one of each and release energy, as their last step did (play.js release: RESPIRE). Each item flies
+   to the bag from the place, so the pupil sees where it came from */
+document.addEventListener('place-more', async e => {
+  const { id, done } = e.detail || {}; if (quest.cur !== id) return;
+  const from = world.P[id] ? world.P[id].center : null;
+  if (id === 'wayin') {
+    if (!state.has('glucose')) await quest.gain('glucose', from, 2);
+    if (!state.has('oxygen')) await quest.gain('oxygen', from, 2);
+  } else if (id === 'mito' && state.has('glucose') && state.has('oxygen')) {
+    state.use('glucose'); state.use('oxygen');
+    await quest.gain('energy', from, RESPIRE);
+  }
+  looks(); if (done) done();
+});
 /* ↻ beside a finished step (quest.js againBtn): that step plays again by itself (play.js watch); then the place is set up
    again as when the pupil comes back to it, at the step they were on (Daniel, 9 Nov 2026) */
 let watchingNow = false;
@@ -137,6 +151,7 @@ new MutationObserver(() => { if (panelOff()) qHide.classList.add('is-new'); }).o
 function setInset() {
   const s = world.size, panel = $('#quest');
   $('#stage').style.setProperty('--qh', panel.offsetHeight + 'px');   /* on a phone, Hide text stands just above the panel */
+  $('#stage').style.setProperty('--hudh', $('.hud').offsetHeight + 'px');   /* and a message just under the corner box */
   if (panelOff()) world.setInset({});
   else if (s.w > 860) world.setInset({ right: panel.offsetWidth + 24 }); else world.setInset({ bottom: Math.min(panel.offsetHeight, s.h * 0.5) });
 }
@@ -145,6 +160,7 @@ addEventListener('resize', () => setTimeout(setInset, 50));
    empty, so hidden, until the first place opens: the free part of the picture follows it, once a frame at most */
 let insetSoon = false;
 new ResizeObserver(() => { if (insetSoon) return; insetSoon = true; requestAnimationFrame(() => { insetSoon = false; setInset(); }); }).observe($('#quest'));
+new ResizeObserver(() => $('#stage').style.setProperty('--hudh', $('.hud').offsetHeight + 'px')).observe($('.hud'));
 
 /* a short message at the top of the world */
 function toast(html) {
@@ -215,11 +231,17 @@ async function test() {
     <ol class="win__path">${path.map(([i, t]) => `<li>${ICON[i]}<span>${t}</span></li>`).join('')}</ol>
     <div class="win__acts"><button type="button" class="btn" data-back>Back to the cell</button><button type="button" class="btn ghost" data-final>✦ Final check</button></div>`);
   box.appendChild(end);
+  /* on a phone the card had half of the screen and its buttons lay below the fold, a line under Hide text (the audit,
+     11 Nov 2026): the text folds (Hide text's own way: Show text brings it back) and the card has the whole picture */
+  const folded = world.size.w <= 860 && !panelOff(); if (folded) qHide.click();
+  /* and the picture comes to the top of the screen, so that the whole card is in view (it stood partly below the fold) */
+  if (world.size.w <= 860) requestAnimationFrame(() => $('#stage').scrollIntoView({ block: 'start' }));
+  const unfold = () => { if (folded && panelOff()) qHide.click(); };
   /* the code must be seen: the box scrolls to the card (below the tile), the page does not move */
   box.scrollTo({ top: Math.max(0, end.offsetTop - 12), behavior: R.FAST ? 'auto' : 'smooth' });
   sound.wake();
-  $('[data-back]', end).addEventListener('click', () => { box.hidden = true; go(null); });
-  $('[data-final]', end).addEventListener('click', async () => { box.hidden = true; await go(null); openFinal({ focusCode: true }); });
+  $('[data-back]', end).addEventListener('click', () => { box.hidden = true; unfold(); go(null); });
+  $('[data-final]', end).addEventListener('click', async () => { box.hidden = true; unfold(); await go(null); openFinal({ focusCode: true }); });
   /* the door to the plant-cell branch (js/plant/view.js): the card stays as it is under the view, and is there again when
      the view closes (Daniel, 11 Nov 2026) */
   $('[data-plant]', end).addEventListener('click', () => document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'test' } })));

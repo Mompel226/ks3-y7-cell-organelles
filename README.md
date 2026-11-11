@@ -20,7 +20,7 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Smooth ER | a fine net of tubes at their true width (0.05 µm; this cell has little smooth ER); close up, at true sizes, one tube cut through, its wall two layers of lipids drawn one by one: a head and two tails join into a lipid about 3 nm long, and the three new lipids go into the layer that faces the cytosol; they spread through the ER | lipids |
 | Golgi apparatus | close up, at true sizes, the stack cut through (each sac's inside about 18 nm wide, the sacs about 42 nm apart): the vesicle from the rough ER (70 nm) joins the first sac; amylase (about 5 nm) moves sac by sac, in small vesicles between rims; in the third sac, close up, sugars join a short chain on amylase; it sorts proteins by their labels (a vesicle to a lysosome about 80 nm); packages amylase into a vesicle about 0.9 µm across | a packed vesicle |
 | Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the vesicle 900 nm across): the motor protein is probably dynein, its two heads rings 14 nm across, joined with dynactin (38 nm) and an adaptor protein on the vesicle (without them dynein is folded and almost never walks); Attach lands its heads on the microtubule, and it walks seven steps of different sizes (the vesicle moves most often 8 nm, once 16 nm, once back; one head steps round the microtubule and back); then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
-| Cell membrane: the way out | a nerve message (smelling bread); close up, at true sizes, the vesicle (about 1 µm) packed with amylase, each molecule about 5 nm, under the cell membrane (6 nm, cut through): exocytosis, the amylase streaming out into the duct | amylase in saliva |
+| Cell membrane: the way out | a nerve message (tasting bread: the gland drawn is the parotid, which taste and chewing start); close up, at true sizes, the vesicle (about 1 µm) packed with amylase, each molecule about 5 nm, under the cell membrane (6 nm, cut through): exocytosis, the amylase streaming out into the duct | amylase in saliva |
 | Does your amylase work? | starch and iodine solution: saliva in one well, water (the control) in the other | |
 | A branch, for those who wish: **Where glucose comes from** | follows glucose from a potato leaf (a palisade cell, its chloroplasts, cell wall and permanent vacuole) through starch, the potato, amylase and maltase to the blood (below) | |
 
@@ -173,6 +173,23 @@ the cell) and how the game works, in seven short lines with the key words highli
 button starts the dive into the cell. **How to play**, at the top, shows it again (Daniel, 8 Nov 2026: "this is the first
 thing that you should show … make it fun"). The notes for teachers are here, not on the page, and the page's foot keeps its
 sources, credits and licences folded.
+
+**A return visit is one press.** A pupil who returns to the mitochondria for more energy, or to the way in for more
+glucose and oxygen, finds the finished place with one button (**⚡ Release energy again**; **Take in more glucose and
+oxygen**), which gives what the place's steps gave; the place's steps are never played again for it (the audit of 11 Nov
+2026: the eight and five steps were played in full on every return). When the press cannot be made, the box says what to
+bring. `STORY.<place>.more` holds its words; `quest.js` `moreBox` draws it; `main.js` `place-more` gives the items. A check
+that must play a finished place's steps again now sets the place back itself (`tools/names-follow.mjs`,
+`tools/calm-check.mjs`: the place not done, its step 0, every check before it right), because the game no longer does.
+
+**The audit of 11 Nov 2026** (read only, then all ten findings fixed on Daniel's word): the nuclear pore's "special
+protein" (a carrier protein is a protein in a membrane); a ribosome 30 nm wherever a pupil reads its size; the map's note;
+on a phone, the Mission complete card has the whole picture (its text folds, its parts are smaller and its star and row
+of places are left out, so that the code and every button are in view) and messages stand under the corner box; a return visit is one
+press; the microtubules' first step under 100 words, with dynactin and the adaptor explained after Attach; plain words
+("continues to join", "join together", "full of them", "From very near", "If you cannot answer, use a hint."); "Taste the
+bread" (the gland drawn is the parotid); the IB switch, its box, its doors and the IB view's accent in the one extension
+violet (#7243C0 on #EDE8FA, dark #B388FF). `node tools/audit-fixes.mjs` proves each (`--static` without a browser).
 
 **Watch a step again.** Beside every finished step whose picture moves, ↻ plays that step's animation again, by itself:
 each button it used presses itself, a question shows its right answer being chosen, and then the game is exactly where

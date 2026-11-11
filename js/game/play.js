@@ -1256,7 +1256,7 @@ export function makePlay(world, quest) {
     DV.on = false;
     await live(world.landed({ pos: cam.position.toArray(), at: c.target.toArray() }, false));
     if (again) { insideNames(); return; }
-    quest.say('<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only together with a carrier protein.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>', 'ok');
+    quest.say('<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only if a special protein takes it through.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>', 'ok');
     insideNames();
     /* Next, or ↺ the dive again (as often as wanted; the message stays) */
     for (;;) {
@@ -2010,7 +2010,7 @@ export function makePlay(world, quest) {
     await press(() => ep(-6, -14), 'Cut', { side: 'b' });
     await tween(sig, { to: sig.position.clone().addScaledVector(rerFace().right, -0.012).addScaledVector(rerFace().n, -0.01), ms: 900, fade: 0 });
     drop(sig); props.sig = null;
-    quest.say('The signal is removed. The ribosome goes on joining amino acids.', 'ok');
+    quest.say('The signal is removed. The ribosome continues to join amino acids.', 'ok');
     const counter = await count(r, 150, 511, 3600);
     counter.remove();
     drop(props.blob); props.blob = blob(30);
@@ -2440,7 +2440,7 @@ export function makePlay(world, quest) {
       const lab = quest.hot(() => p.position.clone().addScaledVector(F.n, -0.012), dest ? 'lysosome enzyme · label: to a lysosome' : 'amylase · no label', { cls: 'tag', side: 'b' }); lab.el.disabled = true;
       await new Promise(done => {
         const pick = (to, k, at, side) => quest.hot(at, 'Put it here', { side, right: k === dest }).done.then(async () => {
-          if (k !== dest) { quest.say(dest ? 'Read its label: this lysosome enzyme goes to a lysosome.' : 'Amylase has no label: amylase molecules stick together and are packed into the large vesicle that leaves the cell.', 'no'); return; }
+          if (k !== dest) { quest.say(dest ? 'Read its label: this lysosome enzyme goes to a lysosome.' : 'Amylase has no label: amylase molecules join together and are packed into the large vesicle that leaves the cell.', 'no'); return; }
           quest.hots.filter(x => x.el.textContent === 'Put it here').forEach(x => x.remove());
           lab.remove(); quest.say('');
           await tween(p, { to: to.position.clone().add(V(0, 0, 0)), ms: 700 }); drop(p);
@@ -2621,7 +2621,7 @@ export function makePlay(world, quest) {
     quest.names.set([]);
     /* dynein's two heads land on the microtubule; now it walks */
     await moveFor(1100, k => r.mot.reach(k * k * (3 - 2 * k)));
-    quest.say('<p>Dynein now walks and carries your vesicle.</p><p>Each time one head steps, your vesicle moves forward, most often 8&nbsp;nm. Some steps are longer, and some go backwards or to the side.</p><p>A real one walks about 70 times faster: about 900&nbsp;nm every second.</p>', 'ok');
+    quest.say('<p>Dynein now walks and carries your vesicle.</p><p>Two helpers make it walk: <b>dynactin</b>, a rod 38&nbsp;nm long, and an <b>adaptor protein</b>, which holds dynein and dynactin together and joins them to your vesicle. Without these two, dynein is folded and almost never walks.</p><p>Each time one head steps, your vesicle moves forward, most often 8&nbsp;nm. Some steps are longer, and some go backwards or to the side.</p><p>A real one walks about 70 times faster: about 900&nbsp;nm every second.</p>', 'ok');
     /* the camera follows dynein, so that it stays in the free part of the picture as it walks 48 nm */
     const walked = closeView({ at: r.at.clone().addScaledVector(r.a, TRUE.walk), a: r.a });
     await Promise.all([(async () => { for (let i = 0; i < STEPS.length; i++) await moveFor(560, e => r.mot.pose(i, e)); })(), camGo(walked, STEPS.length * 560)]);
@@ -2754,7 +2754,7 @@ export function makePlay(world, quest) {
   async function smell() {
     await fly(world.P.exit.view.pos, world.P.exit.view.at);
     const ves = props.ves || (props.ves = granule()); ves.position.copy(TOP).add(V(0.6, -0.5, 1.1));
-    await press(() => TOP.clone().add(V(-2.2, 0.3, 1.4)), '🍞 Smell the bread', {});
+    await press(() => TOP.clone().add(V(-2.2, 0.3, 1.4)), '🍞 Taste the bread', {});
     W.nerve.tube.visible = true; W.nerve.end.visible = true;
     const look = { pos: [9, 9.5, 14], at: [3, 6.5, -1] };
     await live(world.flyTo(look, { ms: 1800 }));

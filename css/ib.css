@@ -7,18 +7,18 @@
    ============================================================ */
 .ibv{
   --ibv-sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --ibv-serif:'Fraunces',Georgia,serif;
-  --ibv-sheet:#FFFFFF; --ibv-ink:#141A24; --ibv-ink2:#3D4657; --ibv-rule:#D9DEE7; --ibv-accent:#5B3FD1; --ibv-accent-ink:#4527B8;
+  --ibv-sheet:#FFFFFF; --ibv-ink:#141A24; --ibv-ink2:#3D4657; --ibv-rule:#D9DEE7; --ibv-accent:#7243C0; --ibv-accent-ink:#5A2FA8;
   --lv-sl:#2E3A8C; --lv-sl-bg:#E7E9F7; --lv-hl:#9B1C4A; --lv-hl-bg:#FCE6EE; --lv-x:#4F5663; --lv-x-bg:#ECEEF2;
-  --ibv-term:#4527B8;
+  --ibv-term:#5A2FA8;
   position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:#070a1f;color:var(--ibv-ink);
   font-family:var(--ibv-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden
 }
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ibv{
-  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B79BFF; --ibv-accent-ink:#CDB9FF;
-  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB9FF } }
+  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B388FF; --ibv-accent-ink:#CDB3FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB3FF } }
 :root[data-theme="dark"] .ibv{
-  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B79BFF; --ibv-accent-ink:#CDB9FF;
-  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB9FF }
+  --ibv-sheet:#151a2b; --ibv-ink:#ECEFF7; --ibv-ink2:#BCC3D3; --ibv-rule:#2c3348; --ibv-accent:#B388FF; --ibv-accent-ink:#CDB3FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --ibv-term:#CDB3FF }
 html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv *{box-sizing:border-box}
 .ibv button{font-family:inherit}

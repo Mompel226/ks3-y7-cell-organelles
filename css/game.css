@@ -207,6 +207,13 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .fact__src{font-size:13px;color:var(--qp-ink2);margin-top:4px!important}
 .qp__real{margin:14px 0 0;width:100%;font:900 16.5px/1.2 var(--sans);color:#1B1240;background:linear-gradient(180deg,#E9E2FF,#CDBDF7);border:1.5px solid #B9A6FF;border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left}
 .qp__real:hover{border-color:var(--qp-accent)}
+/* a return visit's one press (quest.js moreBox): what the place gives again */
+.qp__more{margin:0 0 4px;padding:10px 12px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--qp-accent) 40%,transparent);background:color-mix(in srgb,var(--qp-accent) 7%,transparent)}
+.qp__more p{margin:0 0 8px}
+.qp__more p:last-child{margin-bottom:0}
+.qp__moresaid{color:#1E7A4A;font-weight:800}
+:root[data-theme="dark"] .qp__moresaid{color:#7BE0A8}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__moresaid{color:#7BE0A8} }
 /* the two doors of the plant-cell branch (js/plant/, 11 Nov 2026): leaf green, on the way in's end card and the win card */
 /* the side quest's door: a box of its own, marked, so that no pupil takes it for the next step of the mission */
 .qp__side{margin:14px 0 0;padding:10px 12px 12px;border:1.5px dashed #7CC96A;border-radius:14px;background:color-mix(in srgb,#7CC96A 9%,transparent)}
@@ -223,34 +230,34 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__real:disabled{opacity:.6;cursor:default}
 /* the IB switch and the IB words (quest.js ibSwitch), in IB blue; levels: SL and HL blue, HL only rose, beyond grey
    (memory level-colours-never-blank: a filled tint, never a blank box) */
-.qp__ib{display:inline-flex;align-items:center;gap:8px;font:800 15px/1 var(--sans);color:#2E3A8C;background:#E7E9F7;border:1.5px solid #9EA9F0;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer}
-.qp__ib:hover{border-color:#2E3A8C}
+.qp__ib{display:inline-flex;align-items:center;gap:8px;font:800 15px/1 var(--sans);color:#5A2FA8;background:#EDE8FA;border:1.5px solid #C9BAEE;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer}
+.qp__ib:hover{border-color:#7243C0}
 .qp__ib b{font-weight:900}
-.qp__ibt{position:relative;flex:none;width:36px;height:22px;border-radius:999px;background:#B9C0E0;transition:background .2s}
+.qp__ibt{position:relative;flex:none;width:36px;height:22px;border-radius:999px;background:#C9BAEE;transition:background .2s}
 .qp__ibt i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s}
-.qp__ib[aria-pressed="true"] .qp__ibt{background:#2E3A8C}
+.qp__ib[aria-pressed="true"] .qp__ibt{background:#7243C0}
 .qp__ib[aria-pressed="true"] .qp__ibt i{transform:translateX(14px)}
-.qp__explore--ib{color:#fff;background:linear-gradient(180deg,#3E4DAE,#2E3A8C);border-color:#2E3A8C}
-.step__ib{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EEF0FB;border-left:4px solid #2E3A8C;color:#1A1F45}
+.qp__explore--ib{color:#fff;background:linear-gradient(180deg,#8456CF,#7243C0);border-color:#7243C0}
+.step__ib{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EDE8FA;border-left:4px solid #7243C0;color:#22123F}
 .step__ib p{margin:0 0 8px;font-size:16.5px}
 .ibl{display:inline-block;font:900 11.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:4px 7px;vertical-align:1px}
 .ibl i{font-style:normal;letter-spacing:0}
 .ibl--sl{color:#2E3A8C;background:#DCE0F7}
 .ibl--hl{color:#9B1C4A;background:#FCE6EE}
 .ibl--x{color:#4A5160;background:#E2E5EA;font-style:italic}
-.step__ibdoor{display:block;width:100%;font:800 15.5px/1.25 var(--sans);color:#fff;background:#2E3A8C;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left}
-.step__ibdoor:hover{background:#1F2870}
+.step__ibdoor{display:block;width:100%;font:800 15.5px/1.25 var(--sans);color:#fff;background:#7243C0;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left}
+.step__ibdoor:hover{background:#5A2FA8}
 .nm.nm--ib{font-size:14.5px;padding:5px 10px}
 .qp__ibchk{display:none;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:#E3F4EA;color:#14532D;font:700 15.5px/1.35 var(--sans)}
 .qp--ib .qp__ibchk{display:block}
 .qp--ib .qp__end > .qp__k, .qp--ib .qp__end > .qp__todo, .qp--ib .qp__end > .q{display:none}
 :root[data-theme="dark"] .qp__ibchk{background:#123524;color:#A7F3C9}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ibchk{background:#123524;color:#A7F3C9} }
-:root[data-theme="dark"] .qp__ib{color:#E7E9F7;background:#1D2240;border-color:#5A66C8} :root[data-theme="dark"] .qp__ib[aria-pressed="true"] .qp__ibt{background:#9EA9F0}
-:root[data-theme="dark"] .step__ib{background:#1D2240;color:#E7E9F7;border-left-color:#9EA9F0} :root[data-theme="dark"] .step__ibdoor{color:#10142E;background:#9EA9F0}
+:root[data-theme="dark"] .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root[data-theme="dark"] .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
+:root[data-theme="dark"] .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__ibdoor{color:#1B0E3A;background:#B388FF}
 :root[data-theme="dark"] .ibl--sl{color:#C9CFF7;background:#2A3170} :root[data-theme="dark"] .ibl--hl{color:#F59AB8;background:#3B1426} :root[data-theme="dark"] .ibl--x{color:#C7CCD6;background:#2E333D}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ib{color:#E7E9F7;background:#1D2240;border-color:#5A66C8} :root:not([data-theme="light"]) .qp__ib[aria-pressed="true"] .qp__ibt{background:#9EA9F0}
-  :root:not([data-theme="light"]) .step__ib{background:#1D2240;color:#E7E9F7;border-left-color:#9EA9F0} :root:not([data-theme="light"]) .step__ibdoor{color:#10142E;background:#9EA9F0}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root:not([data-theme="light"]) .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
+  :root:not([data-theme="light"]) .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__ibdoor{color:#1B0E3A;background:#B388FF}
   :root:not([data-theme="light"]) .ibl--sl{color:#C9CFF7;background:#2A3170} :root:not([data-theme="light"]) .ibl--hl{color:#F59AB8;background:#3B1426} :root:not([data-theme="light"]) .ibl--x{color:#C7CCD6;background:#2E333D} }
 .qp__nav{margin-top:18px;display:flex;justify-content:flex-end}
 .pls{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
@@ -440,7 +447,26 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   .nm{font-size:14.5px;padding:5px 10px;max-width:180px}
   .testbox{right:14px;bottom:52%}
   .qp__title{font-size:23px}
-  .toasts{top:auto;bottom:calc(50% + 10px)}
+  /* a message stands just under the corner box (main.js --hudh): at the foot of the picture it lay on the Simple / As it
+     really is switch, the scale bar's number and Hide text (the audit, 11 Nov 2026) */
+  .toasts{top:calc(var(--hudh, 170px) + 18px);bottom:auto;width:calc(100% - 20px)}
+  .toast{max-width:100%;text-align:center}
+  /* the Mission complete card with the text folded: the whole picture, clear of Show text */
+  .stage.qp-off .testbox{bottom:58px}
+  /* … and its parts are smaller there, so that the title, the code and every button are in view at once (375 × 812) */
+  .testbox{gap:6px}
+  .win{font-size:15px;gap:3px}
+  .win__t{font-size:23px}
+  .win__star .ico{width:36px;height:36px}
+  .win__path{gap:4px;margin:3px 0 2px}
+  .win__path li{font-size:12px;padding:2px 7px 2px 3px;gap:3px}
+  .win__path .ico{width:15px;height:15px}
+  .win__code{margin:4px 0 2px;padding:6px 12px}
+  .win__c{font-size:25px}
+  .win .btn{padding:10px 15px;font-size:15px}
+  .win__plant{margin-top:6px;font-size:14.5px;padding:8px 12px}
+  .win__acts{gap:7px}
+  .win__star,.win__path{display:none}
 }
 @media (max-width:980px){
   .upbar{flex-wrap:wrap}

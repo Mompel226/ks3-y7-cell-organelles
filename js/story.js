@@ -110,6 +110,8 @@ window.STORY = {
         ['hl', 'C1.2.11, C1.2.12', 'It is produced in the mitochondria: in the link reaction and the Krebs cycle, each carbon dioxide molecule is removed from a larger molecule (<dfn data-w="decarboxylation">decarboxylation</dfn>). Its carbon atoms come from glucose.']] }
     ],
     done: 'You carry glucose, oxygen and amino acids. The <b>mitochondria</b> are awake now.',
+    /* a return visit (quest.js `more`, main.js `place-more`; the audit, 11 Nov 2026): one press, never the five steps again */
+    more: { lacks: ['glucose', 'oxygen'], label: 'Take in more glucose and oxygen', text: 'Your cell has used its glucose or its oxygen. The blood brings more: they enter as before, glucose through its carrier protein and oxygen straight through the lipids.', wait: 'You still carry glucose and oxygen. Return here when the cell has used them.', did: 'More glucose and oxygen are in the cell.' },
     explore: '🧬 IB extension: from glucose to ATP',
     /* a door to the plant-cell branch (js/plant/view.js), on the end card once every check is right (quest.js) */
     /* a SIDE QUEST, said plainly (Daniel, 11 Nov 2026: the game is about the animal cell; the plant story "should be
@@ -136,6 +138,7 @@ window.STORY = {
       { play: 'release', text: '<span class="eq"><b class="eq-g">glucose</b> + <b class="eq-o">oxygen</b> → <b class="eq-c">carbon dioxide</b> + <b class="eq-w">water</b></span>\nAerobic respiration: <b>carbon dioxide</b> and <b>water</b> are produced, and energy is released. The cell uses this energy for its work: to join amino acids, to make lipids and to move vesicles.\nBeyond the Year 7 list: when every check of this place is right, <b>🧬 IB extension: from glucose to ATP</b> follows one glucose molecule to ATP, step by step.' }
     ],
     done: 'The energy bar is full. Every job of the cell uses some: when it is low, return here with more glucose and oxygen.',
+    more: { needs: ['glucose', 'oxygen'], label: '⚡ Release energy again', text: 'You carry glucose and oxygen. The mitochondria release their energy as before: press ↻ beside a step to watch it again.', wait: 'To release more energy, bring glucose and oxygen from <b>the way in</b>.', did: 'Aerobic respiration released more energy: look at the energy bar.' },
     /* the IB switch (quest.js ibSwitch, once every check is right): what IB adds to each step, one sentence a level, and
        its chapter in "From glucose to ATP" (it replaced this place's Explorer film, 5 Nov 2026), and `text`: the step in IB terms */
     ib: [
@@ -194,7 +197,7 @@ window.STORY = {
   ribosome: {
     part: 6, task: 'game-ribosome', title: 'Ribosomes', onPic: 'Ribosome', plural: true, kind: 'Not an organelle: no membrane', y7: true, def: 'ribosome',
     needs: ['mrna', 'parts', 'amino', 'energy'], gives: ['chain'],
-    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nClose up, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
+    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nFrom very near, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'assemble', text: '<mark class="do">Press Join:</mark> the small part attaches to the copy, then the large part joins it. Now it is a whole ribosome.' },
       { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press the carrier that matches the code under the ribosome.</mark>\nEvery amino acid you join uses some energy.' },
@@ -207,7 +210,7 @@ window.STORY = {
   rer: {
     part: 7, task: 'game-rer', title: 'Rough ER', kind: 'Organelle: flattened sacs of membrane', def: 'rough-er',
     needs: ['chain'], gives: ['amylase'], alsoNeeds: ['lipids'],
-    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough. (On the map they are drawn about four times larger, so that you can see them; close up, everything is at its true size.)\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
+    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough. (On the map they are drawn about four times larger, so that you can see them; from very near, everything is at its true size.)\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'dock', text: '<mark class="do">Press Dock:</mark> because of the signal, the ribosome is taken to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel, inside the rough ER.\n<mark class="do">Press Go.</mark>' },
@@ -236,7 +239,7 @@ window.STORY = {
     steps: [
       { play: 'join', text: '<mark class="do">Press Join:</mark> the vesicle joins the first sac of the stack.' },
       { play: 'through', text: 'Your amylase moves through the stack, sac by sac.\n<mark class="do">Press Next sac until it reaches the last one.</mark>' },
-      { play: 'sortgame', text: 'Enzymes for a <dfn data-w="lysosome">lysosome</dfn> (a small sac of enzymes that digest old parts of the cell) carry a label that sends them there.\nAmylase has no label: amylase molecules stick together and are packed into large vesicles, which leave the cell.\n<mark class="do">Press each protein, then the vesicle where it belongs.</mark>' },
+      { play: 'sortgame', text: 'Enzymes for a <dfn data-w="lysosome">lysosome</dfn> (a small sac of enzymes that digest old parts of the cell) carry a label that sends them there.\nAmylase has no label: amylase molecules join together and are packed into large vesicles, which leave the cell.\n<mark class="do">Press each protein, then the vesicle where it belongs.</mark>' },
       { play: 'package', text: 'A new vesicle forms, tightly packed with amylase molecules.\n<mark class="do">Press Package.</mark>' }
     ],
     done: 'You carry a vesicle packed with amylase. It must reach the top of the cell, next to the duct.',
@@ -247,7 +250,7 @@ window.STORY = {
     needs: ['packed', 'energy'], gives: ['top'],
     intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
     steps: [
-      { play: 'grab', text: 'Close up, nothing is drawn bigger than it is. So the camera comes very close to the microtubule next to your vesicle: it is only 25 <dfn data-w="nanometre">nanometres</dfn> (nm) wide.\nScientists found dynein, a <dfn data-w="motor-protein">motor protein</dfn>, on vesicles like yours in the pancreas, another gland. So the motor protein here is probably dynein.\nEach of its two heads is a ring, 14 nm across.\nDynactin, a rod 38 nm long, helps dynein walk. An adaptor protein holds dynein and dynactin together and joins them to your vesicle.\nWithout these two, dynein is folded and almost never walks.\nYour vesicle is 900 nm across. The dots in it are amylase molecules, each 5 nm across. Only some of them are shown: a real vesicle is packed full.\n<mark class="do">Press Attach:</mark> dynein\'s two heads hold the microtubule.' },
+      { play: 'grab', text: 'Nothing here is drawn bigger than it is. So the camera comes very close to the microtubule next to your vesicle: it is only 25 <dfn data-w="nanometre">nanometres</dfn> (nm) wide.\nScientists found dynein, a <dfn data-w="motor-protein">motor protein</dfn>, on vesicles like yours in the pancreas, another gland. So the motor protein here is probably dynein.\nEach of its two heads is a ring, 14 nm across.\nYour vesicle is 900 nm across. The dots in it are amylase molecules, each 5 nm across: a real vesicle is full of them.\n<mark class="do">Press Attach:</mark> dynein\'s two heads hold the microtubule.' },
       { play: 'maze', text: 'From far away the motor protein is too small to see: the glow shows where it is. The game draws the microtubules three times thicker, so that you can see them.\nEach step uses energy. Where two microtubules cross, the vesicle can step onto the other one.\n<mark class="do">At each crossing, choose the microtubule that leads to the top of the cell.</mark>' }
     ],
     done: 'Your vesicle waits at the top of the cell, with the others.',
@@ -259,7 +262,7 @@ window.STORY = {
     needs: ['top'], gives: ['saliva'],
     intro: 'The vesicles wait at the top of the cell.\nWhen you smell or taste food, nerves send a message to your salivary glands. The message makes the vesicles join the cell membrane and release their amylase.',
     steps: [
-      { play: 'smell', text: '<mark class="do">Press Smell the bread.</mark>\nA nerve ending next to the cell releases a chemical, and the message spreads through the cell.' },
+      { play: 'smell', text: '<mark class="do">Press Taste the bread.</mark>\nA nerve ending next to the cell releases a chemical, and the message spreads through the cell.' },
       { play: 'fuse', text: 'The vesicle joins the cell membrane and opens to the outside.\n<mark class="do">Press Release.</mark>\nThis is <dfn data-w="exocytosis">exocytosis</dfn> (exo = out, cyto = cell).' },
       { play: 'flatten', watch: false, text: 'The amylase leaves the cell and enters the duct. The membrane of the vesicle becomes part of the cell membrane.\nLater, new vesicles form from this membrane and return inside the cell, so the membrane is used again.' }
     ],

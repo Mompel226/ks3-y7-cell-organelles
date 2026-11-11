@@ -24,7 +24,7 @@ window.QS = {
         'They have no colour, so no stain can ever make them visible to you.',
         'They move too fast in the cytosol, so the picture is always blurred.',
         'They are hidden inside the nucleus, behind its two membranes.'],
-    why: 'A ribosome is about 25 nanometres across: far smaller than a light microscope can show. An electron microscope uses a beam of electrons instead of light, so it shows much smaller details.' },
+    why: 'A ribosome is about 30 nanometres across: far smaller than a light microscope can show. An electron microscope uses a beam of electrons instead of light, so it shows much smaller details.' },
 
   /* ---------- 2. Cell membrane: the way in ---------- */
   'p2-gaps-membrane': { part: 2, kind: 'gaps', title: 'The way in', short: 'gaps',

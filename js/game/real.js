@@ -54,7 +54,7 @@ export const REAL = {
       'a slice through the left end of the same cell, with the edge of its nucleus (violet line) on the right. The ribosomes are too small to see here.'),
     { src: 'img/real/ribosome.jpg', credit: HELA,
       alt: 'Electron micrograph of cytoplasm full of small black dots, each in a yellow ring, with two round mitochondria.',
-      cap: `<b>Ribosomes</b> (yellow rings): each black dot in a ring is one ribosome, about 25 nanometres across. The two large round shapes are mitochondria. ${ONE_CELL}` }
+      cap: `<b>Ribosomes</b> (yellow rings): each black dot in a ring is one ribosome, about 30 nanometres across. The two large round shapes are mitochondria. ${ONE_CELL}` }
   ] },
   rer: { em: [
     where('rer', 'Electron micrograph of a slice through the left end of a cell: the cytoplasm with small round shapes and thin lines, the edge of the nucleus outlined in violet on the right, and a small white box in the cytoplasm.',
