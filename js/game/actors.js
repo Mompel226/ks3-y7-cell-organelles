@@ -4,16 +4,33 @@
    (a glucose molecule is about 1 nanometre across; play.js gives each token its size); at the way in, every molecule is
    drawn at the membrane's own enlargement, about 100 times, and the page says so. Each token keeps its true shape in outline
    (glucose a ring of six, oxygen two atoms, carbon dioxide three in a line, a lipid a head and two tails, a ribosome a
-   small and a large part; a ribosome's RNA a wavy thread, a protein a folded lump, the carrier of an amino acid a stem).
+   small and a large part, each an uneven lump of RNA and protein; a ribosome's RNA a wavy thread, a protein a folded lump,
+   the carrier of an amino acid, transfer RNA, an L).
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611101933';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611111833';
+import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
 const mat = (key, color, k) => M[key] || (M[key] = glowMat(color, k));
 export const AMINO_COLORS = [0x5bc8a8, 0x7fa8ff, 0xf2a65a, 0xe36fb0];
+/* a ribosome's part as it looks (Daniel, 11 Nov 2026: "as realistic as possible but … comprehensible for Y7"): RNA and
+   proteins folded together into an uneven lump, a little flattened where the two parts meet, still plainly a small and a
+   large part. r its radius, (sx, sy, sz) its stretch, face +1 or −1: the side that meets the other part (flatter); the
+   same shape in the story (token) and in As it really is (crowd.js), so a pupil sees one kind of thing */
+export function riboPart(r, sx, sy, sz, face, detail = 3, seed = 0) {
+  const g0 = new THREE.IcosahedronGeometry(1, detail); g0.deleteAttribute('normal'); g0.deleteAttribute('uv');
+  const g = mergeVertices(g0), p = g.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i).normalize();
+    const k = 1 + 0.055 * Math.sin(v.x * 6.3 + v.y * 2.1 + seed) * Math.sin(v.z * 5.1 - v.x * 2.7 + seed) + 0.025 * Math.sin(v.y * 13 + v.z * 11 + seed);
+    let y = v.y; if (y * face > 0.5) y = face * (0.5 + (y * face - 0.5) * 0.4);   /* the face that meets the other part, flatter */
+    p.setXYZ(i, v.x * k * r * sx, y * k * r * sy, v.z * k * r * sz);
+  }
+  g.computeVertexNormals(); g0.dispose(); return g;
+}
 
 export function token(kind, s = 0.32) {
   const g = new THREE.Group(); g.userData.kind = kind;
@@ -31,9 +48,9 @@ export function token(kind, s = 0.32) {
       const m = new THREE.Mesh(new THREE.LatheGeometry(prof.map(v => new THREE.Vector2(Math.max(0.001, v.x), v.y)), 28), magicStandard({ color: 0xc0303e, roughness: 0.4 }, { rim: 0xff7f8f, rimK: 0.5 }));
       m.rotation.x = Math.PI / 2; g.add(m); break;
     }
-    case 'small': { const m = sph(s * 0.62, 0xffe3a0, 'ss'); m.scale.set(1.2, 0.7, 1); break; }
-    case 'large': { const m = sph(s * 0.85, 0xffc95e, 'll'); m.scale.set(1.15, 0.85, 1.05); break; }
-    case 'ribosome': { const L = sph(s * 0.85, 0xffc95e, 'll', 0, s * 0.42); L.scale.set(1.15, 0.85, 1.05); const S = sph(s * 0.62, 0xffe3a0, 'ss', 0, -s * 0.38); S.scale.set(1.2, 0.7, 1); break; }
+    case 'small': { g.add(new THREE.Mesh(riboPart(s * 0.62, 1.2, 0.7, 1, 1, 3, 1.3), mat('ss', 0xffe3a0))); break; }
+    case 'large': { g.add(new THREE.Mesh(riboPart(s * 0.85, 1.15, 0.85, 1.05, -1, 3, 0), mat('ll', 0xffc95e))); break; }
+    case 'ribosome': { const L = new THREE.Mesh(riboPart(s * 0.85, 1.15, 0.85, 1.05, -1, 3, 0), mat('ll', 0xffc95e)); L.position.y = s * 0.42; g.add(L); const S = new THREE.Mesh(riboPart(s * 0.62, 1.2, 0.7, 1, 1, 3, 1.3), mat('ss', 0xffe3a0)); S.position.y = -s * 0.38; g.add(S); break; }
     case 'rna': {
       /* a strand of RNA (a ribosome's own RNA, made in the nucleolus): a short wavy thread */
       const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16; pts.push(new THREE.Vector3((t - 0.5) * s * 2.4, Math.sin(t * Math.PI * 3) * s * 0.28, Math.cos(t * Math.PI * 2) * s * 0.12)); }
@@ -49,9 +66,15 @@ export function token(kind, s = 0.32) {
       break;
     }
     case 'carrier': {
-      /* the small carrier molecule (transfer RNA) that brings an amino acid: a stem, and an end that matches the code */
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(s * 0.09, s * 0.09, s * 0.9, 8), mat('car', 0xffffff)); stem.position.y = -s * 0.2; g.add(stem);
-      const end = new THREE.Mesh(new THREE.BoxGeometry(s * 0.7, s * 0.16, s * 0.16), mat('car', 0xffffff)); end.position.y = -s * 0.68; g.add(end);
+      /* the small carrier molecule (transfer RNA) that brings an amino acid, as it really is: an L, each arm about 7 nm long
+         and 2 nm thick (Kim et al. 1974, Science 185:435), at s = 7.5 nm. The amino acid's end at the token's middle (the
+         amino acid hangs there: play.js translate), its arm going to the left; the other arm going down, its end the part
+         that matches the code (the anticodon): when the amino acid reaches the ribosome's large part, that end reaches the
+         copy between the two parts, as in a real ribosome (11 Nov 2026; before, a stem and a bar) */
+      const a = s * 0.93, r = s * 0.147, x0 = -s * 0.07, m = mat('car', 0xffffff);
+      const acc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, a, 10), m); acc.rotation.z = Math.PI / 2; acc.position.set(x0 - a / 2, 0, 0); g.add(acc);
+      const anti = new THREE.Mesh(new THREE.CylinderGeometry(r, r, a, 10), m); anti.position.set(x0 - a, -a / 2, 0); g.add(anti);
+      [[x0 - a, 0], [x0 - a, -a]].forEach(([x, y]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), m); b.position.set(x, y, 0); g.add(b); });
       break;
     }
     case 'lhead': sph(s * 0.36, 0xff9ac8, 'lh'); break;

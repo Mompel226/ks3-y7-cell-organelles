@@ -5,16 +5,18 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611101933';
-import { state, COST, RESPIRE } from './state.js?v=202611101933';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611101933';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611101933';
-import { sound } from './sound.js?v=202611101933';
-import { magicStandard } from '../world/magic.js?v=202611101933';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611111833';
+import { state, COST, RESPIRE } from './state.js?v=202611111833';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611111833';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611111833';
+import { sound } from './sound.js?v=202611111833';
+import { magicStandard } from '../world/magic.js?v=202611111833';
+import { buildCrowd } from '../world/crowd.js?v=202611111833';
+import { Names } from './names.js?v=202611111833';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611101933').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611111833').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -45,7 +47,7 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); nanoOff(); }
+  function reset() { realOff(); kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); nanoOff(); }
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -452,6 +454,8 @@ export function makePlay(world, quest) {
   const along3 = pts => curve(pts.map(([u, n, w]) => pW(u, n, w == null ? -1.4 : w)));
   const nburst = (p, color, n = 26) => burst(scene, p, { n, r: 0.0022, size: 0.00045, near: 0.0004, color, ms: 900 });
   const HUD2 = () => [document.querySelector('.hud'), bar].filter(Boolean);
+  /* the ribosome place and the rough ER: the corner box, the scale bar and the switch "Simple / As it really is" (REAL) */
+  const HUDR = () => [document.querySelector('.hud'), bar, REAL.el].filter(Boolean);
   /* what is said after an action, scrolled into view in the panel (it was cut off at the panel's foot) */
   const ok = html => { quest.say(html, 'ok'); if (quest.step) quest.scrollTo(quest.step.say); };
   /* the view at the edge where the glucose is split: wide enough for both layers of lipids, the molecules in the middle */
@@ -907,7 +911,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611101933').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611111833').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1566,14 +1570,74 @@ export function makePlay(world, quest) {
       await tween(p, { to: p.position.clone().addScaledVector(f.dir, 0.16).addScaledVector(f.up, p.userData.kind === 'small' ? -0.03 : 0.03), ms: 1400 });
     }
     quest.names.set([], HUD());
-    /* from far away they are far too small to see: the glows show them on their way out through the nearest pores */
+    /* from far away they are far too small to see: the glows show them on their way out, through two pores on the side of
+       the rough ER, and on into the cytosol beside its outer layer, where the ribosome place is (Daniel, 11 Nov 2026: they
+       had gone out through the pores nearest the nucleolus, at the top, "instead of to the rough ER"). In this cell the
+       rough ER is all round the lower part of the nucleus, so they come out beside it (they do not join the rough ER
+       themselves: they join on a copy of a gene first) */
     await nolZoom(false);
+    parts.forEach(p => marker(p, 0.5));
     quest.say('From here the two parts are far too small to see: the glows show where they are.');
-    await Promise.all(parts.map((p, i) => { const pore = W.pores.slice().sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position))[i]; return wait(R.TEST ? 0 : i * 500).then(() => tween(p, { to: pore, ms: 2200 })); }));
-    parts.forEach(drop);
-    await quest.gain('parts', NOL());
-    await quest.next('Back to the map');
+    const ways = partWays();
+    await Promise.all(parts.map((p, i) => wait(R.TEST ? 0 : i * 500).then(() => tween(p, { to: ways[i][0], ms: 2200 }))));
+    /* the camera turns to see the side of the nucleus and the rough ER together; the parts go out between its layers'
+       edges (through its window at the front: never through a layer) to beside its outer layer */
+    await camGo(outView(ways), R.FAST ? 0 : 2600);
+    await Promise.all(parts.map((p, i) => wait(R.TEST ? 0 : i * 400).then(() => { trail(p, 3600); return tween(p, { path: new THREE.CatmullRomCurve3(ways[i]), ms: 3600 }); })));
+    /* the rough ER named where they stop: the link (Daniel, 11 Nov 2026) */
+    /* (and the two parts, still glowing where they stop: pupils keep them in sight, the expert review) */
+    { const f = rerFace(); quest.names.set([{ key: 'o-rer', free: true, aside: true, html: '<span class="nm__t">rough ER</span>', spots: [f.p.clone().addScaledVector(f.along, 0.45), f.p.clone().addScaledVector(f.along, -0.45), f.p.clone().addScaledVector(f.right, 0.9), f.p.clone().addScaledVector(f.right, -0.9)] },
+      ...parts.map(p => ({ key: 'o-' + p.userData.kind, free: true, aside: true, html: `<span class="nm__t">${p.userData.kind === 'small' ? 'small part' : 'large part'}</span>`, spots: [p.position.clone()] }))], HUD()); }
+    quest.say('<p>In this cell, the rough ER is all round the lower part of the nucleus. So the two parts pass into the cytosol beside the rough ER, where they wait for a copy of a gene.</p><p>Any ribosome can work on the rough ER: the chain it makes decides.</p>', 'ok');
+    await wait(R.TEST ? 0 : 1200);
+    await quest.gain('parts', ways[0][ways[0].length - 1]);
+    await quest.next('Back to the map');   /* (the parts stay in sight until the pupil leaves: reset takes them) */
   }
+  /* a glow that shows where something far too small to see is, from far away: a golden dot with a bright middle (normal
+     blending: an additive glow was lost on the pale rough ER), drawn over everything (it is seen behind the rough ER's
+     layers too), um µm across */
+  let MARK = null;
+  const marker = (o, um, col = 0xffc94a) => {
+    if (!MARK) { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.22, 'rgba(255,255,255,0.95)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.4)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+      MARK = new THREE.CanvasTexture(c); MARK.colorSpace = THREE.SRGBColorSpace; }
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: MARK, color: col, transparent: true, depthTest: false, depthWrite: false }));
+    sp.scale.setScalar(um / o.scale.x); sp.renderOrder = 20; o.add(sp); return sp;
+  };
+  /* the way it went, as dots that fade over 4 s (so that the way from the pore to the rough ER can be followed); none with
+     Reduce motion (the move is one jump) */
+  const trail = (p, ms) => {
+    if (R.FAST) return;
+    const s0 = quest.session, t0 = performance.now(), dots = [];
+    const f = () => {
+      if (quest.session !== s0) return;
+      const now = performance.now();
+      if (now - t0 < ms && (!dots.length || now - dots[dots.length - 1].t > 110)) { const d = keep(new THREE.Group()); d.position.copy(p.position); marker(d, 0.16); dots.push({ d, t: now }); }
+      dots.forEach(o => { o.d.children[0].material.opacity = 0.85 * (1 - Math.min(1, (now - o.t) / 4000)); });
+      world.kick();
+      if (now - t0 < ms + 4000) requestAnimationFrame(f); else dots.forEach(o => drop(o.d));
+    };
+    f();
+  };
+  /* the two parts' ways from the nucleus to the ribosome place: from the two pores nearest it (not too close together), out
+     into the cytosol between the nucleus and the rough ER, round to its window at the front (no layers there), out through
+     it beyond the outer layer, and round outside that layer to the cytosol just off it (rerFace: where the ribosome place
+     looks). Worked out in the rough ER's own round shape (its layers are ellipsoids about the nucleus, cellbuild.js); none
+     crosses a layer (checked by rays, 11 Nov 2026) */
+  function partWays() {
+    const C = N0.clone().add(V(0, -0.1, 0)), K = V(1, 0.75, 0.9), f = rerFace(), spot = f.p.clone().addScaledVector(f.n, 0.06);
+    const toS = p => { const q = p.clone().sub(C).divide(K), r = q.length(); return { r, az: Math.atan2(q.x, q.z), e: Math.asin(q.y / r) }; };
+    const fromS = (r, az, e) => V(r * Math.cos(e) * Math.sin(az), r * Math.sin(e), r * Math.cos(e) * Math.cos(az)).multiply(K).add(C);
+    const pores = W.pores.slice().sort((a, b) => a.distanceTo(spot) - b.distanceTo(spot)), p0 = pores[0], p1 = pores.find(p => p.distanceTo(p0) > 0.3) || pores[1];
+    const ss = toS(spot), AZW = -0.72, RO = 6.0;
+    return [p0, p1].map((p, i) => { const a = toS(p), e1 = Math.max(a.e, -0.5), end = spot.clone().addScaledVector(f.right, (i ? 0.35 : -0.35));   /* (apart: the two parts join only on a copy of a gene, the expert review, 11 Nov 2026) */
+      return [p, fromS(3.13, a.az, a.e), fromS(3.13, AZW, e1), fromS(RO, AZW, e1), fromS(RO, (AZW + ss.az) / 2, (e1 + ss.e) / 2), fromS(ss.r + 0.35, ss.az, ss.e), end]; });
+  }
+  /* a view of the whole nucleus, the rough ER round it and both ways, from the front, a little to the left and above (from
+     the rough ER's own side, its layers stood in front of the ways and the nucleus was pushed into a corner; close, only
+     part of the ways showed): what it looks at between the nucleus's middle and the ways' middle, 11 µm away */
+  const outView = ways => { const at = N0.clone().lerp(new THREE.Box3().setFromPoints(ways.flat()).getCenter(V(0, 0, 0)), 0.55);
+    return { at, dir: V(-0.35, 0.3, 1).normalize(), up: V(0, 1, 0), dist: 11 }; };
 
   /* ---------------- ribosomes and the rough ER, at their true sizes ----------------
      (9 Nov 2026; Daniel, after the nucleolus: "do the same for any other organelle. If your building parts are huge and
@@ -1648,39 +1712,67 @@ export function makePlay(world, quest) {
   const calm = t => { t.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material = o.material.clone(); o.material.emissiveIntensity *= 0.3; } }); return t; };
   const NEAR_HIDE = () => groupsOf(['free-ribosomes', 'microtubules', 'cytosol', 'dust', 'blood']).concat([W.groups.rer && W.groups.rer.children.find(o => o.name === 'rer-ribosomes')]);
 
-  /* ---------------- ribosomes ---------------- */
-  const RIB = world.P.ribosome.center;
-  /* the close view's frame round the ribosome place: the camera's way (rd), the picture's right and up; offsets in nm */
+  /* ---------------- ribosomes ----------------
+     beside the rough ER (Daniel, 11 Nov 2026: "when clicking the ribosome … be taken … to the rough endoplasmic reticulum
+     … the students should link the rough ER with ribosomes and the fact that they end up in the membrane of the rough
+     ER"): the close view is the rough ER's own piece of membrane (rerFace), seen from the same eye level, looking a little
+     higher, at the cytosol just above it, where this ribosome begins its protein (a ribosome starts in the cytosol; the
+     signal then takes it to the rough ER). The membrane lies across the foot of the picture the whole time. Offsets in
+     nm: x across the picture (to the right), y up (out of the membrane, into the cytosol; 0 is the copy, RIB_Y above the
+     membrane), z towards the camera; x 0 is above the channel where the ribosome will dock. The rough ER's own offsets
+     (ep) run the other way across: ep(-28, 46), where Dock begins, is 28 nm to the right, 46 nm up */
+  const RIB_Y = 52, RIB_AT = 46, RIB_X = 8, RIB_DIST = 0.17;   /* (the view's middle 8 nm to the right: on a phone, about 116 nm wide, the free ribosome of the last step is in it) */
   function ribFrame() {
     if (props.rf) return props.rf;
-    const c = RIB.clone(), rd = V(...world.P.ribosome.view.pos).sub(c).normalize(), right = new THREE.Vector3().crossVectors(V(0, 1, 0), rd).normalize(), up = new THREE.Vector3().crossVectors(rd, right).normalize();
-    return (props.rf = { c, rd, right, up });
+    const f = rerFace(), up = f.n.clone(), rd = f.along.clone(), right = new THREE.Vector3().crossVectors(up, rd).normalize();
+    return (props.rf = { c: f.p.clone().addScaledVector(up, RIB_Y / 1000), rd, right, up });
   }
   const rp = (x, y, z = 0) => { const f = ribFrame(); return f.c.clone().addScaledVector(f.right, x / 1000).addScaledVector(f.up, y / 1000).addScaledVector(f.rd, z / 1000); };
-  const ribClose = () => nanoIn({ at: rp(-22, 8), dir: ribFrame().rd.clone(), up: ribFrame().up.clone(), dist: 0.16 }, NEAR_HIDE());
+  /* a token turned to the picture, its up the view's up (the rough ER's up is not the world's) */
+  const faced = t => { const f = ribFrame(); t.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.right, f.up, f.rd)); return t; };
+  /* the camera's eye level with the middle of the membrane (as at the rough ER: its cut face a thin band, never its top
+     stretched back as a plane), looking up at a point RIB_AT nm above it */
+  /* (on a phone the corner box covers the top of the picture: the camera a little further away, looking a little higher,
+     so that what stands highest, the large part as it comes and the free ribosome's chain, is below it) */
+  const ribClose = () => {
+    membrane();
+    const P = PHONE(), at = P ? 44 : RIB_AT, dist = P ? 0.225 : RIB_DIST;   /* (the membrane above the switch and the scale bar) */
+    const f = ribFrame(), a = -Math.asin(at / 1000 / dist), cd = f.rd.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.up, Math.sin(a)).normalize();
+    return nanoIn({ at: rerFace().p.clone().addScaledVector(f.up, at / 1000).addScaledVector(f.right, RIB_X / 1000), dir: cd, up: f.up.clone(), dist }, NEAR_HIDE().concat([W.groups.rer]));
+  };
   /* the copy: a thread across the picture; the ribosome reads it a codon (3 bases, about 1 nm) at a time */
-  const makeCopy = () => { const curve = new THREE.CatmullRomCurve3([...Array(13)].map((_, i) => rp(-90 + i * 15, 1.4 * Math.sin(i * 0.9)))); const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 220 })); m.userData.grow(1); props.copy = curve; return curve; };
-  const ribPos = k => rp(-40 + k * 1.1, 0);
-  const makeRib = k => { const t = calm(keep(token('ribosome', TSZ.rib))); t.position.copy(ribPos(k)); return (props.rib = t); };
-  const ribNames = list => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, key === 'r-copy' ? { up: 1 } : {}, o || {})), HUD(), lr(rp(-62, 0), rp(30, 0)));
+  const makeCopy = () => { const curve = new THREE.CatmullRomCurve3([...Array(13)].map((_, i) => rp(-90 + i * 15, 1.4 * Math.sin(i * 0.9)))); const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 220 })); m.userData.grow(1); props.copy = curve; props.copyObj = m; return curve; };
+  const ribPos = k => rp(-12 + k * 1.1, 0);
+  const makeRib = k => { const t = faced(calm(keep(token('ribosome', TSZ.rib)))); t.position.copy(ribPos(k)); return (props.rib = t); };
+  const ribNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, key === 'r-copy' ? { up: 1, small: '<span class="nm__t">copy<br>(mRNA)</span>' } : {}, o || {})), HUDR(), lr(rp(-50, 0), rp(45, 0)), solid.filter(Boolean));
   /* a large part's name stands beside its edge, on the screen's right or left, and its short line ends on the part: beside
      its middle, the name covered half a ribosome (names.js sides) */
   const edge = (c, ...rads) => { const R = new THREE.Vector3().setFromMatrixColumn(world.camera.matrixWorld, 0).normalize(); return [rads.flatMap(rad => [c.clone().addScaledVector(R, rad), c.clone().addScaledVector(R, -rad)]), { sides: rads.flatMap(() => [1, -1]) }]; };
+  /* the same, on its left side only (at the last step the free ribosome, up on the right, needs the right; on a phone the
+     name stands below this ribosome, then above it once it has turned and moved) */
+  const edgeL = (c, rad) => { const [sp] = edge(c, rad); return [[sp[1]], { sides: [-1] }]; };
+  /* the copy's name stands on the copy, away from the ribosome (on a phone the picture is about 125 nm wide) */
+  const copySpots = () => PHONE() ? [rp(44, 1), rp(54, 1), rp(-62, 1)] : [rp(-48, 1), rp(-40, 1), rp(28, 1), rp(38, 1), rp(48, 1)];   /* (on a phone clear of the code's label under the ribosome: on the left it touched it, 11 Nov 2026) */
+  /* the membrane of the rough ER named in this view too (the link: Daniel, 11 Nov 2026): above it, on the right, where
+     nothing of the story is (below it there is no room at the foot of the picture) */
+  const ribMem = () => ['r-mem', 'membrane of the rough ER', [rp(45, -RIB_Y + 3), rp(55, -RIB_Y + 3), rp(35, -RIB_Y + 3)], { up: -1, len: 26, small: '<span class="nm__t">rough ER membrane</span>' }];
   async function assemble() {
     await fly(world.P.ribosome.view.pos, world.P.ribosome.view.at);
     await ribClose();
     if (!props.copy) makeCopy();
-    const s = calm(keep(token('small', TSZ.small))), l = calm(keep(token('large', TSZ.large)));
-    s.position.copy(rp(-40, -34, 5)); l.position.copy(rp(-40, 40, 5));
-    const copyName = ['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1), rp(20, 1)]];
-    ribNames([copyName, ['r-s', 'small part', ...edge(s.position, 0.011)], ['r-l', 'large part', ...edge(l.position, 0.014)]]);
-    await press(() => rp(-40, 22), 'Join', {});
-    await tween(s, { to: rp(-40, -5.9), ms: 900 });
-    await tween(l, { to: rp(-40, 6.5), ms: 900 });
+    const s = faced(calm(keep(token('small', TSZ.small)))), l = faced(calm(keep(token('large', TSZ.large))));
+    /* they come from the sides: the large part from up on the right (up on the left it stood under the corner box), the
+       small part from down on the left (above the switch at the foot of the picture) */
+    s.position.copy(rp(-40, -28, 5)); l.position.copy(rp(24, 26, 5));
+    const copyName = ['r-copy', 'the copy (mRNA)', copySpots()];
+    ribNames([copyName, ribMem(), ['r-s', 'small part', ...edge(s.position, 0.011)], ['r-l', 'large part', ...edge(l.position, 0.014)]], [s, l]);
+    await press(() => rp(-12, 18), 'Join', {});
+    await tween(s, { to: rp(-12, -5.9), ms: 900 });
+    await tween(l, { to: rp(-12, 6.5), ms: 900 });
     drop(s); drop(l);
     const r = makeRib(0);
     burst(scene, r.position, { n: 20, r: 0.02 });
-    ribNames([copyName, ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(ribFrame().up, 0.005), 0.0135)]]);
+    ribNames([copyName, ribMem(), ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(ribFrame().up, 0.009), 0.0135)]]);
     quest.say('A whole ribosome, on the copy of the gene. It is about 30 nanometres (nm) across, and the copy is a thread only 2 nm thick.', 'ok');
     state.use('parts');
   }
@@ -1691,7 +1783,7 @@ export function makePlay(world, quest) {
     const r = props.rib || makeRib(0), F = ribFrame();
     const beads = [], colors = [];
     let chainObj = null;
-    ribNames([['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1)]], ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.005), 0.0135)]]);
+    ribNames([['r-copy', 'the copy (mRNA)', copySpots()], ribMem(), ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.009), 0.0135)]]);
     for (let k = 0; k < CODES.length; k++) {
       const [ci, sym] = CODES[k];
       await tween(r, { to: ribPos(k), ms: 500 });
@@ -1701,9 +1793,14 @@ export function makePlay(world, quest) {
          shape and colour fits */
       const opts = [ci, (ci + 1) % 4, (ci + 2) % 4].sort(() => Math.random() - 0.5);
       const toks = opts.map((c, i) => {
-        const t = keep(token('amino', TSZ.aa)); t.children[0].material = t.children[0].material.clone(); t.children[0].material.color.setHex(AMINO_COLORS[c]); t.children[0].material.emissive.setHex(AMINO_COLORS[c]);
-        const cr = token('carrier', TSZ.car); cr.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.color.setHex(AMINO_COLORS[c]); o.material.emissive.setHex(AMINO_COLORS[c]); o.material.emissiveIntensity *= 0.4; } }); cr.position.copy(F.up).multiplyScalar(-TSZ.car * 0.25); t.add(cr);
-        t.position.copy(r.position).addScaledVector(F.right, (-14 + i * 14) / 1000).addScaledVector(F.up, 0.03).addScaledVector(F.rd, 0.006); return { t, c };
+        const t = faced(keep(token('amino', TSZ.aa))); t.children[0].material = t.children[0].material.clone(); t.children[0].material.color.setHex(AMINO_COLORS[c]); t.children[0].material.emissive.setHex(AMINO_COLORS[c]);
+        const cr = token('carrier', TSZ.car); cr.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.color.setHex(AMINO_COLORS[c]); o.material.emissive.setHex(AMINO_COLORS[c]); o.material.emissiveIntensity *= 0.4; } }); t.add(cr);   /* (the L's amino acid end is the token's middle: actors.js carrier) */
+        /* up on the right of the ribosome, clear of the corner box at the top left (each L hangs 7.5 nm to the left of its
+           amino acid and 7 nm down: clear of the ribosome's top) */
+        /* (on a phone the corner box covers the top: in a row below the copy, on the right, a button's width apart; up
+           there they had been pushed under the box and touched) */
+        const P = PHONE();
+        t.position.copy(r.position).addScaledVector(F.right, (P ? 34 + i * 24 : 27 + i * 16) / 1000).addScaledVector(F.up, P ? -0.022 : 0.026).addScaledVector(F.rd, 0.006); return { t, c };
       });
       await new Promise(done => {
         toks.forEach(({ t, c }) => {
@@ -1725,27 +1822,65 @@ export function makePlay(world, quest) {
       });
     }
     props.chain = chainObj;
-    ribNames([['r-copy', 'the copy (mRNA)', [rp(-75, 1), rp(-70, 1), rp(10, 1)]], ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.005), 0.0135)],
+    ribNames([['r-copy', 'the copy (mRNA)', copySpots()], ribMem(), ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.009), 0.0135)],
       ['r-chain', 'the chain of amino acids', beads.slice(-3).map(b => b.clone())]]);
     quest.say('The ribosome reads the copy and joins the amino acids in its order: the start of the amylase chain. Each amino acid is about 1 nm across.', 'ok');
     state.use('amino'); state.use('mrna');
   }
+  /* the chain as translate leaves it, for a pupil who comes back to the last step */
+  const ribChain = r => { const F = ribFrame(), cols = CODES.map(c => c[0]); return keep(chain(cols.map((_, q) => r.position.clone().addScaledVector(F.up, (17 + 1.15 * (cols.length - 1 - q)) / 1000).addScaledVector(F.right, ((q % 2) - 0.5) * 0.0008)), cols, TSZ.bead)); };
+  /* another ribosome close by, on another copy, making a protein with no signal: it stays free in the cytosol, up on the
+     right, away from the membrane (clear of the corner box at the top left, of this one's chain, and of where this one
+     goes: 28 nm to the right, 46 nm above the membrane) */
+  function freeRib() {
+    const a = rp(22, 10), b = rp(85, 24), curve = new THREE.CatmullRomCurve3([a, a.clone().lerp(b, 0.35).addScaledVector(ribFrame().up, 0.0012), a.clone().lerp(b, 0.7).addScaledVector(ribFrame().up, -0.001), b]);
+    const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 120 })); m.userData.grow(1); props.copy2 = curve;
+    const at = curve.getPointAt(0.5), dir = b.clone().sub(a).normalize(), up = new THREE.Vector3().crossVectors(ribFrame().rd, dir).normalize();
+    const t = calm(keep(token('ribosome', TSZ.rib))); t.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(dir, up, ribFrame().rd)); t.position.copy(at);
+    const cols = [2, 3, 0, 2, 1, 3, 1], c = keep(chain(cols.map((_, q) => at.clone().addScaledVector(up, (17 + 1.15 * (cols.length - 1 - q)) / 1000).addScaledVector(dir, ((q % 2) - 0.5) * 0.0008)), cols, TSZ.bead));
+    return (props.free = { t, c, up });
+  }
   async function where() {
     await ribClose();
     if (!props.copy) makeCopy();
-    const r = props.rib || makeRib(0);
+    const r = props.rib || makeRib(CODES.length - 1), F = ribFrame();
+    const ch = props.chain || (props.chain = ribChain(r));
+    ribNames([['r-copy', 'the copy (mRNA)', copySpots()], ribMem(), ['r-rib', 'ribosome', ...edge(r.position.clone().addScaledVector(F.up, 0.009), 0.0135)]]);
     await quest.choose(['On the rough ER', 'Here, floating in the cytosol', 'Inside the nucleus'], 0, async (i) => {
       if (i === 1) quest.say('<p>Then amylase would stay in the cytosol, and it could never reach a vesicle or leave the cell.</p><p>Proteins that leave the cell are made on the <b>rough ER</b>.</p>', 'no');
-      else quest.say('Ribosomes make proteins in the cytoplasm, never inside the nucleus. The signal takes this one to the <b>rough ER</b>.', 'no');
+      else quest.say('Ribosomes make proteins in the cytoplasm, never inside the nucleus. Because of its signal, this one is taken to the <b>rough ER</b>.', 'no');
       await wait(300);
     });
-    /* from far away the ribosome is far too small to see: a glow shows it on its way to the rough ER */
+    /* both paths (Daniel, 11 Nov 2026: "show both things, that the ribosomes go into the cytosol, but they can also go
+       into the rough ER"): another ribosome close by makes a protein with no signal, so it stays free in the cytosol; this
+       one, whose chain starts with a signal, goes down to the membrane of the rough ER with its copy, turning its large
+       part (where the chain leaves) to the membrane, to where Dock begins at the rough ER (ep(-28, 46)) */
+    const o = props.free || freeRib();
+    const names = mine => ribNames([(PHONE() ? ['r-free', 'a free ribosome', [o.t.position.clone().addScaledVector(ribFrame().up, -0.011)], { up: 1, len: 26 }] : ['r-free', 'a free ribosome', ...edge(o.t.position.clone().addScaledVector(ribFrame().up, -0.004), 0.0125, 0.0145)]), (PHONE() ? ['r-rib', 'your ribosome', [r.getWorldPosition(new THREE.Vector3()).addScaledVector(ribFrame().up, mine ? -0.012 : 0.012)], { up: mine ? 1 : -1, len: 34 }] : ['r-rib', 'your ribosome', ...edgeL(r.getWorldPosition(new THREE.Vector3()).addScaledVector(ribFrame().up, mine ? 0.009 : -0.009), 0.0135)]), ribMem()], [r, o.t, ch]);   /* (r in its pivot: its world position) */
+    names(true);
+    quest.say('<p>Not every protein has this signal. This other ribosome makes a protein with no signal: it stays in the cytosol, and its protein stays in the cytosol too.</p><p>Your chain starts with a signal, so your ribosome is taken to the membrane of the rough ER.</p>', 'ok');
+    await wait(R.TEST ? 0 : 2200);
+    const to = ep(-28, 46), d = to.clone().sub(r.position);
+    const pivot = keep(new THREE.Group()); pivot.position.copy(r.position); pivot.attach(r); pivot.attach(ch);
+    const copy = props.copyObj, c0 = copy ? copy.position.clone() : null, p0 = pivot.position.clone(), t0 = performance.now(), s0 = quest.session;
+    /* it rolls over on its copy (about the copy's own line), so that its large part faces the membrane */
+    await live(new Promise(res => {
+      const f = () => {
+        if (quest.session !== s0) return res();
+        const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 2400), e = k * k * (3 - 2 * k);
+        pivot.position.copy(p0).addScaledVector(d, e); pivot.quaternion.setFromAxisAngle(F.right, Math.PI * e);
+        if (copy) copy.position.copy(c0).addScaledVector(d, e);
+        world.kick(); if (k < 1) requestAnimationFrame(f); else res();
+      };
+      f();
+    }));
+    names(false);
+    await wait(R.TEST ? 0 : 1600);
+    /* from far away the ribosome is far too small to see: a glow shows it, at the rough ER */
     quest.names.set([], HUD());
     haloSprite(r, 0.05, 0xfff1a8);
     await nanoOut(world.P.ribosome.view);
-    const go = world.P.rer.center.clone().add(V(0.6, 0.8, 1.2));
-    await Promise.all([tween(r, { to: go, ms: 2200 }), props.chain ? tween(props.chain, { to: go.clone().sub(r.position), ms: 2200 }) : null]);
-    await quest.gain('chain', go);
+    await quest.gain('chain', to);
     await quest.next('Back to the map');
   }
 
@@ -1762,7 +1897,11 @@ export function makePlay(world, quest) {
     const hit = ray.intersectObjects(sheets, false)[0];
     const p = hit ? hit.point : at, n = hit && hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : cam.clone().sub(at).normalize();
     if (n.dot(cam.clone().sub(p)) < 0) n.negate();
-    const right = new THREE.Vector3().crossVectors(Math.abs(n.y) > 0.9 ? V(1, 0, 0) : V(0, 1, 0), n).normalize(), along = new THREE.Vector3().crossVectors(n, right).normalize();
+    /* along: in the membrane, towards the view's camera, so that a close view at the membrane's eye level looks from the side
+       the camera came from (11 Nov 2026: along had been the membrane's direction nearest the world's up; a camera looking up
+       from it, as at the ribosome place, then pointed almost straight up, where the controls keep it 0.15 rad from the pole
+       (world.limits), and it had stood 23 nm below the membrane) */
+    const toCam = cam.clone().sub(p), along = toCam.addScaledVector(n, -toCam.dot(n)).normalize(), right = new THREE.Vector3().crossVectors(along, n).normalize();
     return (props.face = { p, n, right, along });
   }
   /* offsets in nm: x along the membrane (across the picture), y out of it (up: the cytosol; down, negative: inside the ER) */
@@ -1794,7 +1933,7 @@ export function makePlay(world, quest) {
   const rerClose = () => { membrane(); const f = rerFace(), a = -Math.asin(RER_AT / 1000 / RER_DIST), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize();
     return nanoIn({ at: ep(0, RER_AT), dir: cd, up: f.n.clone(), dist: RER_DIST }, NEAR_HIDE().concat([W.groups.rer])); };
   /* solid: the large parts no name may cover (the ribosome, before it docks too, while it waits in the cytosol; the vesicle) */
-  const rerNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUD(), lr(ep(-34, 0), ep(34, 0)), solid.filter(Boolean));
+  const rerNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDR(), lr(ep(-34, 0), ep(34, 0)), solid.filter(Boolean));
   /* the membrane's name below its cut face, the channel's below its own (a name on or beside a thin part hides it) */
   /* (a phone's picture is about 130 nm wide: its spots nearer the middle, last, and shorter words) */
   const memName = () => ['e-mem', 'membrane of the rough ER', [ep(-60, 0), ep(-50, 0), ep(50, 0), ep(60, 0), ep(-26, 0), ep(26, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }];
@@ -1807,15 +1946,24 @@ export function makePlay(world, quest) {
   /* the ribosome docked: its large part on the channel (turned so that the large part faces the membrane) */
   const seat = () => ep(0, 3 + 16.5);
   const makeDocked = () => { const t = calm(keep(token('ribosome', TSZ.rib))); t.quaternion.setFromUnitVectors(V(0, 1, 0), rerFace().n.clone().negate()); t.position.copy(seat()); return (props.rib = t); };
+  /* the ribosome's copy of the gene (mRNA): a ribosome that is making a chain stays on its copy (the expert review, 11 Nov
+     2026: at the rough ER it had none, while the ribosomes beside it had theirs), so a copy runs through it, between its two
+     parts, across the picture, and moves with it; when the chain is finished the ribosome leaves it, and it stays */
+  const rerCopy = c => {
+    if (props.copyObj) { props.copyObj.position.copy(c).sub(props.copyAt); return props.copyObj; }
+    const f = rerFace(), curve = new THREE.CatmullRomCurve3([...Array(13)].map((_, i) => c.clone().addScaledVector(f.right, (-90 + i * 15) / 1000).addScaledVector(f.n, 1.4 * Math.sin(i * 0.9) / 1000)));
+    const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 220 })); m.userData.grow(1); props.copy = curve; props.copyObj = m; props.copyAt = c.clone(); return m;
+  };
   async function dock() {
     await fly(world.P.rer.view.pos, world.P.rer.view.at);
     await rerClose();
     const f = rerFace();
     const r = calm(keep(token('ribosome', TSZ.rib))); r.quaternion.setFromUnitVectors(V(0, 1, 0), f.n.clone().negate()); r.position.copy(ep(-28, 46)); props.rib = r;
+    const cp = rerCopy(r.position);
     const sig = keep(chain([ep(-28, 46 - 17), ep(-27.5, 46 - 18.2)], [0, 1], TSZ.bead)); props.sig = sig;
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
-    await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 })]);
+    await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(seat(), 0.0135)]]);
     quest.say('The ribosome sits on a channel in the membrane of the rough ER. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
   }
@@ -1842,7 +1990,7 @@ export function makePlay(world, quest) {
   async function grow() {
     await rerClose();
     /* the signal leaves the ribosome's tunnel when about 60 amino acids are joined: the count starts there */
-    const r = ribAt();
+    const r = ribAt(); rerCopy(r.position);
     rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow });
     await count(r, 60, 150, 2400);
@@ -1853,7 +2001,7 @@ export function makePlay(world, quest) {
   }
   async function cut() {
     await rerClose();
-    const r = ribAt();
+    const r = ribAt(); rerCopy(r.position);
     if (!props.blob) props.blob = blob(14);
     const sig = props.sig || keep(chain([ep(-3, -5), ep(-4, -6)], [0, 1], TSZ.bead));
     /* the enzyme that removes the signal: a protein in the membrane beside the channel, about 5 nm */
@@ -1874,7 +2022,7 @@ export function makePlay(world, quest) {
     await Promise.all([tween(sm, { to: sm.position.clone().addScaledVector(up, 0.06).addScaledVector(rerFace().right, -0.03), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().addScaledVector(up, 0.07).addScaledVector(rerFace().right, 0.03), ms: 1300, fade: 0 })]);
     drop(sm); drop(lg); drop(enz);
     rerNames([memName(), ...sides(), ['e-chain', 'the chain', [ep(4, -16)]]]);
-    quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids.</p>', 'ok');
+    quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids. Only part of the chain is drawn here.</p>', 'ok');
   }
   async function fold() {
     await rerClose();
@@ -1917,6 +2065,113 @@ export function makePlay(world, quest) {
     drop(g); props.amylase = null;
     await quest.next('Back to the map');
   }
+
+  /* ---------------- "As it really is" (11 Nov 2026) ----------------
+     Daniel, 11 Nov 2026: "if you're looking at something in the middle of nowhere, it feels like the cell is empty … once
+     you have zoom in, you can have a toggle saying, this is to simplify, and then you click a toggle, and this is how it
+     looks in reality … you'll be fixed in an area … and then you can pack it with all of the things that are inside the
+     cell … make sure that once it stops the camera, you have that toggle"; his choice, the same day: the ribosome place
+     and the rough ER first. A switch, Simple | As it really is, at the foot of the picture (left, above the scale bar),
+     shown while the close view of one of them is still and its step waits for the pupil. As it really is: the slice
+     behind the story's own molecules packed at true size (crowd.js), a few names on what is there, and a note in the step
+     (the numbers, and that many ribosomes sit on the rough ER); the step's buttons wait (the buttons on the picture are
+     hidden, the panel's are paused) until the pupil switches back. The camera stays in its place, turned and zoomed a
+     little as before (tight). It is built when pressed and removed when switched off, when the step changes, when the
+     pupil leaves (reset) or when a step is watched again. Proof: tools/real-view.mjs */
+  const REAL = { on: false, el: null, note: null, crowd: null, names: null, places: ['ribosome', 'rer'] };
+  /* the crowd's names on a layer of their own (#names2): the step's names stay as they are, only hidden while it is on, so
+     Simple shows them again exactly where they stood (replacing them, a phone had placed a different few afterwards) */
+  const crowdNames = () => REAL.names || (REAL.names = new Names(world, (() => { const l = R.h('div', { class: 'names', id: 'names2' }); R.$('#stage').insertBefore(l, R.$('#hots')); return l; })()));
+  /* the step waits for the pupil: a button on the picture that can be pressed, or one in the step (a choice, Next) */
+  const waitsForPupil = () => quest.hots.some(o => o.alive && !o.el.disabled) || !!(quest.step && quest.step.li && quest.step.li.querySelector('.step__do button:not([disabled])'));
+  const realHere = () => NZ.on && REAL.places.includes(quest.cur) && !quest.watchingNow();
+  function realUI() {
+    if (REAL.el) return REAL.el;
+    const el = R.h('div', { class: 'realsw', role: 'group', 'aria-label': 'How the picture is drawn' },
+      '<button type="button" class="realsw__b" data-real="0" aria-pressed="true">Simple</button><button type="button" class="realsw__b" data-real="1" aria-pressed="false">As it really is</button>');
+    el.hidden = true; R.$('#stage').appendChild(el);
+    /* drawing the crowd takes up to a second on a slow phone: the button says so first (memory dashboard-busy-states) */
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-real]'); if (!b) return;
+      if (b.dataset.real !== '1' || REAL.on) { realSet(b.dataset.real === '1'); return; }
+      quest.names.frozen = true;   /* (before the label changes: the switch's new size would place the step's names again) */
+      b.textContent = 'Drawing…'; el.setAttribute('aria-busy', 'true');
+      requestAnimationFrame(() => setTimeout(() => { try { realSet(true); } finally { b.textContent = 'As it really is'; el.removeAttribute('aria-busy'); if (!REAL.on) quest.names.frozen = false; } }, 0));
+    });
+    REAL.el = el;
+    setInterval(realTick, 200);
+    return el;
+  }
+  /* shown only where it can be used; it stands at the foot of the free part of the picture, above the scale bar */
+  function realTick() {
+    const el = REAL.el;
+    if (!realHere()) { if (REAL.on) realSet(false); if (!el.hidden) el.hidden = true; return; }
+    const show = REAL.on || (!world.flying && waitsForPupil());
+    if (el.hidden === show) el.hidden = !show;
+    if (!show) return;
+    /* placed once it shows (hidden, its height is 0: it had stood 36 px too low for a moment), and the names told when it
+       moves: a move is not a change of size, so their ResizeObserver does not see it, and a name had stood under it */
+    /* (on a phone at the bottom right, above Hide text: at the left, over the scale bar, it had stood on the rough ER's chain) */
+    const qh = document.getElementById('qHide'), phone = PHONE() && qh && qh.offsetHeight;
+    el.style.left = phone ? 'auto' : ''; el.style.right = phone ? '10px' : '';
+    const top = Math.round(phone ? qh.offsetTop - el.offsetHeight - 8 : world.size.h - (world.inset.bottom || 0) - 50 - el.offsetHeight - 10) + 'px';
+    if (el.style.top !== top) { el.style.top = top; [quest.names, REAL.names].forEach(N => { if (N && N.keepOut) { N.keeps(); N.dirty = true; N.still = 0; } }); world.kick(); }
+  }
+  /* what the crowd keeps clear (nm, in the rough ER's frame): every drawn part of the story's own molecules (a sphere
+     round each mesh), the copies sampled along their lines (a copy's own sphere is as wide as the picture) */
+  function realClear(F) {
+    const out = [], sph = new THREE.Sphere(), inF = p => { const d = p.clone().sub(F.o); return [d.dot(F.right) * 1000, d.dot(F.up) * 1000, d.dot(F.back) * 1000]; };
+    kept.forEach(o => {
+      if (o === props.mem || !o.visible) return;
+      o.updateMatrixWorld(true);
+      o.traverse(m => {
+        if (!m.isMesh || !m.visible) return;
+        if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+        sph.copy(m.geometry.boundingSphere).applyMatrix4(m.matrixWorld);
+        const r = sph.radius * 1000; if (r > 45) return;
+        out.push([...inF(sph.center), r + 1]);
+      });
+    });
+    out.push([0, 0, -3, 5.5]);   /* the channel where the story's ribosome docks (the membrane's own drawing: membrane()) */
+    /* room round the chain and amylase inside the rough ER, so that they can be seen (the expert review: the chain was lost) */
+    if (props.blob && props.blob.parent) props.blob.children.forEach(b => out.push([...inF(b.getWorldPosition(new THREE.Vector3())), 3.5]));
+    if (props.amylase && props.amylase.parent) out.push([...inF(props.amylase.getWorldPosition(new THREE.Vector3())), 6.5]);
+    [props.copy, props.copy2].forEach(cv => { if (cv) cv.getSpacedPoints(240).forEach(p => out.push([...inF(p), 2.5])); });
+    /* a copy moved with its ribosome (the last step) */
+    if (props.copyObj && props.copy && props.copyObj.position.lengthSq() > 0) props.copy.getSpacedPoints(240).forEach(p => out.push([...inF(p.clone().add(props.copyObj.position)), 2.5]));
+    return out;
+  }
+  const NOTE = '<p class="realnote__h">As it really is</p><p>The cytosol is packed: large molecules, mostly proteins, fill 20–30 % of the space. Water and other small molecules fill the rest. They are not drawn.</p><p>Many ribosomes sit on the membrane of the rough ER. That is why it looks rough.</p><p class="realnote__s">Everything is at its true size. Real molecules have no colour: the colours only help you see each one. Source: Ellis 2001, Trends in Biochemical Sciences 26:597.</p><p class="realnote__go">Press <b>Simple</b> to continue the step.</p>';
+  function realSet(on) {
+    on = !!on && realHere(); if (on === REAL.on) return;
+    REAL.on = on;
+    REAL.el.querySelectorAll('[data-real]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.real === '1') === on)));
+    R.$('#stage').classList.toggle('is-real', on);
+    /* the step's names wait as they are (names.js frozen), and are placed again only once the panel is its own size again */
+    quest.names.frozen = on; if (!on) { quest.names.dirty = true; quest.names.still = 0; world.kick(); }
+    if (on) {
+      const f = rerFace(), F = { o: f.p.clone(), up: f.n.clone(), back: f.along.clone() }; F.right = new THREE.Vector3().crossVectors(F.up, F.back).normalize();
+      REAL.crowd = buildCrowd(F, realClear(F)); scene.add(REAL.crowd.group);
+      const sp = REAL.crowd.spots, mine = props.rib && props.rib.parent ? [props.rib] : [];
+      /* one line, one thing: each name in the singular, on one of them (the expert review, 11 Nov 2026) */
+      const list = [['x-prot', 'a protein', sp.proteins], ['x-rib', 'another ribosome', sp.ribosomes], ['x-car', 'a carrier', sp.carriers]];
+      if (quest.cur === 'rer') list.push(['x-in', 'a protein inside the rough ER', sp.lumen, { small: '<span class="nm__t">a protein inside<br>the rough ER</span>' }]);
+      if (mine.length) list.push(['x-mine', 'your ribosome', ...edge(props.rib.getWorldPosition(new THREE.Vector3()).addScaledVector(f.n, 0.009), 0.0135)]);
+      /* the story's own molecule in the rough ER, never lost in the crowd */
+      if (props.amylase && props.amylase.parent) list.push(['x-amy', 'amylase', [props.amylase.getWorldPosition(new THREE.Vector3())]]);
+      else if (props.blob && props.blob.parent && props.blob.children.length) list.push(['x-chain', 'the chain', [props.blob.children[props.blob.children.length - 1].getWorldPosition(new THREE.Vector3())]]);
+      const solid = mine.concat([props.blob, props.amylase, props.free && props.free.t].filter(o => o && o.parent));   /* (no crowd name on the story's own molecules: on a phone one had hidden the chain) */
+      crowdNames().set(list.filter(it => it[2].length).map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDR(), Object.assign(lr(ep(50, 0), ep(-50, 0)), { on: true }), solid);   /* (on: beside their parts, never in columns round the picture: long lines across the crowd) */
+      if (quest.step && quest.step.li) { REAL.note = R.h('div', { class: 'realnote', role: 'status' }, NOTE.replace('<p class="realnote__s">', quest.cur === 'rer' ? '<p>The inside of the rough ER is packed with proteins too.</p><p class="realnote__s">' : '<p class="realnote__s">')); quest.step.li.appendChild(REAL.note); quest.reveal(REAL.note, false); }
+    } else {
+      if (REAL.crowd) { scene.remove(REAL.crowd.group); REAL.crowd.dispose(); REAL.crowd = null; }
+      if (REAL.note) { REAL.note.remove(); REAL.note = null; }
+      if (REAL.names) REAL.names.set([]);
+    }
+    world.kick();
+  }
+  const realOff = () => { if (REAL.on) realSet(false); };
+  realUI();
 
   /* ---------------- the smooth ER, the Golgi and the way out, at their true sizes (round 6, 10 Nov 2026) ----------------
      His "Yes, build it" to the plan (and to the close-up of the sugars): each place close up with the scale bar, every

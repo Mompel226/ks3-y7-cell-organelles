@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611101933';
-import { state, COST } from './state.js?v=202611101933';
-import { sound } from './sound.js?v=202611101933';
-import { finalLine } from './final.js?v=202611101933';
+import { ICON } from './icons.js?v=202611111833';
+import { state, COST } from './state.js?v=202611111833';
+import { sound } from './sound.js?v=202611111833';
+import { finalLine } from './final.js?v=202611111833';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611101933').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611101933';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611111833').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611111833';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -122,7 +122,8 @@ export class Quest {
     if (this.hots.length) {
       const L = this.hotsEl.getBoundingClientRect(), box = el => { const r = el.getBoundingClientRect(); return r.width ? { l: r.left - L.left, r: r.right - L.left, t: r.top - L.top, b: r.bottom - L.top } : null; };
       /* what a button keeps off: the box at the top left, and the names on the world (the way in names its parts) */
-      this.keeps = [document.querySelector('.hud'), ...document.querySelectorAll('#names.on .nm')].filter(Boolean).map(box).filter(Boolean);
+      /* (and the switch "Simple / As it really is" at the foot of the picture, when it shows: play.js REAL) */
+      this.keeps = [document.querySelector('.hud'), document.querySelector('.realsw:not([hidden])'), ...document.querySelectorAll('#names.on .nm')].filter(Boolean).map(box).filter(Boolean);
       this.w.camera.updateMatrixWorld(); this.hots.forEach(o => this.place1(o)); this.spread(); this.hots.forEach(o => { if (o.box) this.paint(o); });
     }
     requestAnimationFrame(this.loop);

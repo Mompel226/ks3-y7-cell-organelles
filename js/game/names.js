@@ -286,6 +286,9 @@ export class Names {
 
   /* ---------- the layout, made when the list changes and each time the camera stops ---------- */
   show() {
+    /* frozen (play.js REAL: the names wait, hidden, under As it really is): no new layout, so that afterwards each stands
+       where it stood (on a phone the panel grows with the note, and a layout in between had placed a different few) */
+    if (this.frozen) { this.dirty = true; return; }
     const W = this.w, s = W.size;
     this.dirty = false;
     if (!this.items.length) { this.order = []; this.report = []; this.count = 0; this.left = 0; this.frame(); return; }

@@ -565,3 +565,22 @@ html.is-final{overflow:hidden}
 footer .credits{margin-top:4px}
 footer .credits summary{cursor:pointer;font-weight:700;color:var(--ink2)}
 footer .credits p{margin:.5em 0 0}
+
+/* "As it really is" (11 Nov 2026; play.js REAL): a switch at the foot of the picture, above the scale bar, in a close view
+   of the ribosome place or the rough ER; on, the step's buttons wait (the picture's are hidden, the panel's paused) and a
+   note in the step says what is there */
+.realsw{position:absolute;left:16px;top:0;z-index:5;display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--glass);border:1.5px solid var(--glass-rule);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.realsw[hidden]{display:none}
+.realsw__b{font:800 14.5px/1 var(--sans);color:#FFF8E6;background:transparent;border:0;border-radius:999px;padding:8px 13px;cursor:pointer;white-space:nowrap}
+.realsw__b[aria-pressed="true"]{background:var(--gold);color:#1B1B33}
+.realsw__b[aria-pressed="false"]:hover,.realsw__b:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.stage.is-real .hots .hot3{visibility:hidden!important}
+.stage.is-real #names{opacity:0!important}   /* the step's names wait under the crowd's own (#names2) */   /* (each button sets its own visibility: quest.js paint) */
+.stage.is-real .step.is-now .step__do{opacity:.45;pointer-events:none}
+.realnote{margin:10px 0 0;border-radius:14px;padding:10px 14px;background:color-mix(in srgb,var(--qp-accent) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--qp-accent) 30%,transparent);font-size:16px}
+.realnote p{margin:0}
+.realnote p+p{margin-top:.45em}
+.realnote__h{font-weight:800;color:var(--qp-accent)}
+.realnote__s{font-size:.86em;opacity:.8}
+.realnote__go{font-weight:700}
+@media (max-width:560px){ .realsw__b{font-size:13.5px;padding:7px 10px} }

@@ -19,9 +19,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices, mergeGeometries } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611101933';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611101933';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611101933';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611111833';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611111833';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611111833';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -221,18 +221,27 @@ export const VIEWS = {
   nucleolus:{ pos: [1.6, 7.3, 4.6], at: [0.55, 5.5, 0.5] },
   /* the whole of the one you visit, cut open, in the free part of the picture at any size (it is 2.7 µm long) */
   mito:     { pos: HERO_AT.clone().addScaledVector(HERO_FACE, 4.6).add(new THREE.Vector3(0.25, 0.2, 0)).toArray(), at: HERO_AT.clone().add(new THREE.Vector3(0.05, 0.02, 0)).toArray() },
-  ribosome: { pos: [-2.9, 8.6, 9.4], at: [-2.4, 7.7, 2.6] },
+  /* beside the rough ER (Daniel, 11 Nov 2026: "most of the ribosomes … are formed in the rough endoplasmic reticulum … the
+     students should link the rough ER with ribosomes"): on the rough ER's own line of sight, 3 µm from the point of its
+     outer layer where its view looks (where a ribosome docks: play.js rerFace), looking at the cytosol just off it */
+  ribosome: { pos: [-6.006, 4.723, 4.570], at: [-4.556, 3.885, 2.137] },
   rer:      { pos: [-7.6, 5.6, 7.2], at: [-3.6, 3.4, 0.6] },
   ser:      { pos: [-8.6, 9.4, 5.6], at: [-4.6, 7.8, 0.4] },
   golgi:    { pos: [2.6, 12.2, 6.8], at: [0.4, 10.0, -0.3] },
   tracks:   { pos: [4.6, 12.8, 7.0], at: [1.4, 11.2, -0.2] },
   exit:     { pos: [1.8, 18.6, 6.4], at: [0, 15.2, -0.3] }
 };
+/* the rough ER's docking point (its view's line meets its outer layer at -4.51, 3.90, 2.10, facing -0.766, -0.265, 0.586),
+   0.9 µm out into the cytosol */
+const RIB_CENTER = new THREE.Vector3(-4.51, 3.901, 2.102).addScaledVector(new THREE.Vector3(-0.766, -0.265, 0.586), 0.9);
 const segDist = (p, a, b) => { const ab = b.clone().sub(a), t = Math.max(0, Math.min(1, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)); };
-const SIGHTS = Object.values(VIEWS).map(v => [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
+/* the lines of sight that placed the world: the ribosome place's as it was before 11 Nov 2026 (its new one lies on the
+   rough ER's, which is kept clear already), so that nothing placed with them moves */
+const VIEW0 = { ribosome: { pos: [-2.9, 8.6, 9.4], at: [-2.4, 7.7, 2.6] } };
+const SIGHTS = Object.entries(VIEWS).map(([k, v]) => VIEW0[k] || v).map(v => [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
 /* the lines of sight as they were before 5 Nov 2026 (the old view of the mitochondria): the old rods' placement still
    draws its random numbers with them, so that nothing placed after it moves */
-const SIGHTS0 = Object.entries(VIEWS).map(([k, v]) => k === 'mito' ? [new THREE.Vector3(4.6, 8.0, 5.0), new THREE.Vector3(3.95, 7.35, 1.35)] : [new THREE.Vector3(...v.pos), new THREE.Vector3(...v.at)]);
+const SIGHTS0 = Object.entries(VIEWS).map(([k, v]) => k === 'mito' ? [new THREE.Vector3(4.6, 8.0, 5.0), new THREE.Vector3(3.95, 7.35, 1.35)] : [new THREE.Vector3(...(VIEW0[k] || v).pos), new THREE.Vector3(...(VIEW0[k] || v).at)]);
 
 /* ============================================================ the world ============================================================ */
 export function buildCell(scene) {
@@ -959,7 +968,9 @@ export function places(W) {
     nucleus:  { name: 'Nucleus', center: N0.clone(), hit: 3.1, spots: nucSpots, view: VIEWS.nucleus, mist: 3.6, groups: ['nucleus'] },
     nucleolus:{ name: 'Nucleolus', center: N0.clone().add(new THREE.Vector3(0.55, 0.55, 0.8)), hit: 1.0, spots: [N0.clone().add(new THREE.Vector3(0.55, 1.2, 0.95)), N0.clone().add(new THREE.Vector3(1.2, 0.55, 1.0)), N0.clone().add(new THREE.Vector3(-0.1, 0.55, 1.1))], view: VIEWS.nucleolus, mist: 1.2, groups: [] },
     mito:     { name: 'Mitochondria', center: hero.clone(), hit: 1.6, spots: [0.08, 0.25, 0.5, 0.75, 0.92].flatMap(k => [1, -1].map(sd => W.mito.hero.localToWorld(heroPoint(W.mito.spec, W.mito.spec.total * k, sd * along(W.mito.spec, W.mito.spec.total * k).r * 0.98, 0.02)))), view: VIEWS.mito, mist: 2.2, groups: ['mitochondria'] },
-    ribosome: { name: 'Ribosomes', center: new THREE.Vector3(-2.6, 7.6, 2.4), hit: 1.6, spots: riboSpots.length ? riboSpots : [new THREE.Vector3(-2.6, 7.6, 2.4)], view: VIEWS.ribosome, mist: 1.9, groups: ['free-ribosomes'] },
+    /* in the cytosol off the rough ER's outer layer, where its view looks (11 Nov 2026), out far enough that its sphere stands
+       in front of the rough ER's on the map, so that both can be pressed */
+    ribosome: { name: 'Ribosomes', center: RIB_CENTER.clone(), hit: 0.9, spots: riboSpots.length ? riboSpots : [RIB_CENTER.clone()], view: VIEWS.ribosome, mist: 1.1, groups: ['free-ribosomes'] },
     rer:      { name: 'Rough ER', center: new THREE.Vector3(-3.8, 3.6, 0.9), hit: 2.4, spots: rerSpots, view: VIEWS.rer, mist: 3.0, groups: ['rer'] },
     ser:      { name: 'Smooth ER', center: new THREE.Vector3(-4.6, 7.9, -0.1), hit: 1.8, spots: serSpots, view: VIEWS.ser, mist: 2.2, groups: ['ser'] },
     golgi:    { name: 'Golgi apparatus', center: G0.clone().add(new THREE.Vector3(0, 0.6, 0)), hit: 2.2, spots: golgiSpots, view: VIEWS.golgi, mist: 2.6, groups: ['golgi'] },

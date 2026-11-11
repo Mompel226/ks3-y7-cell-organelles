@@ -185,22 +185,22 @@ window.STORY = {
   ribosome: {
     part: 6, task: 'game-ribosome', title: 'Ribosomes', onPic: 'Ribosome', plural: true, kind: 'Not an organelle: no membrane', y7: true, def: 'ribosome',
     needs: ['mrna', 'parts', 'amino', 'energy'], gives: ['chain'],
-    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nClose up, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.',
+    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nClose up, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'assemble', text: '<mark class="do">Press Join:</mark> the small part attaches to the copy, then the large part joins it. Now it is a whole ribosome.' },
       { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press the carrier that matches the code under the ribosome.</mark>\nEvery amino acid you join uses some energy.' },
       { play: 'where', text: 'The first part of the amylase chain is a <b>signal</b>: it means that this protein must be made on the rough ER. Proteins that the cell releases are made there.\n<mark class="do">Choose where this ribosome must work.</mark>' }
     ],
-    done: 'The ribosome is moving to the <b>rough ER</b>, with the start of the chain.',
+    done: 'Your ribosome is at the <b>rough ER</b>, with the start of the chain.',
     fact: { text: 'Electron micrographs showed one small box of a HeLa cell (a human cell grown in laboratories), only 7.5 × 4.6 × 7.5 µm. In it, a computer program found 553 130 ribosomes.', src: 'OpenOrganelle, dataset jrc_hela-2 (Xu et al. 2021, Nature 599:147; Heinrich et al. 2021, Nature 599:141)' },
     fact2: { text: 'The part of a ribosome that joins amino acids together is made of <dfn data-w="rna">RNA</dfn>, not protein.', src: 'Nissen et al. 2000, Science 289:920' }
   },
   rer: {
     part: 7, task: 'game-rer', title: 'Rough ER', kind: 'Organelle: flattened sacs of membrane', def: 'rough-er',
     needs: ['chain'], gives: ['amylase'], alsoNeeds: ['lipids'],
-    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough. (On the map they are drawn about four times larger, so that you can see them; close up, everything is at its true size.)\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.',
+    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough. (On the map they are drawn about four times larger, so that you can see them; close up, everything is at its true size.)\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
-      { play: 'dock', text: '<mark class="do">Press Dock:</mark> the signal takes the ribosome to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
+      { play: 'dock', text: '<mark class="do">Press Dock:</mark> because of the signal, the ribosome is taken to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel, inside the rough ER.\n<mark class="do">Press Go.</mark>' },
       { play: 'cut', text: 'While the chain is still growing, an enzyme in the membrane of the rough ER removes the signal.\n<mark class="do">Press Cut.</mark>' },
       { play: 'fold', text: '<mark class="do">Press Fold.</mark>\nThe chain folds into its shape. A groove in it, the <dfn data-w="active-site">active site</dfn>, is where starch fits: the shape is what lets amylase work.' },
