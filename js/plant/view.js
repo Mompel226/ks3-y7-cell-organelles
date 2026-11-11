@@ -18,9 +18,9 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611120025';
-import { gameLook } from './look.js?v=202611120025';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK } from './text.js?v=202611120025';
+import { makeStage, smooth } from '../ib/stage.js?v=202611120748';
+import { gameLook } from './look.js?v=202611120748';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY } from './text.js?v=202611120748';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -32,12 +32,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611120025'), potato: () => import('./potato.js?v=202611120025'), gut: () => import('./gut.js?v=202611120025'), ring: () => import('./ring.js?v=202611120025') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611120748'), potato: () => import('./potato.js?v=202611120748'), gut: () => import('./gut.js?v=202611120748'), ring: () => import('./ring.js?v=202611120748') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611120025', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611120748', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -74,6 +74,8 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     <div class="plv__main">
       <div class="plv__stage">
         <div class="plv__hots"></div>
+        <button type="button" class="plv__x" aria-pressed="false" hidden><span class="plv__xt" aria-hidden="true"><i></i></span>IGCSE names</button>
+        <div class="plv__zoom" hidden><span class="plv__zhint"></span><button type="button" class="plv__zb" data-z="out" aria-label="Zoom out">−</button><button type="button" class="plv__zb" data-z="in" aria-label="Zoom in">+</button><button type="button" class="plv__zb plv__zhome" data-z="home" hidden>Whole view</button></div>
         <div class="plv__paper" hidden></div>
         <div class="plv__veil is-on is-first" aria-hidden="true"></div>
         <p class="plv__wait" hidden>Loading the picture…</p>
@@ -97,6 +99,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
 
   /* ---------------- the stage, the game's look, the knobs ---------------- */
   let scene = null, sceneKey = '', K = {}, tw = null, hots = [], drag = { yaw: 0, pitch: 0, on: false, home: false }, look = null, building = false;
+  const Z = { k: 1, r: 0, u: 0, home: false, base: 1, max: 6 }, zoomEl = $('.plv__zoom'), zHome = $('.plv__zhome');
   const stage = makeStage(stageEl, { onFrame, render: (r, s, c, dt) => look.render(r, s, c, dt) });
   look = gameLook(stage);
   function onFrame(t, dt) {
@@ -118,10 +121,19 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
         q.multiply(new THREE.Quaternion().setFromAxisAngle(side, drag.pitch)); v.dir = v.dir.clone().applyQuaternion(q);
       }
       if (scene.narrow && stage.W < 560) v.dist *= scene.narrow;
+      /* the pupil's own zoom (see "zooming" below): nearer or further, toward the point they chose */
+      Z.base = v.dist; Z.max = (ci(K.cam) < VW.length && VW[ci(K.cam)].zoom) || 6;
+      if (Z.home) { Z.k = Math.exp(Math.log(Z.k) * 0.84); Z.r *= 0.84; Z.u *= 0.84; if (Math.abs(Math.log(Z.k)) < 0.004) { Z.k = 1; Z.r = Z.u = 0; Z.home = false; } }
+      if (Z.k !== 1 || Z.r || Z.u) {
+        const side = new THREE.Vector3().crossVectors(v.up, v.dir).normalize(), upv = new THREE.Vector3().crossVectors(v.dir, side).normalize();
+        v.at = v.at.clone().addScaledVector(side, Z.r).addScaledVector(upv, Z.u); v.dist = v.dist / Z.k;
+      }
       stage.setView(v);
+      if (zHome.hidden !== !(Z.k !== 1 && !Z.home)) zHome.hidden = !(Z.k !== 1 && !Z.home);
     }
     if (look.day !== (K.day == null ? 1 : K.day)) look.setDay(K.day == null ? 1 : K.day);
     scene.draw(K, t, dt);
+    if (at.rest && !tw && scene.group) lookForHidden();
     /* no name, and no name's line, over a molecule (the scene says where they are) */
     stage.setAvoid(scene.avoid ? scene.avoid() : []);
     /* the buttons on the parts follow them; no name stands on a button */
@@ -131,20 +143,82 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       const s = stage.project(p), bw = h.bw || (h.bw = h.el.offsetWidth), bh = h.bh || (h.bh = h.el.offsetHeight), G = 8;
       const dx = h.side === 'r' ? bw / 2 + 12 : h.side === 'l' ? -bw / 2 - 12 : 0, dy = h.side === 't' ? -bh / 2 - 12 : h.side === 'b' ? bh / 2 + 12 : 0;
       const x = Math.max(G + bw / 2, Math.min(stage.W - G - bw / 2, s[0] + dx)), y = Math.max(G + bh / 2 + 4, Math.min(stage.H - 46 - bh / 2, s[1] + dy));
-      h.wrap.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`; h.wrap.style.visibility = s[2] ? 'visible' : 'hidden';
+      h.wrap.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`; /* zoomed in by the pupil, a button whose part has left the picture is not shown at the picture's edge (it would point at nothing): "Whole view" brings it back */
+      const off = Z.k > 1.05 && (s[0] < -4 || s[0] > stage.W + 4 || s[1] < -4 || s[1] > stage.H + 4);
+      h.wrap.style.visibility = s[2] && !off ? 'visible' : 'hidden';
       ko.push({ l: x - bw / 2 - 4, r: x + bw / 2 + 4, t: y - bh / 2 - 4, b: y + bh / 2 + 4 });
     });
     if (scene.keepOut) ko.push(...scene.keepOut());
+    if (!xBtn.hidden) ko.push({ l: xBtn.offsetLeft - 6, r: xBtn.offsetLeft + xBtn.offsetWidth + 6, t: xBtn.offsetTop - 6, b: xBtn.offsetTop + xBtn.offsetHeight + 6 });
+    if (!zoomEl.hidden) { const a = stageEl.getBoundingClientRect(), b = zoomEl.getBoundingClientRect(); ko.push({ l: b.left - a.left - 4, r: b.right - a.left + 4, t: b.top - a.top - 4, b: b.bottom - a.top + 4 }); }
     stage.setKeepOut(ko);
     if (!drag.on && drag.home && (drag.yaw || drag.pitch)) { drag.yaw *= 0.86; drag.pitch *= 0.86; if (Math.abs(drag.yaw) + Math.abs(drag.pitch) < 1e-3) { drag.yaw = drag.pitch = 0; drag.home = false; } }
   }
+  /* ---------------- names point at what is seen ----------------
+     Daniel, 12 Nov 2026: "because some of the labels are hidden behind other things, it seems that, for example, the
+     mitochondrion was labeling something different. When I moved, then I realized that yes, it was pointing at the orange
+     bits." A scene gives each name several points on its part; a name's line may end only on a point that the camera
+     sees: nothing solid stands in front of it. Tested with rays against the picture's own parts, each time the picture
+     comes to rest and each time the pupil has turned or zoomed it (once it is still again: a pass costs a few
+     milliseconds, never during a move). See-through parts hide nothing (a wall of glass, the faint cells, a glow); nor
+     does what a cut has taken away. A name with no point in view is not shown, rather than point at the wrong part.
+     A label may say `through: true` (its part is a liquid or a space, seen through what is in it). */
+  const seen = {}, pts3 = {}; let seenSig = '', seenWait = '', curLabs = {};
+  const caster = new THREE.Raycaster(), cdir = new THREE.Vector3();
+  const shownObj = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+  function solidHit(h) {
+    const o = h.object; if (!o.isMesh || !shownObj(o)) return false;
+    const m = Array.isArray(o.material) ? o.material[(h.face && h.face.materialIndex) || 0] : o.material;
+    if (!m || m.visible === false || m.colorWrite === false || m.blending === THREE.AdditiveBlending) return false;
+    if (m.transparent && m.opacity < 0.8) return false;
+    if (m.clippingPlanes && m.clippingPlanes.some(pl => pl.distanceToPoint(h.point) < 0)) return false;
+    return true;
+  }
+  /* is this point of the picture in view: nothing solid between it and the camera (but within `tol` of it: its own part) */
+  function inView(p, tol) {
+    const cam = stage.cam, d = cdir.copy(p).sub(cam.position).length(); if (d <= tol) return true;
+    caster.camera = cam; caster.set(cam.position, cdir.normalize()); caster.near = cam.near; caster.far = d - tol;
+    return !caster.intersectObject(scene.group, true).some(solidHit);
+  }
+  function lookForHidden() {
+    const cam = stage.cam, sig = [cam.position.x, cam.position.y, cam.position.z, cam.quaternion.x, cam.quaternion.y, cam.quaternion.z].map(x => x.toPrecision(6)).join() + JSON.stringify(K) + Object.keys(curLabs).join();
+    if (sig === seenSig) return;
+    /* still moving under the pupil's hand: wait until two frames agree (the first pass at rest is at once) */
+    if (seenSig && sig !== seenWait) { seenWait = sig; return; }
+    seenSig = seenWait = sig;
+    scene.group.updateMatrixWorld(true);
+    const tol = 12 / stage.pxPerNm();
+    Object.keys(curLabs).forEach(k => { const d = scene.labels && scene.labels[k]; if (!d || d.through) return; const P = d.pts() || []; pts3[k] = P; seen[k] = P.map(p => inView(p, tol)); });
+  }
   const tweenTo = ph => new Promise(res => {
     const from = {}; Object.keys(ph.to).forEach(n => { from[n] = K[n] != null ? K[n] : ph.to[n]; });
-    if (ph.to.cam != null) drag.home = true;
+    if (ph.to.cam != null) { drag.home = true; Z.home = true; }
     tw = { from, to: ph.to, ms: FAST ? 0 : (ph.ms != null ? ph.ms : 1600), t0: performance.now(), done: res };
   });
-  const rest = labs => { stage.showLabels(labs || {}); stage.setRest(true); at.rest = true; };
-  const moving = () => { stage.showLabels({}); stage.setRest(false); at.rest = false; };
+  /* at rest: the step's names. m: the step's moves, when it has a second set of names (labsX, see "the IGCSE names") */
+  const rest = (labs, m) => { xStep = m && m.labsX ? m : null; xLabs = labs || {}; paintX(); stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); stage.setRest(true); at.rest = true; };
+  const moving = () => { xStep = null; paintX(); stage.showLabels({}); curLabs = {}; stage.setRest(false); at.rest = false; };
+
+  /* ---------------- the IGCSE names ----------------
+     Daniel, 12 Nov 2026 ("Yes, build it"): a switch on the picture of the piece of leaf. Off (the start): the plain names
+     a Year 7 pupil reads. On: the names the IGCSE syllabus asks a pupil to identify in a leaf (0610 6.2), each on its
+     part, in the one violet of what is beyond the reader's own course; the step's key says each in plain words. On a
+     phone there is no room for eleven names beside the picture: each is a numbered pin on a level line, and the key
+     under the picture has the same numbers. A step has the switch if its moves give labsX. The choice is kept. */
+  /* only once the Year 7 version is done: its five checks all right (Daniel, 12 Nov 2026: "only toggles that are
+     activated once the student is done with the key stage 3", as the IB switch of a place in the game) */
+  const ks3Done = () => { try { const A = JSON.parse(localStorage.getItem('cellgame.answers') || '{}'); return CHECKS.every(q => A[q] && A[q].ok); } catch (e) { return false; } };
+  let xOn = !!store.get('plantX', false), xStep = null, xLabs = {};
+  const xBtn = $('.plv__x');
+  function paintX() {
+    const open = !!xStep && ks3Done(), on = open && xOn; xBtn.hidden = !open; xBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    root.classList.toggle('plv--x', on);
+    curLabs = on ? xStep.labsX : xLabs;
+    const key = root.querySelector('.plv__xkey'); if (key) key.hidden = !on;
+    return key;
+  }
+  xBtn.addEventListener('click', () => { if (!xStep || !ks3Done()) return; xOn = !xOn; store.set('plantX', xOn); const key = paintX(); stage.showLabels(curLabs); seenSig = ''; lookForHidden();
+    if (xOn && key) requestAnimationFrame(() => { const p = panel.getBoundingClientRect(), k = key.getBoundingClientRect(); if (k.top < p.top || k.bottom > p.bottom) panel.scrollTo({ top: Math.max(0, panel.scrollTop + k.top - p.top - 10), behavior: FAST ? 'auto' : 'smooth' }); }); });
 
   /* ---------------- the steps ---------------- */
   const saved = store.get('plant', {});
@@ -190,10 +264,17 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     if (scene) { stage.scene.remove(scene.group); scene.dispose && scene.dispose(); }
     scene = sc; sceneKey = key; K = Object.assign({}, sc.knobs);
     if (sc.group && sc.group.parent !== stage.scene) stage.scene.add(sc.group);
-    /* a phone has little room: a name may have a shorter form there (htmlN), the same name in fewer words */
-    const narrow = stage.W < 560, labs = {}; Object.keys(sc.labels || {}).forEach(k => { const d = sc.labels[k]; labs[k] = narrow && d.htmlN ? Object.assign({}, d, { html: d.htmlN }) : d; });
+    /* a phone has little room: a name may have a shorter form there (htmlN), the same name in fewer words; a name of
+       the IGCSE set (pin: its number) is a numbered pin there, named in the step's key (see "the IGCSE names") */
+    const narrow = stage.W < 560, labs = {}; Object.keys(sc.labels || {}).forEach(k => { const d = sc.labels[k];
+      const e = narrow && d.pin ? Object.assign({}, d, { html: String(d.pin), cls: (d.cls ? d.cls + ' ' : '') + 'is-pin', gaps: [30, 46, 64, 84, 110, 140] /* a pin stands beside the small picture, not on it */ }) : narrow && d.htmlN ? Object.assign({}, d, { html: d.htmlN }) : Object.assign({}, d);
+      /* its line ends only on a point that is in view (see "names point at what is seen") */
+      e.pts = () => { const P = d.pts() || []; pts3[k] = P; const m = seen[k]; if (d.through || !m || m.length !== P.length) return P; return P.filter((_, i) => m[i]); };
+      labs[k] = e; });
+    Object.keys(seen).forEach(k => delete seen[k]); Object.keys(pts3).forEach(k => delete pts3[k]); seenSig = '';
+    root.classList.toggle('plv--pins', narrow);
     stage.defineLabels(labs);
-    paper.hidden = !sc.paper; stage.setPaused(!!sc.paper); if (sc.paper) paper.innerHTML = sc.paper(); else paper.innerHTML = '';
+    paper.hidden = !sc.paper; zoomEl.hidden = !!sc.paper; Z.k = 1; Z.r = Z.u = 0; Z.home = false; stage.setPaused(!!sc.paper); if (sc.paper) paper.innerHTML = sc.paper(); else paper.innerHTML = '';
     building = false; stage.setBusy(false);
     veil.classList.add('is-first'); await frames(2);
     veil.classList.remove('is-on', 'is-first');
@@ -218,7 +299,8 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   function addStep(i) {
     if (liOf(i)) return liOf(i);
     const li = document.createElement('li'); li.className = 'step is-later'; li.dataset.id = STEPS[i].id;
-    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div><div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
+    const X = XKEY[STEPS[i].id];
+    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${X ? `<div class="y8 plv__xkey" hidden><span class="y8__k">IGCSE</span><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
     ol.appendChild(li); if (R) R.terms(li); return li;
   }
   function again(i) {
@@ -250,13 +332,15 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   async function play(i, { auto = false } = {}) {
     const my = token, st = STEPS[i], m = motion(st.id), li = liOf(i);
     Object.assign(K, knobsAfter(i - 1));
+    /* a new step starts from its own picture: the pupil's zoom and turn go back, also when the camera does not move */
+    if (Z.k !== 1 || Z.r || Z.u) Z.home = true; if (drag.yaw || drag.pitch) drag.home = true;
     moving();
     for (const ph of (m.phases || [])) {
       /* a cut: another place (from the mouth to the small intestine), so the picture dims and comes back there, as
          between two pictures; never one glide that would join the two places */
       if (ph.cut) { veil.classList.add('is-on'); await new Promise(r => setTimeout(r, FAST ? 0 : 420)); if (my !== token) { veil.classList.remove('is-on'); return false; } Object.assign(K, ph.to); await frames(2); veil.classList.remove('is-on'); await new Promise(r => setTimeout(r, FAST ? 0 : 380)); if (my !== token) return false; continue; }
       await tweenTo(ph); if (my !== token) return false; }
-    rest(m.labs);
+    rest(m.labs, m);
     const P = m.press;
     if (P && P.all) {
       const left = new Set(P.all.map(b => b.id)), shown = Object.assign({}, m.labs);
@@ -265,7 +349,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
           h.el.disabled = true; h.wrap.remove(); hots = hots.filter(x => x !== h);
           moving(); await tweenTo({ to: b.to, ms: b.ms != null ? b.ms : 900 }); if (my !== token) return res();
           if (b.lab) shown[b.lab] = 1; if (b.labs) Object.assign(shown, b.labs);
-          rest(P.all.length > 1 && b.lab ? { [b.lab]: 1 } : shown);
+          rest(P.all.length > 1 && b.lab ? Object.assign({ [b.lab]: 1 }, b.labs || {}) : shown);
           /* the mouth: what amylase did in the game's own test, if the pupil has done it */
           if (!auto && st.say && st.say[b.id]) say(li, st.say[b.id] + (st.say.wellA ? '\n' + (doneFlag('test') ? st.say.wellA : st.say.later) : ''));
           left.delete(b.id); if (!left.size) res();
@@ -300,7 +384,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     /* the step's end, the same however the pupil pressed */
     const end = knobsAfter(i), diff = {}; Object.keys(end).forEach(n => { if (K[n] !== end[n]) diff[n] = end[n]; });
     if (Object.keys(diff).length) { moving(); await tweenTo({ to: diff, ms: 700 }); if (my !== token) return false; }
-    rest(m.endLabs || m.labs);
+    rest(m.endLabs || m.labs, m);
     return true;
   }
   async function show(i) {
@@ -386,13 +470,56 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     if (Math.hypot(dx, dy) > 4) { drag.yaw = Math.max(-0.6, Math.min(0.6, down.yaw - dx * 0.006)); drag.pitch = Math.max(-0.4, Math.min(0.4, down.pitch - dy * 0.006)); drag.home = false; } });
   const up = () => { drag.on = false; down = null; };
   stageEl.addEventListener('pointerup', up); stageEl.addEventListener('pointercancel', up); stageEl.addEventListener('pointerleave', up);
+
+  /* ---------------- zooming: toward what you point at ----------------
+     Daniel, 12 Nov 2026: "I can move to the sides, but not zoom in and zoom out … I should be able to zoom in and zoom
+     out from the cell wall, chloroplast, and see a little bit better the permanent vacuole." A scroll, a pinch (a
+     trackpad's or two fingers'), the + and − buttons or the + and − keys bring the camera nearer or further; the point
+     under the pointer, or between the fingers, stays under it (memory 3d-zoom-where-fingers-are). It is the camera that
+     moves, never a part made bigger, so the scale bar follows. Each picture says how near it lets the camera come (its
+     view's `zoom`, else 6 times); further than the step's own view: 0.6 times. A step that moves the camera puts the
+     pupil's zoom back, as it does their turn; so does "Whole view". */
+  const Z_MIN = 0.6;
+  function zoomAt(x, y, f) {
+    if (!scene || scene.paper || building || tw) return;
+    const k = Math.max(Z_MIN, Math.min(Z.max, Z.k * f)); f = k / Z.k; if (Math.abs(f - 1) < 1e-4) return;
+    const r = stageEl.getBoundingClientRect(), ppn = stage.pxPerNm(), dx = x - r.left - r.width / 2, dy = y - r.top - r.height / 2;
+    Z.r += dx / ppn * (1 - 1 / f); Z.u -= dy / ppn * (1 - 1 / f); Z.k = k; Z.home = false;
+    /* never further from the step's own picture than its edge: zoomed out again, the picture is where it was */
+    const ppn0 = ppn / (Z.k / f), lim = Math.max(0, 1 - 1 / Z.k), mx = r.width / 2 / ppn0 * lim, my = r.height / 2 / ppn0 * lim;
+    Z.r = Math.max(-mx, Math.min(mx, Z.r)); Z.u = Math.max(-my, Math.min(my, Z.u));
+    root.classList.add('plv--zoomed-once');
+  }
+  /* a wheel: a mouse's notch is about 100 (a fifth nearer); a trackpad's pinch arrives as a wheel with ctrlKey, its
+     deltaY 100 × ln(how far the fingers parted), so the picture follows the fingers */
+  stageEl.addEventListener('wheel', e => { if (e.target.closest('.plv__paper')) return; e.preventDefault();
+    const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+    zoomAt(e.clientX, e.clientY, Math.exp(-Math.max(-1.2, Math.min(1.2, d * (e.ctrlKey ? 0.01 : 0.0018))))); }, { passive: false });
+  /* two fingers on a touch screen: the picture follows them (apart: nearer), toward the point between them; no turn then */
+  const fingers = new Map(); let span = 0;
+  const twoF = () => { const [a, b] = [...fingers.values()]; return { d: Math.hypot(a[0] - b[0], a[1] - b[1]), x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2 }; };
+  stageEl.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' || e.target.closest('button, a')) return; fingers.set(e.pointerId, [e.clientX, e.clientY]); if (fingers.size === 2) { span = twoF().d; up(); } });
+  stageEl.addEventListener('pointermove', e => { if (!fingers.has(e.pointerId)) return; fingers.set(e.pointerId, [e.clientX, e.clientY]);
+    if (fingers.size === 2) { const t = twoF(); if (span > 8 && t.d > 8) zoomAt(t.x, t.y, t.d / span); span = t.d; down = null; drag.on = false; } });
+  const offF = e => { fingers.delete(e.pointerId); span = 0; };
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(n => stageEl.addEventListener(n, offF));
+  /* Safari on a Mac sends a trackpad's pinch as "gesture" events (other browsers send the wheel above); not on a touch
+     screen, where the fingers already arrive as pointers */
+  let gs = 1;
+  stageEl.addEventListener('gesturestart', e => { e.preventDefault(); gs = e.scale || 1; });
+  stageEl.addEventListener('gesturechange', e => { e.preventDefault(); if (fingers.size) return; const sc = e.scale || 1; zoomAt(e.clientX, e.clientY, sc / gs); gs = sc; });
+  zoomEl.addEventListener('click', e => { const b = e.target.closest('.plv__zb'); if (!b) return; const r = stageEl.getBoundingClientRect();
+    if (b.dataset.z === 'home') { Z.home = true; drag.home = true; } else zoomAt(r.left + r.width / 2, r.top + r.height / 2, b.dataset.z === 'in' ? 1.5 : 1 / 1.5); });
+  $('.plv__zhint').textContent = window.matchMedia && window.matchMedia('(pointer: coarse)').matches ? 'Pinch to zoom · drag to turn' : 'Scroll to zoom · drag to turn';
   /* full screen is the whole page, as in the game: a word's meaning opens in the page, so it must stay in what is shown */
   const fsB = $('.plv__full'), isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled) fsB.hidden = true;
   fsB.addEventListener('click', () => { if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else { const d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || (() => {})).call(d); } });
   const onFull = () => { fsB.innerHTML = isFull() ? '⛶<span class="tool__w"> Leave full screen</span>' : '⛶<span class="tool__w"> Full screen</span>'; };
   document.addEventListener('fullscreenchange', onFull);
-  const onKey = e => { if (e.key === 'Escape' && inGame && !document.querySelector('.tip') && !isFull()) close(); };
+  const onKey = e => { if (e.key === 'Escape' && inGame && !document.querySelector('.tip') && !isFull()) close();
+    /* + and −: zoom about the middle of the picture (not while the pupil types an answer) */
+    if ((e.key === '+' || e.key === '=' || e.key === '-') && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) && !zoomEl.hidden) { const r = stageEl.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, e.key === '-' ? 1 / 1.5 : 1.5); } };
   document.addEventListener('keydown', onKey);
   let closed = false;
   function close() {
@@ -410,7 +537,15 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     get at() { return Object.assign({ scene: sceneKey, id: cur >= 0 ? STEPS[cur].id : '' }, at); },
     stepAtRest: () => !!(at.rest && !tw && !building),
     labels: () => stage.labelState(), stage, steps: STEPS.map(s => s.id),
-    knobs: () => Object.assign({}, K), sizes: () => (scene && scene.sizes) || null, measure: () => (scene && scene.measure ? scene.measure() : null), bar: () => { const b = root.querySelector('.ibv__bar'); return b ? { text: b.lastChild.textContent, px: parseFloat(b.firstChild.style.width), pxPerNm: stage.pxPerNm() } : null; },
+    knobs: () => Object.assign({}, K), zoom: () => ({ k: Z.k, r: Z.r, u: Z.u, max: Z.max }), zoomAt, x: () => ({ on: xOn && !xBtn.hidden, there: !xBtn.hidden }),
+    /* the point of the picture (3D) that a name's line ended on when its screen place was xy */
+    labelPoint: (k, xy) => { let best = null, bd = 1e9; (pts3[k] || []).forEach(p => { const q = stage.project(p), d = Math.hypot(q[0] - xy[0], q[1] - xy[1]); if (d < bd) { bd = d; best = p; } }); return best; },
+    /* the names now shown whose line ends on a point that is NOT in view (a fresh test, not the kept one) */
+    hidden: () => { if (!scene || !scene.group) return []; scene.group.updateMatrixWorld(true); const tol = 12 / stage.pxPerNm(), out = [];
+      stage.labelState().filter(x => x.on).forEach(x => { const d = scene.labels[x.key]; if (!d || d.through) return; const P = pts3[x.key] || d.pts() || []; let best = null, bd = 1e9;
+        P.forEach(p => { const q = stage.project(p), dd = Math.hypot(q[0] - x.p[0], q[1] - x.p[1]); if (dd < bd) { bd = dd; best = p; } });
+        if (best && bd < 3 && !inView(best, tol)) out.push(x.key); });
+      return out; }, sizes: () => (scene && scene.sizes) || null, measure: () => (scene && scene.measure ? scene.measure() : null), bar: () => { const b = root.querySelector('.ibv__bar'); return b ? { text: b.lastChild.textContent, px: parseFloat(b.firstChild.style.width), pxPerNm: stage.pxPerNm() } : null; },
     hots: () => hots.map(h => ({ id: h.id, label: h.el.textContent, box: (r => ({ l: r.left, r: r.right, t: r.top, b: r.bottom }))(h.el.getBoundingClientRect()) })),
     goto: i => show(Math.max(0, Math.min(STEPS.length - 1, i))), end: () => { token++; cur = STEPS.length - 1; finish(false); return restAtEnd(); }, close
   };

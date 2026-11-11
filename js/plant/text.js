@@ -43,8 +43,8 @@ export const STEPS = [
     text: 'A plant cell has three structures that your salivary gland cell does not have.\n<mark class="do">Press each <b>What is this?</b> to find the three.</mark>',
     say: {
       chl: '<b>Chloroplasts</b>: the green <dfn data-w="organelle">organelles</dfn>. A <dfn data-w="chloroplast">chloroplast</dfn> absorbs light to make glucose. This cell has many chloroplasts.',
-      wall: 'The <b>cell wall</b>: a strong layer outside the cell membrane. The <dfn data-w="cell-wall">cell wall</dfn> strengthens the cell and supports the plant.',
-      vac: 'The <b>permanent vacuole</b>: the large space in the middle of the cell. The <dfn data-w="permanent-vacuole">permanent vacuole</dfn> is filled with <dfn data-w="cell-sap">cell sap</dfn>, and it keeps the cell rigid (firm).',
+      wall: 'The <b>cell wall</b>: a strong layer outside the cell membrane. The <dfn data-w="cell-wall">cell wall</dfn> strengthens the cell and supports the plant.\nIn the picture, the wall is the yellow band at the edge of the cell and the cell membrane is the pink line just inside it. They are very thin: zoom towards the edge (scroll, or press +) to see both.',
+      vac: 'The <b>permanent vacuole</b>: the large space in the middle of the cell, inside its own thin membrane. The <dfn data-w="permanent-vacuole">permanent vacuole</dfn> is filled with <dfn data-w="cell-sap">cell sap</dfn>, and it keeps the cell rigid (firm).\nIn the picture the cell sap is pale blue, so that you can see it. Real cell sap in a leaf cell has no colour.',
       done: 'You found the three: chloroplasts, the cell wall and the permanent vacuole.'
     } },
   { id: 'chloroplast', scene: 'leaf', where: 'leaf',
@@ -102,5 +102,25 @@ export const STEPS = [
 /* the end of the branch: its checks (js/questions.js, part 14), then this */
 export const DONE = 'You followed glucose from a leaf to your own cell: made in a chloroplast, stored as starch, digested by amylase and maltase, and carried by the blood.';
 export const FACT = { text: 'A potato is not a root. It is a tuber: the swollen end of a stem that grows under the ground. Its "eyes" are buds, and each one can grow into a new plant, using the stored starch.', src: 'OpenStax, Biology 2e, 30.2 Stems (open textbook)' };
+/* the IGCSE names of a step's picture (view.js "the IGCSE names"): the key that opens with the switch. Each row: the
+   name's key in the scene, the name as the 0610 syllabus writes it (6.2: "chloroplasts, cuticle, guard cells and stomata,
+   upper and lower epidermis, palisade mesophyll, spongy mesophyll, air spaces, vascular bundles, xylem and phloem"), and
+   what it is in plain words. Functions as 0610 gives them (8.1: xylem, water and mineral ions; phloem, sucrose and amino
+   acids). The rows are in the order of the pins on a phone: from the top of the leaf down. */
+export const XKEY = {
+  leaf: { intro: 'For IGCSE, you learn these names for the parts of a leaf.', rows: [
+    ['xcut', 'cuticle', 'a thin layer of wax; it reduces the loss of water'],
+    ['xupper', 'upper epidermis', 'the top layer of cells; light passes through it'],
+    ['xpal', 'palisade mesophyll', 'the layer of palisade cells; most photosynthesis happens here'],
+    ['xbundle', 'vascular bundle', 'a vein: xylem and phloem together'],
+    ['xxylem', 'xylem', 'tubes that transport water and mineral ions to the leaf'],
+    ['xphloem', 'phloem', 'tubes that transport sucrose and amino acids from the leaf'],
+    ['xspongy', 'spongy mesophyll', 'the cells below the palisade cells, with air spaces between them'],
+    ['xair', 'air space', 'gases diffuse through the air spaces to and from the cells'],
+    ['xlower', 'lower epidermis', 'the bottom layer of cells'],
+    ['xguard', 'guard cell', 'two guard cells open and close each stoma'],
+    ['xstoma', 'stoma', 'a hole (plural: stomata); gases enter and leave the leaf through it']
+  ] }
+};
 export const CHECKS = ['p14-sort-plant', 'p14-gaps-chloroplast', 'p14-gaps-firm', 'p14-q-maltose', 'p14-order-loop'];
 export const TASK = 'game-plant';

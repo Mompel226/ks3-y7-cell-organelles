@@ -153,6 +153,27 @@ Its five checks and its game square are part 14 of the teacher's board, "Plant c
 words joined the word bank, with Korean and Chinese: chloroplast, chlorophyll, photosynthesis, cell wall, cellulose,
 permanent vacuole, cell sap, maltose, maltase, small intestine, villi, wilt.
 
+**Telling the structures apart** (Daniel, 12 Nov 2026: "very hard to tell the difference between the cell wall and any
+other structure, particularly the cell membrane … very hard to tell that there's something there", the vacuole). The cut
+face of the palisade cell is drawn as a section: the cell wall a yellow band (its layers show from near), the cell
+membrane a pink line just inside it, the cytoplasm a thin pale band, the vacuole's membrane a pink line and the cell sap
+pale blue (a drawing's colour: the words say that real sap in a leaf cell has no colour). A membrane is 7 nm thick, so
+it is drawn never thinner than 2 pixels and at its true thickness from near. The chloroplasts cut by the plane show
+their stacks of membranes, not a plain green.
+**Zoom.** On every 3D picture of the side quest the pupil can zoom toward what they point at: a scroll, a pinch, the −
+and + buttons at the bottom right, or the + and − keys; "Whole view" puts the step's own picture back, and so does the
+next step. It is the camera that moves (the scale bar follows), never a part made bigger. Each view says how near the
+camera may come (the cut cell: 20 times, enough to see the wall's band and the membrane's line apart).
+**A name never points at a hidden part.** Each name has several points on its part; its line may end only on a point
+that the camera sees (rays against the picture's own parts, each time the picture comes to rest or the pupil has turned
+or zoomed it). Before, "mitochondrion" could end on a mitochondrion that a chloroplast hid, so it seemed to name the
+chloroplast. `tools/plant-check.mjs` tests it at every step.
+**IGCSE names of the leaf.** Once the side quest's five checks are right, the picture of the piece of leaf has a
+switch, **IGCSE names**: the eleven names the IGCSE syllabus asks for (0610 6.2: cuticle, upper and lower epidermis,
+palisade and spongy mesophyll, air space, vascular bundle, xylem, phloem, guard cell, stoma), each on its part in the
+one violet, with a key in the step that says each in plain words. On a phone each name is a numbered pin and the key
+has the numbers.
+
 **The final check.** At the end of the journey each pupil gets a code of their own (CELL- and four letters or numbers,
 made from the email they signed in with, so a friend's code does not work). The ✦ Final check, last in the list of
 places, opens with that code: 20 questions, 30 marks, about 15 minutes. Twelve have one right answer, four ask for every

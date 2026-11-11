@@ -14,10 +14,10 @@
    so the words say only "less than 1 millimetre". The tiny folds of the cells' own membrane (microvilli) are not drawn.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, PAL } from '../world/magic.js?v=202611120025';
-import { token, riboPart } from '../game/actors.js?v=202611120025';
-import { bilayer } from '../ib/membrane.js?v=202611120025';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120025';
+import { magicStandard, PAL } from '../world/magic.js?v=202611120748';
+import { token, riboPart } from '../game/actors.js?v=202611120748';
+import { bilayer } from '../ib/membrane.js?v=202611120748';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120748';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 export const S = { glucose: 0.9, amylase: 5, maltase: 9, link: 0.5, villus: 600000, villusW: 130000, capillary: 8500, cellH: 25000, cellW: 8000,
@@ -375,11 +375,11 @@ export async function build(stage) {
   }
   const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
   const views = [
-    /* 0 the mouth: starch and amylase */      { at: V(0.4, 6.2, 0), dist: 62, dir: D(0.03, 0.05, 1), up: UP, fit: { pts: [[10.5, 6.2, 3]], min: 44 } },
-    /* 1 the small intestine: maltase */       { at: V(0.5, -4.4, 0), dist: 82, dir: D(0.03, 0.06, 1), up: UP, fit: { pts: [[13, 13.4, 4]], min: 60 } },
-    /* 2 five cells of the villus's wall */    { at: V(XS - 12500, -1200, 0), dist: 110000, dir: D(0.1, 0.07, 1), up: UP, fit: { pts: [[21500, 19500, 4000]], min: 80000 } },
-    /* 3 the whole villus, cut in half */      { at: V(AX, TOP - H * 0.52, 0), dist: 1250000, dir: D(0.06, 0.1, 1), up: UP, fit: { pts: [[S.villusW * 1.75, H * 0.66, 60000]], min: 900000 } },
-    /* 4 the small intestine, cut in half */   { at: V(AXT + 1.5e6, YS0 + 1.0e6, 0), dist: 6.2e7, dir: D(0.16, 0.24, 1), up: UP, fit: { pts: [[RT + WT + 1.0e6, 13.5e6, 2e6]], min: 4.6e7 } }
+    /* 0 the mouth: starch and amylase */      { zoom: 4, at: V(0.4, 6.2, 0), dist: 62, dir: D(0.03, 0.05, 1), up: UP, fit: { pts: [[10.5, 6.2, 3]], min: 44 } },
+    /* 1 the small intestine: maltase */       { zoom: 4, at: V(0.5, -4.4, 0), dist: 82, dir: D(0.03, 0.06, 1), up: UP, fit: { pts: [[13, 13.4, 4]], min: 60 } },
+    /* 2 five cells of the villus's wall */    { zoom: 10, at: V(XS - 12500, -1200, 0), dist: 110000, dir: D(0.1, 0.07, 1), up: UP, fit: { pts: [[21500, 19500, 4000]], min: 80000 } },
+    /* 3 the whole villus, cut in half */      { zoom: 10, at: V(AX, TOP - H * 0.52, 0), dist: 1250000, dir: D(0.06, 0.1, 1), up: UP, fit: { pts: [[S.villusW * 1.75, H * 0.66, 60000]], min: 900000 } },
+    /* 4 the small intestine, cut in half */   { zoom: 12, at: V(AXT + 1.5e6, YS0 + 1.0e6, 0), dist: 6.2e7, dir: D(0.16, 0.24, 1), up: UP, fit: { pts: [[RT + WT + 1.0e6, 13.5e6, 2e6]], min: 4.6e7 } }
   ];
   const W = p => p.clone();
   const labels = {

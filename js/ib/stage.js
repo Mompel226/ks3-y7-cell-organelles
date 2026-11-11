@@ -162,7 +162,7 @@ export function makeStage(wrap, { onFrame, render } = {}) {
            side, so that it crosses none of its own atoms */
         const byX = av.length ? { l: pts.slice().sort((a, b) => a[0] - b[0]), r: pts.slice().sort((a, b) => b[0] - a[0]) } : { l: pts, r: pts };
         /* a main name tries longer lines before it gives up (the expert review: main names had been dropped silently) */
-        search: for (const sd of sides) for (const gap of (want[k] === 1 ? (narrow ? [10, 24, 52, 90, 140] : [24, 52, 90, 140, 200, 270]) : [24, 52, 90, 140])) for (const p of byX[sd]) {
+        search: for (const sd of sides) for (const gap of (D.gaps /* a name may give its own line lengths (the plant view's numbered pins) */ || (want[k] === 1 ? (narrow ? [10, 24, 52, 90, 140] : [24, 52, 90, 140, 200, 270]) : [24, 52, 90, 140]))) for (const p of byX[sd]) {
           const l = sd === 'l' ? p[0] - gap - D.w : p[0] + gap, box = { l, r: l + D.w, t: p[1] - D.h / 2, b: p[1] + D.h / 2 };
           if (box.l < 6 || box.r > W - 6 || box.t < ovH + 4 || box.b > H - 4) { why.edge++; continue; }
           const line = sd === 'l' ? { l: box.r, r: p[0], t: p[1] - 1, b: p[1] + 1 } : { l: p[0], r: box.l, t: p[1] - 1, b: p[1] + 1 };

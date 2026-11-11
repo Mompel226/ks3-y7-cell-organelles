@@ -36,10 +36,10 @@
    dispose }. Every step can be shown from its start: the picture depends only on the knobs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611120025';
-import { token, riboPart } from '../game/actors.js?v=202611120025';
-import { bilayer } from '../ib/membrane.js?v=202611120025';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120025';
+import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611120748';
+import { token, riboPart } from '../game/actors.js?v=202611120748';
+import { bilayer } from '../ib/membrane.js?v=202611120748';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611120748';
 
 /* every size in nm */
 export const S = {
@@ -50,7 +50,7 @@ export const S = {
 };
 const R0 = S.cellW / 2, HL = S.cellLen / 2, RIN = R0 - S.wall;
 const Y_LO = -(HL - 0.9 * R0 - 500), Y_HI = HL - 0.42 * R0 - 1700;      /* the straight side (KB, KT below), less a chloroplast's half width */
-const GREEN = 0x4fb24a, GREEN_DARK = 0x1f7a3a, WALL = 0xd9eaa0, SAP = 0xcfe2f4;      /* cell sap is colourless in a leaf cell: a faint tint only, so the chloroplasts behind it stay green */
+const GREEN = 0x4fb24a, GREEN_DARK = 0x1f7a3a, WALL = 0xd9eaa0, SAP = 0xcfe2f4, WALL_CUT = 0xe7cf86, WALL_LIT = 0xffe27a, MEM_CUT = 0xff7ad1, SAP_CUT = 0xb4d0f4, CYT_CUT = 0x86cfd6;      /* cell sap is colourless in a leaf cell: a faint tint only, so the chloroplasts behind it stay green */
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /* a protein as the game draws one: a smooth, uneven folded lump (actors.js riboPart), r its radius */
 const lump = (r, color, seed, emissive = 0x10305a, k = 0.6) => { const g = new THREE.Group(); g.add(new THREE.Mesh(riboPart(r, 1, 0.9, 0.95, 1, 3, seed), magicStandard({ color, roughness: 0.42, emissive, emissiveIntensity: k }, { rim: 0xffffff, rimK: 0.6 }))); return g; };
@@ -145,13 +145,38 @@ export async function build(stage, kit) {
     for (let i = 0; i <= 24; i++) { const a = (i / 24) * (Math.PI / 2); pts.push([sign * rAt(th, E.yT) * Math.cos(a), E.yT + E.hT * Math.sin(a)]); }
     return pts; };
   const ring2 = (rAt, half) => outline(rAt, half, 1).concat(outline(rAt, half, -1).reverse()).map(([x, y]) => new THREE.Vector2(x, y));
+  const lineBand = (loop, w, mat) => {
+    const n = loop.length, pos = new Float32Array(n * 2 * 3), idx = [], nor = [];
+    for (let i = 0; i < n; i++) { const a = loop[(i + n - 1) % n], b = loop[(i + 1) % n], tx = b.x - a.x, ty = b.y - a.y, L = Math.hypot(tx, ty) || 1; let nx = ty / L, ny = -tx / L;
+      if (nx * loop[i].x + ny * loop[i].y > 0) { nx = -nx; ny = -ny; }      /* towards the inside of the loop */
+      nor.push([nx, ny]); const j = (i + 1) % n; idx.push(2 * i, 2 * j, 2 * i + 1, 2 * j, 2 * j + 1, 2 * i + 1); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(idx);
+    const m = new THREE.Mesh(geo, mat); m.frustumCulled = false; let last = -1;
+    m.fit = w2 => { if (Math.abs(w2 - last) < last * 0.03) return; last = w2; for (let i = 0; i < n; i++) { pos[6 * i] = loop[i].x; pos[6 * i + 1] = loop[i].y; pos[6 * i + 3] = loop[i].x + nor[i][0] * w2; pos[6 * i + 4] = loop[i].y + nor[i][1] * w2; } geo.attributes.position.needsUpdate = true; };
+    m.fit(w); return m; };
   const rimShape = new THREE.Shape(ring2(() => R0, HL)); rimShape.holes.push(new THREE.Path(ring2(() => RIN, HL - S.wall).reverse()));
-  const rimMat = fadeable(new THREE.MeshBasicMaterial({ color: 0xf2f7c4, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false }));
+  const rimMat = fadeable(new THREE.MeshBasicMaterial({ color: WALL_CUT, transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }));
   const rim = new THREE.Mesh(new THREE.ShapeGeometry(rimShape, 1), rimMat); rim.renderOrder = 4; hero.add(rim);
-  const sapMat = fadeable(new THREE.MeshBasicMaterial({ color: 0xd4e4f4, transparent: true, opacity: 0.08, side: THREE.DoubleSide, depthWrite: false }));
+  /* nearer, the band is not a plain colour: the wall's layers (fibres lie in layers, the wall step) as five fine lines
+     along it, each 8 nm wide; from the whole-cell view they are far thinner than a pixel and do not show */
+  const layerMat = fadeable(new THREE.MeshBasicMaterial({ color: 0xa98f48, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+  const wallLayers = [32, 66, 100, 134, 168].map(off => { const m = lineBand(ring2(() => R0 - off, HL - off), 8, layerMat); m.renderOrder = 5; hero.add(m); return m; });
+  /* the cut face must read as a section (Daniel, 12 Nov 2026: "it's very hard to tell the difference between the cell
+     wall and any other structure, particularly the cell membrane … very hard to tell that there's something there",
+     the permanent vacuole): from the outside in, the wall's band (its fibres' colour), the cell membrane (a pink line,
+     the colour of its lipids from near), the cytoplasm (a thin pale band), the vacuole's membrane (a pink line) and the
+     cell sap (pale blue: a drawing's colour, the real sap of this cell is clear and colourless; the words say so). */
+  const sapMat = fadeable(new THREE.MeshBasicMaterial({ color: SAP_CUT, transparent: true, opacity: 0.24, side: THREE.DoubleSide, depthWrite: false }));
+  const cytShape = new THREE.Shape(ring2(() => RIN, HL - S.wall)); cytShape.holes.push(new THREE.Path(ring2(vacR, HL - S.wall - 2400).reverse()));
+  const cytMat = fadeable(new THREE.MeshBasicMaterial({ color: CYT_CUT, transparent: true, opacity: 0.26, side: THREE.DoubleSide, depthWrite: false }));
+  const cytFace = new THREE.Mesh(new THREE.ShapeGeometry(cytShape, 1), cytMat); cytFace.renderOrder = 2; hero.add(cytFace);
+  /* a membrane where it is cut: 7 nm thick, far too thin to see from here, so it is drawn as a band that is never
+     thinner than 2 pixels on the screen (ribbon.fit, each frame) and has its true thickness once the camera is near */
+  const ribbon = (loop, mat) => lineBand(loop, S.membrane, mat);
+  const memLineMat = fadeable(new THREE.MeshBasicMaterial({ color: MEM_CUT, transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false }));
+  const memLine = ribbon(ring2(() => RIN, HL - S.wall), memLineMat); memLine.renderOrder = 6; hero.add(memLine);
   const sapFace = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(ring2(vacR, HL - S.wall - 2400)), 1), sapMat); sapFace.renderOrder = 2; hero.add(sapFace);
-  /* the vacuole's membrane where it is cut: a thin bright line (7 nm is far too thin to see at this size) */
-  const vacLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(ring2(vacR, HL - S.wall - 2400).map(p => V(p.x, p.y, 0))), fadeable(new THREE.LineBasicMaterial({ color: 0xd6e8ff, transparent: true, opacity: 0.9 })));
+  const vacLine = ribbon(ring2(vacR, HL - S.wall - 2400), fadeable(new THREE.MeshBasicMaterial({ color: MEM_CUT, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })));
   vacLine.renderOrder = 5; hero.add(vacLine);
 
   /* chloroplasts: lenses 5 µm across, 2.3 µm thick, flat against the wall */
@@ -174,7 +199,17 @@ export async function build(stage, kit) {
   const rimWhole = many(lensGeo(22, 14), wholeMat, RIM.map(c => ({ p: onWall(c), q: flat(c.th), s: chlScale }))); hero.add(rimWhole);
   const turnX = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), Math.PI);
   const rimHalf = many(new THREE.SphereGeometry(0.5, 22, 14, 0, Math.PI), chlMat, RIM.map(c => ({ p: onWall(c), q: c.th === Math.PI ? flat(c.th) : flat(c.th).multiply(turnX), s: chlScale }))); hero.add(rimHalf);
-  const rimFaceMat = new THREE.MeshBasicMaterial({ color: 0x2f8f3a, side: THREE.DoubleSide });
+  /* their cut faces are not a plain green (Daniel, 11 Nov 2026: no plain cut face; nearer still now that the pupil can
+     zoom): the stacks of membranes (grana) seen from the side, each a few short lines that lie along the chloroplast,
+     joined by single membranes, in the liquid round them; the same pattern as inside the open chloroplast */
+  const cutTex = (() => { const c = document.createElement('canvas'); c.width = 184; c.height = 400; const x = c.getContext('2d'), Q = rng(31);
+    x.fillStyle = '#3f9d47'; x.fillRect(0, 0, 184, 400);
+    x.strokeStyle = 'rgba(24,96,40,.55)'; x.lineWidth = 1.2;          /* single membranes between the stacks */
+    for (let i = 0; i < 9; i++) { const u = 28 + i * 16 + (Q() - 0.5) * 6; x.beginPath(); x.moveTo(u, 30); x.bezierCurveTo(u + (Q() - 0.5) * 14, 140, u + (Q() - 0.5) * 14, 260, u + (Q() - 0.5) * 8, 370); x.stroke(); }
+    const put = []; for (let i = 0; i < 900 && put.length < 34; i++) { const u = 22 + Q() * 140, v = 26 + Q() * 348, r = Math.hypot((u - 92) / 92, (v - 200) / 200); if (r > 0.86 || put.some(o => Math.abs(o[0] - u) < 30 && Math.abs(o[1] - v) < 40)) continue; put.push([u, v]); }
+    put.forEach(([u, v]) => { x.fillStyle = '#1c6a2c'; x.fillRect(u - 10, v - 15, 20, 30); x.strokeStyle = '#7fd08a'; x.lineWidth = 1; for (let k = -8; k <= 8; k += 4) { x.beginPath(); x.moveTo(u + k, v - 14); x.lineTo(u + k, v + 14); x.stroke(); } });
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
+  const rimFaceMat = new THREE.MeshBasicMaterial({ color: 0xd8d8d8, map: cutTex, side: THREE.DoubleSide });
   const rimFace = many(new THREE.CircleGeometry(0.5, 40), rimFaceMat, RIM.map(c => ({ p: onWall(c), q: flat(c.th), s: V(S.chlThick, S.chl, 1) }))); hero.add(rimFace);
   const rimEdge = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(RIM.flatMap(c => { const o = onWall(c), pts = []; for (let i = 0; i < 48; i++) { const a = i / 48 * 6.2832, b = (i + 1) / 48 * 6.2832; pts.push(V(o.x + S.chlThick / 2 * Math.cos(a), o.y + S.chl / 2 * Math.sin(a), 6), V(o.x + S.chlThick / 2 * Math.cos(b), o.y + S.chl / 2 * Math.sin(b), 6)); } return pts; })), new THREE.LineBasicMaterial({ color: 0xd8ffc4, transparent: true, opacity: 0.9 })); rimEdge.renderOrder = 7; hero.add(rimEdge);
   /* the nucleus (6 µm) and mitochondria (0.6 µm wide), in the game's colours */
@@ -547,7 +582,8 @@ export async function build(stage, kit) {
     const focus = Math.max(smooth(0, 1, K.ghost), smooth(0, 1, K.open));
     wallMat.color.setHex(0xb9dd8a).lerp(WALLC, focus); setOp(vacMat, 0.15 + 0.85 * focus); setOp(wallMat, 0.72 + 0.28 * focus); setOp(memMat, focus);
     const opened = K.open > 0.02;
-    rim.visible = sapFace.visible = vacLine.visible = opened; rim.position.z = sapFace.position.z = vacLine.position.z = cut.constant;
+    rim.visible = sapFace.visible = vacLine.visible = cytFace.visible = memLine.visible = opened; rim.position.z = cut.constant; wallLayers.forEach(m => { m.visible = opened && stage.pxPerNm() > 0.05; m.position.z = cut.constant + 2; }); layerMat.opacity = 0.85 * smooth(0.05, 0.12, stage.pxPerNm()); sapFace.position.z = cytFace.position.z = cut.constant - 10; memLine.position.z = vacLine.position.z = cut.constant + 4;
+    { const w = Math.max(S.membrane, 2 / stage.pxPerNm()); memLine.fit(w); vacLine.fit(Math.max(S.membrane, 1.5 / stage.pxPerNm())); }
     /* the open chloroplast: whole (a lens like the others) until the cell is cut; then its front half is away too */
     /* the chloroplasts on the cut: whole (cut with the cell) until the cut has reached them, then each a half with its face */
     const cutDone = cut.constant < 60;
@@ -562,9 +598,9 @@ export async function build(stage, kit) {
     setOp(salMat, K.sal); setOp(salNuc.material, K.sal); sal.visible = K.sal > 0.01;
     /* which structure is lit (the three that an animal cell does not have): the others dim a little */
     const any = Math.max(K.hiC, K.hiW, K.hiV);
-    setLook(chloroplasts, { lit: K.hiC * 0.9, sleep: any * (1 - K.hiC) * 0.55 }); rimFaceMat.color.setHex(K.hiC > 0.5 ? 0x4fc65a : any > 0.5 ? 0x2a6a36 : 0x2f8f3a); setLook(env, { lit: K.hiC * 0.9, sleep: any * (1 - K.hiC) * 0.55 });
-    setLook(wall, { lit: K.hiW * 1.2, sleep: 0 }); rimMat.color.setHex(K.hiW > 0.5 ? 0xffe9a0 : 0xf2f7c4);
-    setLook(vacuole, { lit: K.hiV * 1.1, sleep: 0 }); sapMat.opacity = (0.06 + 0.3 * K.hiV) * (opened ? 1 : 0);
+    setLook(chloroplasts, { lit: K.hiC * 0.9, sleep: any * (1 - K.hiC) * 0.55 }); rimFaceMat.color.setHex(K.hiC > 0.5 ? 0xffffff : any > 0.5 ? 0x8c8c8c : 0xd8d8d8); setLook(env, { lit: K.hiC * 0.9, sleep: any * (1 - K.hiC) * 0.55 });
+    setLook(wall, { lit: K.hiW * 0.55, sleep: 0 }); rimMat.color.setHex(K.hiW > 0.5 ? WALL_LIT : WALL_CUT);
+    setLook(vacuole, { lit: K.hiV * 0.8, sleep: 0 }); sapMat.opacity = (0.24 + 0.24 * K.hiV - 0.12 * Math.max(K.hiC, K.hiW)) * (opened ? 1 : 0); cytMat.opacity = 0.26 * (opened ? 1 : 0); memLineMat.opacity = opened ? 1 : 0;
     setLook(nucleus, { sleep: any * 0.55 }); setLook(mitos, { sleep: any * 0.55 });
     /* firm or soft: the cell sap pushes on the wall; with less water the whole cell is a little smaller and no longer firm */
     const f = 0.94 + 0.06 * K.firm; hero.scale.set(f, 0.99 + 0.01 * K.firm, f);
@@ -598,7 +634,7 @@ export async function build(stage, kit) {
     const nw = smooth(5200, 1400, d) * (stage.view.at.distanceTo(WSW) < 6000 ? 1 : 0), nl = smooth(700, 180, d) * nw;
     ws.visible = nw > 0.01; fib.visible = fib2.visible = nw > 0.01; wmem.visible = nl > 0.02; wprot.forEach(t => { t.visible = nl > 0.02; }); wfilm.material.opacity = 0.6 * nw * (1 - nl);
     slabs.forEach((s, i) => { s.material.opacity = SLAB[i] * nw; }); wcyto.visible = nw > 0.5;
-    rimMat.opacity = 0.95 * (1 - nw); if (nw > 0.01) wallMat.opacity *= 1 - 0.75 * nw;
+    rimMat.opacity = 1 - nw; memLineMat.opacity *= 1 - nl; if (nw > 0.01) wallMat.opacity *= 1 - 0.75 * nw;
     /* far from the cell, the motes of the cytoplasm would be dots larger than a chloroplast: they show only near */
     cyto.visible = opened && d < 240000 && d > 900;
   }
@@ -609,21 +645,39 @@ export async function build(stage, kit) {
   const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
   const blockMid = V(0, (HL + S.epiTop + y0 - S.epiLow) / 2 + 26000, -1.2 * PZ);
   const views = [
-    /* 0 the piece of leaf */      { at: blockMid, dist: 560000, dir: D(0.34, 0.2, 1), up: UP, fit: { pts: [[4.6 * PX, 164000, 30000]], min: 380000 } },
-    /* 1 one palisade cell */      { at: V(11000, -1000, 0), dist: 175000, dir: D(0.1, 0.08, 1), up: UP, fit: { pts: [[36000, HL + 4000, 9000]], min: 120000 } },
-    /* 2 the cell cut open */      { at: V(0, 0, -1500), dist: 150000, dir: D(0.1, 0.05, 1), up: UP, fit: { pts: [[R0 + 1500, HL + 2500, 2000]], min: 110000 } },
+    /* 0 the piece of leaf */      { zoom: 8, at: blockMid, dist: 560000, dir: D(0.34, 0.2, 1), up: UP, fit: { pts: [[4.6 * PX, 164000, 30000]], min: 380000 } },
+    /* 1 one palisade cell */      { zoom: 20, at: V(11000, -1000, 0), dist: 175000, dir: D(0.1, 0.08, 1), up: UP, fit: { pts: [[36000, HL + 4000, 9000]], min: 120000 } },
+    /* 2 the cell cut open */      { zoom: 20, at: V(0, 0, -1500), dist: 150000, dir: D(0.1, 0.05, 1), up: UP, fit: { pts: [[R0 + 1500, HL + 2500, 2000]], min: 110000 } },
     /* 3 one chloroplast */        { at: HCW.clone().add(V(300, 0, 0)), dist: 15500, dir: D(0.05, 0.04, 1), up: UP, fit: { pts: [[1900, 3100, 300]], min: 11000 } },
-    /* 4 the molecules */          { at: worldOf(site, V(-2.0, 0.2, 0)), dist: 31, dir: D(0.02, 0.02, 1), up: UP, fit: { pts: [[8.8, 6.4, 3]], min: 23 } },
+    /* 4 the molecules */          { zoom: 4, at: worldOf(site, V(-2.0, 0.2, 0)), dist: 31, dir: D(0.02, 0.02, 1), up: UP, fit: { pts: [[8.8, 6.4, 3]], min: 23 } },
     /* 5 the starch grain */       { at: GRAINW.clone(), dist: 5600, dir: D(0.06, 0.05, 1), up: UP },
     /* 6 the wall: its fibres */   { at: WSW.clone().add(V(-70, 0, -40)), dist: 1500, dir: D(0.03, 0.04, 1), up: UP, fit: { pts: [[330, 300, 40]], min: 1100 } },
-    /* 7 the wall and membrane */  { at: WSW.clone().add(V(S.wall / 2 - 22, 0, -4)), dist: 150, dir: D(0.02, 0.03, 1), up: UP, fit: { pts: [[40, 26, 6]], min: 110 } },
-    /* 8 the vacuole (the cell) */ { at: V(0, 0, -1500), dist: 150000, dir: D(-0.08, 0.05, 1), up: UP, fit: { pts: [[R0 + 1500, HL + 2500, 2000]], min: 110000 } }
+    /* 7 the wall and membrane */  { zoom: 4, at: WSW.clone().add(V(S.wall / 2 - 22, 0, -4)), dist: 150, dir: D(0.02, 0.03, 1), up: UP, fit: { pts: [[40, 26, 6]], min: 110 } },
+    /* 8 the vacuole (the cell) */ { zoom: 20, at: V(0, 0, -1500), dist: 150000, dir: D(-0.08, 0.05, 1), up: UP, fit: { pts: [[R0 + 1500, HL + 2500, 2000]], min: 110000 } }
   ];
 
   /* ================= names: each on ONE level line that ends on its part ================= */
   const W = (x, y, z) => V(x, y, z);
+  /* a name of the edge has a point every 2.5 µm along it (the pupil may zoom anywhere), its usual place first */
+  const EDGE_Y = [14000, 9000, 19000], MEM_Y = [26000, 21000, 30000]; for (let y = -31000; y <= 31000; y += 2500) { EDGE_Y.push(y + 600); MEM_Y.push(y - 600); }
   const rimPts = (sd, ys) => ys.map(y => W(sd * (R0 - S.wall / 2), y, cut.constant < 100 ? 0 : R0));
   const chlPts = () => spots.filter(c => Math.sin(c.th) < -0.55).slice(0, 9).map(c => onWall(c).add(V(0, 0, S.chlThick / 2 + 20)));
+  /* where an air space is, for its IGCSE name: a gap that the first view shows as a gap. For each point of the spongy
+     layer near the front, the line of sight through it (the first view's direction) must pass clear of every spongy
+     cell, of the vein and of the two skins: then the dark background shows there, between the cells. The clearest
+     few, well apart (worked out once); if the piece had none, the space above the tiny hole */
+  const AIR = (() => { const u = D(0.34, 0.2, 1), q = V();
+    const off = (c, p) => q.copy(c).sub(p).cross(u).length();      /* how far a centre is from the line of sight through p */
+    /* inside the piece (not at its open sides); first with the whole line of sight clear, else clear of the cells near the front */
+    const find = front => { const cand = [];
+      for (let x = -3.0 * PX; x <= 3.0 * PX; x += 2000) for (let y = y0 + 16000; y <= y1 - 8000; y += 2000) {
+        const p = V(x, y, 6000); let d = 1e9; for (const o of spo) if (!front || o.p.z > -22000) d = Math.min(d, off(o.p, p) - o.r * 1.22);
+        d = Math.min(d, off(V(VEIN.x, VEIN.y, p.z), p) - VEIN.r - 3000); if (d > 1500) cand.push([d, p]); }
+      cand.sort((a, b) => b[0] - a[0]); const out = [];
+      for (const c of cand) { if (out.length >= 5) break; if (out.every(o => o.distanceTo(c[1]) > 14000)) out.push(c[1]); }
+      return out; };
+    const a = find(false).concat(find(true));
+    return a.length ? a : [CAVE.clone().add(V(0, -6000, 0))]; })();
   const labels = {
     light: { html: 'light', side: 'r', pts: () => [3.0, 1.4, -0.2].map((k, i) => W(k * PX, HL + S.epiTop + 34000, -1.6 * PZ + ((i === 0 ? 4 : i === 1 ? 3 : 2) % 2) * 14000)) },
     wax: { html: 'a thin layer of wax', htmlN: 'wax', side: 'r', pts: () => [2.4, 3.3, 1.5].map(k => W(k * PX, HL + S.epiTop * 0.84 + 700, 7800)) },
@@ -634,8 +688,22 @@ export async function build(stage, kit) {
     hole: { html: 'a tiny hole: air enters here', htmlN: 'a tiny hole', side: 'r', pts: () => [HOLE.clone().add(V(0, 0, 0)), HOLE.clone().add(V(0, 2500, 0))] },
     one: { html: 'one palisade cell: <b>72 µm</b> long', htmlN: 'palisade cell: <b>72 µm</b>', side: 'l', pts: () => [W(-R0, 12000, 0), W(-R0, 2000, 0), W(-R0, 22000, 0)] },
     sal: { html: 'your salivary gland cell: <b>16 µm</b>', side: 'r', pts: () => [worldOf(sal, V(S.salivary / 2 - 300, 1500, 0)), worldOf(sal, V(S.salivary / 2 - 900, 3400, 0))] },
-    wall: { html: 'cell wall', side: 'r', pts: () => rimPts(1, [14000, 9000, 19000]) },
-    membrane: { html: 'cell membrane', side: 'r', pts: () => [26000, 21000, 30000].map(y => W(RIN - 4, y, 0)) },
+    /* the IGCSE names of the piece of leaf (0610 6.2), shown by the switch on the picture (view.js "the IGCSE names");
+       pin: the name's number on a phone, the same as in the step's key (text.js XKEY.leaf) */
+    /* (small parts first: a name is placed in this order, and a small part has few places for its line) */
+    xstoma: { html: 'stoma', pin: 11, cls: 'plv-xlab', side: 'r', pts: () => [HOLE.clone(), HOLE.clone().add(V(0, -2500, 0)), HOLE.clone().add(V(0, 2500, 0)), HOLE.clone().add(V(0, -5000, 0))] },
+    xguard: { html: 'guard cell', pin: 10, cls: 'plv-xlab', side: 'l', pts: () => [HOLE.clone().add(V(-5100, 0, -200)), HOLE.clone().add(V(-5100, 1500, -200))] },
+    xxylem: { html: 'xylem', pin: 5, cls: 'plv-xlab', side: 'l', pts: () => VEIN.xylem.slice().sort((a, b) => a[0] - b[0]).slice(0, 4).map(o => W(VEIN.x + o[0] - o[2] * 0.92, VEIN.y + o[1], VEIN.z0 - 200)) },
+    xphloem: { html: 'phloem', pin: 6, cls: 'plv-xlab', side: 'l', pts: () => VEIN.phloem.slice().sort((a, b) => a[0] - b[0]).slice(0, 5).map(o => W(VEIN.x + o[0], VEIN.y + o[1], VEIN.z0 - 800)) },
+    xbundle: { html: 'vascular bundle', pin: 4, cls: 'plv-xlab', side: 'l', pts: () => [2.15, 2.5, 2.85, 3.5].map(a => W(VEIN.x + (VEIN.r - 1500) * Math.cos(a), VEIN.y + (VEIN.r - 1500) * 0.96 * Math.sin(a), VEIN.z0 - 4000)) },
+    xair: { html: 'air space', pin: 8, cls: 'plv-xlab', side: 'r', through: true, pts: () => AIR },
+    xcut: { html: 'cuticle', pin: 1, cls: 'plv-xlab', side: 'r', pts: () => [2.4, 3.3, 1.5].map(k => W(k * PX, HL + S.epiTop * 0.84 + 700, 7800)) },
+    xupper: { html: 'upper epidermis', pin: 2, cls: 'plv-xlab', side: 'l', pts: () => [-3.4, -2.2, -1].map(k => W(k * PX, HL + S.epiTop * 0.5, 6000)) },
+    xlower: { html: 'lower epidermis', pin: 9, cls: 'plv-xlab', side: 'l', pts: () => [-3.3, -2.3, -1.3].map(k => W(k * PX, y0 - 400, -1.6 * PZ)).concat([-3.3, -2.3].map(k => W(k * PX, y0 - S.epiLow * 0.5, 8000))) },
+    xpal: { html: 'palisade mesophyll', pin: 3, cls: 'plv-xlab', side: 'l', pts: () => [W(-R0 + 600, 8000, 6500), W(-R0 + 600, -6000, 6500), W(-R0 + 600, 20000, 6500)].map(p => p.add(V(-3 * PX, 0, 0))) },
+    xspongy: { html: 'spongy mesophyll', pin: 7, cls: 'plv-xlab', side: 'r', pts: () => spo.filter(o => o.p.z > -12000 && o.p.x > 14000).slice(0, 6).map(o => o.p.clone().add(V(0, 0, o.r * 0.9))) },
+    wall: { html: 'cell wall', side: 'r', pts: () => rimPts(1, EDGE_Y).concat(rimPts(-1, EDGE_Y)) },
+    membrane: { html: 'cell membrane', side: 'r', pts: () => MEM_Y.map(y => W(RIN - 4, y, 0)).concat(MEM_Y.map(y => W(-RIN + 4, y, 0))) },
     cyto: { html: 'cytoplasm', side: 'r', pts: () => [-27000, -24000, -30000, 16000].map(y => W((vacR(0, y) + RIN) / 2, y, 0)) },
     nucleus: { html: 'nucleus', side: 'r', pts: () => [nucleus.position.clone().add(V(600, 0, NUC.r)), nucleus.position.clone().add(V(1400, 900, NUC.r * 0.9))] },
     golgi: { html: 'a stack of the Golgi apparatus', htmlN: 'Golgi apparatus', side: 'l', pts: () => golgiSpots.filter(G => Math.cos(G.th) < 0.2).slice(0, 4).map(G => onWall(G).add(V(-300, 0, 500))) },
@@ -647,7 +715,7 @@ export async function build(stage, kit) {
     chl1: { html: 'one chloroplast: <b>5 µm</b> long', htmlN: 'chloroplast: <b>5 µm</b>', side: 'l', pts: () => [HCW.clone().add(V(-hx * 0.86, 1200, 0)), HCW.clone().add(V(-hx * 0.7, 1700, 0))] },
     stacks: { html: 'a stack of membranes: it holds chlorophyll', htmlN: 'a stack of membranes', side: 'r', pts: () => grana.filter(G => !G.hidden).sort((a, b) => a.p.z - b.p.z).slice(0, 6).map(G => worldOf(hc, G.p.clone().add(V(0, 0, -G.r * 0.9)))) },
     stroma: { html: 'a watery liquid, with many enzymes', side: 'l', pts: () => [worldOf(hc, V(hx * 0.5, -hy * 0.72, 0)), worldOf(hc, V(hx * 0.4, hy * 0.72, 0))] },
-    grain: { html: 'a starch grain', side: 'l', pts: () => [GRAINW.clone().add(V(-120, 300, 0)), GRAINW.clone().add(V(-100, -200, 0))] },
+    grain: { html: 'a starch grain', side: 'l', through: true /* it lies inside the chloroplast, drawn through its cut face */, pts: () => [GRAINW.clone().add(V(-120, 300, 0)), GRAINW.clone().add(V(-100, -200, 0))] },
     co2: { html: 'carbon dioxide', side: 'l', pts: () => co2.filter(m => m.visible).map(m => worldOf(site, m.position)) },
     h2o: { html: 'water', side: 'l', pts: () => h2o.filter(m => m.visible).map(m => worldOf(site, m.position)) },
     glu: { html: 'glucose', side: 'l', pts: () => glu.visible ? [worldOf(site, glu.position)] : [] },
@@ -675,13 +743,14 @@ export async function build(stage, kit) {
 
   /* ================= the steps' motion (their words: js/plant/text.js, by id) ================= */
   const steps = [
-    { id: 'leaf', phases: [{ to: { cam: 0, ghost: 0, open: 0, day: 1 }, ms: 0 }], labs: { light: 1, skin: 2, pal: 1, spongy: 2, hole: 2, vein: 2, wax: 2 } },
+    { id: 'leaf', phases: [{ to: { cam: 0, ghost: 0, open: 0, day: 1 }, ms: 0 }], labs: { light: 1, skin: 2, pal: 1, spongy: 2, hole: 2, vein: 2, wax: 2 },
+      labsX: { xcut: 1, xupper: 1, xpal: 1, xbundle: 1, xxylem: 1, xphloem: 1, xspongy: 1, xair: 1, xlower: 1, xguard: 1, xstoma: 1 } },
     { id: 'cell', phases: [{ to: { ghost: 1 }, ms: 1400 }, { to: { cam: 1, sal: 1 }, ms: 3600 }], labs: { one: 1, sal: 1 } },
     { id: 'open', phases: [{ to: { sal: 0, cam: 2 }, ms: 1800 }, { to: { open: 1 }, ms: 2600 }], labs: { membrane: 1, cyto: 1, nucleus: 1, mito: 1, golgi: 2 } },
     { id: 'three', phases: [], labs: {},
       press: { all: [
         { id: 'chl', label: 'What is this?', at: 'chl', side: 'l', to: { hiC: 1, hiW: 0, hiV: 0 }, lab: 'chl' },
-        { id: 'wall', label: 'What is this?', at: 'wall', side: 'r', to: { hiW: 1, hiC: 0, hiV: 0 }, lab: 'wall' },
+        { id: 'wall', label: 'What is this?', at: 'wall', side: 'r', to: { hiW: 1, hiC: 0, hiV: 0 }, lab: 'wall', labs: { membrane: 2 } },
         { id: 'vac', label: 'What is this?', at: 'vac', side: 'c', to: { hiV: 1, hiC: 0, hiW: 0 }, lab: 'vac' }] },
       end: { hiC: 0, hiW: 0, hiV: 0 }, endLabs: { chl: 1, wall: 1, vac: 1 } },
     { id: 'chloroplast', phases: [{ to: { hiC: 0, hiW: 0, hiV: 0, cam: 3 }, ms: 3800 }], labs: { chl1: 1, stacks: 1, stroma: 2, er: 2 } },
@@ -724,6 +793,7 @@ export async function build(stage, kit) {
       mitochondria: mitoSpots.length, sheets: sheets.length, sheetMax: Math.max(...sheets.map(o => Math.max(o.s.x, o.s.z))), rubisco: 2 * 5.5,
       spongyApart: Math.min(...spo.flatMap((A, i) => spo.slice(i + 1).map(B => A.p.distanceTo(B.p) / (A.e + B.e)))),
       strayChloroplasts: spoChl.filter(c => spo.filter(o => o.p.distanceTo(c.p) < o.e * 0.98).length > 1).length,
+      cutFace: { wall: rimMat.color.getHex(), membrane: memLineMat.color.getHex(), sapColour: sapMat.color.getHex(), cytoColour: cytMat.color.getHex(), sap: sapMat.opacity, cyto: cytMat.opacity, shown: rim.visible && memLine.visible && cytFace.visible && sapFace.visible, memPx: Math.max(S.membrane, 2 / stage.pxPerNm()) * stage.pxPerNm(), chloroplastFaces: !!rimFaceMat.map, wallLayers: wallLayers.length },
       granaReach: Math.max(...grana.map(G => Math.hypot(G.p.y, G.p.z) / hy)), sapOpacity: mats.find(x => x[0] === vacMat)[1]
     };
     [site.visible, ws.visible, hcWhole.visible] = was; return out;
