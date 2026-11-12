@@ -5,18 +5,18 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611121326';
-import { state, COST, RESPIRE } from './state.js?v=202611121326';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121326';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121326';
-import { sound } from './sound.js?v=202611121326';
-import { magicStandard } from '../world/magic.js?v=202611121326';
-import { buildCrowd } from '../world/crowd.js?v=202611121326';
-import { Names } from './names.js?v=202611121326';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611121652';
+import { state, COST, RESPIRE } from './state.js?v=202611121652';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121652';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121652';
+import { sound } from './sound.js?v=202611121652';
+import { magicStandard } from '../world/magic.js?v=202611121652';
+import { buildCrowd } from '../world/crowd.js?v=202611121652';
+import { Names } from './names.js?v=202611121652';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611121326').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611121652').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -44,6 +44,7 @@ export function makePlay(world, quest) {
   const tween = (o, opts) => { unbob(o); return live(tween0(o, opts)); };
   const wait = ms => live(wait0(ms));
   let kept = [], props = {};
+  const FOLD = { on: false };   /* the rough ER's fold: the camera is close on the folding chain (fold, far below) */
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
@@ -55,11 +56,16 @@ export function makePlay(world, quest) {
      is made again by the step (a step may have changed it): the old one stays in the picture until the new one stands */
   function reset(stay) {
     const held = !!stay && (NZ.on || NS.close);
-    realOff();
+    realOff(); FOLD.on = false; if (props.pack) packOff(); else if (W.chromosomes[0]) W.chromosomes[0].mesh.visible = true;
     const ghost = held ? [props.mem, props.close].filter(Boolean) : [];
     kept.forEach(o => { if (!ghost.includes(o)) scene.remove(o); }); kept = []; props = {};
+    /* (held: the camera stays as it is. mitoOff puts the camera's up and its near and far planes back for the map; in a
+       close view whose up is not the world's, the rough ER's, the whole picture then rolled in one frame, a quarter of a
+       second after a step watched again had ended with a move of the camera: found by tools/transitions.mjs --again on
+       the fold, 12 Nov 2026) */
+    const camUp = world.camera.up.clone();
     mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff();
-    if (held) { LOD.ghost.push(...ghost); return; }
+    if (held) { world.camera.up.copy(camUp); world.nearFar(world.camera.position.distanceTo(world.controls.target)); LOD.ghost.push(...ghost); return; }
     lodGhosts(); nolOff(); nanoOff();
   }
   const lodGhosts = () => LOD.ghost.splice(0).forEach(o => { scene.remove(o); LOD.items = LOD.items.filter(it => it.o !== o); });
@@ -441,14 +447,17 @@ export function makePlay(world, quest) {
     const cam = world.camera, c = world.controls, s0 = quest.session;
     const at0 = c.target.clone(), off = cam.position.clone().sub(at0), d0 = off.length(), dir0 = off.normalize(), up0 = cam.up.clone();
     world.flying = true; c.enabled = false; world.setMoving(true);
-    const t0 = performance.now(), d1 = to.dist, same = Math.abs(Math.log(d0 / d1)) < 0.02;
+    const t0 = performance.now(), d1 = to.dist, same = Math.abs(Math.log(d0 / d1)) < 0.02; let off0 = null;
     await live(new Promise(res => {
       const f = () => {
         if (quest.session !== s0) return res();
         const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), e = k * k * (3 - 2 * k);
         const d = d0 * Math.pow(d1 / d0, e), g = same ? e : (d0 - d) / (d0 - d1);
         /* (to.turn: the part of the way by which the camera has turned to its new direction, 0.8 unless a view says) */
-        const turn = to.turn || 0.8, a = at0.clone().lerp(to.at, g), dd = dir0.clone().lerp(to.dir, smooth(0, turn, e)).normalize();
+        /* (to.dirOf(at, d): a view that says where the camera stands for each point and distance on the way, such as
+           the rough ER's fold, whose eye stays level with the membrane all the way; what the pupil had turned the view
+           by goes over the first third of the move) */
+        const turn = to.turn || 0.8, a = at0.clone().lerp(to.at, g), dd = to.dirOf ? to.dirOf(a, d).addScaledVector(off0 || (off0 = dir0.clone().sub(to.dirOf(at0, d0))), 1 - smooth(0, 0.3, e)).normalize() : dir0.clone().lerp(to.dir, smooth(0, turn, e)).normalize();
         cam.up.copy(up0).lerp(to.up, smooth(0.1, turn, e)).normalize();
         cam.position.copy(a).addScaledVector(dd, d); c.target.copy(a); cam.lookAt(a); world.nearFar(d); world.kick();
         if (k < 1) requestAnimationFrame(f); else res();
@@ -955,7 +964,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611121326').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611121652').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1410,6 +1419,121 @@ export function makePlay(world, quest) {
       });
     });
   }
+  /* ---- chromosome 1 packs into an X, and loosens again (12 Nov 2026) ----
+     Daniel, of the film "From DNA to protein - 3D", which shows a chromosome first as an X: "the way it shows initially
+     the chromosomes is not the best way. But then … you could have a chromosome all uncondensed and then condense it".
+     The thread stays the true picture of this cell, which is not dividing. One beat, which the pupil starts, shows what
+     the X of the books is: Second thread → a second, identical thread grows along the first (a cell makes one for every
+     chromosome before it divides; never called "a copy" here: that is the game's word for mRNA); Pack → the two each
+     wind up tightly, side by side, joined in the middle (chromosome 1's centromere is near its middle): the X, with a
+     scale bar; Loosen → both unwind, and the second thread goes from the picture little by little (a cell never
+     un-makes it: the words say that the picture showed a cell that is going to divide, and that this cell is not).
+     What is true and what is drawn: the two packed copies together are 0.9 µm wide here (measured: 1.15 ± 0.12 µm for
+     the paired sister chromatids of human metaphase chromosomes, Booth et al. 2016, Molecular Cell 64:790); they are
+     drawn shorter than they are (1.7 µm; the same paper's volumes give chromosome 1 several micrometres, longer than
+     this nucleus is wide: a dividing cell has no envelope round its chromosomes), and the words say so. It is the
+     game's own thread (drawn thicker than it is, as the page says) that winds up: the same tube, bead for bead, so
+     nothing goes or comes in one frame; the world's thread is hidden while its moving copy stands exactly on it.
+     Proof: tools/pack-check.mjs */
+  class Poly extends THREE.Curve {
+    constructor(P) { super(); this.P = P; }
+    getPoint(t, out = new THREE.Vector3()) { const x = Math.max(0, Math.min(1, t)) * (this.P.length - 1), i = Math.min(this.P.length - 2, Math.floor(x)); return out.lerpVectors(this.P[i], this.P[i + 1], x - i); }
+    getPointAt(u, out) { return this.getPoint(u, out); }
+    getTangentAt(u, out = new THREE.Vector3()) { const x = Math.max(0, Math.min(1, u)) * (this.P.length - 1), i = Math.min(this.P.length - 2, Math.floor(x)); return out.subVectors(this.P[i + 1], this.P[i]).normalize(); }
+  }
+  const PACK = { L: 1.7, RHO: 0.16, TURNS: 14, GAP: 0.215, BOW: 0.32, R: 0.05, N: 560 };   /* (µm; 14 turns 0.12 µm apart: the turns of the 0.1 µm tube almost touch, so each packed copy is a solid rod 0.42 µm wide, and the two side by side 0.9 µm) */
+  function packParts() {
+    if (props.pack) return props.pack;
+    const ch = W.chromosomes[0], v = nucView(), z = v.pos.clone().sub(v.at).normalize(), x = new THREE.Vector3().crossVectors(V(0, 1, 0), z).normalize(), y = new THREE.Vector3().crossVectors(z, x);
+    /* where the X stands: in front of the threads, in the middle of the nucleus's view */
+    /* (in front of the nucleolus and of every thread, 1.75 µm nearer than the middle of the nucleus, a little to the left of
+       the middle and below it, clear of the corner box; on a phone, whose picture is narrow, in the middle) */
+    /* (a phone's free picture is small: there the X stands in the middle, a little lower) */
+    const C = v.at.clone().addScaledVector(z, 1.75).addScaledVector(x, PHONE() ? -0.07 : -0.5).addScaledVector(y, PHONE() ? -0.42 : -0.4);
+    const thread = [], side = [], X = [[], []];
+    for (let i = 0; i <= PACK.N; i++) {
+      const t = i / PACK.N, p = inN(ch.curve.getPointAt(t)), q = inN(ch.curve.getPointAt(Math.min(1, t + 0.002))), tan = q.sub(p).normalize();
+      thread.push(p);
+      /* the copy lies beside the thread, touching it (0.1 µm to its side) */
+      const o = new THREE.Vector3().crossVectors(tan, z); if (o.lengthSq() < 0.01) o.copy(x); side.push(p.clone().addScaledVector(o.normalize(), 2 * PACK.R));
+      /* packed: wound round a line, the two lines side by side, touching in the middle and a little apart at the ends */
+      const a = (t - 0.5) * PACK.L, bow = PACK.GAP + PACK.BOW * Math.pow(Math.abs(2 * t - 1), 1.6), ph = t * PACK.TURNS * 2 * Math.PI;
+      [-1, 1].forEach((k, j) => X[j].push(C.clone().addScaledVector(y, a).addScaledVector(x, k * bow + PACK.RHO * Math.cos(ph) * k).addScaledVector(z, PACK.RHO * Math.sin(ph))));
+    }
+    const mat = c => magicStandard({ color: c, emissive: c === 0xffcf6b ? 0x7a4a00 : 0x8a6a30, emissiveIntensity: 0.5, roughness: 0.45 }, { rim: 0xffe9b0, rimK: 0.6 });
+    const tube = (c, name) => { const m = keep(new THREE.Mesh(new THREE.BufferGeometry(), mat(c))); m.renderOrder = 6; m.name = name; m.userData.kind = name; m.visible = false; return m; };
+    return (props.pack = { ch, C, x, y, z, thread, side, X, a: tube(0xffcf6b, 'chr1-thread'), b: tube(0xfff3d2, 'chr1-copy'), e: 0, grown: 0, others: W.chromosomes.slice(1).map(c => c.mesh), away: false });
+  }
+  /* drawn at e (0 the threads … 1 the X) with the copy grown to g (0 … 1 of its length) */
+  function packDraw(e, g) {
+    const P = packParts(), s = smooth(0, 1, e), pts = (A, B) => A.map((p, i) => p.clone().lerp(B[i], s));
+    const set = (m, path, k) => { m.geometry.dispose(); m.geometry = new THREE.TubeGeometry(new Poly(path), PACK.N, PACK.R, 6, false); m.geometry.setDrawRange(0, Math.round(PACK.N * Math.max(0, Math.min(1, k))) * 36); m.visible = k > 0; };
+    set(P.a, pts(P.thread, P.X[0]), 1); set(P.b, pts(P.side, P.X[1]), g);
+    P.e = e; P.grown = g; P.ch.mesh.visible = false; world.kick();
+  }
+  const packRun = (e0, e1, g0, g1, ms) => { const t0 = performance.now(), s0 = quest.session; return live(new Promise(res => { const f = () => { if (quest.session !== s0) return res(); const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms); packDraw(e0 + (e1 - e0) * k, g0 + (g1 - g0) * k); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }), s0); };
+  /* the other 13 threads go while chromosome 1 is shown alone, and come back after, by the world's dissolve (the frame
+     drawn both ways and blended: world.js draw), never in one frame: with them in the picture, threads crossed in front
+     of the X */
+  function packOthers(away, ms = 1000) {
+    const P = packParts(), show = v => P.others.forEach(o => { o.visible = v; }), s0 = quest.session;
+    P.away = away;
+    if (R.FAST) { world.dissolve = null; show(!away); world.kick(); return Promise.resolve(); }
+    const t0 = performance.now(), D = world.dissolve = { t: 0.003, a: () => show(away), b: () => show(!away) };
+    return live(new Promise(res => { const f = () => {
+      if (world.dissolve !== D) return res();
+      const k = (performance.now() - t0) / ms;
+      if (k >= 1 || quest.session !== s0) { world.dissolve = null; show(!P.away); world.kick(); return res(); }
+      D.t = Math.max(0.003, Math.min(0.997, smooth(0, 1, k))); world.kick(); requestAnimationFrame(f); }; f(); }), s0);
+  }
+  /* the world's own thread back (the moving copy stood exactly on it), and the other threads */
+  function packOff() { const P = props.pack; W.chromosomes.forEach(c => { c.mesh.visible = true; }); if (!P) return; if (P.bar && bar) bar.hidden = true; if (world.dissolve && P.away) world.dissolve = null; [P.a, P.b].forEach(m => { drop(m); m.geometry.dispose(); m.material.dispose(); }); props.pack = null; world.kick(); }
+  async function pack() {
+    const v = nucView(); if (world.camera.position.distanceTo(v.pos) > 0.5) await fly(v.pos, v.at);
+    chr1Mat(); W.chromosomes[0].mesh.material.color.setHex(0xffcf6b); W.chromosomes[0].mesh.material.emissive.setHex(0x7a4a00);
+    const ch = W.chromosomes[0];
+    /* (after the expert review, 12 Nov 2026: three presses, each message shown when its press is made and kept until the
+       next, never changed by a timer; "a second thread", since "copy" is the game's word for mRNA; the camera never
+       moves; Loosen never un-makes the second thread: it goes as a picture goes, and the words say why) */
+    quest.names.set([{ key: 'p-chr', free: true, aside: true, html: '<span class="nm__t">chromosome 1:<br>one long thread</span>', small: '<span class="nm__t">chromosome 1</span>', spots: [0.3, 0.7, 0.15, 0.85, 0.5].map(t => inN(ch.curve.getPointAt(t))) }], HUD2());
+    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Second thread', { side: 't' });
+    quest.names.set([], HUD2());
+    const P = packParts();
+    /* 1. chromosome 1 alone; a second, identical thread grows along it */
+    quest.say('<p>This picture now shows what happens in a cell that is going to divide. Only chromosome 1 is shown.</p><p>Before it divides, the cell makes a second, identical thread for every chromosome. Here the second thread of chromosome 1 grows beside the first (drawn paler).</p>');
+    packDraw(0, 0);
+    await packOthers(true);
+    await packRun(0, 0, 0, 1, 3000);
+    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Pack', { side: 't' });
+    /* 2. each winds up tightly; they stay joined in the middle */
+    quest.say('The two threads each pack tightly. They stay joined in the middle.');
+    await packRun(0, 1, 1, 1, 6000);
+    /* (a scale bar beside the X; not on a phone, where the X needs the foot of the picture: the words give its width) */
+    if (!PHONE()) { scaleBar(world.camera.position.distanceTo(P.C)); P.bar = true; }
+    const at = (k, a) => P.C.clone().addScaledVector(P.y, a).addScaledVector(P.x, k * (PACK.GAP + PACK.BOW * Math.pow(Math.abs(2 * a / PACK.L), 1.6) + PACK.RHO));
+    quest.names.set(PHONE() ? [
+      /* (a phone: no room beside the X, nor above it: one name under it, for the pair; the words say the rest) */
+      { key: 'p-a', free: true, html: '<span class="nm__t">the two threads</span>', spots: [P.C.clone().addScaledVector(P.y, -PACK.L / 2 + 0.05)], up: 1, len: 24 }
+    ] : [
+      /* (each name on its own side, below the corner box's height: with a spot higher up, the first thread's name went to
+         the right and its line crossed the second thread) */
+      { key: 'p-a', free: true, aside: true, prefer: -1, html: '<span class="nm__t">chromosome 1:<br>first thread, packed</span>', small: '<span class="nm__t">first thread</span>', spots: [at(-1, -0.45), at(-1, -0.2), at(-1, -0.7)], sides: [-1, -1, -1] },
+      { key: 'p-b', free: true, aside: true, prefer: 1, html: '<span class="nm__t">second thread,<br>packed</span>', small: '<span class="nm__t">second thread</span>', spots: [at(1, 0.45), at(1, 0.2), at(1, 0.7)], sides: [1, 1, 1] },
+      { key: 'p-j', free: true, html: '<span class="nm__t">joined here</span>', spots: [P.C.clone()], up: 1, len: Math.round(world.pxPerUnit(world.camera.position.distanceTo(P.C)) * (PACK.L / 2 + 0.12)) }
+    ], HUD2(), lr(P.C.clone().addScaledVector(P.x, -1), P.C.clone().addScaledVector(P.x, 1)), [P.a, P.b]);
+    quest.say('<p>This is the X that books draw: the two identical threads of chromosome 1, each packed tightly, joined in the middle.</p><p>Packed like this, the threads do not tangle with other chromosomes, so the cell can move one of the two to each new cell.</p><p>The two together are about 1 µm wide (look at the scale bar). The picture draws them much shorter than they are: a real packed chromosome 1 is several micrometres long, longer than this nucleus is wide. The other chromosomes are not shown.</p>', 'ok');
+    await press(() => P.C.clone().addScaledVector(P.x, 0.95).addScaledVector(P.y, -0.6), 'Loosen', { side: 'r' });
+    quest.names.set([], HUD2()); if (bar) bar.hidden = true; P.bar = false;
+    /* 3. back to the long thread; the second thread is not un-made: it goes from the picture little by little */
+    quest.say('The picture goes back to your cell. Your cell is not dividing: it did not make a second thread, so the second thread goes from the picture.');
+    await packRun(1, 0, 1, 1, 4200);
+    P.b.material.transparent = true; P.b.material.depthWrite = false;
+    const t0 = performance.now(), s0 = quest.session;
+    await live(new Promise(res => { const f = () => { if (quest.session !== s0) return res(); const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 1800); P.b.material.opacity = 1 - smooth(0, 1, k); world.kick(); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }), s0);
+    await packOthers(false);
+    packOff();
+    quest.say('The picture is your cell again. It is not dividing: it did not make a second thread, and its 46 chromosomes stay long, thin threads. A cell reads its genes while its chromosomes are long threads.', 'ok');
+  }
   function gene() {
     if (props.gene) return props.gene;
     const ch = W.chromosomes[0], pts = [];
@@ -1702,7 +1826,7 @@ export function makePlay(world, quest) {
      comes back while the camera goes out (nanoOut) or when the pupil leaves (reset: nanoOff). The rough ER is seen as a
      section, its cut face showing the membrane's two layers. Every press, choice and check is as before.
      Proof: tools/true-size.mjs B and C */
-  const TSZ = { mrna: 0.001, rib: 0.0154, small: 0.0168, large: 0.01535, car: 0.0075, aa: 0.0011, bead: 0.00055, amy: 0.0024, ves: 0.035, enz: 0.0025 };
+  const TSZ = { mrna: 0.001, rib: 0.0154, small: 0.0168, large: 0.01535, car: 0.0075, aa: 0.0011, bead: 0.00055, res: 0.0003, amy: AMY_S, ves: 0.035, enz: 0.0025 };   /* (res: one amino acid in a chain, a bead 0.6 nm across; neighbours are 0.38 nm apart, so the beads touch) */
   const NZ = { on: false };
   const groupsOf = names => names.map(k => W.groups[k]).filter(Boolean);
   /* what is far away fades into the cytosol while the camera is close: a mitochondrion 2 µm behind a ribosome must not
@@ -1718,8 +1842,14 @@ export function makePlay(world, quest) {
       if (!NZ.on && !tOff) tOff = performance.now();
       const w = tOff ? 1 - smooth(0, 1, R.FAST ? 1 : (performance.now() - tOff) / 900) : 1;
       const d = world.camera.position.distanceTo(world.controls.target), k = smooth(0, 1, Math.log(20 / d) / Math.log(20 / 0.16));
-      const nn = n0 + (Math.min(n0, d * 1.75) - n0) * w, nf = f0 + (Math.min(f0, d * 13) - f0) * w;
-      if (Math.abs(nn - fog.near) > 1e-6 || Math.abs(nf - fog.far) > 1e-6) { fog.near = nn; fog.far = nf; fog.color.copy(c0).lerp(FOGC, k * w); world.kick(); }   /* a still picture is not drawn again */
+      /* the fold's closer look, inside the rough ER (FOLD.on, the camera under 120 nm away): what is far, the nucleus
+         below above all, goes into the world's own fog colour, which is the colour of the stage behind the picture, so
+         it is no longer seen (in the cytosol's lighter blue it had stood under the folding chain as a flat hill with
+         lumps, which read as objects about 1 nm in size: the expert review, 12 Nov 2026); it follows the camera's
+         distance, so it comes and goes with the move */
+      const deep = FOLD.on ? smooth(0.12, 0.055, d) : 0;
+      const nn = n0 + (Math.min(n0, d * 1.75) - n0) * w, nf = f0 + (Math.min(f0, d * (13 - 7 * deep)) - f0) * w;
+      if (Math.abs(nn - fog.near) > 1e-6 || Math.abs(nf - fog.far) > 1e-6) { fog.near = nn; fog.far = nf; fog.color.copy(c0).lerp(FOGC, k * w).lerp(c0, deep * w); world.kick(); }   /* a still picture is not drawn again */
       if (w > 0) requestAnimationFrame(f);
     };
     f();
@@ -2116,8 +2246,8 @@ export function makePlay(world, quest) {
      top surface stretched back as a wide pink plane and the name "cytosol" stood on it (Daniel, 10 Nov 2026: "it's
      labeling the membrane itself rather than the cytosol") */
   const RER_AT = 14, RER_DIST = 0.17;
-  const rerClose = () => { membrane(); const f = rerFace(), a = -Math.asin(RER_AT / 1000 / RER_DIST), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize();
-    return nanoIn({ at: ep(0, RER_AT), dir: cd, up: f.n.clone(), dist: RER_DIST }, NEAR_HIDE().concat([W.groups.rer])); };
+  const rerView = () => { const f = rerFace(), a = -Math.asin(RER_AT / 1000 / RER_DIST), cd = f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize(); return { at: ep(0, RER_AT), dir: cd, up: f.n.clone(), dist: RER_DIST }; };
+  const rerClose = () => { membrane(); return nanoIn(rerView(), NEAR_HIDE().concat([W.groups.rer])); };
   /* solid: the large parts no name may cover (the ribosome, before it docks too, while it waits in the cytosol; the vesicle) */
   const rerNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDR(), lr(ep(-34, 0), ep(34, 0)), solid.filter(Boolean));
   /* the membrane's name below its cut face, the channel's below its own (a name on or beside a thin part hides it) */
@@ -2153,25 +2283,55 @@ export function makePlay(world, quest) {
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(seat(), 0.0135)]]);
     quest.say('The ribosome sits on a channel in the membrane of the rough ER. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
   }
-  /* the ribosome joins amino acids from one count to another: a counter under it, and the chain flowing down through the
-     channel, inside the ER */
+  /* ---- the chain itself, drawn whole (12 Nov 2026) ----
+     Daniel, of the film "From DNA to protein - 3D": "I really like when it shows at the end how the different proteins,
+     when they kind of form the 3D structure, that 3D structure changes into what the animation itself shows the enzymes
+     … so … the students understand, oh, so what we were looking at … were enzymes, or … chains of amino acids".
+     Before: a few large beads stood for the chain ("only part of the chain is drawn"), and Fold shrank them and scaled up
+     a lump. Now every amino acid of amylase is one bead (496, each 0.6 nm across: actors.js strand), and the pupil sees
+     the same chain all the way: it grows out of the channel as the ribosome joins amino acids, lies loose inside the
+     rough ER, folds bead by bead into amylase's measured shape (PDB 1SMD: actors.js amylase), and a smooth surface then
+     grows over it: the lump the game draws for amylase from then on.
+     The chain's way (amylase().way, in ep's own offsets, nm): from the top of the channel straight down through it, then
+     a loose thread inside the rough ER. s is how far along that way the chain's first amino acid has come, in amino
+     acids: amino acid j is at point s - j of the way (not yet in the channel: not drawn), so the whole chain moves along
+     as it grows. While the ribosome works, s = the count - 60: the 15 amino acids of the signal are not part of amylase,
+     and the newest 45 are still inside the ribosome. When the ribosome releases the chain, its last amino acids leave
+     the channel too (s = STRAND_FREE). Proof: tools/fold-check.mjs */
+  const STRAND_FREE = amylase().way.length / 3 - 1;
+  const wayAt = (i, v = new THREE.Vector3()) => { const A = amylase().way, f = rerFace(), k = 3 * Math.max(0, Math.min(STRAND_FREE, Math.round(i))); return v.copy(f.p).addScaledVector(f.right, A[k] / 1000).addScaledVector(f.n, A[k + 1] / 1000).addScaledVector(f.along, A[k + 2] / 1000); };
+  function strandSet(st, s) {
+    const A = amylase(), Wy = A.way, f = rerFace(), v = new THREE.Vector3();
+    for (let j = 0; j < A.n; j++) {
+      const t = s - j;
+      if (t < 0) { st.userData.put(j, 0, 0, 0, 0); continue; }
+      const a = Math.min(STRAND_FREE, Math.floor(t)), b = Math.min(STRAND_FREE, a + 1), u = Math.min(1, t - a);
+      v.copy(f.p).addScaledVector(f.right, (Wy[3 * a] + (Wy[3 * b] - Wy[3 * a]) * u) / 1000).addScaledVector(f.n, (Wy[3 * a + 1] + (Wy[3 * b + 1] - Wy[3 * a + 1]) * u) / 1000).addScaledVector(f.along, (Wy[3 * a + 2] + (Wy[3 * b + 2] - Wy[3 * a + 2]) * u) / 1000);
+      st.userData.put(j, v.x, v.y, v.z);
+    }
+    st.userData.s = s; st.userData.done(); world.kick();
+  }
+  /* the chain as it stands now (made if the step before did not leave it: a game opened again at this step) */
+  const theStrand = s => { let st = props.strand; if (!st) { st = props.strand = keep(strand(amylase().n, TSZ.res, amylase().kinds)); strandSet(st, s); } return st; };
+  /* a point of the chain to name: half-way along the part that is inside the rough ER */
+  const chainSpot = () => { const st = props.strand, s = st ? st.userData.s : STRAND_FREE; return wayAt(Math.max(21, s - Math.min(s, amylase().n) / 2)); };
+  /* the ribosome joins amino acids from one count to another: a counter under it, and the chain growing out of the
+     channel, inside the ER, one bead for each amino acid joined */
   async function count(r, from, to, ms) {
     const counter = quest.hot(() => r.position.clone().addScaledVector(rerFace().n, 0.024), 'amino acids: ' + from, { cls: 'count', side: 't' }); counter.el.disabled = true;
-    const t0 = performance.now(), flow = [], s0 = quest.session;
+    const t0 = performance.now(), s0 = quest.session, st = theStrand(from - 60);
     await live(new Promise(res => {
       const f = () => {
-        const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms);
-        counter.el.querySelector('span').textContent = 'amino acids: ' + Math.round(from + (to - from) * k);
-        if (!R.FAST && flow.length < 18 && Math.random() < 0.3 && quest.session === s0) { const b = keep(token('amino', TSZ.aa)); b.position.copy(ep(0, 2)); flow.push(b); tween(b, { to: ep((Math.random() - 0.5) * 16, -8 - Math.random() * 12, (Math.random() - 0.5) * 8), ms: 1200 }); }
+        if (quest.session !== s0) return res();
+        const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), c = from + (to - from) * k;
+        counter.el.querySelector('span').textContent = 'amino acids: ' + Math.round(c);
+        strandSet(st, c - 60);
         if (k < 1) requestAnimationFrame(f); else res();
       };
       f();
     }), s0);
-    flow.forEach(drop);
     return counter;
   }
-  /* the chain inside the ER: a string of amino acids, loose */
-  const blob = (n) => keep(chain(Array.from({ length: n }, (_, i) => ep(4 + Math.cos(i * 0.9) * 3, -9 - i * 0.55 + Math.sin(i * 1.7) * 1.2, Math.sin(i * 0.9) * 2)), Array.from({ length: n }, (_, i) => i % 4), TSZ.bead));
   const ribAt = () => props.rib || makeDocked();
   async function grow() {
     await rerClose();
@@ -2180,53 +2340,133 @@ export function makePlay(world, quest) {
     rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow });
     await count(r, 60, 150, 2400);
-    if (props.blob) drop(props.blob);
-    props.blob = blob(14);
-    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [ep(4, -14)]]]);
+    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [chainSpot()]]]);
     quest.say('The chain grows through the channel, inside the rough ER.', 'ok');
   }
   async function cut() {
     await rerClose();
     const r = ribAt(); rerCopy(r.position);
-    if (!props.blob) props.blob = blob(14);
+    const st = theStrand(90);
     const sig = props.sig || keep(chain([ep(-3, -5), ep(-4, -6)], [0, 1], TSZ.bead));
     /* the enzyme that removes the signal: a protein in the membrane beside the channel, about 5 nm */
     const enz = calm(keep(token('protein', TSZ.enz))); enz.position.copy(ep(-6, -1.5));
-    rerNames([memName(), ...sides(), ['e-enz', 'enzyme', [enz.position.clone()]]]);
+    rerNames([memName(), ...sides(), ['e-enz', 'enzyme', [enz.position.clone()]], ['e-chain', 'the chain', [chainSpot()]]]);
     await press(() => ep(-6, -14), 'Cut', { side: 'b' });
     await tween(sig, { to: sig.position.clone().addScaledVector(rerFace().right, -0.012).addScaledVector(rerFace().n, -0.01), ms: 900, fade: 0 });
     drop(sig); props.sig = null;
     quest.say('The signal is removed. The ribosome continues to join amino acids.', 'ok');
     const counter = await count(r, 150, 511, 3600);
     counter.remove();
-    drop(props.blob); props.blob = blob(30);
-    /* the end of the copy: the ribosome releases the chain, and its two parts separate and leave the membrane */
+    /* the end of the copy: the ribosome releases the chain, whose last amino acids leave the channel, and its two parts
+       separate and leave the membrane */
     const up = rerFace().n;
     const sm = calm(keep(token('small', TSZ.small))), lg = calm(keep(token('large', TSZ.large)));
     lg.position.copy(r.position).addScaledVector(up, -0.0065); sm.position.copy(r.position).addScaledVector(up, 0.0059);
     drop(r); props.rib = null;
-    await Promise.all([tween(sm, { to: sm.position.clone().addScaledVector(up, 0.06).addScaledVector(rerFace().right, -0.03), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().addScaledVector(up, 0.07).addScaledVector(rerFace().right, 0.03), ms: 1300, fade: 0 })]);
+    const t0 = performance.now(), sA = st.userData.s, s0 = quest.session;
+    const free = live(new Promise(res => { const f = () => { if (quest.session !== s0) return res(); const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 1300); strandSet(st, sA + (STRAND_FREE - sA) * k * k * (3 - 2 * k)); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }), s0);
+    await Promise.all([free, tween(sm, { to: sm.position.clone().addScaledVector(up, 0.06).addScaledVector(rerFace().right, -0.03), ms: 1300, fade: 0 }), tween(lg, { to: lg.position.clone().addScaledVector(up, 0.07).addScaledVector(rerFace().right, 0.03), ms: 1300, fade: 0 })]);
     drop(sm); drop(lg); drop(enz);
-    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [ep(4, -16)]]]);
-    quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy, the ribosome releases the chain, and its two parts separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids. Only part of the chain is drawn here.</p>', 'ok');
+    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [chainSpot()]]]);
+    quest.say('<p>All 511 amino acids are joined.</p><p>At the end of the copy of the gene, the ribosome releases the chain. The two parts of the ribosome separate and leave the membrane.</p><p>Without its signal, amylase has 496 amino acids: the chain in the picture has 496 beads.</p>', 'ok');
   }
+  /* ---- the chain folds (12 Nov 2026) ----
+     Fold: the camera goes closer, to the whole loose chain (the scale bar follows); each bead then moves from its place
+     in the loose chain to its place in the folded one, the first amino acids first, so the chain is seen to wind into
+     its shape from one end, never broken (neighbours stay 0.38 nm apart, a hair more on the way); the camera comes
+     closer still, to the folded chain, once it is folded. It waits there: the pupil sees that the shape is the chain.
+     Then the beads turn to amylase's colour and merge into its smooth surface (it comes little by little; nothing is
+     added: the surface is the outside of the same amino acids, and the words say so), which is the lump
+     the game draws for amylase everywhere; its groove, the active site, faces the camera and is named with a line that
+     ends on it; then the camera goes back to the rough ER's close view. The folded molecule is turned by a rotation
+     only, never mirrored: across the picture its x, up its y, towards the camera its z (ep's `right` runs to the
+     picture's left, so its x is -right). With Reduce motion each part is a still: the loose chain, the folded chain,
+     amylase with its names. Simple / As it really is does not show while the camera is this close (FOLD.on) */
+  /* the camera's place for the folded chain: the molecule in the middle of the picture; the eye level with the membrane
+     (looking level from inside the rough ER, the far underside of the membrane filled the top half of the picture, a pink
+     plane), so the camera looks down on the molecule, which is turned to face it */
+  /* (a phone: its corner box covers the top third of the picture and the sheet of words its foot, so the camera is a
+     little further away and looks 2.9 nm above the molecule, which then stands in the free part between them) */
+  const foldNear = () => { const P = PHONE(), d = fitDist(P ? 15.6 : 17, 11), v0 = foldView(insideAt(), d, 0); if (!P) return v0;
+    return foldView(insideAt().addScaledVector(new THREE.Vector3().crossVectors(v0.dir, rerFace().right.clone().negate()), 0.0029), d, 0); };
+  const foldQ = () => { const f = rerFace(), X = f.right.clone().negate(), Z = foldNear().dir, Y = new THREE.Vector3().crossVectors(Z, X); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, Z)); };
+  /* the camera on a point inside the rough ER, its eye eyeY nm from the membrane's middle (0: level with the membrane,
+     which is then seen from its edge only, as in the place's close view) */
+  const foldView = (at, dist, eyeY) => { const f = rerFace(), a = Math.asin(Math.max(-0.9, Math.min(0.9, (eyeY - at.clone().sub(f.p).dot(f.n) * 1000) / 1000 / dist))); return { at, dir: f.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.n, Math.sin(a)).normalize(), up: f.n.clone(), dist }; };
+  /* on the way between two of these views the eye stays level with the membrane too (camGo's dirOf): turning evenly from
+     one direction to the other, it had passed up to a few nanometres above or below the membrane's middle */
+  const eyeLevel = view => Object.assign({ dirOf: (at, d) => foldView(at, d, 0).dir }, view);
+  /* amylase where it folds, turned to the picture */
+  const makeAmylase = () => { const t = keep(token('amylase', TSZ.amy)); t.position.copy(insideAt()); t.quaternion.copy(foldQ()); return (props.amylase = t); };
+  const sitePin = a => a.localToWorld(new THREE.Vector3(...amylase().pin).multiplyScalar(0.001));
+  const foldNames = (list, solid = []) => closeNames(rerFace(), list, solid, PHONE() ? 5 : 7, insideAt());
   async function fold() {
     await rerClose();
-    const inside = insideAt();
-    await press(() => inside.clone().addScaledVector(rerFace().n, -0.014), 'Fold', { side: 'b' });
-    if (props.blob) { await tween(props.blob, { to: props.blob.position.clone(), ms: 200, scale: 0.6 }); drop(props.blob); props.blob = null; }
-    const a = keep(token('amylase', TSZ.amy)); a.position.copy(inside); a.scale.setScalar(0.3);
-    await tween(a, { to: inside, ms: 900, scale: 1 }); burst(scene, inside, { n: 18, r: 0.01 });
-    props.amylase = a;
-    rerNames([memName(), ...sides(), ['e-amy', 'amylase', [inside.clone()]]]);
-    const site = quest.hot(() => a.position.clone().addScaledVector(rerFace().n, 0.003), 'active site', { cls: 'tag', side: 'r' }); site.el.disabled = true;
-    quest.say('Amylase, folded into its shape: about 5 nm across. Starch fits into its <b>active site</b>.', 'ok');
-    await quest.next(); site.remove();
+    const A = amylase(), f = rerFace(), inside = insideAt(), st = theStrand(STRAND_FREE);
+    if (props.amylase) { drop(props.amylase); props.amylase = null; }
+    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [chainSpot()]]]);
+    await press(() => ep(2, -31), 'Fold', { side: 'b' });
+    FOLD.on = true; quest.names.set([], HUD());
+    /* closer: the whole loose chain in the picture, each bead now seen */
+    await camGo(eyeLevel(foldView(ep(2.4, PHONE() ? -10.5 : -16.5), fitDist(36, 29), 0)), R.FAST ? 0 : 2000);
+    /* each bead from its place in the loose chain to its place in the folded one */
+    const q = foldQ(), from = [], to = [], v = new THREE.Vector3();
+    for (let j = 0; j < A.n; j++) { from.push(wayAt(STRAND_FREE - j)); to.push(v.set(A.ca[3 * j], A.ca[3 * j + 1], A.ca[3 * j + 2]).multiplyScalar(0.001).applyQuaternion(q).add(inside).clone()); }
+    /* (the camera is still while the chain folds, and goes closer only after: moving in meanwhile, the zoom and the chain's
+       gathering cancelled each other on the screen: the expert review, 12 Nov 2026) */
+    const t0 = performance.now(), s0 = quest.session, LAG = 0.55, MS = 5600;
+    const winding = live(new Promise(res => {
+      const g = () => {
+        if (quest.session !== s0) return res();
+        const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / MS);
+        for (let j = 0; j < A.n; j++) { const e = smooth(0, 1, k * (1 + LAG) - LAG * j / A.n); v.lerpVectors(from[j], to[j], e); st.userData.put(j, v.x, v.y, v.z); }
+        st.userData.done(); world.kick();
+        if (k < 1) requestAnimationFrame(g); else res();
+      };
+      g();
+    }), s0);
+    const near = foldNear();
+    await winding;
+    await camGo(eyeLevel(near), R.FAST ? 0 : 2400);
+    st.userData.folded = true;
+    /* amylase's surface stands there from now on, not yet seen (opacity 0): the names keep off the folded chain by it */
+    const a = makeAmylase(), body = a.children[0];   /* (each token has a material of its own) */
+    body.material.transparent = true; body.material.opacity = 0; body.material.depthWrite = false; body.renderOrder = 7;
+    /* (a phone: no room beside it, so each name stands below or above it, on an upright line) */
+    const camUp = () => new THREE.Vector3(0, 1, 0).applyQuaternion(world.camera.quaternion), below = () => [[inside.clone().addScaledVector(camUp(), -0.0026)], { up: 1, len: 14 }];
+    foldNames([['e-chain', 'the chain, folded', ...(PHONE() ? below() : edge(inside, 0.0042))]], [a]);
+    quest.say('<p>The chain has folded into its shape. Every bead is one amino acid: 496 in all. The four colours are four kinds of amino acid.</p><p>This is the real shape of amylase: scientists measured where each of its atoms is.</p><p>In a real cell the chain starts to fold while it is still growing. Here it waited, so that you could see the whole chain.</p>', 'ok');
+    await quest.next('Show its surface');
+    /* the smooth surface grows over the chain: the lump the game draws for amylase */
+    quest.names.set([], HUD());
+    /* nothing is added to the protein: the surface is only the outside of the same amino acids. So first every bead
+       turns to amylase's own colour (the first third), and then the beads are seen to merge into the smooth shape, which
+       comes in in that same colour; the beads go little by little as it closes (a few lie just under it). Before, a
+       brown shell came over the coloured beads from outside, like a coat (the expert review, 12 Nov 2026) */
+    st.material.transparent = true;
+    const gold = new THREE.Color(0xf0b24a), c0 = [...Array(A.n)].map((_, j) => new THREE.Color(AMINO_COLORS[+A.kinds[j]])), cc = new THREE.Color();
+    const t1 = performance.now();
+    await live(new Promise(res => { const g = () => { if (quest.session !== s0) return res(); const k = R.FAST ? 1 : Math.min(1, (performance.now() - t1) / 3600), kc = smooth(0, 0.34, k), e = smooth(0.3, 1, k);
+      for (let j = 0; j < A.n; j++) st.setColorAt(j, cc.copy(c0[j]).lerp(gold, kc)); st.instanceColor.needsUpdate = true;
+      body.material.opacity = e; body.material.depthWrite = e > 0.9; st.material.opacity = 1 - smooth(0.7, 1, k); world.kick(); if (k < 1) requestAnimationFrame(g); else res(); }; g(); }), s0);
+    /* the beads are inside the surface now, and no longer drawn */
+    drop(st); props.strand = null;
+    /* the active site is in the middle of the lump: its name stands above the lump, on an upright line that ends in the
+       groove (the game's way for a part that a level line could reach only across another: names.js `up`; a level line
+       from beside the lump was tried after the expert review, and the name then stood on the lump) */
+    const pin = sitePin(a), top = pin.clone().addScaledVector(camUp(), 0.0034);
+    foldNames([['e-amy', 'amylase', ...(PHONE() ? below() : edge(inside, 0.0045))], ['e-site', 'active site', [pin], { up: -1, len: Math.round(Math.abs(world.project(top).y - world.project(pin).y)) + 16 }]], [a]);
+    quest.say('<p>Now the picture shows only the outside of the folded chain. Nothing is added: the smooth shape is the surface of the same amino acids. This is how the game draws amylase. It is about 8 nm long and 5 nm wide.</p><p>The groove is its <b>active site</b>: a short part of a starch chain fits into it.</p><p>Every enzyme and every other protein that the game draws as a smooth lump is one folded chain of amino acids like this, or a few folded chains together. A ribosome is different: it is RNA and many proteins together, as you saw at the nucleolus.</p>', 'ok');
+    await quest.next();
+    quest.names.set([], HUD());
+    await camGo(eyeLevel(rerView()), R.FAST ? 0 : 3200);
+    FOLD.on = false;
   }
   async function bud() {
     await rerClose();
     const inside = insideAt();
-    const a = props.amylase || (() => { const t = keep(token('amylase', TSZ.amy)); t.position.copy(inside); return (props.amylase = t); })();
+    const a = props.amylase || makeAmylase();
+    if (props.strand) { drop(props.strand); props.strand = null; }
     if (!state.has('lipids')) {
       quest.say('Every vesicle removes a piece of the ER membrane, so the ER needs new <b>lipids</b> first. The <b>smooth ER</b> makes them: go there, then return here.', 'no');
       return false;
@@ -2270,7 +2510,7 @@ export function makePlay(world, quest) {
   const crowdNames = () => REAL.names || (REAL.names = new Names(world, (() => { const l = R.h('div', { class: 'names', id: 'names2' }); R.$('#stage').insertBefore(l, R.$('#hots')); return l; })()));
   /* the step waits for the pupil: a button on the picture that can be pressed, or one in the step (a choice, Next) */
   const waitsForPupil = () => quest.hots.some(o => o.alive && !o.el.disabled) || !!(quest.step && quest.step.li && quest.step.li.querySelector('.step__do button:not([disabled])'));
-  const realHere = () => NZ.on && REAL.places.includes(quest.cur) && !quest.watchingNow();
+  const realHere = () => NZ.on && !FOLD.on && REAL.places.includes(quest.cur) && !quest.watchingNow();
   function realUI() {
     if (REAL.el) return REAL.el;
     const el = R.h('div', { class: 'realsw', role: 'group', 'aria-label': 'How the picture is drawn' },
@@ -2320,7 +2560,7 @@ export function makePlay(world, quest) {
     });
     out.push([0, 0, -3, 5.5]);   /* the channel where the story's ribosome docks (the membrane's own drawing: membrane()) */
     /* room round the chain and amylase inside the rough ER, so that they can be seen (the expert review: the chain was lost) */
-    if (props.blob && props.blob.parent) props.blob.children.forEach(b => out.push([...inF(b.getWorldPosition(new THREE.Vector3())), 3.5]));
+    if (props.strand && props.strand.parent) { const sN = props.strand.userData.s; for (let i = Math.max(0, sN - amylase().n + 1); i <= Math.min(sN, STRAND_FREE); i += 6) out.push([...inF(wayAt(i)), 2.6]); }   /* (the chain's own way: every sixth bead) */
     if (props.amylase && props.amylase.parent) out.push([...inF(props.amylase.getWorldPosition(new THREE.Vector3())), 6.5]);
     [props.copy, props.copy2].forEach(cv => { if (cv) cv.getSpacedPoints(240).forEach(p => out.push([...inF(p), 2.5])); });
     /* a copy moved with its ribosome (the last step) */
@@ -2345,8 +2585,8 @@ export function makePlay(world, quest) {
       if (mine.length) list.push(['x-mine', 'your ribosome', ...edge(props.rib.getWorldPosition(new THREE.Vector3()).addScaledVector(f.n, 0.009), 0.0135)]);
       /* the story's own molecule in the rough ER, never lost in the crowd */
       if (props.amylase && props.amylase.parent) list.push(['x-amy', 'amylase', [props.amylase.getWorldPosition(new THREE.Vector3())]]);
-      else if (props.blob && props.blob.parent && props.blob.children.length) list.push(['x-chain', 'the chain', [props.blob.children[props.blob.children.length - 1].getWorldPosition(new THREE.Vector3())]]);
-      const solid = mine.concat([props.blob, props.amylase, props.free && props.free.t].filter(o => o && o.parent));   /* (no crowd name on the story's own molecules: on a phone one had hidden the chain) */
+      else if (props.strand && props.strand.parent && props.strand.userData.s > 30) list.push(['x-chain', 'the chain', [chainSpot()]]);
+      const solid = mine.concat([props.amylase, props.free && props.free.t].filter(o => o && o.parent));   /* (no crowd name on the story's own molecules: on a phone one had hidden the chain) */
       crowdNames().set(list.filter(it => it[2].length).map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDR(), Object.assign(lr(ep(50, 0), ep(-50, 0)), { on: true }), solid);   /* (on: beside their parts, never in columns round the picture: long lines across the crowd) */
       if (quest.step && quest.step.li) { REAL.note = R.h('div', { class: 'realnote', role: 'status' }, NOTE.replace('<p class="realnote__s">', quest.cur === 'rer' ? '<p>The inside of the rough ER is packed with proteins too.</p><p class="realnote__s">' : '<p class="realnote__s">')); quest.step.li.appendChild(REAL.note); quest.reveal(REAL.note, false); }
     } else {
@@ -2667,7 +2907,7 @@ export function makePlay(world, quest) {
   }
   /* the large vesicle, packed with amylase: very many specks, each about 5 nm */
   const AMYM = magicStandard({ color: 0xf6b84a, roughness: 0.45, emissive: 0x6a4008, emissiveIntensity: 0.25 }, { rim: 0xffe9b0, rimK: 0.5 });
-  const AMYG = new THREE.IcosahedronGeometry(0.0026, 0);
+  const AMYG = new THREE.IcosahedronGeometry(0.0026, 0).scale(1.55, 1, 1);   /* a speck for one amylase molecule: about 8 nm long and 5 nm wide, as measured (actors.js amylase) */
   function amyCloud(R0, n) {
     const c = new THREE.InstancedMesh(AMYG, AMYM, n); c.userData.kind = 'amylase-cloud';
     const M = new THREE.Matrix4(), q = new THREE.Quaternion(), one = V(1, 1, 1), e = new THREE.Euler();
@@ -2808,7 +3048,7 @@ export function makePlay(world, quest) {
       /* the vesicle's names below the adaptor's, on its skin a little down the microtubule (the picture is turned, so
          there its skin is right of the names' column) */
       { key: 't-ves', free: true, side: 'L', html: t('your vesicle: 900 nm'), small: t('your vesicle: 900 nm'), spots: [-0.014, -0.02, -0.017, -0.008, -0.011, -0.026].map(u => onVes(0, u)).concat(phone ? [[30, 0.01], [40, -0.02], [30, 0.04], [45, 0.03]].map(([d, u]) => onVes(d, u)) : []) },
-      { key: 't-amy', free: true, side: 'L', html: t('amylase: 5 nm'), small: t('amylase: 5 nm'), spots: (phone ? [[-0.015, 0.03], [-0.005, 0.03], [0.015, 0.03], [0.03, 0.035], [-0.03, 0.02], [0.045, 0.04], [0.06, 0.03]].map(([u, inside]) => onVes(0, u, inside)) : [-0.036, -0.03, -0.042, -0.046, -0.05].map(u => onVes(2, u, 0.006))) }
+      { key: 't-amy', free: true, side: 'L', html: t('amylase: 8 nm long'), small: t('amylase: 8 nm'), spots: (phone ? [[-0.015, 0.03], [-0.005, 0.03], [0.015, 0.03], [0.03, 0.035], [-0.03, 0.02], [0.045, 0.04], [0.06, 0.03]].map(([u, inside]) => onVes(0, u, inside)) : [-0.036, -0.03, -0.042, -0.046, -0.05].map(u => onVes(2, u, 0.006))) }
     /* the edges of what is named: just inside the vesicle's skin, nearest the microtubule, on one side; just past the
        microtubule, by dynein, on the other (names.js stands names outside them and uses only spots inside them) */
     ], HUD2(), lr(onVes(0, 0, 0.012), P(-0.02, -0.022)));
@@ -3096,7 +3336,7 @@ export function makePlay(world, quest) {
   async function organelles() { await quest.next(); }
   async function mission() { await quest.next('Go to the map'); }
 
-  const ACT = { look, oxygen, carriers, amino, co2, mlook, minside, split, feed, respire, water, dam, release, enter, findchr, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
+  const ACT = { look, oxygen, carriers, amino, co2, mlook, minside, split, feed, respire, water, dam, release, enter, findchr, pack, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
     assemble, translate, where, dock, grow, cut, fold, bud, lipid, layer, join, through, sortgame, package: packageIt, grab, maze, smell, fuse, flatten,
     simple, full, organelles, mission };
   /* ---------------- ↻ a finished step again (round 8, 10 Nov 2026) ----------------

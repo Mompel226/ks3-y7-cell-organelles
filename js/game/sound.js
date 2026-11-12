@@ -23,7 +23,7 @@
      waiting) it goes on from where it was, fading in. The game's small sounds are not paused.
    ============================================================ */
 const R = window.REV;
-const V = '?v=202611121326';                                        /* the page's version (tools/stamp.mjs) */
+const V = '?v=202611121652';                                        /* the page's version (tools/stamp.mjs) */
 let ctx = null, master = null, fx = null, musicBus = null, on = !!R.store.get('sound', false), allowed = false;
 let saying = false, sayGo = 0;                                      /* a hard word is being said (the 'say' event, below) */
 

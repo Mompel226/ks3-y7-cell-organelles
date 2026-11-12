@@ -11,7 +11,8 @@
    and then see the histones and see how the DNA is packed … so the students actually see … how small they are compared
    to the whole thing", and A, T, C and G explained as nucleotides. So the film first zooms in, as on his slide (30 nm →
    11 nm → 2 nm), with a scale bar at each size and the parts named on the picture:
-   1  a chromosome's thread: the chromatin fibre, nucleosomes packed in a coil (30 nm);
+   0  the whole thread of chromosome 1, from far away (scale bar 1 µm), the gene's place lit (since 12 Nov 2026);
+   1  closer, a short piece of it: the chromatin fibre, nucleosomes packed in a coil (30 nm);
    2  it loosens into beads on a string: DNA wound round histones (a nucleosome, 11 nm);
    3  into the DNA between two beads: the double helix (2 nm), which turns slowly;
    4  untwisted: a chain of nucleotides (a sugar, a phosphate and a base: A, T, C or G);
@@ -31,6 +32,14 @@
    RNA has U where DNA has T; the strands are apart only inside the enzyme; the copy reads like the other strand, with U
    for T. Left out, for Year 7: the start signal, the strands' directions, the copy's changes before it leaves the nucleus.
    The bases are an example, not the amylase gene's own. The ladder is spaced out a little, so that its letters can be read.
+   12 Nov 2026 (Daniel, of the film "From DNA to protein - 3D": "it's so nice, the transitions"; and, of the chromosome
+   it shows first as an X: "you could have a chromosome all uncondensed and then condense it … and then show how … the
+   chromosome is made"): the film now starts from the whole thread of chromosome 1, the one the pupil found in the
+   nucleus (the game's own curve, W.chromosomes[0], turned so that the gene's place lies along the picture), drawn at
+   the fibre's true width, 30 nm, with a 1 µm scale bar and a light where the amylase gene is; one unbroken zoom then
+   goes thread → fibre → DNA round histones → double helix (z from -1 to 2). Nothing is cut: close in, the piece of the
+   thread at the gene shows what it is made of (the fibre drawn nucleosome by nucleosome comes in through it), and the
+   thread runs on at both sides of that piece until the fibre loosens. The film has ten steps (it had nine).
    Everything is worked out from a few numbers (how far the view has zoomed, z; how loose the chromatin is, L; how
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
    ============================================================ */
@@ -70,7 +79,7 @@ function glassMat(color) {
   });
 }
 
-function film(wrap) {
+function film(wrap, thread) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace;
   wrap.appendChild(renderer.domElement);
@@ -126,6 +135,24 @@ function film(wrap) {
     hist.instanceMatrix.needsUpdate = true;
     dna.geometry.dispose(); dna.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 1.0, 8, false);
   }
+
+  /* ---------- the whole thread, from far away (12 Nov 2026) ----------
+     thread: its points in nm, the gene's place at 0, 0, 0 with the thread running along x there. Three tubes 30 nm
+     wide: the part before the piece that is drawn nucleosome by nucleosome, the part after it, and the piece itself
+     (HALF nm either side of the gene), which goes little by little as the camera comes close, so that the nucleosomes
+     show through it; the two sides stay until the fibre loosens. A light marks the gene from far away */
+  const HALF = 29, FR = 15;
+  const far = new THREE.Group(); all.add(far);
+  const sideMat = shiny(0xffcf6b, 0.28), midMat = shiny(0xffcf6b, 0.28);
+  const TH = thread.map(p => new THREE.Vector3(p[0], p[1], p[2])), mid0 = TH.findIndex(p => Math.abs(p.x + HALF) < 0.01 && Math.hypot(p.y, p.z) < 1e-6);   /* (the thread's own point at the piece's left end: worldThread, below) */
+  const left = TH.slice(0, mid0 + 1), right = TH.slice(mid0 + 1);
+  const tubeOf = (pts, m) => { const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), Math.max(8, pts.length * 3), FR, 10, false); const o = new THREE.Mesh(g, m); far.add(o); return o; };
+  tubeOf(left, sideMat); tubeOf(right, sideMat);
+  const midTube = new THREE.Mesh(new THREE.CylinderGeometry(FR, FR, 2 * HALF, 16, 1, true), midMat); midTube.rotation.z = Math.PI / 2; far.add(midTube);
+  const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(0.3, 'rgba(255,240,170,0.5)'); gr.addColorStop(1, 'rgba(255,240,170,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  const geneGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending })); geneGlow.scale.setScalar(260); geneGlow.renderOrder = 9; far.add(geneGlow);
+  /* the far view's own middle and size (the thread's box, as the far view's tilt turns it) */
+  const TILT = -0.32, FB = (() => { const c = Math.cos(TILT), sn = Math.sin(TILT); let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, top = TH[0], low = TH[0]; TH.forEach(p => { const x = p.x * c - p.y * sn, y = p.x * sn + p.y * c; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); if (y > top.x * sn + top.y * c) top = p; if (y < low.x * sn + low.y * c) low = p; }); return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, hx: (x1 - x0) / 2, hy: (y1 - y0) / 2, top, low }; })();
 
   /* ---------- the ladder (the DNA between the two middle nucleosomes, drawn base by base) ---------- */
   const root = new THREE.Group(); all.add(root);
@@ -223,7 +250,7 @@ function film(wrap) {
   /* ---------- names and scale bars on the picture (HTML over the view, at the parts they name) ---------- */
   const tag = (cls, html) => { const el = document.createElement('div'); el.className = cls; el.innerHTML = html; el.style.opacity = 0; wrap.appendChild(el); return el; };
   const marks = [
-    { el: tag('cf__bar', '<i></i><b>30 nm</b>'), nm: 30, show: z => 1 - smooth(0.25, 0.6, z) },
+    { el: tag('cf__bar', '<i></i><b>30 nm</b>'), nm: 30, show: z => smooth(-0.5, -0.15, z) * (1 - smooth(0.25, 0.6, z)) },   /* (not from far away, where it would be a dot: the 1 µm bar stands there) */
     { el: tag('cf__bar', '<i></i><b>11 nm</b>'), nm: 11, show: z => smooth(0.7, 0.95, z) * (1 - smooth(1.2, 1.5, z)) },
     { el: tag('cf__bar cf__bar--v', '<i></i><b>2 nm</b>'), nm: 2, show: (z, u) => smooth(1.75, 1.95, z) * (1 - smooth(0.05, 0.4, u)) },
     { el: tag('cf__lab', 'histones (proteins)'), show: z => smooth(0.75, 0.95, z) * (1 - smooth(1.2, 1.5, z)) },
@@ -231,7 +258,10 @@ function film(wrap) {
     { el: tag('cf__lab', 'one nucleotide'), show: (z, u, p, hl) => hl },
     { el: tag('cf__lab cf__lab--line', '<span>hydrogen bonds</span><i></i>'), line: true, show: (z, u, p, hl, hb) => hb * (1 - smooth(-4.5, -3, p)) },
     { el: tag('cf__lab', 'RNA polymerase'), show: (z, u, p) => smooth(-1.5, -0.3, p) * (1 - smooth(2.0, 3.0, p)) },
-    { el: tag('cf__lab', 'the copy: mRNA'), show: (z, u, p) => smooth(7, 8.5, p) }
+    { el: tag('cf__lab', 'the copy: mRNA'), show: (z, u, p) => smooth(7, 8.5, p) },
+    { el: tag('cf__bar', '<i></i><b>1 µm</b>'), nm: 1000, show: z => 1 - smooth(-0.85, -0.55, z) },
+    { el: tag('cf__lab', 'chromosome 1: one long thread'), show: z => 1 - smooth(-0.85, -0.55, z) },
+    { el: tag('cf__lab cf__lab--below', ''), show: () => 0 }   /* (the gene is shown by its light and the step's words: a name there lay over the thread) */
   ];
   const v = new THREE.Vector3(), proj = (pt) => { v.copy(pt).applyMatrix4(all.matrixWorld).project(cam); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H, v.z < 1]; };
   const pxPerNm = (pt) => { const a = proj(pt), b = proj(pt.clone().add(new THREE.Vector3(1, 0, 0))); return Math.hypot(b[0] - a[0], b[1] - a[1]); };
@@ -247,7 +277,10 @@ function film(wrap) {
       () => { const a = proj(new THREE.Vector3(X(HIGHLIGHT), YT + 0.32, 0.2)); return [a[0], a[1]]; },
       () => { const a = proj(new THREE.Vector3(X(0) - 0.09, 0, 0)); return [a[0], a[1]]; },
       () => { const a = proj(enz.position.clone().add(new THREE.Vector3(0, 2.45, 0))); return [a[0], a[1]]; },
-      () => { const a = proj(new THREE.Vector3(X(2), YC + 0.95, 0)); return [a[0], a[1]]; }
+      () => { const a = proj(new THREE.Vector3(X(2), YC + 0.95, 0)); return [a[0], a[1]]; },
+      () => { const b = FB.low.clone().add(new THREE.Vector3(0, -140, 0)), a = proj(b), sx = 1000 * pxPerNm(b); return [a[0] - sx / 2, a[1], sx]; },
+      () => { const a = proj(FB.top.clone().add(new THREE.Vector3(0, 70, 0))); return [a[0], a[1]]; },
+      () => { const a = proj(new THREE.Vector3(0, -70, 0)); return [a[0], a[1] + 6]; }
     ];
     marks.forEach((m, i) => {
       const o = m.show(z, u, p, hl, hb);
@@ -278,9 +311,11 @@ function film(wrap) {
     cam.userData.narrow = narrow; cam.userData.tv = tv; cam.userData.distW = (narrow ? 2.7 : 5.0) / (tv * cam.aspect); cam.userData.dist = Math.max(cam.userData.distW, 3.1 / tv);
     /* far away: the fibre fills the width (z = 0); then a few beads (z = 1) */
     cam.userData.d0 = Math.max(44 / (tv * cam.aspect), 20 / tv); cam.userData.d1 = Math.max(30 / (tv * cam.aspect), 14 / tv);
+    /* furthest (z = -1): the whole thread in view, with room for its name above it and the scale bar below it */
+    cam.userData.dF = Math.max(FB.hx * 1.12 / (tv * cam.aspect), (FB.hy + 330) / tv);
   };
   size(); addEventListener('resize', size);
-  const S = { z: 0, L: 0, u: 0, p: -6, hl: 0, hb: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
+  const S = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
   const t0 = performance.now();
   /* the helix's slow turn, added up frame by frame, slower as it untwists, and kept within half a turn while it is a helix
      (where a whole turn cannot be seen): untwisting then undoes at most half a turn (9 Nov 2026, Daniel: the untwisting
@@ -297,14 +332,22 @@ function film(wrap) {
        base) takes its place; the tilt of the far view goes as it comes close */
     chromatin(S.L);
     const near = smooth(1.45, 1.9, S.z);
-    chrom.visible = near < 0.999; histMat.opacity = dnaMat.opacity = 1 - near; histMat.depthWrite = dnaMat.depthWrite = near < 0.5;
+    /* from far away the thread is one tube; the piece at the gene goes as the camera comes close (z -0.45 to -0.08), and
+       the fibre drawn nucleosome by nucleosome comes in through it (z -0.6 to -0.2); the two sides of the thread stay
+       until the fibre loosens (L 0 to 0.3); the gene's light goes as its piece fills the picture */
+    const fin = smooth(-0.6, -0.2, S.z), side = 1 - smooth(0, 0.3, S.L), midO = 1 - smooth(-0.45, -0.08, S.z);
+    chrom.visible = near < 0.999 && fin > 0.001; histMat.opacity = dnaMat.opacity = (1 - near) * fin; histMat.depthWrite = dnaMat.depthWrite = near < 0.5 && fin > 0.5;
+    far.visible = side > 0.001; sideMat.opacity = side; sideMat.depthWrite = side > 0.5; midTube.visible = midO > 0.001; midMat.opacity = midO * side; midMat.depthWrite = midO > 0.95;
+    geneGlow.material.opacity = (1 - smooth(-0.75, -0.4, S.z)) * (R.FAST ? 1 : 0.75 + 0.25 * Math.sin(t * 3));
     fade = near; root.visible = near > 0.001; ladderMats.forEach(m => { m.opacity = near; m.depthWrite = near > 0.5; }); hbMat.opacity = near;
     ladder(S.u, S.p, spin, S.hl, S.hb);
     all.rotation.z = -0.32 * (1 - smooth(0.9, 1.9, S.z));
     /* on a phone, as the copy grows above the DNA, the view rises and steps back a little, so that the copy's name fits */
     const tall = cam.userData.narrow ? smooth(6, 9, S.p) : 0;
     const d0 = cam.userData.d0, d1 = cam.userData.d1, d2 = Math.max(cam.userData.distW, (3.1 + 0.45 * tall) / cam.userData.tv);
-    const dist = S.z <= 1 ? d0 * Math.pow(d1 / d0, S.z) : d1 * Math.pow(d2 / d1, S.z - 1);
+    const dist = S.z < 0 ? d0 * Math.pow(cam.userData.dF / d0, -S.z) : S.z <= 1 ? d0 * Math.pow(d1 / d0, S.z) : d1 * Math.pow(d2 / d1, S.z - 1);
+    /* from far away the view's middle is the middle of the whole thread; it moves to the gene as the camera comes in */
+    const fk = smooth(-0.25, -1, S.z), fx = FB.cx * fk, fy = FB.cy * fk;
     const sway = R.FAST ? 0 : Math.sin(t * 0.35) * 0.12 * S.u;
     /* while the helix turns, the view moves a little to the right of it, so the 2 nm bar has room on its left */
     /* (on a phone, to the helix's left end, where its 2 nm bar is) */
@@ -313,7 +356,8 @@ function film(wrap) {
       - (cam.userData.narrow ? 3.9 : 1.6) * S.hb * (1 - smooth(-4.5, -3, S.p));
     S.cx = S.cx == null || R.FAST ? want : S.cx + (want - S.cx) * 0.06;
     const lookY = S.z <= 1 ? 0 : 1.05 * smooth(1, 2, S.z) + 0.4 * tall;
-    cam.position.set(S.cx + Math.sin(sway) * dist, lookY + (0.15 + 0.4 * (1 - S.u)) * Math.min(1, dist / 12), Math.cos(sway) * dist); cam.lookAt(S.cx, lookY, 0);
+    cam.position.set(S.cx + fx + Math.sin(sway) * dist, lookY + fy + (0.15 + 0.4 * (1 - S.u)) * Math.min(1, dist / 12), Math.cos(sway) * dist); cam.lookAt(S.cx + fx, lookY + fy, 0);
+    cam.far = Math.max(600, dist * 3); cam.updateProjectionMatrix();
     renderer.render(scene, cam);
     overlay(S.z, S.u, S.p, S.hl, S.hb);
     if (k >= 1 && S.done) { const d = S.done; S.done = null; d(); }
@@ -331,22 +375,49 @@ function film(wrap) {
     },
     stop() { alive = false; removeEventListener('resize', size); renderer.dispose(); renderer.domElement.remove(); },
     /* where the film stands (read by tools/copyfilm-check.mjs): its numbers and the helix's turn */
-    peek: () => ({ z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb, spin })
+    peek: () => ({ z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb, spin, far: far.visible ? sideMat.opacity : 0, piece: midTube.visible ? midMat.opacity : 0, fibre: chrom.visible ? histMat.opacity : 0, dist: cam.position.distanceTo(new THREE.Vector3(S.cx || 0, 0, 0)) })
   };
 }
 
 const STEPS = [
-  { t: 'This is how a cell copies a gene, drawn millions of times bigger.\nA <dfn data-w="chromosome">chromosome</dfn> is one very long thread of DNA and protein. Here is a short piece of it, packed into a fibre 30 nanometres (nm) wide: about 30 millionths of a millimetre.' },
-  { t: 'Closer: the DNA is wound round small balls of protein, the <dfn data-w="histone">histones</dfn>, like thread round beads. This keeps 2 metres of DNA tidy inside a nucleus.', go: { z: 1, L: 1, ms: 2800 } },
+  { t: 'This is how a cell copies a gene.\nHere is <dfn data-w="chromosome">chromosome</dfn> 1 again: one very long thread of DNA and protein, now drawn at its true width. (The real thread is more than 100 times longer than this drawing.)\nThe amylase gene is a short section of it: a light shows where it is.' },
+  { t: 'Closer and closer. Now the picture shows the thread about one million times bigger than it really is.\nThe yellow is the same thread. In the middle, a short piece of it is drawn open, so that you can see what it is made of: a fibre 30 nanometres (nm) wide, about 30 millionths of a millimetre.\nScientists saw this tidy fibre outside cells. Inside a living nucleus it is folded less regularly.', go: { z: 0, ms: 4200 } },
+  { t: 'Closer. Here the fibre is drawn pulled open, so that you can see one bead at a time.\nThe DNA is wound round small balls of protein, the <dfn data-w="histone">histones</dfn>, like thread round beads. This keeps 2 metres of DNA tidy inside a nucleus.', go: { z: 1, L: 1, ms: 3800 } },
   { t: 'Closer again, between two beads: the DNA itself. It is two strands, twisted round each other: a double helix, only 2 nm wide.', go: { z: 2, ms: 3000 } },
   { t: 'Here it is drawn untwisted, so that you can see each part.\nDNA is a chain of building blocks, the <dfn data-w="nucleotide">nucleotides</dfn>. Each one is a sugar, a phosphate and a <dfn data-w="dna-base">base</dfn>. There are four bases: A, T, C and G (adenine, thymine, cytosine and guanine).', go: [{ u: 1, ms: 4500 }, { hl: 1, ms: 900 }] },
   { t: 'The bases of the two strands form pairs: A with T, and C with G.\n<dfn data-w="hydrogen-bond">Hydrogen bonds</dfn> join the two bases of each pair: two between A and T, three between C and G. A hydrogen bond is weak, so the two strands can be separated.', go: { hb: 1, hl: 0, ms: 1600 }, key: 1 },
   { t: 'Where a gene is copied, its DNA is unwound from the histones. An <dfn data-w="enzyme">enzyme</dfn>, RNA polymerase, joins the gene and separates the two strands there, like opening a zip: the hydrogen bonds between the bases break.', go: { p: 0, ms: 1900 }, key: 1 },
   { t: 'Building blocks of <dfn data-w="rna">RNA</dfn> arrive, one at a time. Each one fits against a base of <b>one</b> strand only, held by hydrogen bonds: U against A, A against T, G against C, and C against G.\n(RNA has U where DNA has T.)', go: { p: 5, ms: 5 * 1150, lin: true }, key: 2 },
   { t: 'The building blocks join in a chain: the copy of the gene, <dfn data-w="mrna">mRNA</dfn>. It leaves the enzyme as it grows.\nBehind the enzyme, the two strands of DNA join again.', go: { p: N, ms: (N - 5) * 520, lin: true }, key: 2 },
-  { t: 'At the end of the gene, the enzyme leaves the DNA, and the copy is finished: it reads like the top strand, with U where the strand has T.\nThe DNA stays in the nucleus. The copy leaves through a nuclear pore.', go: { p: N + 5, ms: 2600 }, key: 2 }
+  { t: 'At the end of the gene, the enzyme leaves the DNA, and the copy is finished: it reads like the top strand, with U where the strand has T.\nThe DNA stays in the nucleus. The copy leaves through a nuclear pore.\nMaking a copy of a gene like this has a name: <dfn data-w="transcription">transcription</dfn>.', go: { p: N + 5, ms: 2600 }, key: 2 }
 ];
 const paras = t => t.split('\n').map(x => `<p>${x}</p>`).join('');
+
+/* chromosome 1's thread as the game's nucleus draws it (cellbuild.js W.chromosomes[0].curve, µm), for the film's first
+   picture: in nm, the middle of the amylase gene (half-way along it: play.js gene) at 0, 0, 0, the thread running along
+   x there; the piece HALF = 29 nm either side of the gene is left out and two points mark its ends, since that piece is
+   drawn by itself. If the world is not there (the film opened by itself), a thread of the same kind is made */
+function worldThread() {
+  const V = THREE.Vector3; let pts = null;
+  try {
+    const ch = window.CELLGAME && window.CELLGAME.world && window.CELLGAME.world.W.chromosomes[0];
+    if (ch) pts = t => ch.curve.getPointAt(Math.max(0, Math.min(1, t))).clone().multiplyScalar(1000);
+  } catch (e) {}
+  if (!pts) { const P = []; let p = new V(0, 0, 0), v = new V(1, 0, 0), k = 7; const rnd = () => { k = (k * 16807) % 2147483647; return k / 2147483647 * 2 - 1; };
+    for (let i = 0; i < 151; i++) { v.add(new V(rnd() * 0.9, rnd() * 0.9, rnd() * 0.9)).normalize(); if (p.length() > 650) v.addScaledVector(p.clone().normalize(), -0.6).normalize(); p = p.clone().addScaledVector(v, 90); P.push(p); }
+    const c = new THREE.CatmullRomCurve3(P); pts = t => c.getPointAt(Math.max(0, Math.min(1, t))).clone(); }
+  const g = pts(0.5), X = pts(0.503).sub(pts(0.497)).normalize(), up = Math.abs(X.y) > 0.9 ? new V(0, 0, 1) : new V(0, 1, 0), Y = up.clone().addScaledVector(X, -up.dot(X)).normalize(), Z = new V().crossVectors(X, Y);
+  /* (its depth is drawn at a third: at its own depth a loop of the thread passed close to the camera, across the picture) */
+  const at = t => { const q = pts(t).sub(g); return [q.dot(X), q.dot(Y), q.dot(Z) * 0.33]; };
+  const N = 330, out = [];
+  /* (the thread comes into the piece's two ends along x: its last points before them are eased onto the line) */
+  for (let i = 0; i <= N; i++) { const t = i / N * 0.493; out.push(at(t)); }
+  const ease = (a, toX) => a.map((p, i) => { const k = i / (a.length - 1); return [p[0], p[1] * (1 - k * k), p[2] * (1 - k * k)]; });
+  const L = ease(out.slice(-12)); out.splice(-12, 12, ...L); out.push([-29, 0, 0]);
+  const r = []; for (let i = 0; i <= N; i++) { const t = 1 - i / N * 0.493; r.push(at(t)); }
+  const Rr = ease(r.slice(-12)); r.splice(-12, 12, ...Rr); r.push([29, 0, 0]); r.reverse();
+  return out.concat(r);
+}
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */
 export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
@@ -362,7 +433,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
     </div></div></div>`;
     box.hidden = false;
-    const F = film($('.cf__3d', box)); box.peek = F.peek;
+    const F = film($('.cf__3d', box), worldThread()); box.peek = F.peek;
     const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), kEl = $('.cf__key', box), back = $('.cf__do .btn.back', box);
     /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
@@ -375,7 +446,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     /* where the film stands at the end of step k: every move of the steps up to it, in turn (a step's go is one move or a
        list of moves) */
     const moves = k => [].concat(STEPS[k].go || []);
-    const stateAt = k => { const st = { z: 0, L: 0, u: 0, p: -6, hl: 0, hb: 0 }; for (let j = 0; j <= k; j++) moves(j).forEach(g => Object.keys(st).forEach(n => { if (g[n] != null) st[n] = g[n]; })); return st; };
+    const stateAt = k => { const st = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0 }; for (let j = 0; j <= k; j++) moves(j).forEach(g => Object.keys(st).forEach(n => { if (g[n] != null) st[n] = g[n]; })); return st; };
     /* back (9 Nov 2026, Daniel: "you can only go forward and not backward"): the film plays in reverse to the end of the
        step before, as long as that step took (1.2 to 4.5 s): everything is worked out from a few numbers, so any moment can
        be drawn and nothing jumps. Both buttons wait while a step plays */

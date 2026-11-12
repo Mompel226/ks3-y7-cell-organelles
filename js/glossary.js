@@ -36,6 +36,14 @@
    the nucleus's Explorer film (Korean and Chinese: the school science words). Then nucleotide and histone, for the film's zoom from a
    chromosome to its bases (Daniel's Year 9 slides on biological molecules), and base (in DNA) says what A, T, C and G
    stand for.
+   12 Nov 2026: transcription and translation, for the cell game (Daniel: "you can add the terms transcription and
+   translation … terms that they need to know for IGCSE"): each named in the game after its plain explanation, as an
+   Explorer word, beyond the Year 7 list. What the courses ask, said in each definition and checked in the papers on this
+   computer: the 0610 syllabus for 2026 to 2028 uses both words once, in 17.1.8 (how a protein is made): "knowledge of
+   the details of transcription or translation is not required"; the mark scheme of 0610/42/O/N/16 Q2(b) accepts both
+   ("A transcription", "A translation") and that of 0610/31/O/N/14 lists "make proteins / translation"; the examiner
+   reports of March 2022 and June 2017 say their details are not required by the syllabus; IB Biology (2025) has both.
+   Korean 전사, 번역 and Chinese 转录, 翻译: the school science words.
    5 Nov 2026: hydrogen bond says what it does in DNA too (the bases of the two strands held in pairs), for the film's
    hydrogen bonds (Daniel: "make sure that there is a hydrogen bonds shown").
    5 Nov 2026, later: ten words for the cell game's mitochondria, drawn at their true sizes, and its Explorer film inside a
@@ -211,7 +219,9 @@
       { k: 'dna',             en: 'DNA',             ko: 'DNA',               zh: 'DNA',         src: 'Y7 Cells', d: 'The genetic material. It carries the instructions (genes) for making the proteins of the cell. Most of it is in the nucleus, and it stays there; mitochondria have a little DNA of their own.' },
       { k: 'gene',            en: 'gene',            ko: '유전자',            zh: '基因',        d: 'A short section of DNA that carries the instructions for making one protein.' },
       { k: 'mrna',            en: 'mRNA',            ko: '전령 RNA (mRNA)',   zh: '信使RNA (mRNA)', d: 'Messenger RNA: a copy of a gene, made in the nucleus. It carries the instructions from the DNA to the ribosomes.' },
+      { k: 'transcription',   en: 'transcription',   ko: '전사',              zh: '转录',        d: 'Making a copy of a gene. In the nucleus, an enzyme reads the DNA of the gene and joins building blocks of RNA in the order that the DNA gives: the copy is mRNA. For IGCSE Biology (0610, 2026 to 2028) you must know that mRNA is a copy of a gene, made in the nucleus; the syllabus says that the details of transcription are not required, and a mark scheme accepted the word in 2016. In IB Biology you must know this word.' },
       { k: 'ribosome',        en: 'ribosome',        ko: '리보솜',            zh: '核糖体',      src: 'Y7 Cells', d: 'A very small structure where proteins are made: it joins amino acids in the order that a copy of a gene (mRNA) gives. It has no membrane, so it is not an organelle.' },
+      { k: 'translation',     en: 'translation',     ko: '번역',              zh: '翻译',        d: 'Making a protein from a copy of a gene. A ribosome reads the mRNA and joins amino acids in the order that it gives. For IGCSE Biology (0610, 2026 to 2028) you must know that ribosomes join amino acids in the order that the mRNA gives; the syllabus says that the details of translation are not required, and mark schemes accepted the word in 2014 and 2016. In IB Biology you must know this word.' },
       { k: 'amino-acid',      en: 'amino acid',      ko: '아미노산',          zh: '氨基酸',      src: 'Y7 Cells', d: 'A small molecule. Proteins are made of amino acids joined in a chain, and digestion splits proteins into amino acids again.' },
       { k: 'enzyme',          en: 'enzyme',          ko: '효소',              zh: '酶',          src: 'Y7 Cells', d: 'A protein that increases the rate of a chemical reaction and is not changed by it (a biological catalyst). Amylase is an enzyme.' },
       { k: 'active-site',     en: 'active site',     ko: '활성 부위',         zh: '活性部位',    d: 'The part of an enzyme where the molecule that it changes fits, as starch fits into amylase. If the shape of the enzyme changes, it no longer works.' },

@@ -263,6 +263,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__explore--ib{color:#fff;background:linear-gradient(180deg,#8456CF,#7243C0);border-color:#7243C0}
 .step__ib{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EDE8FA;border-left:4px solid #7243C0;color:#22123F}
 .step__ib p{margin:0 0 8px;font-size:16.5px}
+/* a line of a step that is beyond the Year 7 list (12 Nov 2026: the words transcription and translation): the Explorer
+   mark, in the one extension violet, as the IB box */
+.step__x{display:block;margin:2px 0 0;padding:8px 11px;border-radius:12px;background:#EDE8FA;border-left:4px solid #7243C0;color:#22123F}
+.step__x>b:first-child{display:block;font:800 12.5px/1.2 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:#7243C0;margin-bottom:3px}
 .ibl{display:inline-block;font:900 11.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:4px 7px;vertical-align:1px}
 .ibl i{font-style:normal;letter-spacing:0}
 .ibl--sl{color:#2E3A8C;background:#DCE0F7}
@@ -277,9 +281,11 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 :root[data-theme="dark"] .qp__ibchk{background:#123524;color:#A7F3C9}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ibchk{background:#123524;color:#A7F3C9} }
 :root[data-theme="dark"] .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root[data-theme="dark"] .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
+:root[data-theme="dark"] .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__x>b:first-child{color:#B388FF}
 :root[data-theme="dark"] .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__ibdoor{color:#1B0E3A;background:#B388FF}
 :root[data-theme="dark"] .ibl--sl{color:#C9CFF7;background:#2A3170} :root[data-theme="dark"] .ibl--hl{color:#F59AB8;background:#3B1426} :root[data-theme="dark"] .ibl--x{color:#C7CCD6;background:#2E333D}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root:not([data-theme="light"]) .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
+  :root:not([data-theme="light"]) .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__x>b:first-child{color:#B388FF}
   :root:not([data-theme="light"]) .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__ibdoor{color:#1B0E3A;background:#B388FF}
   :root:not([data-theme="light"]) .ibl--sl{color:#C9CFF7;background:#2A3170} :root:not([data-theme="light"]) .ibl--hl{color:#F59AB8;background:#3B1426} :root:not([data-theme="light"]) .ibl--x{color:#C7CCD6;background:#2E333D} }
 .qp__nav{margin-top:18px;display:flex;justify-content:flex-end}

@@ -5,7 +5,8 @@
    One picture: the molecules lie at the tip of one villus, so that the camera can move back from them to the whole
    villus without a cut. Never "amylase makes glucose" (Daniel's Year 7 slides, Bacteria-and-Enzymes s16–17: salivary and
    pancreatic amylase, starch → maltose; maltase, on the lining of the small intestine, maltose → glucose + glucose).
-   Sizes: glucose 0.9 nm and amylase 5 nm (the game's own figures, js/game/play.js); in a starch chain each glucose
+   Sizes: glucose 0.9 nm (the game's own figure, js/game/play.js) and amylase 8.3 nm long (the measured molecule, PDB
+   1SMD: js/game/actors.js); in a starch chain each glucose
    adds about 0.5 nm to its length, so the rings overlap like the links of a chain; maltase is drawn 9 nm across, larger
    than amylase (it is one part of a large enzyme of the membrane, maltase-glucoamylase: Sim et al. 2008, Journal of
    Molecular Biology 375:782; no size is stated to pupils); the membrane's two layers of lipids about 5 nm (js/ib/
@@ -14,13 +15,13 @@
    so the words say only "less than 1 millimetre". The tiny folds of the cells' own membrane (microvilli) are not drawn.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, PAL } from '../world/magic.js?v=202611121326';
-import { token, riboPart } from '../game/actors.js?v=202611121326';
-import { bilayer } from '../ib/membrane.js?v=202611121326';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611121326';
+import { magicStandard, PAL } from '../world/magic.js?v=202611121652';
+import { token, riboPart, AMY_S } from '../game/actors.js?v=202611121652';
+import { bilayer } from '../ib/membrane.js?v=202611121652';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611121652';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-export const S = { glucose: 0.9, amylase: 5, maltase: 9, link: 0.5, villus: 600000, villusW: 130000, capillary: 8500, cellH: 25000, cellW: 8000,
+export const S = { glucose: 0.9, amylase: 8.3, maltase: 9, link: 0.5, villus: 600000, villusW: 130000, capillary: 8500, cellH: 25000, cellW: 8000,
   microvillus: 1300, microvillusW: 100, mvPitch: 130, lacteal: 20000, arteriole: 10000, venule: 13000 };
 
 export async function build(stage) {
@@ -32,10 +33,15 @@ export async function build(stage) {
   for (let i = 0; i < N; i++) { const t = token('glucose', 0.37); mol.add(t); ring.push(t);
     home.push(V(-5.8 + i * S.link, 6.2 + 0.55 * Math.sin(i * 0.62), 0.55 * Math.cos(i * 0.62))); }
   const tilt = i => new THREE.Euler(0.3 * Math.sin(i * 0.62), 0.78, 0.25 * Math.cos(i * 0.62));
-  /* amylase: the game's own drawing of it, 5 nm across, its groove (the active site) towards the chain */
-  /* its longest side is 5 nm: the drawing's own lumps make it a little larger than twice its radius, so it is measured */
+  /* amylase: the game's own drawing of it, its groove (the active site) towards the chain */
   const tokSize = t => { const b = new THREE.Box3(); t.children.filter(c => c.isMesh).forEach(c => { c.updateMatrix(); if (!c.geometry.boundingBox) c.geometry.computeBoundingBox(); b.union(c.geometry.boundingBox.clone().applyMatrix4(c.matrix)); }); const v = b.getSize(new THREE.Vector3()); return Math.max(v.x, v.y, v.z); };
-  const amylase = token('amylase', S.amylase / tokSize(token('amylase', 1))); amylase.rotation.set(-1.2, 0, 0.2); mol.add(amylase);
+  /* (12 Nov 2026: the game's amylase is now the measured molecule, PDB 1SMD, 8.3 nm long and 5 to 5.6 nm wide:
+     js/game/actors.js. Here at its true size, turned so that its active site faces the chain, down and a little towards
+     the viewer; before, an outline 5 nm across) */
+  const amylase = token('amylase', AMY_S * 1000); amylase.rotation.set(1.2, 0, 0.2); mol.add(amylase);
+  const amyTips = (() => { const m = amylase.children[0], P = m.geometry.attributes.position, k = m.scale.x, v = new THREE.Vector3(); let a = null, b = null, sa = -1e9, sb = -1e9;
+    for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).multiplyScalar(k); if (v.x > sa) { sa = v.x; a = v.clone(); } const q = v.x * 0.8 - v.y * 0.6; if (q > sb) { sb = q; b = v.clone(); } }
+    return [a, b]; })();
   const amyGlow = glow(11, 0xffe0a0, 0.35); amylase.add(amyGlow);
   /* maltose: the chain cut into pairs; each pair's place once amylase has passed (dig), then on its way down to maltase */
   const pairOf = i => Math.floor(i / 2), pairs = N / 2;
@@ -384,7 +390,9 @@ export async function build(stage) {
   const W = p => p.clone();
   const labels = {
     starch: { html: 'part of a starch molecule', htmlN: 'starch', side: 'l', pts: () => ring.slice(1, 9).map(r => W(r.position)) },
-    amylase: { html: 'amylase: about <b>5 nm</b>', htmlN: 'amylase: <b>5 nm</b>', side: 'r', pts: () => [amyAt.clone().add(V(2.2, 0.6, 1.5)), amyAt.clone().add(V(2.0, -0.8, 1.5))] },
+    /* (its name's line ends on its surface: its point furthest along its length, and one nearer the viewer; before 12 Nov
+       2026 two fixed points beside its middle, which the measured shape, longer and turned, no longer has there) */
+    amylase: { html: 'amylase: about <b>8 nm</b> long', htmlN: 'amylase: <b>8 nm</b>', side: 'r', pts: () => amyTips.map(p => p.clone().applyEuler(amylase.rotation).add(amyAt)) },
     maltose: { html: 'maltose', side: 'r', pts: () => ring.filter((_, i) => i % 2 === 1).map(r => W(r.position).add(V(0.75, 0, 0))).sort((a, b) => b.x - a.x).slice(0, 3) },
     maltose2: { html: 'maltose', side: 'l', pts: () => ring.filter((_, i) => i % 2 === 0).map(r => W(r.position)).sort((a, b) => a.x - b.x).slice(0, 2) },
     maltase: { html: 'maltase: an enzyme attached to the membrane', htmlN: 'maltase', side: 'r', pts: () => [maltase.position.clone().add(V(4.2, -0.9, 2)), maltase.position.clone().add(V(4.0, -1.5, 2))] },

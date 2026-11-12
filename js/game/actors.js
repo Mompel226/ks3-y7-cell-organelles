@@ -4,13 +4,15 @@
    (a glucose molecule is about 1 nanometre across; play.js gives each token its size); at the way in, every molecule is
    drawn at the membrane's own enlargement, about 100 times, and the page says so. Each token keeps its true shape in outline
    (glucose a ring of six, oxygen two atoms, carbon dioxide three in a line, a lipid a head and two tails, a ribosome a
-   small and a large part, each an uneven lump of RNA and protein; a ribosome's RNA a wavy thread, a protein a folded lump,
+   small and a large part, each an uneven lump of RNA and protein; a ribosome's RNA a wavy thread, a protein a folded lump
+   (amylase: its measured shape),
    the carrier of an amino acid, transfer RNA, an L).
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611121326';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611121652';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
+import { AMYLASE } from './amylase-data.js?v=202611121652';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
@@ -30,6 +32,40 @@ export function riboPart(r, sx, sy, sz, face, detail = 3, seed = 0) {
     p.setXYZ(i, v.x * k * r * sx, y * k * r * sy, v.z * k * r * sz);
   }
   g.computeVertexNormals(); g0.dispose(); return g;
+}
+
+/* amylase in its measured shape (12 Nov 2026; Daniel, of the film "From DNA to protein - 3D": the chain "form[s] the 3D
+   structure, that 3D structure changes into what the animation itself shows the enzymes … you show enzymes in your
+   animations as a uniform … lump, but you don't see actually the amino acid structures within"). The lump the game draws
+   for amylase is now the smooth surface of the measured molecule (human salivary amylase, PDB 1SMD: 496 amino acids,
+   8.0 × 5.1 × 5.0 nm from atom to atom; js/game/amylase-data.js, written by tools/amylase-fold.py), and at the rough ER
+   the chain folds into it bead by bead (play.js fold). Before, it was an outline made for the game, about 5 nm across.
+   geo: the surface (µm, true size), its longest extent along x, its active site facing +z; ca: where each amino acid
+   is in the folded chain and way: the loose way the chain takes into the rough ER (nm, three numbers each); kinds: each
+   amino acid's kind (0 to 3: a bead's colour); site, pin: the active site and the surface's point nearest it (nm) */
+const unq = o => { const b = atob(o.d), n = b.length / 2, f = new Float32Array(n); for (let i = 0; i < n; i++) { const k = i % 3; f[i] = o.lo[k] + (o.hi[k] - o.lo[k]) * (b.charCodeAt(2 * i) | (b.charCodeAt(2 * i + 1) << 8)) / 65535; } return f; };
+let AMY = null;
+export const AMY_S = 0.0024;                              /* token('amylase', AMY_S) is its true size */
+export function amylase() {
+  if (AMY) return AMY;
+  const v = unq(AMYLASE.surf.v); for (let i = 0; i < v.length; i++) v[i] /= 1000;
+  const ib = atob(AMYLASE.surf.i), idx = new Uint16Array(ib.length / 2); for (let i = 0; i < idx.length; i++) idx[i] = ib.charCodeAt(2 * i) | (ib.charCodeAt(2 * i + 1) << 8);
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(v, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1)); geo.computeVertexNormals();
+  /* shaded by how shut in each point is, so that its grooves look deep (the active site above all): a drawing's shading */
+  const sh = atob(AMYLASE.surf.shut), col = new Float32Array(sh.length * 3); for (let i = 0; i < sh.length; i++) { const o = Math.pow(Math.min(1, sh.charCodeAt(i) / 255 / 0.15), 0.7);   /* (most of the surface is under 0.05; a groove 0.1 to 0.4) */ col[3 * i] = 1 - 0.62 * o; col[3 * i + 1] = 1 - 0.8 * o; col[3 * i + 2] = 1 - 0.92 * o; }   /* (towards a deep orange-brown) */
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeBoundingBox(); geo.computeBoundingSphere();
+  return (AMY = { n: AMYLASE.n, geo, ca: unq(AMYLASE.ca), way: unq(AMYLASE.way), kinds: AMYLASE.kinds, site: AMYLASE.site, pin: AMYLASE.pin, ext: AMYLASE.ext, foldAt: AMYLASE.foldAt });
+}
+/* a chain of amino acids drawn whole, one bead for each amino acid (n beads of radius r, µm), each in the colour of its
+   kind: put(i, x, y, z, k) places bead i (k 0: not shown), done() sends the places to the picture */
+export function strand(n, r, kinds) {
+  const m = new THREE.InstancedMesh(new THREE.SphereGeometry(r, 12, 9), magicStandard({ color: 0xffffff, roughness: 0.4, emissive: 0x39424f, emissiveIntensity: 0.5 }, { rim: 0xffffff, rimK: 0.35 }), n);
+  const c = new THREE.Color(), M = new THREE.Matrix4();
+  for (let i = 0; i < n; i++) { M.makeScale(0, 0, 0); m.setMatrixAt(i, M); m.setColorAt(i, c.setHex(AMINO_COLORS[kinds ? +kinds[i] : i % 4])); }
+  m.instanceColor.needsUpdate = true; m.frustumCulled = false; m.userData.kind = 'chain';
+  m.userData.put = (i, x, y, z, k = 1) => { M.makeScale(k, k, k); M.setPosition(x, y, z); m.setMatrixAt(i, M); };
+  m.userData.done = () => { m.instanceMatrix.needsUpdate = true; };
+  return m;
 }
 
 export function token(kind, s = 0.32) {
@@ -90,17 +126,13 @@ export function token(kind, s = 0.32) {
       break;
     }
     case 'amylase': {
-      /* a folded protein: a lumpy body with a groove (the active site), drawn from its outline, not a structure file */
-      const geo = new THREE.IcosahedronGeometry(s, 4), p = geo.attributes.position, v = new THREE.Vector3();
-      for (let i = 0; i < p.count; i++) {
-        v.fromBufferAttribute(p, i).normalize();
-        let k = 1 + 0.12 * Math.sin(v.x * 7 + v.y * 3) * Math.sin(v.z * 6 - v.y * 4);
-        const groove = Math.exp(-Math.pow((v.y - 0.15) / 0.18, 2)) * Math.max(0, v.z) ;
-        k -= 0.32 * groove;
-        p.setXYZ(i, v.x * s * k * 1.15, v.y * s * k, v.z * s * k);
-      }
-      geo.computeVertexNormals();
-      const body = new THREE.Mesh(geo, magicStandard({ color: 0xf6b84a, roughness: 0.35, emissive: 0x6a4008, emissiveIntensity: 0.5 }, { rim: 0xffe9b0, rimK: 0.9 }));
+      /* a folded protein: the smooth surface of the measured molecule (amylase() above), with its real groove, the active
+         site, on the side that faces +z; s = AMY_S (2.4 nm) is its true size, about 8 nm long and 5 nm wide */
+      /* matt (no bright spots: on a lumpy shape they stood in every hollow), and shaded by the geometry's colours, which
+         darken its grooves towards brown: the game's fill light is blue, and an orange hollow that only the blue light
+         reached looked grey-green. (Only what a copy of the material keeps is used: play.js copies a token's materials) */
+      const body = new THREE.Mesh(amylase().geo, magicStandard({ color: 0xe2a242, roughness: 0.88, emissive: 0x8a520c, emissiveIntensity: 1.0, vertexColors: true, envMapIntensity: 0.2 }, { rim: 0xffe9b0, rimK: 0.5 }));
+      body.scale.setScalar(s / AMY_S);
       g.add(body);
       break;
     }

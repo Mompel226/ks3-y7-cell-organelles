@@ -4,7 +4,7 @@
    js/questions.js; the board's parts and the game squares (TASKS) are here.
    The biology (memory biology-before-pedagogy: every step true):
    - one serous cell of a salivary gland makes amylase (511 amino acids; a 15-amino-acid signal at its start, UniProt
-     P0DUB6) and releases it by exocytosis into the duct, when a nerve message arrives (regulated secretion);
+     P0DUB6; without it 496, the measured molecule: PDB 1SMD, about 8 × 5 × 5 nm) and releases it by exocytosis into the duct, when a nerve message arrives (regulated secretion);
    - the copy of the gene (mRNA) leaves through a nuclear pore; the two ribosome parts are made in the nucleolus and
      leave separately, joining only on the mRNA in the cytoplasm; the first part of the chain (the signal) takes the
      ribosome to the rough ER, where the chain is made into the ER; an enzyme in the ER membrane removes the signal while
@@ -172,8 +172,9 @@ window.STORY = {
     steps: [
       { play: 'enter', text: 'You become even smaller, and you enter the nucleus through a nuclear pore: a hole through both membranes, with a ring of proteins in it.\n<mark class="do">Press Enter through a nuclear pore.</mark>' },
       { play: 'findchr', text: 'In a cell that is not dividing, every chromosome is a long, thin thread. (Chromosomes look like an X only when a cell divides.)\nA <dfn data-w="gene">gene</dfn> is a short section of DNA that carries the instructions for making one <dfn data-w="protein">protein</dfn>. The amylase gene is on chromosome 1, the largest kind of chromosome.\n<mark class="do">Press the threads to find chromosome 1.</mark>' },
+      { play: 'pack', text: 'Many books draw a chromosome as an X. A chromosome looks like an X only for a short time, when a cell divides. Your cell is not dividing, so this step shows you a picture of a cell that is.\n<mark class="do">Press Second thread, then Pack: see how the thread of chromosome 1 becomes an X. Then press Loosen.</mark>\n(In the nucleus the game draws each thread about three times thicker than it is, so that you can see it.)' },
       { play: 'findgene', text: '<mark class="do">Press the glowing section: the amylase gene.</mark>' },
-      { play: 'copy', text: 'The DNA never leaves the nucleus. The cell makes a copy of the gene instead, called <dfn data-w="mrna">mRNA</dfn> (messenger RNA).\n<mark class="do">Press Copy to make the copy.</mark>\nExplorer, beyond the Year 7 list: <b>🔬 how a cell copies a gene</b> shows it step by step, and makes the copy too.' },
+      { play: 'copy', text: 'The DNA never leaves the nucleus. The cell makes a copy of the gene instead, called <dfn data-w="mrna">mRNA</dfn> (messenger RNA).\n<mark class="do">Press Copy to make the copy.</mark>\n<span class="step__x"><b>Explorer · beyond the Year 7 list.</b> Making a copy of a gene like this has a name: <dfn data-w="transcription">transcription</dfn>. <b>🔬 How a cell copies a gene</b> shows it step by step. When you finish it, the copy is made.</span>' },
       { play: 'export', text: '<mark class="do">Choose how the copy leaves the nucleus.</mark>' }
     ],
     done: 'You carry the copy of the amylase gene. Next it needs a <b>ribosome</b>: the nucleolus makes the parts of ribosomes.',
@@ -200,7 +201,7 @@ window.STORY = {
     intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome reads the copy of a gene and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nFrom very near, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'assemble', text: '<mark class="do">Press Join:</mark> the small part attaches to the copy, then the large part joins it. Now it is a whole ribosome.' },
-      { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press the carrier that matches the code under the ribosome.</mark>\nEvery amino acid you join uses some energy.' },
+      { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press the carrier that matches the code under the ribosome.</mark>\nEvery amino acid you join uses some energy.\n<span class="step__x"><b>Explorer · beyond the Year 7 list.</b> The ribosome reads the code of the copy and joins amino acids in that order. This has a name: <dfn data-w="translation">translation</dfn>.</span>' },
       { play: 'where', text: 'The first part of the amylase chain is a <b>signal</b>: it means that this protein must be made on the rough ER. Proteins that the cell releases are made there.\n<mark class="do">Choose where this ribosome must work.</mark>' }
     ],
     done: 'Your ribosome is at the <b>rough ER</b>, with the start of the chain.',
@@ -215,7 +216,7 @@ window.STORY = {
       { play: 'dock', text: '<mark class="do">Press Dock:</mark> because of the signal, the ribosome is taken to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel, inside the rough ER.\n<mark class="do">Press Go.</mark>' },
       { play: 'cut', text: 'While the chain is still growing, an enzyme in the membrane of the rough ER removes the signal.\n<mark class="do">Press Cut.</mark>' },
-      { play: 'fold', text: '<mark class="do">Press Fold.</mark>\nThe chain folds into its shape. A groove in it, the <dfn data-w="active-site">active site</dfn>, is where starch fits: the shape is what lets amylase work.' },
+      { play: 'fold', text: 'The chain cannot work yet: first it must fold into its shape.\n<mark class="do">Press Fold.</mark> The camera goes closer, so that you can see every bead: each bead is one amino acid.\nWhen the chain has folded, look for a groove in it. This groove is the <dfn data-w="active-site">active site</dfn>, where a short part of a starch chain fits: the shape is what lets amylase work.' },
       { play: 'bud', text: 'Amylase leaves the rough ER in a vesicle, a small bubble of membrane: a piece of the membrane of the rough ER closes round it.\nSo every vesicle removes some membrane, and the ER needs new <dfn data-w="lipid">lipids</dfn>.\n<mark class="do">Press Bud to make a vesicle.</mark>' }
     ],
     done: 'A vesicle carries your amylase to the <b>Golgi apparatus</b>.',
@@ -250,7 +251,7 @@ window.STORY = {
     needs: ['packed', 'energy'], gives: ['top'],
     intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
     steps: [
-      { play: 'grab', text: 'Nothing here is drawn bigger than it is. So the camera comes very close to the microtubule next to your vesicle: it is only 25 <dfn data-w="nanometre">nanometres</dfn> (nm) wide.\nScientists found dynein, a <dfn data-w="motor-protein">motor protein</dfn>, on vesicles like yours in the pancreas, another gland. So the motor protein here is probably dynein.\nEach of its two heads is a ring, 14 nm across.\nYour vesicle is 900 nm across. The dots in it are amylase molecules, each 5 nm across: a real vesicle is full of them.\n<mark class="do">Press Attach:</mark> dynein\'s two heads hold the microtubule.' },
+      { play: 'grab', text: 'Nothing here is drawn bigger than it is. So the camera comes very close to the microtubule next to your vesicle: it is only 25 <dfn data-w="nanometre">nanometres</dfn> (nm) wide.\nScientists found dynein, a <dfn data-w="motor-protein">motor protein</dfn>, on vesicles like yours in the pancreas, another gland. So the motor protein here is probably dynein.\nEach of its two heads is a ring, 14 nm across.\nYour vesicle is 900 nm across. The dots in it are amylase molecules, each 8 nm long: a real vesicle is full of them.\n<mark class="do">Press Attach:</mark> dynein\'s two heads hold the microtubule.' },
       { play: 'maze', text: 'From far away the motor protein is too small to see: the glow shows where it is. The game draws the microtubules three times thicker, so that you can see them.\nEach step uses energy. Where two microtubules cross, the vesicle can step onto the other one.\n<mark class="do">At each crossing, choose the microtubule that leads to the top of the cell.</mark>' }
     ],
     done: 'Your vesicle waits at the top of the cell, with the others.',

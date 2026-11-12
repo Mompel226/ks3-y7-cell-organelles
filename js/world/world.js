@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611121326';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121326';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611121652';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121652';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -449,7 +449,12 @@ export class World {
     Object.values(this.P).forEach(p => {
       p.lit += (p.litTo - p.lit) * Math.min(1, dt * 8);
       if (Math.abs(p.lit - p.litTo) > 0.002 || p.lit > 0.002) p.groups.forEach(g => this.W.groups[g] && setLook(this.W.groups[g], { lit: p.lit * 0.8 }));
-      p.ring.visible = p.state === 'open' && !!this.isMap && !this.flying;   /* the halo shows on the map only (close up it is a hoop in the way) */
+      /* the halo shows on the map only (close up it is a hoop in the way). It comes and goes over about a third of a
+         second (12 Nov 2026): it had gone in one frame as every flight from the map began, all the open places' halos at
+         once (tools/transitions.mjs read it as a cut at the nucleus, where most places are open) */
+      const halo = p.state === 'open' && !!this.isMap && !this.flying ? 1 : 0;
+      p.ringK = this.still ? halo : (p.ringK || 0) + (halo - (p.ringK || 0)) * Math.min(1, dt * 8);
+      p.ring.material.uniforms.uOn.value = p.ringK; p.ring.visible = p.ringK > 0.01;
       if (p.ring.visible) { p.ring.lookAt(this.camera.position); p.ring.rotateZ(t * 0.3); p.ring.scale.setScalar(1 + 0.04 * Math.sin(t * 2)); }   /* a halo that faces you */
     });
     if (!this.flying) this.controls.update();
