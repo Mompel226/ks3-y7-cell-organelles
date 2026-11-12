@@ -226,7 +226,7 @@ window.STORY = {
     needs: ['energy'], gives: ['lipids'],
     intro: 'The <dfn data-w="smooth-er">smooth ER</dfn> is a network of tubes with no ribosomes. It makes <dfn data-w="lipid">lipids</dfn> (fats, oils and similar molecules).\nA membrane is two layers of lipids, with <dfn data-w="protein">proteins</dfn> in it. Every new <dfn data-w="vesicle">vesicle</dfn> removes a piece of the ER membrane, so the ER needs new lipids.\nThe rough ER and the smooth ER are one joined membrane, so new lipids spread from one to the other. This cell has only a little smooth ER.',
     steps: [
-      { play: 'lipid', text: 'A membrane lipid has a head and two tails.\n<mark class="do">Press Join three times</mark> to make three lipids. Each one uses some energy.' },
+      { play: 'lipid', text: 'You look into one tube of the smooth ER, cut across. The ring is its membrane: two layers of lipids. Behind it, the tube runs on.\nA membrane lipid has a head and two tails.\n<mark class="do">Press Join three times</mark> to make three lipids. Each one uses some energy.' },
       { play: 'layer', text: 'The new lipids join the membrane of the ER: two layers, with their tails inside. The ER is one joined membrane, so they spread through it to the rough ER.\n<mark class="do">Press Add to the membrane.</mark>' }
     ],
     done: 'The ER membrane has new lipids, so the rough ER can make vesicles.',

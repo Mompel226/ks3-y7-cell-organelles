@@ -5,7 +5,7 @@
    loopMap), large, each stop with what happens there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { loopMap } from './view.js?v=202611121048';
+import { loopMap } from './view.js?v=202611121326';
 
 export async function build() {
   return {

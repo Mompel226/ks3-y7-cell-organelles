@@ -11,7 +11,7 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { CUT } from '../world/magic.js?v=202611121048';
+import { CUT } from '../world/magic.js?v=202611121326';
 
 export function gameLook(stage) {
   const R = stage.renderer, scene = stage.scene, cam = stage.cam;

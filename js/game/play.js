@@ -5,18 +5,18 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611121048';
-import { state, COST, RESPIRE } from './state.js?v=202611121048';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121048';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121048';
-import { sound } from './sound.js?v=202611121048';
-import { magicStandard } from '../world/magic.js?v=202611121048';
-import { buildCrowd } from '../world/crowd.js?v=202611121048';
-import { Names } from './names.js?v=202611121048';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611121326';
+import { state, COST, RESPIRE } from './state.js?v=202611121326';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121326';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121326';
+import { sound } from './sound.js?v=202611121326';
+import { magicStandard } from '../world/magic.js?v=202611121326';
+import { buildCrowd } from '../world/crowd.js?v=202611121326';
+import { Names } from './names.js?v=202611121326';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611121048').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611121326').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -47,7 +47,22 @@ export function makePlay(world, quest) {
   const keep = (o) => { scene.add(o); kept.push(o); return o; };
   const drop = (o) => { if (!o) return; scene.remove(o); kept = kept.filter(x => x !== o); };
   /* leaving a place takes its tokens away */
-  function reset() { realOff(); kept.forEach(o => scene.remove(o)); kept = []; props = {}; mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff(); nolOff(); nanoOff(); }
+  /* stay: the pupil stays in the place (a step watched again with ↻, then the place set up again at the step they were
+     on: main.js). While the camera is in a close view it stays there, and the close view stays as it is: the step that
+     runs next finds it so (toPlace, nanoIn, nolZoom) and goes neither out nor in. Before, every ↻ in a close view flew
+     out to the place's own view and back in, twice (Daniel, 12 Nov 2026: "the animation zooms out and then zooms in
+     without any reason … you can press the repeat button, and because of that … So fix that"). The close drawing itself
+     is made again by the step (a step may have changed it): the old one stays in the picture until the new one stands */
+  function reset(stay) {
+    const held = !!stay && (NZ.on || NS.close);
+    realOff();
+    const ghost = held ? [props.mem, props.close].filter(Boolean) : [];
+    kept.forEach(o => { if (!ghost.includes(o)) scene.remove(o); }); kept = []; props = {};
+    mitoOff(); tracksLoop(false); diveOff(); poreFree(); chrUndim(); damTagsOff();
+    if (held) { LOD.ghost.push(...ghost); return; }
+    lodGhosts(); nolOff(); nanoOff();
+  }
+  const lodGhosts = () => LOD.ghost.splice(0).forEach(o => { scene.remove(o); LOD.items = LOD.items.filter(it => it.o !== o); });
   const N = W.nucleus, N0 = N.center, inN = (v) => N.group.localToWorld(v.clone());
   const fly = (pos, at, ms) => live(world.flyTo({ pos: pos.toArray ? pos.toArray() : pos, at: at.toArray ? at.toArray() : at }, { ms }));
   /* a point on the "stage" in front of the camera: dx to the right, dy up, d ahead (µm); the camera's axis is the middle
@@ -109,6 +124,11 @@ export function makePlay(world, quest) {
   /* each step starts in the place's view; already there, no flight (the names stay, never a flicker) */
   async function wayFly() {
     world.wayIn(true);
+    /* near the membrane already (the step before ended there), the camera stays: the next molecule comes up from the
+       blood into this view, and the camera moves along the membrane to it. Before, each step ended with the camera back
+       at the whole base of the cell, and the next one went in again: three times out and in (Daniel, 12 Nov 2026: "the
+       animation zooms out and then zooms in without any reason … just remove it") */
+    if (wayNear()) return;
     if (world.camera.position.distanceTo(V(...WV.pos)) > 0.05 || world.controls.target.distanceTo(V(...WV.at)) > 0.05) await fly(WV.pos, WV.at);
     wayNames();
   }
@@ -144,6 +164,7 @@ export function makePlay(world, quest) {
   /* a small name that moves with a molecule (as at the mitochondrion's dam: play.js moveTag), until the molecule goes */
   const molTag = (t, text) => { const sp = newTag(t); const s0 = quest.session, f = () => { if (!t.parent || quest.session !== s0) { sp.visible = false; return; } moveTag(sp, text, t, V(0, 0, 0), 6); requestAnimationFrame(f); }; f(); return sp; };
   const WVdir = () => V(...WV.pos).sub(V(...WV.at)).normalize();
+  const wayNear = () => { const c = world.controls.target, d = world.camera.position.distanceTo(c); return quest.cur === 'wayin' && d < 0.6 * V(...WV.pos).distanceTo(V(...WV.at)) && Math.abs(c.y) < 1.2 && Math.abs(c.x) < 4; };
   const wayZoom = (x, y = -0.25, ms = 1700) => camGo({ at: V(x, y, 0.12), dir: WVdir(), up: V(0, 1, 0), dist: fitDist(3300, 2500) }, R.FAST ? 0 : ms);
   const wayBack = (ms = 1600) => camGo({ at: V(...WV.at), dir: WVdir(), up: V(0, 1, 0), dist: V(...WV.pos).distanceTo(V(...WV.at)) }, R.FAST ? 0 : ms);
   async function oxygen() {
@@ -166,7 +187,6 @@ export function makePlay(world, quest) {
     await near;
     quest.say(ib('<p>Oxygen is a small molecule: it passes straight through the two layers of lipids.</p><p>It spreads from the blood, where there is more oxygen, into the cell, where there is less. This is <dfn data-w="diffusion">diffusion</dfn>.</p>', '<p>Oxygen is small and non-polar: it passes straight between the phospholipids, down its <dfn data-w="concentration-gradient">concentration gradient</dfn>.</p><p>It goes from the blood, where its concentration is higher, into the cell, where it is lower. This is simple <dfn data-w="diffusion">diffusion</dfn>.</p>'), 'ok');
     await wait(R.TEST ? 0 : 1800);
-    await wayBack();
     await quest.gain('oxygen', ox[0].position, 2); ox.forEach(drop);
   }
   /* a carrier protein changes shape, from its pose now to pose s (cellbuild.js carrier: -1 open to the outside, 0 shut on
@@ -234,7 +254,6 @@ export function makePlay(world, quest) {
     });
     quest.say(ib('A <dfn data-w="carrier-protein">carrier protein</dfn> lets glucose pass through the membrane.', 'A <dfn data-w="glucose-transporter">glucose transporter</dfn> lets glucose pass through the membrane: <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, with no ATP.'), 'ok');
     for (const t of g) await viaCarrier(C, t);
-    await wayBack();
     await quest.gain('glucose', g[0].position, 2); g.forEach(drop);
   }
   async function amino() {
@@ -261,7 +280,6 @@ export function makePlay(world, quest) {
     });
     quest.say(ib('Its own carrier protein lets the amino acid pass through.', 'Its own carrier protein, an amino acid transporter, lets the amino acid pass through.'), 'ok');
     await viaCarrier(C, a);
-    await wayBack();
     await quest.gain('amino', a.position); drop(a);
   }
   async function co2() {
@@ -325,16 +343,35 @@ export function makePlay(world, quest) {
   const heroView = () => { const v = world.P.mito.view, at = V(...v.at), pos = V(...v.pos); return { at, dist: pos.distanceTo(at), dir: pos.clone().sub(at).normalize(), up: V(0, 1, 0) }; };
   /* a magnified view: what it looks at (u, n), how far away (nm); up is out of the mitochondrion: the cytosol at the top */
   const nanoView = (u, n, dnm) => ({ at: pW(u, n, -2), dist: dnm / 1000, dir: pD(0, 0, 1), up: pD(0, 1, 0) });
-  const MS = { deep: false, hidden: [], tick: 0 };
+  const MS = { deep: false, hidden: [], skin: false, skinned: [], tick: 0 };
   /* close to the membrane, the rest of the cell is far behind the magnified view and hidden by it: it is not drawn */
+  /* (12 Nov 2026: by a dissolve of half a second, world.js draw, begun 260 nm away, so that it has ended before the
+     magnified view's back begins to hide what stands behind it, 130 nm away: there, every other part round the
+     mitochondrion had gone in one frame, in the middle of the zoom) */
+  /* this mitochondrion's own membranes, as surfaces: close in (120 nm) they stood as thin bands in front of the magnified
+     membranes (a skin over the lipids); the cut face and the magnified view show them instead */
+  function setSkin(off) {
+    if (off === !!MS.skin) return; MS.skin = off;
+    if (off) [MW.real.inner, MW.real.outer, MW.sparks, MW.parts.outer, MW.parts.inner].forEach(o => { if (o.visible) { o.visible = false; MS.skinned.push(o); } });
+    else MS.skinned.splice(0).forEach(o => { o.visible = true; });
+  }
   function setDeep(on) {
     MS.deep = on;
     if (on) {
-      Object.entries(W.groups).forEach(([k, g]) => { if (k !== 'mitochondria' && g.visible) { g.visible = false; MS.hidden.push(g); } });
-      /* and this mitochondrion's own membranes, as surfaces: close in they stood as thin bands in front of the magnified
-         membranes (a skin over the lipids); the cut face and the magnified view show them instead */
-      [MW.real.inner, MW.real.outer, MW.sparks, MW.parts.outer, MW.parts.inner].forEach(o => { if (o.visible) { o.visible = false; MS.hidden.push(o); } });
-    } else MS.hidden.splice(0).forEach(g => { g.visible = true; });
+      Object.entries(W.groups).forEach(([k, g]) => { if (k !== 'mitochondria' && g.visible && !MS.hidden.includes(g)) MS.hidden.push(g); });
+    }
+    const objs = MS.hidden.slice(), show = v => objs.forEach(o => { o.visible = v; });
+    if (!on) MS.hidden = [];
+    const run = MS.run = (MS.run || 0) + 1, t0 = performance.now();
+    if (R.FAST) { world.dissolve = null; show(!on); return; }
+    world.dissolve = { t: 0.003, a: () => show(on), b: () => show(!on) };
+    const f = () => {
+      if (MS.run !== run) return;
+      const k = (performance.now() - t0) / 500;
+      if (k >= 1) { world.dissolve = null; show(!on); world.kick(); return; }
+      world.dissolve.t = Math.max(0.003, Math.min(0.997, smooth(0, 1, k))); world.kick(); requestAnimationFrame(f);
+    };
+    f();
   }
   /* the scale bar, bottom left of the free part of the picture: a round length, 70 to 175 pixels long */
   let bar = null;
@@ -360,7 +397,8 @@ export function makePlay(world, quest) {
              even on a wide screen, sees the face at its edge */
           SECT.uHole.value.set(HS.zoom.s, 0.076, 0.135, smooth(0.55, 0.22, d));
           const bk = PT.parts.back.material; bk.uniforms.uA.value = smooth(0.3, 0.12, d); bk.depthWrite = d < 0.13;
-          if ((d < 0.12) !== MS.deep) setDeep(d < 0.12);
+          if ((d < 0.26) !== MS.deep) setDeep(d < 0.26);
+          setSkin(d < 0.12);
         }
         scaleBar(d);
         MS.tick = requestAnimationFrame(f);
@@ -382,7 +420,7 @@ export function makePlay(world, quest) {
   setLid(0);
   /* leaving the place: everything as it was (the camera's up, its near and far planes, the cell, the cut face, the lid) */
   function mitoOff() {
-    mitoLoop(false); if (MS.deep) setDeep(false); setLid(0); if (HC) HC.on = false;
+    mitoLoop(false); if (MS.deep) setDeep(false); setSkin(false); setLid(0); if (HC) HC.on = false;
     if (props.flow) props.flow.forEach(F => { F.s.update(0, false); F.m.update(0, false); });
     if (props.follow) props.follow.visible = false;
     if (PT) PT.group.visible = false; SECT.uHole.value.set(0, 0, 0, 0);
@@ -774,11 +812,16 @@ export function makePlay(world, quest) {
   }
   function moveTag(sp, text, parent, local, lift) {      /* lift: px between the part and its tag */
     const T = tagTex(text); if (sp.material.map !== T.t) { sp.material.map = T.t; sp.material.needsUpdate = true; }
-    const a = parent.localToWorld(local.clone()), b = parent.localToWorld(local.clone().add(V(1, 0, 0)));
-    const pa = world.project(a), pb = world.project(b), px = Math.max(0.01, Math.hypot(pb.x - pa.x, pb.y - pa.y));   /* px for 1 unit here */
-    /* above its part on the SCREEN (the camera's up, carried into the part's own frame), lift px clear of it */
-    const upW = V(0, 1, 0).applyQuaternion(world.camera.quaternion), upL = parent.worldToLocal(a.clone().add(upW)).sub(local).normalize();
-    const h = 22 / px; sp.scale.set(h * T.aspect, h, 1); sp.position.copy(local).addScaledVector(upL, (lift + 11) / px);
+    /* its size on the screen is always the same, 22 px high (12 Nov 2026; Daniel saw the names grow in the pictures: "be
+       careful with huge [names] being shown"). It was worked out from how long the part's OWN x axis looks on the screen:
+       a molecule that turns as it moves, or goes through a carrier, points that axis at the camera, the length goes to
+       nothing, and its name grew until "amino acid" stood across the whole picture. Now from the camera's own right, one
+       unit of the world at the part, and the part's own scale */
+    const a = parent.localToWorld(local.clone()), rightW = V(1, 0, 0).applyQuaternion(world.camera.quaternion), upW = V(0, 1, 0).applyQuaternion(world.camera.quaternion);
+    const pa = world.project(a), pb = world.project(a.clone().add(rightW)), px = Math.hypot(pb.x - pa.x, pb.y - pa.y), sc = parent.getWorldScale(V(1, 1, 1)).x || 1;   /* px for 1 unit of the world here */
+    /* (a molecule that flies to the bag comes right up to the camera: there its name goes at once) */
+    if (!pa.inFront || !(px > 0.5) || px > 1e6 || world.camera.position.distanceTo(a) < 0.25 * world.camera.position.distanceTo(world.controls.target)) { sp.material.opacity = 0; sp.visible = false; return; }
+    const h = 22 / px / sc; sp.scale.set(h * T.aspect, h, 1); sp.position.copy(parent.worldToLocal(a.clone().addScaledVector(upW, (lift + 11) / px)));
     /* never over a name, the corner box or the panel, nor cut by the picture's edge: there it fades out, and back in when
        clear (a fade, never a blink: memory label-lines-never-cross) */
     const c = world.project(parent.localToWorld(sp.position.clone())), cr = world.canvas.getBoundingClientRect(), hw = 11 * T.aspect + 4;
@@ -912,7 +955,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611121048').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611121326').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1701,7 +1744,7 @@ export function makePlay(world, quest) {
      its fade. The organelle and its close drawing are large, and other see-through parts and lights stand in front of
      them and behind them: they change by the world's dissolve (world.js draw: the frame drawn both ways and blended),
      so neither ever changes its place in the drawing order. Proof: tools/transitions.mjs */
-  const LOD = { mode: '', items: [], mats: new Map(), onU: null, after: null, glow: [], order: [], u: 0, d0: 1, d1: 1, run: 0, bar: false };
+  const LOD = { mode: '', items: [], mats: new Map(), onU: null, after: null, glow: [], order: [], ghost: [], u: 0, d0: 1, d1: 1, run: 0, bar: false };
   const BIG = [0.04, 0.40], DIS = [0.40, 0.86];
   const lodK = (cls, u) => cls === 'big' ? 1 - smooth(BIG[0], BIG[1], u) : cls === 'close' ? smooth(DIS[0], DIS[1], u) : 1 - smooth(DIS[0], DIS[1], u);
   const camDist = () => world.camera.position.distanceTo(world.controls.target);
@@ -1806,6 +1849,11 @@ export function makePlay(world, quest) {
     if (NZ.on) {
       /* close already: back to the step's own view only if the pupil has turned or moved the picture, in a time that fits
          how far (before: 3.2 s every time, and with the camera already there the step waited 3.2 s while nothing moved) */
+      /* (after a ↻: the close drawing made again takes the old one's place in the handover) */
+      const mine = [props.mem, props.close].filter(Boolean);
+      if (LOD.ghost.some(o => !mine.includes(o)) || mine.some(o => !LOD.items.some(it => it.o === o))) {
+        lodGhosts(); LOD.items = LOD.items.filter(it => it.cls !== 'close').concat(mine.map(o => lodItem(o, 'close', new Set()))); if (LOD.mode === 'held') lodSet(1);
+      }
       const at = world.controls.target, dir = world.camera.position.clone().sub(at).normalize();
       const far = Math.max(at.distanceTo(view.at) / view.dist, dir.angleTo(view.dir), Math.abs(Math.log(camDist() / view.dist)));
       if (far < 0.02) return;
@@ -2345,7 +2393,23 @@ export function makePlay(world, quest) {
   const SER = world.P.ser.center;
   const SR = { c: 22, n: [181, 144] };   /* the wall's middle 22 nm from the tube's middle (the wall 19 to 25 nm); lipids in each layer */
   const GAPS = [82, 90, 98];             /* the three gaps in the outer layer, at the top (degrees) */
-  const serFrame = () => props.sf || (props.sf = frameAt(SER, Y, V(...world.P.ser.view.pos)));
+  /* the close view stands ON one real tube of the net and looks along it (12 Nov 2026; Daniel: "the original organelle
+     disappears and then a new structure appears. There is no linkage between that, and it happens with the smooth
+     endoplasmic reticulum"). Before, the ring stood at the middle of the place, facing the camera, on no tube: the net
+     went and a ring came. Now the camera flies to a tube of the net, turns along it, and the ring is that tube's own
+     cut end, with the tube running on behind it (serTube: its stump). The tube chosen: near the middle of the place, and
+     the one that points most nearly at the place's own camera, so the camera turns least */
+  const serFrame = () => {
+    if (props.sf) return props.sf;
+    const cam = V(...world.P.ser.view.pos); let best = null;
+    ((W.ser && W.ser.curves) || []).forEach(c => { for (let k = 3; k <= 17; k++) {
+      const t = k / 20, p = c.getPoint(t), T = c.getTangent(t).normalize(), toC = cam.clone().sub(p).normalize(), d = p.distanceTo(SER), score = Math.abs(T.dot(toC)) - 0.35 * d;
+      if (d < 1.6 && (!best || score > best.score)) best = { score, c, t, p, back: T.dot(toC) > 0 ? -1 : 1, along: T.dot(toC) > 0 ? T : T.negate() };
+    } });
+    if (!best) return (props.sf = frameAt(SER, Y, cam));
+    const n = Y.clone().addScaledVector(best.along, -Y.dot(best.along)).normalize();
+    return (props.sf = { p: best.p, n, right: new THREE.Vector3().crossVectors(n, best.along), along: best.along, curve: best.c, t: best.t, back: best.back });
+  };
   const sp = (x, y, z) => fp(serFrame(), x, y, z);
   const polar = (deg, r) => [Math.cos(deg * Math.PI / 180) * r, Math.sin(deg * Math.PI / 180) * r];
   const gapDeg = i => { const n0 = SR.n[0]; return Math.round(GAPS[i] / 360 * n0) * 360 / n0; };
@@ -2371,6 +2435,18 @@ export function makePlay(world, quest) {
     /* the inside of the tube, faintly tinted, so that inside and outside differ */
     const lum = new THREE.Mesh(new THREE.CircleGeometry(0.0189, 64), new THREE.MeshBasicMaterial({ color: 0x7fe0c8, transparent: true, opacity: 0.12, depthWrite: false }));
     lum.position.z = -0.0006; g.add(lum);
+    /* the tube runs on behind its cut end: the net's own tube, along its own line, as a thin wall in the membrane's
+       colour (the wall's middle, 22 nm from the tube's middle), about half a micrometre of it; what is far fades */
+    const F = serFrame();
+    if (F.curve) {
+      const pts = [], L = F.curve.getLength(), loc = P => { const d = P.clone().sub(F.p); return V(d.dot(F.right), d.dot(F.n), d.dot(F.along)); };
+      for (let k = 0; k <= 24; k++) { const t = F.t + F.back * k * 0.55 / 24 / L; if (t < 0 || t > 1) break; pts.push(loc(F.curve.getPoint(t))); }
+      const end = pts[pts.length - 1], dir = pts.length > 1 ? end.clone().sub(pts[pts.length - 2]).normalize() : V(0, 0, -1);
+      for (let d = pts.reduce((a, q, i) => a + (i ? q.distanceTo(pts[i - 1]) : 0), 0); d < 0.5; d += 0.05) pts.push(pts[pts.length - 1].clone().addScaledVector(dir, 0.05));
+      const stump = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, SR.c / 1000, 28, false),
+        new THREE.MeshStandardMaterial({ color: 0xf3a9cd, roughness: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false }));
+      stump.userData.kind = 'ser-stump'; stump.renderOrder = -1; g.add(stump);
+    }
     return (props.close = keep(g));
   }
   const serClose = () => { serTube(); const F = serFrame(); return nanoIn({ at: fp(F, 0, 8), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(100, 84) }, NEAR_HIDE().concat(groupsOf(['ser']))); };
@@ -3043,7 +3119,7 @@ export function makePlay(world, quest) {
     state.has = item => W8.active && quest.session === W8.session ? true : keep0.has.call(state, item);
     state.spend = (...a) => W8.active ? true : keep0.spend.apply(state, a);
     ['use', 'add', 'setFlag', 'setStep', 'finish', 'save'].forEach(k => { state[k] = (...a) => { if (!W8.active) return keep0[k].apply(state, a); }; });
-    quest.clearHots(); quest.names.set([]); reset();
+    quest.clearHots(); quest.names.set([]); reset(true);
     /* a camera that the stopped step was still moving (track() keeps it moving until its step lands it) is landed here, or
        the replay's first wait for a still camera (settle) would wait for ever */
     if (world.flying) world.landed({ pos: world.camera.position.toArray(), at: world.controls.target.toArray() }, false);
@@ -3077,6 +3153,8 @@ export function makePlay(world, quest) {
     watch,
     run: (name) => Promise.resolve().then(() => ACT[name] ? ACT[name]() : quest.next()).catch(e => { if (e === STALE) return false; throw e; }),
     reset,
+    /* is the camera in a close view now (main.js: the place set up again after a ↻ stays there) */
+    close: () => NZ.on || NS.close,
     /* the handover now, for the checks (tools/transitions.mjs): world = how much of the organelle's own drawing shows, close = how much of the close drawing */
     dive: () => ({ on: NZ.on || NS.close ? 1 : 0, mode: LOD.mode, u: LOD.u, world: LOD.items.length ? lodK('org', LOD.u) : 1, close: LOD.items.length ? lodK('close', LOD.u) : 0,
       kinds: [...LOD.mats.values()].reduce((a, e) => { const k = e.kind + (e.shared ? 's' : ''); a[k] = (a[k] || 0) + 1; return a; }, {}) })

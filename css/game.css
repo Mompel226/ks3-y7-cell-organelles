@@ -222,6 +222,29 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__side .qp__plant{margin-top:8px}
 .win__side{margin:10px auto 0;padding:8px 12px 10px;border:1.5px dashed #7CC96A;border-radius:14px;background:rgba(124,201,106,.1);max-width:520px}
 .win__side .win__plant{margin-top:4px}
+.win__sidep{margin:0 0 2px;font-size:15.5px}
+.win__side--ib{border-color:#B9A2EE;background:rgba(150,115,225,.14)}
+.win__side--ib .win__sidek{color:#D9CBFA}
+.win__side--all{border-style:solid;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.07)}
+.win .win__ib{display:block;margin:4px auto 0;color:#fff;background:linear-gradient(180deg,#8A5BD6,#6A3DB8);border:1.5px solid #B9A2EE;font-size:16.5px;line-height:1.25;padding:11px 16px;max-width:100%}
+.win .win__ib:hover,.win .win__ib:focus-visible{border-color:#fff;outline:2.5px solid #FFE39A;outline-offset:2px}
+/* what next (main.js nextUp): a small card over the free part of the picture, once the mission is complete */
+.nextup{position:absolute;z-index:14;transform:translate(-50%,-50%);width:min(430px,calc(100% - 28px));box-sizing:border-box;padding:16px 18px 15px;border-radius:18px;color:#FFF8E6;text-align:center;
+  background:rgba(22,16,40,.94);border:2px dashed #7CC96A;box-shadow:0 14px 44px rgba(0,0,0,.5);animation:nextIn .45s ease-out}
+@keyframes nextIn{from{opacity:0}to{opacity:1}}
+.nextup--ib{border-color:#B9A2EE}
+.nextup__k{margin:0 0 5px;font:900 12.5px/1.2 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#9BE08A}
+.nextup--ib .nextup__k{color:#D9CBFA}
+.nextup__t{margin:0 0 7px;font:900 22px/1.2 var(--sans);color:#fff}
+.nextup__p{margin:0 0 12px;font:600 16.5px/1.45 var(--sans)}
+.nextup__acts{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.nextup .btn{font:900 16.5px/1.2 var(--sans);border-radius:999px;padding:11px 18px;cursor:pointer}
+.nextup__go{color:#12300C;background:linear-gradient(180deg,#E2F6D4,#BDE7A6);border:1.5px solid #7CC96A}
+.nextup--ib .nextup__go{color:#fff;background:linear-gradient(180deg,#8A5BD6,#6A3DB8);border-color:#B9A2EE}
+.nextup .btn.nextup__no{color:#FFF8E6;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.6)}
+.nextup .btn:hover,.nextup .btn:focus-visible{border-color:#fff;outline:2.5px solid #FFE39A;outline-offset:2px}
+@media (max-width:860px){ .nextup{padding:12px 13px 12px} .nextup__t{font-size:19px} .nextup__p{font-size:15px;margin-bottom:9px} .nextup .btn{font-size:15px;padding:10px 14px} }
+@media (prefers-reduced-motion:reduce){ .nextup{animation:none} }
 @media (max-width:860px){ .win__side{margin-top:5px;padding:6px 10px 8px} .win__sidek{font-size:11px} .win__side .win__plant{margin-top:4px} }
 .qp__plant{color:#12300C;background:linear-gradient(180deg,#E2F6D4,#BDE7A6);border-color:#7CC96A}
 .qp__plant:hover{border-color:#2E7D32}

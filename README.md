@@ -46,6 +46,29 @@ before the dive and comes into sight on the way. It follows the camera's distanc
 Reduce motion there is no dive and the close view shows at once, as before. The close views of the ribosome place, the
 rough ER, the smooth ER, the Golgi and the way out, and the zoom to the nucleolus, all use it (`play.js`, "the
 handover"). The rough ER's layers are shaded smoothly (each triangle had its own shade, which showed from near).
+The same day, after his next look ("the original organelle disappears and then a new structure appears. There is no
+linkage … it happens with the smooth endoplasmic reticulum, and … quite a few others"; "you do a few actions and then the
+animation zooms out and then zooms in without any reason … you can press the repeat button, and because of that … So fix
+that"): the smooth ER's close view stands on one real tube of the net and looks along it, so its ring is that tube's own
+cut end, with the tube running on behind it, and the step says so; at the mitochondrion the rest of the cell goes by a
+dissolve as the camera zooms to the membrane (it went in one frame); a step watched again with ↻ in a close view plays
+there, and the place is then set up again there (before, the camera flew out to the place's view and back in, twice); at
+the way in the camera stays near the membrane from one molecule to the next (it went back to the whole base of the cell
+after each one, and in again). A place whose steps have begun stays awake: the ribosome place uses the two parts at its
+first step, so by its needs it slept again, and a pupil who watched its first step again, or left for the map, could not
+go on. A molecule's name is never drawn larger: when its molecule flies to the bag, right up to the camera, the name
+goes (for a moment "amino acid" had stood across the whole picture).
+
+**What next: the game asks the pupil to explore everything** (Daniel, 12 Nov 2026: "When the students complete the main
+quest, if they have not completed the side quest, it should pop up … And when they have completed the side quest, if they
+have not explored any of the IB extensions … still suggest … So the idea is to prompt the students to explore
+everything"). Once the mission is complete, what is left is offered, one thing at a time: the side quest, until its five
+checks are right; then the IB extension "From glucose to ATP", until each of its eight parts has been opened (the view
+records how far each part was seen; the card says "You have opened 2 of its 8 parts"). It shows in the dashed box of the
+Mission complete card, and as a small card over the free part of the picture: with the Mission complete card, when the
+side quest closes, and once when the game is opened again. Not now closes it until the page is opened again; nothing in
+the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
+(`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
 **Simple and real.** The game opens with the cell pupils know: the Year 7 diagram beside the 3D cell, with the same five
 parts lit in both. Then it shows everything an electron microscope shows. Each place says whether its structure is an organelle (Daniel's definition: a membrane-bound structure
@@ -359,7 +382,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   refuses if a label would touch a part or another label. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
   every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
   more than the frames round it), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
-  drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion). `node tools/frames.mjs --out <folder>` films the intro's three
+  drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion; `--again <n>`: a step watched again with ↻ after the nth press; it also says when a move away is at once taken back). `node tools/frames.mjs --out <folder>` films the intro's three
   moves frame by frame and lays them out on sheets (`--w 390 --h 844 --mobile 1`: a phone), so a glitch of a few frames
   shows; `node tools/look.mjs --place <id> --out <folder>` photographs one place step by step (`--film 1`: a sheet of
   frames for every press; `--point <place>`: with the mouse over that place; `--lens <place>`: its See the real thing, Real 3D). `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.

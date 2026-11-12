@@ -55,6 +55,10 @@ export const state = {
     if (id === 'arrive') return true;
     if (!this.complete('arrive')) return false;
     if (S.done[id]) return true;
+    /* a place whose steps have begun stays awake: its first steps have used what it needed (the ribosome place uses the
+       two parts at its first step), so by its needs alone it slept again, and a pupil who left it for the map, or
+       watched one of its steps again with ↻, could not go on with it (12 Nov 2026) */
+    if ((S.step[id] || 0) > 0) return true;
     if (P.inside) return !!S.flags['in-' + P.inside];
     return (P.needs || []).every(n => this.has(n) && this.checked(giverOf(n)));
   },

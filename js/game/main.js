@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611121048';
-import { Names } from './names.js?v=202611121048';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611121048';
-import { makePlay } from './play.js?v=202611121048';
-import { setStill, wait } from './actors.js?v=202611121048';
-import { state, RESPIRE } from './state.js?v=202611121048';
-import { ICON } from './icons.js?v=202611121048';
-import { intro } from './intro.js?v=202611121048';
-import { sound } from './sound.js?v=202611121048';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611121048';
+import { World, MAP_VIEW } from '../world/world.js?v=202611121326';
+import { Names } from './names.js?v=202611121326';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611121326';
+import { makePlay } from './play.js?v=202611121326';
+import { setStill, wait } from './actors.js?v=202611121326';
+import { state, RESPIRE } from './state.js?v=202611121326';
+import { ICON } from './icons.js?v=202611121326';
+import { intro } from './intro.js?v=202611121326';
+import { sound } from './sound.js?v=202611121326';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611121326';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -90,13 +90,16 @@ document.addEventListener('cellgame:dive', () => sound.allowMusic());
 
 /* ---------- going to a place, or back to the map ---------- */
 let busy = false;
-async function go(id) {
+async function go(id, stay) {
   if (busy) return;
+  nextOff();
   if (id === 'final') { openFinal(); return; }
   if (id !== 'test') $('#test').hidden = true;
   if (!id) { world.wayIn(false); world.setFrame(0); busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
   if (id !== 'test' && !state.awake(id)) { quest.openMap(); quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))); return; }
-  busy = true; names.set([]); play.reset();
+  /* stay: the place set up again after a step was watched again; in a close view the camera stays there (play.js reset) */
+  const held = !!stay && id === quest.cur && play.close();
+  busy = true; names.set([]); play.reset(held);
   /* the way in shows its membrane bigger, as two layers of lipids (world.wayIn); every other place, the thin film */
   world.wayIn(id === 'wayin');
   /* a pupil returns to the mitochondria for more energy, or to the way in for more glucose and oxygen: the finished place
@@ -105,7 +108,7 @@ async function go(id) {
   if (id === 'test') { busy = false; return test(); }
   const P = world.P[id];
   world.setFrame(P.view.frameH || 0);
-  world.flyTo(P.view);
+  if (!held) world.flyTo(P.view);
   busy = false;
   await quest.openPlace(id, (name) => play.run(name));
   looks();
@@ -135,7 +138,7 @@ document.addEventListener('step-again', async e => {
   document.documentElement.classList.add('is-watching');
   let back = false;
   try { back = await play.watch(id, i, li); } finally { watchingNow = false; document.documentElement.classList.remove('is-watching'); }
-  if (back && quest.cur === id) go(id);
+  if (back && quest.cur === id) go(id, true);
 });
 /* Hide text / Show text: the panel goes, so that only the picture shows, in the middle (Daniel, 8 Nov 2026: "if the
    students want to have everything centered and no text on the right to see just basically the image and see the
@@ -227,7 +230,7 @@ async function test() {
     <p>You made amylase in a cell of a salivary gland, released it, and it digested starch.</p>
     <div class="win__code"><p>Your code for the final check</p><p class="win__c">${esc(await finalCode())}</p>
       <p>Write it down. You need it to start the final check: press <b>✦ Final check</b> in the list of places, then type your code.</p></div>
-    <div class="win__side"><p class="win__sidek">Side quest · extra: a plant cell, not part of your mission</p><button type="button" class="btn win__plant" data-plant>🌱 Side quest: where does starch come from?</button></div>
+    <div class="win__side"></div>
     <ol class="win__path">${path.map(([i, t]) => `<li>${ICON[i]}<span>${t}</span></li>`).join('')}</ol>
     <div class="win__acts"><button type="button" class="btn" data-back>Back to the cell</button><button type="button" class="btn ghost" data-final>✦ Final check</button></div>`);
   box.appendChild(end);
@@ -240,16 +243,14 @@ async function test() {
   /* the code must be seen: the box scrolls to the card (below the tile), the page does not move */
   box.scrollTo({ top: Math.max(0, end.offsetTop - 12), behavior: R.FAST ? 'auto' : 'smooth' });
   sound.wake();
+  winNext(); setTimeout(() => nextUp('win'), R.FAST ? 0 : 1600);
   $('[data-back]', end).addEventListener('click', () => { box.hidden = true; unfold(); go(null); });
   $('[data-final]', end).addEventListener('click', async () => { box.hidden = true; unfold(); await go(null); openFinal({ focusCode: true }); });
-  /* the door to the plant-cell branch (js/plant/view.js): the card stays as it is under the view, and is there again when
-     the view closes (Daniel, 11 Nov 2026) */
-  $('[data-plant]', end).addEventListener('click', () => document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'test' } })));
 }
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611121048').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611121326').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -259,9 +260,9 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611121048').then(m => {
+  import('../ib/view.js?v=202611121326').then(m => {
     world.hold = true;
-    m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); } });
+    m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
 };
 /* when a place's IB switch first shows (quest.js), the view's code, styles and map are fetched while the pupil reads, so
@@ -269,13 +270,76 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611121048').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611121326').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611121048').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611121326').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
+/* ---------------- what next: the game asks the pupil to explore everything (12 Nov 2026) ----------------
+   Daniel: "When the students complete the main quest, if they have not completed the side quest, it should pop up … A
+   message should pop up, complete now the side quest. And when they have completed the side quest, if they have not
+   explored any of the IB extensions … still suggest … So the idea is to prompt the students to explore everything."
+   Once the mission is complete (every check of the test right), what is left is offered, one thing at a time, in this
+   order: the side quest, until its five checks are right; then the IB extension, "From glucose to ATP", until each of
+   its eight parts has been opened (the view itself records how far each part was seen: store 'ib', max). It shows
+   - on the Mission complete card, in its dashed box under the code (winNext);
+   - as a small card over the free part of the picture (nextUp): as the Mission complete card comes, when the side quest
+     closes, and once when the game is opened again; never over the Mission complete card itself (on a phone that card
+     has the whole picture, and its code must be seen), and never twice for the same thing after Not now, until the
+     page is opened again.
+   The pupil decides: Not now closes it, and nothing in the game depends on it. */
+const SIDE_QS = () => Object.keys(window.QS || {}).filter(k => window.QS[k].part === 14);
+const sideDone = () => { const q = SIDE_QS(); return q.length > 0 && q.every(k => state.checkRight(k)); };
+const IB_PARTS = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'tally'];
+const ibSeen = () => { const m = (R.store.get('ib', {}) || {}).max || {}; return IB_PARTS.filter(k => (m[k] || 0) > 0).length; };
+function nextStep() {
+  if (!state.complete('test')) return null;
+  if (!sideDone()) return { key: 'side', k: 'Next: the side quest', t: 'Where does this glucose come from?',
+    p: 'You have completed your mission. You have not completed the side quest yet. It is a second story, in a plant cell: follow glucose from a leaf to your cell.',
+    b: '🌱 Start the side quest', go: () => document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'next' } })) };
+  const n = ibSeen();
+  if (n < IB_PARTS.length) return { key: 'ib', k: 'Next: the IB Biology extension', t: 'From glucose to ATP',
+    p: 'You have completed your mission and the side quest. This extension is beyond Year 7: it shows, step by step, how a cell releases energy from glucose. ' + (n ? `You have opened ${n} of its ${IB_PARTS.length} parts.` : 'You have not opened it yet.'),
+    b: n ? '🧬 Continue the IB extension' : '🧬 Open the IB extension', go: () => openIB(n ? null : { ci: 0, si: 0 }) };
+  return null;
+}
+/* the dashed box of the Mission complete card */
+function winNext() {
+  const el = $('#test .win .win__side'); if (!el) return;
+  const N = nextStep();
+  el.classList.toggle('win__side--ib', !!N && N.key === 'ib'); el.classList.toggle('win__side--all', !N);
+  if (!N) { el.innerHTML = '<p class="win__sidek">You have explored everything</p><p>The mission, the side quest and the IB extension.</p>'; return; }
+  el.innerHTML = N.key === 'side'
+    ? '<p class="win__sidek">Next · Side quest · extra: a plant cell, not part of your mission</p><p class="win__sidep">You have not completed it yet.</p><button type="button" class="btn win__plant" data-plant>🌱 Side quest: where does starch come from?</button>'
+    : `<p class="win__sidek">${esc(N.k)} · beyond Year 7</p><p class="win__sidep">${esc(N.t)}. ${ibSeen() ? `You have opened ${ibSeen()} of its ${IB_PARTS.length} parts.` : 'You have not opened it yet.'}</p><button type="button" class="btn win__ib" data-ibnext>${esc(N.b)}</button>`;
+  const ib = $('[data-ibnext]', el); if (ib) ib.addEventListener('click', () => { nextOff(); N.go(); });
+  /* the door to the plant-cell branch (js/plant/view.js): the card stays as it is under the view, and is there again when
+     the view closes (Daniel, 11 Nov 2026) */
+  const pl = $('[data-plant]', el); if (pl) pl.addEventListener('click', () => { nextOff(); document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'test' } })); });
+}
+/* the small card over the picture */
+const NEXT = { no: new Set(), el: null };
+function nextOff() { if (NEXT.el) { NEXT.el.remove(); NEXT.el = null; } }
+function nextUp(from) {
+  const N = nextStep(), root = document.documentElement;
+  nextOff();
+  if (!N || NEXT.no.has(N.key) || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
+  /* a phone, the Mission complete card up: the card's own box says it (the card has the whole picture) */
+  if (world.size.w <= 860 && !$('#test').hidden && $('#test .win')) return;
+  const el = NEXT.el = h('div', { class: 'nextup nextup--' + N.key, role: 'dialog', 'aria-labelledby': 'nextupT' },
+    `<p class="nextup__k">${esc(N.k)}</p><h2 id="nextupT" class="nextup__t">${esc(N.t)}</h2><p class="nextup__p">${esc(N.p)}</p>
+     <div class="nextup__acts"><button type="button" class="btn nextup__go">${esc(N.b)}</button><button type="button" class="btn ghost nextup__no">Not now</button></div>`);
+  /* in the middle of the free part of the picture (beside the panel, or above it on a phone) */
+  const place = () => { el.style.left = ((world.size.w - (world.inset.right || 0)) / 2) + 'px'; el.style.top = ((world.size.h - (world.inset.bottom || 0)) / 2) + 'px'; };
+  place(); $('#stage').appendChild(el);
+  $('.nextup__go', el).addEventListener('click', () => { nextOff(); N.go(); });
+  $('.nextup__no', el).addEventListener('click', () => { NEXT.no.add(N.key); nextOff(); });
+  el.addEventListener('keydown', e => { if (e.key === 'Escape') { NEXT.no.add(N.key); nextOff(); } });
+  if (from !== 'load') $('.nextup__go', el).focus({ preventScroll: true });
+}
+world.on('resize', () => { if (NEXT.el) { NEXT.el.style.left = ((world.size.w - (world.inset.right || 0)) / 2) + 'px'; NEXT.el.style.top = ((world.size.h - (world.inset.bottom || 0)) / 2) + 'px'; } });
 /* the plant-cell branch, "Where glucose comes from" (js/plant/view.js; Daniel, 11 Nov 2026): a view over the whole page,
    opened from the way in's end card and from the Mission complete card. Nothing of it is fetched before a door is pressed
    ("Load the branch only when a door is pressed, so the game starts no slower"). The game's 3D rests while it is open, and
@@ -284,10 +348,10 @@ let plantOpening = false;
 document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
-  plantOpening = true;
-  import('../plant/view.js?v=202611121048').then(m => {
+  plantOpening = true; nextOff();
+  import('../plant/view.js?v=202611121326').then(m => {
     world.hold = true;
-    m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); } });
+    m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
 });
 
@@ -313,7 +377,7 @@ async function start() {
     return;
   }
   sound.allowMusic();
-  go(null);
+  go(null).then(() => setTimeout(() => { if (!quest.cur) nextUp('load'); }, 1200));
 }
 start();
 window.READY = true;

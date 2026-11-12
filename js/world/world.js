@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611121048';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121048';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611121326';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121326';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -285,7 +285,23 @@ export class World {
   }
 
   /* the side panel or the bottom sheet covers part of the picture: the picture's middle moves to the free part */
-  setInset({ right = 0, bottom = 0, top = 0 }) { this.inset = { right, bottom, top }; this.resize(); }
+  /* (12 Nov 2026: the middle moves there over 0.35 s. Set in one frame, the whole picture jumped each time a place opened
+     on a phone, where the sheet of words covers the lower part, and a little each time the panel's words changed its
+     size. Only the camera changes: aim()) */
+  setInset({ right = 0, bottom = 0, top = 0 }) {
+    const to = { right, bottom, top }, from = Object.assign({ right: 0, bottom: 0, top: 0 }, this.inset), go = this.insetGo = {}, t0 = performance.now();
+    const far = Math.max(Math.abs(to.right - from.right), Math.abs(to.bottom - from.bottom), Math.abs(to.top - from.top));
+    this.insetTo = to;
+    if (this.still || !this.size || !this.compiled || far < 2) { this.inset = to; this.resize(); return; }
+    const step = () => {
+      if (this.insetGo !== go) return;
+      const k = Math.min(1, (performance.now() - t0) / 350), e = k * k * (3 - 2 * k);
+      this.inset = k >= 1 ? to : { right: from.right + (to.right - from.right) * e, bottom: from.bottom + (to.bottom - from.bottom) * e, top: from.top + (to.top - from.top) * e };
+      this.aim(); this.kick();
+      if (k < 1) requestAnimationFrame(step);
+    };
+    step();
+  }
   /* a place that must be seen whole from side to side (the way in: the whole base of the cell) asks for more than 20° to
      each side on a laptop or a full screen (a stage over 860 px wide; a phone keeps its own view) (Daniel, 8 Nov 2026: in
      full screen "you don't see the left or you don't see the right"); 0: the usual view */
