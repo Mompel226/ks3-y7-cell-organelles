@@ -120,9 +120,13 @@ slowly ("it's okay to have some glowing, but control it"). The intro's drawing o
 bunch again: since that morning the picture's middle moved over a third of a second, and the intro reads it at once.
 "How is it possible that some students can get a vesicle packed with amylase without … the gene copy?": the rules do
 not allow it, and `node tools/order-audit.mjs` now plays new games with random presses in any order (↻, Stop, the map
-in the middle of a step, sleeping places, the page opened again) and stops if anything is carried or begun without what
-it needs; the one door it found, the test opened by its address alone, is shut. Proofs: `node tools/arrive-names.mjs`
-(and `--mobile 1`), `node tools/order-audit.mjs --seed <n>`.
+in the middle of a step, sleeping places, the page opened again, ↺ Start again) and stops if anything is carried or
+begun without what it needs. The way it happened was ↺ Start again: pressed while a step was still moving (a molecule on
+its way to the bag), the step saved the OLD game again in the 150 ms before the page opened again, so the "new" game
+began with the old one's places and items and every check unanswered. Now nothing can be saved once Start again is
+pressed (`js/core.js` `store.dead`; `node tools/restart-clean.mjs` fails on the game before). The test, too, opens only
+when its place is awake. Proofs: `node tools/arrive-names.mjs` (and `--mobile 1`), `node tools/order-audit.mjs --seed
+<n>`, `node tools/restart-clean.mjs`.
 
 **Simple and real.** The game opens with the cell pupils know: the Year 7 diagram beside the 3D cell, with the same five
 parts lit in both. Then it shows everything an electron microscope shows. Each place says whether its structure is an organelle (Daniel's definition: a membrane-bound structure
