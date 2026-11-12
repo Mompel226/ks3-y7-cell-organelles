@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611121712';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121712';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611121723';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121723';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -288,11 +288,14 @@ export class World {
   /* (12 Nov 2026: the middle moves there over 0.35 s. Set in one frame, the whole picture jumped each time a place opened
      on a phone, where the sheet of words covers the lower part, and a little each time the panel's words changed its
      size. Only the camera changes: aim()) */
-  setInset({ right = 0, bottom = 0, top = 0 }) {
+  /* (now: set at once. The intro lays its drawing of the bunch of cells exactly over the 3D bunch, and works that out
+     from the inset right after it sets it: eased, the drawing went to where the bunch would have been without the card,
+     about 100 px beside the 3D bunch. Daniel, 12 Nov 2026: "the transition from the 2D diagram … into the 3D is broken") */
+  setInset({ right = 0, bottom = 0, top = 0 }, now = false) {
     const to = { right, bottom, top }, from = Object.assign({ right: 0, bottom: 0, top: 0 }, this.inset), go = this.insetGo = {}, t0 = performance.now();
     const far = Math.max(Math.abs(to.right - from.right), Math.abs(to.bottom - from.bottom), Math.abs(to.top - from.top));
     this.insetTo = to;
-    if (this.still || !this.size || !this.compiled || far < 2) { this.inset = to; this.resize(); return; }
+    if (now || this.still || !this.size || !this.compiled || far < 2) { this.inset = to; this.resize(); return; }
     const step = () => {
       if (this.insetGo !== go) return;
       const k = Math.min(1, (performance.now() - t0) / 350), e = k * k * (3 - 2 * k);

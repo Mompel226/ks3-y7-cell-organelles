@@ -25,7 +25,7 @@
    Sound button of its own. The press on ✦ Dive in lets the music start (cellgame:dive → sound.allowMusic).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MAP_VIEW } from '../world/world.js?v=202611121712';
+import { MAP_VIEW } from '../world/world.js?v=202611121723';
 const R = window.REV, { $, h } = R;
 
 const STEPS = [
@@ -34,7 +34,7 @@ const STEPS = [
     text: 'Your mouth is always a little wet: <b>saliva</b>.\nMost of it is made by three pairs of large <dfn data-w="salivary-gland">salivary glands</dfn>, round your mouth.',
     gland: [0.552, 0.580, 0.161, 0.235] },         /* the parotid gland: its middle, its width and its height, as parts of the
                                                       picture (measured on the picture's colours, 4 Nov 2026) */
-  { svg: 'img/intro/gland.svg?v=202611121712',
+  { svg: 'img/intro/gland.svg?v=202611121723',
     credit: 'Drawing made for this page, to scale: the bar is 20 µm.',
     text: 'Inside a gland, the cells sit in small round bunches. Each bunch surrounds a tiny tube.\nThe cells make saliva. It flows along these tubes, the <b>ducts</b>, into your mouth.' },
   { text: 'This is one bunch of cells, in 3D. The front of one cell is removed, so that you can see inside it. You will enter that cell.\nImagine you become about a million times smaller: as small as a mitochondrion.\n<mark class="do">Press Dive in.</mark>', world: true }
@@ -143,7 +143,7 @@ export function intro(world) {
     /* ---- 2 → 3: the bunch with "one cell" becomes the bunch in 3D ---- */
     const st = $('#stage').getBoundingClientRect(), cr = cardEl.getBoundingClientRect(), narrow = matchMedia('(max-width:860px)').matches;
     /* the free part of the screen in step 3: beside the card (a laptop) or below it (a phone, where the card is on top) */
-    if (narrow) world.setInset({ top: Math.max(0, cr.bottom - st.top + 8) }); else world.setInset({ right: Math.max(0, st.right - cr.left + 12) });
+    if (narrow) world.setInset({ top: Math.max(0, cr.bottom - st.top + 8) }, true); else world.setInset({ right: Math.max(0, st.right - cr.left + 12) }, true);   /* (at once: the next line reads it) */
     const s = world.size, ins = world.inset, fw = s.w - (ins.right || 0), fh = s.h - (ins.top || 0);
     const cx = fw / 2, cy = (ins.top || 0) + fh / 2, rT = 0.34 * Math.min(fw, fh);
     const D = RING * world.pxPerUnit(1) / rT;                              /* the camera's distance that shows the ring at rT */
