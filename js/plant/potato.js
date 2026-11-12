@@ -10,8 +10,8 @@
    (js/game/main.js: orange-brown 0xc8701e, blue-black 0x1b1d3a).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, PAL } from '../world/magic.js?v=202611120817';
-import { smooth, disposeGroup } from '../ib/stage.js?v=202611120817';
+import { magicStandard, PAL } from '../world/magic.js?v=202611121048';
+import { smooth, disposeGroup } from '../ib/stage.js?v=202611121048';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rng = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };

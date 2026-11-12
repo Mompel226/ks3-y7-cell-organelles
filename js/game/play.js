@@ -5,18 +5,18 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611120817';
-import { state, COST, RESPIRE } from './state.js?v=202611120817';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611120817';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611120817';
-import { sound } from './sound.js?v=202611120817';
-import { magicStandard } from '../world/magic.js?v=202611120817';
-import { buildCrowd } from '../world/crowd.js?v=202611120817';
-import { Names } from './names.js?v=202611120817';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS } from './actors.js?v=202611121048';
+import { state, COST, RESPIRE } from './state.js?v=202611121048';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121048';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121048';
+import { sound } from './sound.js?v=202611121048';
+import { magicStandard } from '../world/magic.js?v=202611121048';
+import { buildCrowd } from '../world/crowd.js?v=202611121048';
+import { Names } from './names.js?v=202611121048';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611120817').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611121048').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -409,8 +409,9 @@ export function makePlay(world, quest) {
         if (quest.session !== s0) return res();
         const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), e = k * k * (3 - 2 * k);
         const d = d0 * Math.pow(d1 / d0, e), g = same ? e : (d0 - d) / (d0 - d1);
-        const a = at0.clone().lerp(to.at, g), dd = dir0.clone().lerp(to.dir, smooth(0, 0.8, e)).normalize();
-        cam.up.copy(up0).lerp(to.up, smooth(0.1, 0.8, e)).normalize();
+        /* (to.turn: the part of the way by which the camera has turned to its new direction, 0.8 unless a view says) */
+        const turn = to.turn || 0.8, a = at0.clone().lerp(to.at, g), dd = dir0.clone().lerp(to.dir, smooth(0, turn, e)).normalize();
+        cam.up.copy(up0).lerp(to.up, smooth(0.1, turn, e)).normalize();
         cam.position.copy(a).addScaledVector(dd, d); c.target.copy(a); cam.lookAt(a); world.nearFar(d); world.kick();
         if (k < 1) requestAnimationFrame(f); else res();
       };
@@ -911,7 +912,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611120817').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611121048').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1512,14 +1513,20 @@ export function makePlay(world, quest) {
     if (close) {
       /* (and every nuclear pore at its true size, 120 nm across, as in the dive: drawn twice as wide, the pores of the far
          side had stood in the picture as rings far larger than the parts) */
-      N.chromatin.visible = false; N.nolSpark.visible = false; N.PK.uPoreK.value = 0.513; NS.close = true; nolBar(true);
+      /* (12 Nov 2026: all three had changed in one frame as the camera set off; now they follow the camera, as every
+         handover does: the handover, far below) */
+      NS.close = true; nolBar(true);
       const f = nolFrame();
       const a = THREE.MathUtils.degToRad(18), cd = f.right.clone().multiplyScalar(Math.cos(a)).addScaledVector(f.dir, Math.sin(a)).normalize();
+      const moving = lodOpen({ big: [N.nolSpark], org: [N.chromatin], onU: u => { N.PK.uPoreK.value = 1 - 0.487 * smooth(0.1, 0.75, u); }, after: () => world.nucLook() }, 0.3);
+      if (moving) { await lodWarm(); lodDrive(); }
       await camGo({ at: nolPt(0, 0, 32), dir: cd, up: f.dir.clone(), dist: 0.3 }, R.FAST ? 0 : 3400);
+      if (moving) lodHold();
     } else {
       NS.close = false;
+      lodBack(V(...world.P.nucleus.view.pos).distanceTo(V(...world.P.nucleus.view.at)));
       await camGo({ at: V(...world.P.nucleus.view.at), dir: V(...world.P.nucleus.view.pos).sub(V(...world.P.nucleus.view.at)).normalize(), up: V(0, 1, 0), dist: V(...world.P.nucleus.view.pos).distanceTo(V(...world.P.nucleus.view.at)) }, R.FAST ? 0 : 3200);
-      nolBar(false); N.PK.uPoreK.value = 1; world.nucLook();
+      lodEnd(); nolBar(false); N.PK.uPoreK.value = 1; world.nucLook();
     }
   }
   /* leaving the place: the chromosomes and the sparkles as the nucleus's look says, no scale bar */
@@ -1653,7 +1660,7 @@ export function makePlay(world, quest) {
      section, its cut face showing the membrane's two layers. Every press, choice and check is as before.
      Proof: tools/true-size.mjs B and C */
   const TSZ = { mrna: 0.001, rib: 0.0154, small: 0.0168, large: 0.01535, car: 0.0075, aa: 0.0011, bead: 0.00055, amy: 0.0024, ves: 0.035, enz: 0.0025 };
-  const NZ = { on: false, hidden: [] };
+  const NZ = { on: false };
   const groupsOf = names => names.map(k => W.groups[k]).filter(Boolean);
   /* what is far away fades into the cytosol while the camera is close: a mitochondrion 2 µm behind a ribosome must not
      look as small as the ribosome beside the scale bar (drawn in perspective, it did). The fog follows the camera's
@@ -1674,39 +1681,168 @@ export function makePlay(world, quest) {
     };
     f();
   }
-  async function nanoIn(view, hide) {
-    if (!NZ.on) { hide.forEach(o => { if (o && o.visible) { o.visible = false; NZ.hidden.push(o); } }); NZ.on = true; nolBar(true); nanoFog(); }
-    await camGo(view, R.FAST ? 0 : 3200);
+  /* ---------------- the handover: the world's drawing ↔ a place's close drawing (12 Nov 2026) ----------------
+     Daniel, on the dive from the rough ER to the ribosome place: "you see the rough ER, but suddenly you see a flat square
+     that doesn't look like the rough ER … all of the transitions when you change shapes or when you zoom into something,
+     it's smooth. So you link all of the structure so it's easy to follow. Right now, it's impossible."
+     Before: as the dive began, still micrometres away, the world's drawing (the organelle; what is drawn bigger than
+     life) went in ONE frame, and the close drawing stood alone in space, a flat slab; on the way out all of it came back
+     in one frame. Now nothing goes or comes in one frame. As the camera comes near, first what is drawn bigger than life
+     fades (the map's ribosomes, the microtubules, the motes), then the organelle dissolves INTO its close drawing, which
+     stands at the same place: the pupil sees one become the other. On the way out the same, backwards; and when the
+     pupil leaves a close view for the map, the world comes back as the camera goes away.
+     It follows the camera's distance: u is 0 at the place's own view and 1 at the close view, along the dive's own path
+     (its distance changes by equal ratios), so it is the same at any speed and both ways. Each kind has its part of the
+     way (BIG, DIS). With Reduce motion there is no dive: the end state at once, as before.
+     What is drawn bigger than life (small things, many of them) fades through its own materials: by its opacity (a
+     solid one is made see-through for that time only, and drawn first among the see-through parts, where it stood
+     while solid), a shader by its uOpacity or uFade; the new shaders are made before the camera moves (never a stop in
+     the dive); a material that a part outside the handover uses too is left alone, and its part goes at the middle of
+     its fade. The organelle and its close drawing are large, and other see-through parts and lights stand in front of
+     them and behind them: they change by the world's dissolve (world.js draw: the frame drawn both ways and blended),
+     so neither ever changes its place in the drawing order. Proof: tools/transitions.mjs */
+  const LOD = { mode: '', items: [], mats: new Map(), onU: null, after: null, glow: [], order: [], u: 0, d0: 1, d1: 1, run: 0, bar: false };
+  const BIG = [0.04, 0.40], DIS = [0.40, 0.86];
+  const lodK = (cls, u) => cls === 'big' ? 1 - smooth(BIG[0], BIG[1], u) : cls === 'close' ? smooth(DIS[0], DIS[1], u) : 1 - smooth(DIS[0], DIS[1], u);
+  const camDist = () => world.camera.position.distanceTo(world.controls.target);
+  /* the parts of one object; for what fades through its materials, each material once, with what it was */
+  function lodItem(o, cls, own) {
+    const it = { o, cls, was: o.visible, parts: [] };
+    if (cls !== 'big') return it;
+    o.traverse(m => {
+      if (!m.material) return;
+      for (let a = m; a && a !== o; a = a.parent) if (own.has(a)) return;   /* a part of it that fades as its own kind */
+      const part = { m, vis: m.visible, mats: [] };
+      (Array.isArray(m.material) ? m.material : [m.material]).forEach(mat => {
+        let e = LOD.mats.get(mat);
+        if (!e) {
+          const un = mat.uniforms && (mat.uniforms.uOpacity || mat.uniforms.uFade);
+          e = un ? { mat, kind: 'u', un, base: un.value } : (!mat.isShaderMaterial && typeof mat.opacity === 'number') ? { mat, kind: 'o', base: mat.opacity, tr: mat.transparent } : { mat, kind: 'x' };
+          LOD.mats.set(mat, e);
+        }
+        part.mats.push(e);
+      });
+      it.parts.push(part);
+    });
+    return it;
   }
-  /* the close-up ends: the scale bar and the close-up's membrane go, and what the world hid comes back; all but its
-     ribosomes (four times their size) when ribs is false */
-  const bigRibs = () => groupsOf(['free-ribosomes']).concat([W.groups.rer && W.groups.rer.children.find(o => o.name === 'rer-ribosomes')]);
-  /* (a place's own close-up drawing, props.close, goes with the scale bar; or, when the world's own drawing of it comes
-     back only once far, NZ.late with NZ.keepClose, at the same moment as that: the Golgi, whose world sacs are drawn far
-     apart, never missing from the picture) */
-  function nanoOff(ribs = true) {
-    if (NZ.on) { NZ.on = false; nolBar(false); if (props.mem) props.mem.visible = false; }
-    if (props.close && (ribs || !NZ.keepClose)) props.close.visible = false;
-    const late = ribs ? [] : bigRibs().concat(NZ.late || []);
-    NZ.hidden = NZ.hidden.filter(o => { if (late.includes(o)) return true; o.visible = true; return false; });
-    if (ribs) { NZ.late = null; NZ.keepClose = false; }
+  /* a material that something outside the handover is drawn with is left alone (kind x) */
+  function lodShared() {
+    const mine = new Set(); LOD.items.forEach(it => it.parts.forEach(q => mine.add(q.m)));
+    scene.traverse(m => { if (!m.material || mine.has(m)) return; (Array.isArray(m.material) ? m.material : [m.material]).forEach(mat => { const e = LOD.mats.get(mat); if (e && e.kind !== 'x') { e.kind = 'x'; e.shared = true; } }); });
   }
-  /* on the way out, the world comes back while the camera flies: about 0.45 µm away its rough ER's sheet and the cytosol
-     (the close-up's membrane and scale bar go); about 1.5 µm away its ribosomes, four times their size, which beside a
-     molecule at its true size would look larger than a vesicle (at the end of the flight, the world had been missing its
-     rough ER for two seconds) */
-  async function nanoOut(placeView) {
-    const at = V(...placeView.at), pos = V(...placeView.pos), s0 = quest.session; let on = true;
-    const watch = () => {
-      if (!on || quest.session !== s0) return;
-      const d = world.camera.position.distanceTo(world.controls.target);
-      if (d > 1.5) { nanoOff(true); return; }
-      if (d > 0.45 && NZ.on) nanoOff(false);
-      requestAnimationFrame(watch);
+  function lodBegin() {
+    LOD.mats.forEach(e => { if (e.kind === 'o' && !e.tr) { e.mat.transparent = true; e.mat.needsUpdate = true; } });
+    LOD.items.forEach(it => it.parts.forEach(q => { if (q.mats.some(e => e.kind === 'o' && !e.tr)) { LOD.order.push([q.m, q.m.renderOrder]); q.m.renderOrder -= 100; } }));
+  }
+  /* the two drawings the world dissolves between: the organelle as on the map; its close drawing */
+  const lodShow = close => LOD.items.forEach(it => { if (it.cls === 'org') it.o.visible = it.was && !close; else if (it.cls === 'close') it.o.visible = close; });
+  function lodSet(u) {
+    LOD.u = u; if (LOD.onU) LOD.onU(u);
+    LOD.glow.forEach(([m, b]) => { m.opacity = b * (1 - smooth(0.5, 0.9, u)); });
+    const kb = lodK('big', u), t = lodK('close', u);
+    LOD.mats.forEach(e => { if (e.kind === 'o') e.mat.opacity = e.base * kb; else if (e.kind === 'u') e.un.value = e.base * kb; });
+    LOD.items.forEach(it => { if (it.cls !== 'big') return; it.o.visible = it.was && kb > 0.004; it.parts.forEach(q => { if (q.mats.every(e => e.kind === 'x')) q.m.visible = q.vis && kb > 0.5; }); });
+    if (t > 0.002 && t < 0.998) { if (!world.dissolve) world.dissolve = { t, a: () => lodShow(false), b: () => lodShow(true) }; world.dissolve.t = t; }
+    else { world.dissolve = null; lodShow(t >= 0.998); }
+    if (LOD.mode === 'out' && LOD.bar && u < 0.5) { LOD.bar = false; nolBar(false); }
+    world.kick();
+  }
+  const lodAsWas = e => { if (e.kind === 'o') { e.mat.opacity = e.base; if (!e.tr) { e.mat.transparent = false; e.mat.needsUpdate = true; } } else if (e.kind === 'u') e.un.value = e.base; };
+  /* the handover ends: every material and every part as it was; the close drawing, if it still stands, not shown */
+  function lodEnd() {
+    LOD.run++;
+    world.dissolve = null;
+    LOD.mats.forEach(lodAsWas);
+    LOD.order.splice(0).forEach(([o, ro]) => { o.renderOrder = ro; });
+    LOD.items.forEach(it => { it.parts.forEach(q => { q.m.visible = q.vis; }); it.o.visible = it.cls === 'close' ? false : it.was; });
+    if (LOD.onU) LOD.onU(0);
+    LOD.glow.splice(0).forEach(([m, b]) => { m.opacity = b; });
+    const after = LOD.after;
+    LOD.items = []; LOD.mats = new Map(); LOD.onU = null; LOD.after = null; LOD.mode = ''; LOD.u = 0;
+    if (after) after();   /* (what the place itself decides about its parts, after they are as they were) */
+    world.kick();
+  }
+  /* it follows the camera, every frame, while the game moves it in or out, or (gone: the pupil left) until the camera is far */
+  function lodDrive() {
+    const run = ++LOD.run, t0 = performance.now();
+    const f = () => {
+      if (run !== LOD.run) return;
+      const span = Math.log(LOD.d0 / LOD.d1), u = span > 0.01 ? Math.max(0, Math.min(1, Math.log(LOD.d0 / camDist()) / span)) : 1;
+      if (LOD.mode === 'gone' && (u <= 0 || performance.now() - t0 > 6000)) return lodEnd();
+      lodSet(u);
+      requestAnimationFrame(f);
     };
-    watch();
+    f();
+  }
+  /* a handover begins: what fades as the camera comes near (big, then org), what comes in (close), and anything else
+     that follows the way (onU). False with Reduce motion: the end state is set at once */
+  function lodOpen({ big = [], org = [], close = [], onU = null, after = null }, d1) {
+    lodEnd();   /* (the handover of a place the pupil left a moment ago: its end at once) */
+    const vis = o => o && o.visible, B = [...new Set(big.filter(vis))], O = [...new Set(org.filter(vis))].filter(o => !B.includes(o)), C = close.filter(Boolean), own = new Set([...B, ...O, ...C]);
+    LOD.items = B.map(o => lodItem(o, 'big', own)).concat(O.map(o => lodItem(o, 'org', own)), C.map(o => lodItem(o, 'close', own)));
+    lodShared();
+    LOD.onU = onU; LOD.after = after; LOD.d0 = camDist(); LOD.d1 = d1; LOD.mode = 'in';
+    if (R.FAST) { lodSet(1); return false; }
+    lodBegin(); lodSet(0); return true;
+  }
+  /* every shader the handover will need is made now, while the picture is still (at most 1.5 s; then the dive starts
+     anyway): the see-through ones, the close drawing's (shown for the moment the list is made: a part not shown is left
+     out of it, and its shaders were made in the dissolve's first frame, a stop of a tenth of a second) and the dissolve's own */
+  const lodWarm = () => { lodShow(true); LOD.items.forEach(it => { if (it.cls === 'org') it.o.visible = it.was; });
+    const p = Promise.all([world.renderer.compileAsync(scene, world.camera).catch(() => {}), world.dissolveWarm()]); lodShow(false);
+    return live(Promise.race([p, new Promise(r => setTimeout(r, 1500))])); };
+  const lodHold = () => { LOD.run++; LOD.mode = 'held'; lodSet(1); };
+  /* the way out: the same handover, backwards, from where the camera is now to a view d0 away */
+  const lodBack = d0 => { if (LOD.items.length && !R.FAST) { LOD.d1 = camDist(); LOD.d0 = d0; LOD.mode = 'out'; lodDrive(); } };
+  /* a glow that shows, from far away, where something far too small to see is: it comes in as the camera goes away
+     (12 Nov 2026: put on close up, in one frame, it filled the picture) */
+  const farGlow = (o, nm, color) => { haloSprite(o, nm, color); const m = o.children[o.children.length - 1].material; if (NZ.on && !R.FAST) { LOD.glow.push([m, m.opacity]); m.opacity = 0; } return o; };
+  /* a step of a close view begins at the place's own view, unless the camera is close already (the step before left it
+     there). Before, the smooth ER's second step flew out to the place's view and back in, with nothing in the picture
+     but the close drawing, far away (12 Nov 2026) */
+  const toPlace = id => NZ.on ? Promise.resolve() : fly(world.P[id].view.pos, world.P[id].view.at);
+  async function nanoIn(view, hide) {
+    if (NZ.on) {
+      /* close already: back to the step's own view only if the pupil has turned or moved the picture, in a time that fits
+         how far (before: 3.2 s every time, and with the camera already there the step waited 3.2 s while nothing moved) */
+      const at = world.controls.target, dir = world.camera.position.clone().sub(at).normalize();
+      const far = Math.max(at.distanceTo(view.at) / view.dist, dir.angleTo(view.dir), Math.abs(Math.log(camDist() / view.dist)));
+      if (far < 0.02) return;
+      return camGo(view, R.FAST ? 0 : Math.round(Math.min(3200, 700 + 2500 * far)));
+    }
+    const big = NEAR_HIDE();
+    NZ.on = true;
+    const moving = lodOpen({ big: hide.filter(o => big.includes(o)), org: hide, close: [props.mem, props.close] }, view.dist);
+    LOD.bar = true; nolBar(true); nanoFog();
+    if (!moving) return camGo(view, 0);
+    await lodWarm();
+    lodDrive();
+    /* the camera has turned to the close view's own direction by the middle of the way: it then comes in level with the
+       membrane, which is seen from its edge, as in a section (turning until the end, it looked down on the close
+       drawing from above for most of the dive: a flat plate) */
+    await camGo(Object.assign({ turn: 0.5 }, view), 3200);
+    lodHold();
+  }
+  /* the close-up ends at once (the pupil leaves: reset; or the way out has ended): the scale bar goes; the world is as it
+     was, or, when the camera is still near, comes back as it goes away (the close drawing has gone with the place) */
+  function nanoOff() {
+    if (NZ.on) { NZ.on = false; LOD.bar = false; nolBar(false); }
+    if (!LOD.items.length && !LOD.onU) return;
+    const near = !R.FAST && LOD.u > 0 && Math.log(LOD.d0 / camDist()) > 0;
+    if (!near) return lodEnd();
+    /* the close drawing has gone with the place: it leaves the handover, and the organelle comes back with the camera's distance */
+    LOD.items = LOD.items.filter(it => it.cls !== 'close');
+    LOD.mode = 'gone'; lodDrive();
+  }
+  /* on the way out the same handover, backwards: the close drawing fades into the world's own as the camera goes away
+     (before: about 0.45 µm away the world's rough ER came back in one frame, and at 1.5 µm its ribosomes) */
+  async function nanoOut(placeView) {
+    const at = V(...placeView.at), pos = V(...placeView.pos);
+    if (NZ.on) lodBack(pos.distanceTo(at));
     await camGo({ at, dir: pos.clone().sub(at).normalize(), up: V(0, 1, 0), dist: pos.distanceTo(at) }, R.FAST ? 0 : 3000);
-    on = false; nanoOff(true);
+    if (NZ.on) { NZ.on = false; LOD.bar = false; nolBar(false); }
+    lodEnd();
   }
   /* a molecule at its true size glows little (a token's glow spread far beyond it), on copies of the shared materials */
   const calm = t => { t.traverse(o => { if (o.isMesh && o.material && o.material.emissive) { o.material = o.material.clone(); o.material.emissiveIntensity *= 0.3; } }); return t; };
@@ -1757,13 +1893,15 @@ export function makePlay(world, quest) {
      nothing of the story is (below it there is no room at the foot of the picture) */
   const ribMem = () => ['r-mem', 'membrane of the rough ER', [rp(45, -RIB_Y + 3), rp(55, -RIB_Y + 3), rp(35, -RIB_Y + 3)], { up: -1, len: 26, small: '<span class="nm__t">rough ER membrane</span>' }];
   async function assemble() {
-    await fly(world.P.ribosome.view.pos, world.P.ribosome.view.at);
-    await ribClose();
+    await toPlace('ribosome');
+    /* the copy and the two parts are in the cytosol before the dive: far too small to see from the rough ER's view, they
+       come into sight as the camera comes near (12 Nov 2026: made once it had landed, they came in one frame) */
     if (!props.copy) makeCopy();
     const s = faced(calm(keep(token('small', TSZ.small)))), l = faced(calm(keep(token('large', TSZ.large))));
     /* they come from the sides: the large part from up on the right (up on the left it stood under the corner box), the
        small part from down on the left (above the switch at the foot of the picture) */
     s.position.copy(rp(-40, -28, 5)); l.position.copy(rp(24, 26, 5));
+    await ribClose();
     const copyName = ['r-copy', 'the copy (mRNA)', copySpots()];
     ribNames([copyName, ribMem(), ['r-s', 'small part', ...edge(s.position, 0.011)], ['r-l', 'large part', ...edge(l.position, 0.014)]], [s, l]);
     await press(() => rp(-12, 18), 'Join', {});
@@ -1878,7 +2016,7 @@ export function makePlay(world, quest) {
     await wait(R.TEST ? 0 : 1600);
     /* from far away the ribosome is far too small to see: a glow shows it, at the rough ER */
     quest.names.set([], HUD());
-    haloSprite(r, 0.05, 0xfff1a8);
+    farGlow(r, 0.05, 0xfff1a8);
     await nanoOut(world.P.ribosome.view);
     await quest.gain('chain', to);
     await quest.next('Back to the map');
@@ -1955,12 +2093,12 @@ export function makePlay(world, quest) {
     const m = keep(ribbon(curve, { radius: TSZ.mrna, segs: 220 })); m.userData.grow(1); props.copy = curve; props.copyObj = m; props.copyAt = c.clone(); return m;
   };
   async function dock() {
-    await fly(world.P.rer.view.pos, world.P.rer.view.at);
-    await rerClose();
+    await toPlace('rer');
     const f = rerFace();
     const r = calm(keep(token('ribosome', TSZ.rib))); r.quaternion.setFromUnitVectors(V(0, 1, 0), f.n.clone().negate()); r.position.copy(ep(-28, 46)); props.rib = r;
     const cp = rerCopy(r.position);
     const sig = keep(chain([ep(-28, 46 - 17), ep(-27.5, 46 - 18.2)], [0, 1], TSZ.bead)); props.sig = sig;
+    await rerClose();   /* (the ribosome is there before the dive: it comes into sight as the camera comes near) */
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
     await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
@@ -2058,7 +2196,7 @@ export function makePlay(world, quest) {
     quest.say('The vesicle is about 70 nm across: fourteen times as wide as the amylase inside it.', 'ok');
     await wait(R.TEST ? 0 : 2200);
     quest.names.set([], HUD());
-    haloSprite(g, 0.06, 0xfff1a8);
+    farGlow(g, 0.06, 0xfff1a8);
     await nanoOut(world.P.rer.view);
     await tween(g, { to: g.position.clone().addScaledVector(rerFace().n, 1.0).add(V(0.6, 1.2, 0)), ms: 1400 });
     await quest.gain('amylase', g.position);
@@ -2246,7 +2384,7 @@ export function makePlay(world, quest) {
   const lipW = (l, y) => props.close.localToWorld(l.position.clone().addScaledVector(Y.clone().applyQuaternion(l.quaternion), y));
   const newLip = i => { const l = lipid3(); l.position.copy(gapLocal(i, 31)); l.quaternion.setFromUnitVectors(Y, gapDir(i)); props.close.add(l); return l; };
   async function lipid() {
-    await fly(world.P.ser.view.pos, world.P.ser.view.at);
+    await toPlace('ser');
     await serClose();
     const g = props.close, F = serFrame();
     props.lipids = props.lipids || [];
@@ -2266,7 +2404,7 @@ export function makePlay(world, quest) {
     quest.say('Three lipids: each one has a head and two tails, and is about 3 nm long.', 'ok');
   }
   async function layer() {
-    await fly(world.P.ser.view.pos, world.P.ser.view.at);
+    await toPlace('ser');
     await serClose();
     const g = props.close, F = serFrame();
     const L = props.lipids && props.lipids.length === 3 ? props.lipids : [0, 1, 2].map(newLip);
@@ -2344,7 +2482,6 @@ export function makePlay(world, quest) {
   const GV = { stack: [230, 40, 700, 620], top: [0, 560, 1080, 1270], stackP: [230, 150, 700, 620], topP: [0, 620, 2100, 1270] };
   async function golgiClose(which, ms) {
     golgiStack(); const F = golgiFrame(), [x, y, w, h] = PHONE() ? GV[which + 'P'] : GV[which];
-    NZ.late = groupsOf(['golgi']); NZ.keepClose = true;
     /* (and the world's lysosomes: one stood beside the small vesicle to a lysosome, and looked like it) */
     if (!NZ.on) return nanoIn({ at: gp(x, y), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(w, h) }, NEAR_HIDE().concat(groupsOf(['golgi', 'lysosomes'])));
     await camGo({ at: gp(x, y), dir: F.along.clone(), up: F.n.clone(), dist: fitDist(w, h) }, R.FAST ? 0 : (ms || 1800));
@@ -2357,10 +2494,10 @@ export function makePlay(world, quest) {
   /* a speck of amylase that can be found: a soft glow round it */
   const amySpeck = () => { const a = calm(token('amylase', TSZ.amy)); haloSprite(a, 0.009, 0xfff1a8); return a; };
   async function join() {
-    await fly(world.P.golgi.view.pos, world.P.golgi.view.at);
-    await golgiClose('stack');
+    await toPlace('golgi');
     const F = golgiFrame(), x0 = 260, end = gp(x0, sacY(0, x0) - GS.th / 2 - 36);
     const v = calm(keep(token('vesicle', TSZ.ves))), a = amySpeck(); v.add(a); v.position.copy(gp(x0 - 60, -170));
+    await golgiClose('stack');   /* (the vesicle is there before the dive: it comes into sight as the camera comes near) */
     gNames([['g-ves', 'vesicle from the rough ER', ...edge(v.position, 0.034)], speckName(a)], [v]);
     await press(() => v.position.clone().addScaledVector(F.n, -0.055), 'Join', { side: 'b' });
     await tween(v, { to: end, ms: 1100 });
@@ -2939,6 +3076,9 @@ export function makePlay(world, quest) {
   return {
     watch,
     run: (name) => Promise.resolve().then(() => ACT[name] ? ACT[name]() : quest.next()).catch(e => { if (e === STALE) return false; throw e; }),
-    reset
+    reset,
+    /* the handover now, for the checks (tools/transitions.mjs): world = how much of the organelle's own drawing shows, close = how much of the close drawing */
+    dive: () => ({ on: NZ.on || NS.close ? 1 : 0, mode: LOD.mode, u: LOD.u, world: LOD.items.length ? lodK('org', LOD.u) : 1, close: LOD.items.length ? lodK('close', LOD.u) : 0,
+      kinds: [...LOD.mats.values()].reduce((a, e) => { const k = e.kind + (e.shared ? 's' : ''); a[k] = (a[k] || 0) + 1; return a; }, {}) })
   };
 }

@@ -30,6 +30,23 @@ lock is a real dependency in the cell: the ribosome needs the copy of the gene, 
 rough ER cannot make a vesicle without lipids from the smooth ER; every job costs energy, so pupils return to the
 mitochondria with more glucose and oxygen. Pupils choose the order at three points.
 
+**From the map to a close view, in one move with no cut** (Daniel, 12 Nov 2026, on the dive from the rough ER to the
+ribosome place: "you see the rough ER, but suddenly you see a flat square that doesn't look like the rough ER … all of the
+transitions when you change shapes or when you zoom into something, it's smooth. So you link all of the structure"). A
+close view has its own drawing at true sizes (a membrane as two layers of lipids, the Golgi cut through), and the map's
+drawing of the same organelle is larger than life. Before, the map's drawing went in one frame as the dive began, and the
+close drawing stood alone in space until the camera reached it; on the way out everything came back in one frame. Now,
+as the camera comes near, the map's ribosomes, microtubules and motes fade first; then the organelle dissolves into its
+close drawing, which stands at the same place, so the pupil sees one become the other (for that second the frame is drawn
+both ways, from the same camera, and blended: `world.js` `draw`); the camera turns level with the membrane
+by the middle of the way, so the membrane is seen from its edge, as in a section. The way out is the same, backwards, and
+a pupil who leaves a close view for the map sees the cell come back as the camera goes away. What a step starts with
+(the copy of the gene and the two ribosome parts, the ribosome at the rough ER, the vesicle at the Golgi) is in place
+before the dive and comes into sight on the way. It follows the camera's distance, so it is the same at any speed; with
+Reduce motion there is no dive and the close view shows at once, as before. The close views of the ribosome place, the
+rough ER, the smooth ER, the Golgi and the way out, and the zoom to the nucleolus, all use it (`play.js`, "the
+handover"). The rough ER's layers are shaded smoothly (each triangle had its own shade, which showed from near).
+
 **Simple and real.** The game opens with the cell pupils know: the Year 7 diagram beside the 3D cell, with the same five
 parts lit in both. Then it shows everything an electron microscope shows. Each place says whether its structure is an organelle (Daniel's definition: a membrane-bound structure
 with a specific function), with its one definition from the shared KS3 glossary. **See the real thing** shows the Year 7
@@ -339,7 +356,10 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
-  refuses if a label would touch a part or another label. `node tools/frames.mjs --out <folder>` films the intro's three
+  refuses if a label would touch a part or another label. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
+  every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
+  more than the frames round it), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
+  drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion). `node tools/frames.mjs --out <folder>` films the intro's three
   moves frame by frame and lays them out on sheets (`--w 390 --h 844 --mobile 1`: a phone), so a glitch of a few frames
   shows; `node tools/look.mjs --place <id> --out <folder>` photographs one place step by step (`--film 1`: a sheet of
   frames for every press; `--point <place>`: with the mouse over that place; `--lens <place>`: its See the real thing, Real 3D). `node tools/shots.mjs <url> <prefix> --steps "…"` saves screenshots after each step.

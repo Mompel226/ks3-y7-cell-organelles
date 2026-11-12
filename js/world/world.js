@@ -19,8 +19,8 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { buildCell, places as placeList } from './cellbuild.js?v=202611120817';
-import { CUT, setLook, mist, haloRing } from './magic.js?v=202611120817';
+import { buildCell, places as placeList } from './cellbuild.js?v=202611121048';
+import { CUT, setLook, mist, haloRing } from './magic.js?v=202611121048';
 
 const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 /* the structures beyond the Year 7 list, hidden in the simple view */
@@ -289,17 +289,20 @@ export class World {
   /* a place that must be seen whole from side to side (the way in: the whole base of the cell) asks for more than 20° to
      each side on a laptop or a full screen (a stage over 860 px wide; a phone keeps its own view) (Daniel, 8 Nov 2026: in
      full screen "you don't see the left or you don't see the right"); 0: the usual view */
-  setFrame(h = 0) { if (this.frameH === h) return; this.frameH = h; this.resize(); }
+  /* (12 Nov 2026: the view widens or narrows over 0.9 s, with the flight to the place; set in one frame, the whole picture
+     jumped as the way in was pressed. Only the camera changes: aim(), never the picture's size) */
+  setFrame(h = 0) {
+    if (this.frameH === h) return; this.frameH = h;
+    const from = this.frameNow || 20, to = h || 20, go = this.frameGo = {}, t0 = performance.now();
+    if (this.still || !this.size) { this.frameNow = to; if (this.size) this.aim(); return; }
+    const step = () => { if (this.frameGo !== go) return; const k = Math.min(1, (performance.now() - t0) / 900); this.frameNow = from + (to - from) * k * k * (3 - 2 * k); this.aim(); this.kick(); if (k < 1) requestAnimationFrame(step); };
+    step();
+  }
   /* how many pixels one micrometre covers at a distance from the camera (the intro matches its drawing to the 3D) */
   pxPerUnit(dist = 1) { return (this.fullH / 2) / (dist * Math.tan(this.camera.fov * Math.PI / 360)); }
-  resize() {
-    const el = this.canvas.parentElement, w = Math.max(1, el.clientWidth), h = Math.max(1, el.clientHeight);
-    this.size = { w, h };
-    this.renderer.setSize(w, h, false);
-    this.composer.setSize(w, h);
-    /* the glow from a quarter of the screen's pixels (the composer had set it from half) */
-    const pr = this.renderer.getPixelRatio();
-    this.bloom.setSize(Math.round(w * pr / 2), Math.round(h * pr / 2));
+  /* the camera for the picture's size, its free part and the place's frame */
+  aim() {
+    const { w, h } = this.size;
     const R = Math.min(this.inset.right, w * 0.5), B = Math.min(this.inset.bottom, h * 0.6), T = Math.min(this.inset.top || 0, h * 0.6);
     const cam = this.camera;
     if (R > 0) { cam.aspect = (w + R) / h; cam.setViewOffset(w + R, h, R, 0, w, h); }
@@ -311,15 +314,25 @@ export class World {
        free part is small and narrow, the view widens, so a place's parts stay in view (a fixed 52° showed only 17° across) */
     const fw = Math.max(1, w - R), fh = Math.max(1, h - B - T), H = B > 0 ? h + B : T > 0 ? h + T : h, rad = Math.PI / 180;
     this.fullH = H;
-    const hMin = this.frameH && w > 860 ? this.frameH : 20;
+    const hMin = w > 860 ? this.frameNow || 20 : 20;
     const k = Math.max(Math.tan(19 * rad) / (fh / 2), Math.tan(hMin * rad) / (fw / 2));
     cam.fov = 2 * Math.atan(k * H / 2) / rad;
     cam.updateProjectionMatrix();
     this.emit('resize');
+  }
+  resize() {
+    const el = this.canvas.parentElement, w = Math.max(1, el.clientWidth), h = Math.max(1, el.clientHeight);
+    this.size = { w, h };
+    this.renderer.setSize(w, h, false);
+    this.composer.setSize(w, h);
+    /* the glow from a quarter of the screen's pixels (the composer had set it from half) */
+    const pr = this.renderer.getPixelRatio();
+    this.bloom.setSize(Math.round(w * pr / 2), Math.round(h * pr / 2));
+    this.aim();
     /* drawn again at once, at the new size: a canvas whose size changes is cleared, and until the next frame the browser
        showed it empty, a black blink (the panel's words change the picture's size; so does a smaller picture on a slow
        computer, 9 Nov 2026) */
-    if (this.compiled && this.running && !document.hidden && !this.hold) { if (this.glow) this.composer.render(0); else this.renderer.render(this.scene, this.camera); }
+    if (this.compiled && this.running && !document.hidden && !this.hold) this.draw(0);
     this.kick();
   }
 
@@ -363,6 +376,44 @@ export class World {
     return { x: (p.x * 0.5 + 0.5) * s.w, y: (-p.y * 0.5 + 0.5) * s.h, inFront: p.z < 1 && p.z > -1 };
   }
 
+  /* ---------- drawing the picture; a dissolve between two drawings of the same moment (12 Nov 2026) ----------
+     Daniel, on the dive to a close view: "you see the rough ER, but suddenly you see a flat square … all of the
+     transitions when you change shapes … it's smooth. So you link all of the structure". While the camera comes near, the
+     map's drawing of an organelle must become its close drawing (play.js, the handover). this.dissolve = { t, a, b }: a()
+     sets the scene as the first drawing, b() as the second; while t is between 0 and 1 the frame is drawn both ways,
+     from the same camera, and the first is laid over the second at 1 - t. So only what differs dissolves, everything
+     else is still, and nothing changes its place in the drawing order. (Fading the organelle's own materials was tried
+     first: made see-through it hid what stood behind it until its last frame, or covered the lights in front of it,
+     whichever order it was drawn in; left solid and thinned point by point, the picture was speckled.) It costs a
+     second drawing of the frame, for about a second of a dive */
+  draw1(dt) { if (this.glow) this.composer.render(dt); else this.renderer.render(this.scene, this.camera); }
+  draw(dt) {
+    const D = this.dissolve;
+    if (!D || D.t <= 0.002 || D.t >= 0.998) { if (D) (D.t >= 0.998 ? D.b : D.a)(); return this.draw1(dt); }
+    const r = this.renderer, sz = r.getDrawingBufferSize(this.disSize || (this.disSize = new THREE.Vector2()));
+    this.disMake();
+    if (!this.disTex || this.disTex.image.width !== sz.x || this.disTex.image.height !== sz.y) {
+      if (this.disTex) this.disTex.dispose();
+      this.disTex = new THREE.FramebufferTexture(sz.x, sz.y); this.disTex.minFilter = this.disTex.magFilter = THREE.NearestFilter; this.disQuad.material.uniforms.uMap.value = this.disTex;
+    }
+    D.a(); this.draw1(dt);
+    r.setRenderTarget(null); r.copyFramebufferToTexture(this.disTex);
+    D.b(); this.draw1(0);
+    this.disQuad.material.uniforms.uK.value = 1 - D.t;
+    const ac = r.autoClear; r.autoClear = false; r.setRenderTarget(null); r.render(this.disScene, this.disCam); r.autoClear = ac;
+  }
+  /* the dissolve's own picture (one rectangle over the whole frame), and its shader made before the first use (play.js
+     asks before a dive starts: made in the dissolve's first frame, the picture stopped for a tenth of a second) */
+  disMake() {
+    if (!this.disQuad) {
+      this.disQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({ uniforms: { uMap: { value: null }, uK: { value: 0 } }, transparent: true, depthTest: false, depthWrite: false,
+        vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+        fragmentShader: 'uniform sampler2D uMap; uniform float uK; varying vec2 vUv; void main() { gl_FragColor = vec4(texture2D(uMap, vUv).rgb, uK); }' }));
+      this.disQuad.frustumCulled = false; this.disScene = new THREE.Scene(); this.disScene.add(this.disQuad); this.disCam = new THREE.Camera();
+    }
+  }
+  dissolveWarm() { this.disMake(); return this.renderer.compileAsync(this.disScene, this.disCam).catch(() => {}); }
+
   /* ---------- the loop ---------- */
   kick() { if (!this.running && this.compiled) { this.running = true; this.last = performance.now(); requestAnimationFrame(this.loop); } }
   loop(now) {
@@ -388,7 +439,7 @@ export class World {
     if (!this.flying) this.controls.update();
     /* the names on the world (names.js) follow their parts with the camera this frame is drawn with (8 Nov 2026) */
     this.emit('frame', t);
-    if (this.glow) this.composer.render(dt); else this.renderer.render(this.scene, this.camera);
+    this.draw(dt);
   }
   /* a slow computer: fewer pixels first, then no glow */
   measure(dt) {

@@ -19,9 +19,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices, mergeGeometries } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611120817';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611120817';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611120817';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611121048';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611121048';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611121048';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -593,7 +593,8 @@ export function buildCell(scene) {
     };
     const geo = ellipsoidPatch({ center: N0.clone().add(new THREE.Vector3(0, -0.1, 0)), radius, scale: new THREE.Vector3(1, 0.75, 0.9), elev: [-1.52, 0.22], keepAz, holes: -0.62, seed: i * 3.1 });
     const keepIn = keepTris(geo, (m) => inside(m, 0.32));
-    keepIn.computeVertexNormals();
+    /* (its normals are the patch's own, smooth across its triangles: worked out again here, each triangle had its own,
+       and from near, on the way into the rough ER's close view, a layer was a set of flat facets: 12 Nov 2026) */
     const sheet = new THREE.Mesh(keepIn, rerMat); sheet.name = 'rer' + i; rer.add(sheet); rerSheets.push(keepIn);
   }
   /* ribosomes on the outer face of every layer (the cytosol side), drawn about four times their real 25 nm */
