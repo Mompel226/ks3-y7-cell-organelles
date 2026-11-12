@@ -13,7 +13,11 @@
   const KEY = 'cellgame.';
   const store = {
     get(k, d) { try { const v = localStorage.getItem(KEY + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* private window: this visit only */ } }
+    /* (store.dead: ↺ Start again has been pressed. Nothing is saved any more until the page has opened again: a step
+       still running, a molecule on its way to the bag, had saved the OLD game again in that moment, and the "new" game
+       began with the old one's places and items and with every check unanswered: found 12 Nov 2026, after Daniel's
+       pupils had "a vesicle packed with amylase" with no copy of the gene. Proof: tools/restart-clean.mjs) */
+    set(k, v) { if (store.dead) return; try { localStorage.setItem(KEY + k, JSON.stringify(v)); } catch (e) { /* private window: this visit only */ } }
   };
   const ANS = store.get('answers', {});
   const ans = {
@@ -102,8 +106,9 @@
     b.addEventListener('click', () => {
       if (!confirm('Start the whole game again? Your answers and your progress on this computer are cleared. What your teacher already has is kept.')) return;
       L.restartAll();
+      store.dead = true;   /* from here on nothing of the old game can be saved again (store.set) */
       try { Object.keys(localStorage).filter(k => k.indexOf(KEY) === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-      setTimeout(() => location.replace(location.pathname), 150);
+      setTimeout(() => { try { Object.keys(localStorage).filter(k => k.indexOf(KEY) === 0).forEach(k => localStorage.removeItem(k)); } catch (e) {} location.replace(location.pathname); }, 150);
     });
   }
 

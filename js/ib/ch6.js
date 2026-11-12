@@ -19,16 +19,16 @@
    IV (the Q cycle's net result); oxygen waits at complex IV until 4 electrons (two NADH) have arrived: 2 water.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611121723';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611121723';
-import { bilayer, footprint } from './membrane.js?v=202611121723';
-import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611121723';
+import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611121836';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611121836';
+import { bilayer, footprint } from './membrane.js?v=202611121836';
+import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611121836';
 
 const H_COL = 0xff4f9a, E_COL = 0xfff07a;
 const along = (pts, f) => { const n = pts.length - 1; if (n < 1) return pts[0].clone(); const x = Math.max(0, Math.min(1, f)) * n, i = Math.min(n - 1, Math.floor(x)), k = x - i; return pts[i].clone().lerp(pts[i + 1], k); };
 
 /* its measured shapes and ATP synthase's: the view fetches them while the pupil reads the chapter before (view.js ahead) */
-const PROTS = ['resp', 'c2', 'cytc', 'ant'], synthase = () => import('../world/atp-synthase.js?v=202611121723');
+const PROTS = ['resp', 'c2', 'cytc', 'ant'], synthase = () => import('../world/atp-synthase.js?v=202611121836');
 export const prefetch = () => Promise.all([loadProts(PROTS), synthase()]);
 
 export async function build(stage, { V }) {

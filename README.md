@@ -110,6 +110,20 @@ Proofs: `node tools/fold-check.mjs`, `node tools/pack-check.mjs` (each also `--m
 `node tools/terms-check.mjs`, `node tools/copyfilm-check.mjs`, and `node tools/transitions.mjs` for the rough ER, the
 nucleus, the ribosome place and the nucleolus.
 
+**Faults from a lesson, fixed the same hour** (Daniel, 12 Nov 2026, with a class playing). A pupil who pressed ↻ on
+Show everything was stuck: the first place is not a place of the map, and setting it up again after a step watched again
+stopped with an error, so the step's button never came back. Now it is set up again where the camera is; every structure
+of the first place stays named from Show everything until its checks are answered (the names had gone at the next
+press); its last button says Answer the checks (it said Go to the map, and the checks came); and ← Back to the map no
+longer shows there before the checks are right. The light on an organelle under the mouse is half as bright and comes
+slowly ("it's okay to have some glowing, but control it"). The intro's drawing of the bunch of cells lies over the 3D
+bunch again: since that morning the picture's middle moved over a third of a second, and the intro reads it at once.
+"How is it possible that some students can get a vesicle packed with amylase without … the gene copy?": the rules do
+not allow it, and `node tools/order-audit.mjs` now plays new games with random presses in any order (↻, Stop, the map
+in the middle of a step, sleeping places, the page opened again) and stops if anything is carried or begun without what
+it needs; the one door it found, the test opened by its address alone, is shut. Proofs: `node tools/arrive-names.mjs`
+(and `--mobile 1`), `node tools/order-audit.mjs --seed <n>`.
+
 **Simple and real.** The game opens with the cell pupils know: the Year 7 diagram beside the 3D cell, with the same five
 parts lit in both. Then it shows everything an electron microscope shows. Each place says whether its structure is an organelle (Daniel's definition: a membrane-bound structure
 with a specific function), with its one definition from the shared KS3 glossary. **See the real thing** shows the Year 7
