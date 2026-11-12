@@ -5,18 +5,26 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611121836';
-import { state, COST, RESPIRE } from './state.js?v=202611121836';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121836';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121836';
-import { sound } from './sound.js?v=202611121836';
-import { magicStandard } from '../world/magic.js?v=202611121836';
-import { buildCrowd } from '../world/crowd.js?v=202611121836';
-import { Names } from './names.js?v=202611121836';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611130101';
+import { state, COST, RESPIRE } from './state.js?v=202611130101';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611130101';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611130101';
+import { sound } from './sound.js?v=202611130101';
+import { magicStandard } from '../world/magic.js?v=202611130101';
+import { buildCrowd } from '../world/crowd.js?v=202611130101';
+import { Names } from './names.js?v=202611130101';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611121836').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611130101').then(m => m.openCopyFilm(o));
+/* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
+   boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
+const openRiboFilm = o => import('./ribofilm.js?v=202611130101').then(m => m.openRiboFilm(o));
+let filmOpen = false;
+document.addEventListener('coursefilm', async e => {
+  if (filmOpen) return; filmOpen = true;
+  try { await (e.detail.film === 'ribo' ? openRiboFilm() : openCopyFilm()); } finally { filmOpen = false; }
+});
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -964,7 +972,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611121836').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611130101').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -2229,15 +2237,18 @@ export function makePlay(world, quest) {
      on each side of the tails (paler), about 6 nm in all; a piece 1 µm wide, its ends out of the picture. The channel is a
      protein through the membrane, cut open too, with the tunnel that the chain goes through (Daniel's "be respectful
      with size": seen from above, its flat top had filled the picture, and neither its thickness nor its inside showed) */
+  const BUD = { x: 140, rho: 32, r: 4, neck: 1, far: 480 };   /* nm: where the vesicle buds (away from the channel and from the copy of the gene, which lies 20 nm above the membrane as far as 90 nm each way), the vesicle's radius (the middle of its membrane), the curve at its neck, how far the cut face is drawn */
   function membrane() {
-    if (props.mem) { props.mem.visible = true; return props.mem; }
+    if (props.mem) { props.mem.visible = true; (props.mem.userData.slabs || []).forEach(m => { m.visible = true; }); return props.mem; }
     const f = rerFace(), g = new THREE.Group(); g.position.copy(f.p);
     g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.right, f.n, f.along.clone().negate()));   /* x across, y out to the cytosol, z away from the camera */
     const head = magicStandard({ color: 0xff9ac8, roughness: 0.5 }, { rim: 0xffd6ea, rimK: 0.4 }), tail = magicStandard({ color: 0xfff0f5, roughness: 0.7 }, { rim: 0xffffff, rimK: 0.15 });
     const prot = magicStandard({ color: 0x5fe0d0, emissive: 0x1a6a60, emissiveIntensity: 0.4, roughness: 0.4 }, { rim: 0xc8fff6, rimK: 0.5 });
     const box = (x0, x1, y0, y1, z0, z1, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry((x1 - x0) / 1000, (y1 - y0) / 1000, (z1 - z0) / 1000), m); b.position.set((x0 + x1) / 2000, (y0 + y1) / 2000, (z0 + z1) / 2000); g.add(b); };
     const slab = (x0, x1, z0, z1) => { box(x0, x1, 1.8, 3, z0, z1, head); box(x0, x1, -1.8, 1.8, z0, z1, tail); box(x0, x1, -3, -1.8, z0, z1, head); };
-    slab(-500, -3.6, 0, 500); slab(3.6, 500, 0, 500); slab(-3.6, 3.6, 6, 500);
+    /* (while a vesicle buds, these boxes are hidden and budMake draws the membrane's cut face itself: seen from the
+       membrane's own level, as here, a box shows only its cut face, so the two look the same) */
+    slab(-500, -3.6, 0, 500); slab(3.6, 500, 0, 500); slab(-3.6, 3.6, 6, 500); g.userData.slabs = g.children.slice();
     box(-3.6, -1.1, -3.6, 3.6, 0, 6, prot); box(1.1, 3.6, -3.6, 3.6, 0, 6, prot); box(-1.1, 1.1, -3.6, 3.6, 4.6, 6, prot);
     return (props.mem = keep(g));
   }
@@ -2252,7 +2263,8 @@ export function makePlay(world, quest) {
   const rerNames = (list, solid = [props.rib]) => quest.names.set(list.map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDR(), lr(ep(-34, 0), ep(34, 0)), solid.filter(Boolean));
   /* the membrane's name below its cut face, the channel's below its own (a name on or beside a thin part hides it) */
   /* (a phone's picture is about 130 nm wide: its spots nearer the middle, last, and shorter words) */
-  const memName = () => ['e-mem', 'membrane of the rough ER', [ep(-60, 0), ep(-50, 0), ep(50, 0), ep(60, 0), ep(-26, 0), ep(26, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }];
+  /* (a phone: 38 nm from the channel, so that the name is clear of the chain under the channel) */
+  const memName = () => ['e-mem', 'membrane of the rough ER', PHONE() ? [ep(38, 0), ep(-38, 0)] : [ep(-60, 0), ep(-50, 0), ep(50, 0), ep(60, 0), ep(-26, 0), ep(26, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }];
   const chName = () => ['e-ch', 'channel', [ep(0, -3.6)], { up: 1, len: 40 }];
   /* the two sides' names away from the middle, where the ribosome, the chain and amylase are (on a phone the inside's name
      had touched the chain) */
@@ -2275,11 +2287,12 @@ export function makePlay(world, quest) {
     const f = rerFace();
     const r = calm(keep(token('ribosome', TSZ.rib))); r.quaternion.setFromUnitVectors(V(0, 1, 0), f.n.clone().negate()); r.position.copy(ep(-28, 46)); props.rib = r;
     const cp = rerCopy(r.position);
-    const sig = keep(chain([ep(-28, 46 - 17), ep(-27.5, 46 - 18.2)], [0, 1], TSZ.bead)); props.sig = sig;
+    const sig = theSig(); sig.position.set(0, 0, 0); hairSet(null, sig, 0, r.position.clone().sub(seat()));   /* (the signal hangs from the ribosome: it moves with it) */
     await rerClose();   /* (the ribosome is there before the dive: it comes into sight as the camera comes near) */
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
     await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
+    sig.position.set(0, 0, 0); hairSet(null, sig, 0);
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(seat(), 0.0135)]]);
     quest.say('The ribosome sits on a channel in the membrane of the rough ER. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
   }
@@ -2315,17 +2328,85 @@ export function makePlay(world, quest) {
   const theStrand = s => { let st = props.strand; if (!st) { st = props.strand = keep(strand(amylase().n, TSZ.res, amylase().kinds)); strandSet(st, s); } return st; };
   /* a point of the chain to name: half-way along the part that is inside the rough ER */
   const chainSpot = () => { const st = props.strand, s = st ? st.userData.s : STRAND_FREE; return wayAt(Math.max(21, s - Math.min(s, amylase().n) / 2)); };
+  /* ---- the signal, and the chain that it holds until the cut (12 Nov 2026) ----
+     The expert review, 12 Nov 2026: "The cut is nearly invisible: a pale dot leaves the enzyme and fades. Colour the 15
+     signal beads and name them 'signal'. Leave them in the membrane after the cut, with 'The cell breaks it down'"
+     (Weihofen et al. 2002, Science 296:2215: the signal peptide stays in the membrane and is broken down there).
+     Before, two large beads stood for the signal and were not joined to the chain, so nothing was seen to be removed.
+     Now the signal is the chain's own first 15 amino acids, 15 red beads of the chain's size, and it is drawn where it
+     is: held at the channel's side, across the membrane (the channel's gate; its first amino acid at the cytosol's
+     side, where it stays from the start). The chain behind it is joined to its end, so until the cut the
+     chain grows as a loop (Alberts, Molecular Biology of the Cell, ch. 12: the signal and the chain enter the channel
+     as a loop). Cut goes closer (the signal is about 5 nm long): the enzyme, in the membrane beside the channel, cuts
+     where the signal joins the chain; the chain's start comes free inside the rough ER, the signal stays, and it fades
+     while the ribosome joins the other amino acids (broken down).
+     Places in ep's offsets (nm). t is how far along the way an amino acid is, in amino acids from the top of the
+     channel: the channel, then the bend (never fewer than SIG.turn amino acids: its two ends are 3.6 nm apart), then
+     the channel's side (hairPlan). The chain's amino acid j is at t = s - j (as in strandSet);
+     the signal's are at s + 1 … s + 15. Proof: tools/fold-check.mjs (H: the chain is never broken, the signal stays) */
+  const SIG = { n: 15, x: -2.3, y: -3.3, z: 0.45, turn: 12, color: 0xff5a4f }, TUN = 19;   /* (turn: from the channel's foot to the signal's end is 3.6 nm in a straight line, so the turn needs 12 amino acids, 4.6 nm; with 8 the beads stood 0.56 nm apart: fold-check H) */
+  const wayNm = (t, o) => { const Wy = amylase().way, a = Math.max(0, Math.min(STRAND_FREE, Math.floor(t))), b = Math.min(STRAND_FREE, a + 1), u = Math.max(0, Math.min(1, t - a)); for (let k = 0; k < 3; k++) o[k] = Wy[3 * a + k] + (Wy[3 * b + k] - Wy[3 * a + k]) * u; return o; };
+  /* (the second expert review, 13 Nov 2026: "the red start goes down the channel into the rough ER, turns, and re-enters
+     the membrane from inside. In a real cell the start never enters the rough ER: it binds the channel's side from the
+     cytosol side and only the chain behind it loops in": Voorhees and Hegde 2016, Science 351:88. So the signal's first
+     amino acid stays at the top of the channel's side, on the cytosol's side, from the start. While few amino acids are
+     out, the signal lies from there across the channel's mouth to the ribosome; as more come, the bend between the two
+     goes down, one leg at the channel's side (the signal, which never moves again once it is there) and one in the
+     channel; when the signal is all in its place (s = TUN + SIG.turn), the bend is under the membrane, and from then on
+     it is the loop that grows.)
+     the bend, l amino acids long (0.38 nm each), from M (in the channel) round to A (at the channel's side); it hangs
+     below both, and once it is a loop inside the rough ER it widens and leans to where the loose chain will lie */
+  function loopCurve(l, M, A) {
+    const len = l * 0.38, k = Math.max(0, l - SIG.turn), w = Math.min(3.4, 0.2 + 0.05 * k), lean = Math.min(3, 0.045 * k), mx = (M[0] + A[0]) / 2 - lean, y0 = Math.min(M[1], A[1]);
+    const make = D => new THREE.CatmullRomCurve3([V(M[0], M[1], M[2]), V(M[0] + w * 0.5 - lean * 0.3, y0 - 0.5 * D, M[2] + 0.3), V(mx, y0 - D, (M[2] + A[2]) / 2), V(A[0] - w - lean * 0.6, y0 - 0.5 * D, A[2] - 0.3), V(A[0], A[1], A[2])], false, 'centripetal');
+    let lo = 0.05, hi = len, c = null;
+    for (let i = 0; i < 14; i++) { const D = (lo + hi) / 2; c = make(D); c.arcLengthDivisions = 60; if (c.getLength() < len) lo = D; else hi = D; }
+    return c;
+  }
+  /* how the amino acids that are out lie, when the chain's first one is s along: T of them in all (with the signal), u
+     in the channel, l in the bend, g at the channel's side (the signal's own place, from its top down) */
+  const SIG_TOP = SIG.y + SIG.n * 0.38;
+  function hairPlan(s) {
+    const T = s + SIG.n, g = s < TUN + SIG.turn ? Math.max(0, (s - 1) / 2) : SIG.n, l = s < TUN + SIG.turn ? SIG.turn : s - TUN, u = T - l - g;
+    return { T, g, l, u, c: loopCurve(l, wayNm(u, []), [SIG.x, SIG_TOP - 0.38 * g, SIG.z]) };
+  }
+  /* where an amino acid is while the signal holds the chain: at(t) gives its place in the world (one vector, used again) */
+  function hairAt(s, off) {
+    const f = rerFace(), H = hairPlan(s), q = [], v = new THREE.Vector3(), p = new THREE.Vector3();
+    return t => {
+      if (t <= H.u) { wayNm(t, q); p.set(q[0], q[1], q[2]); } else if (t <= H.u + H.l) H.c.getPointAt((t - H.u) / H.l, p); else p.set(SIG.x, SIG_TOP - 0.38 * (H.T - t), SIG.z);
+      v.copy(f.p).addScaledVector(f.right, p.x / 1000).addScaledVector(f.n, p.y / 1000).addScaledVector(f.along, p.z / 1000); if (off) v.add(off); return v;
+    };
+  }
+  function hairSet(st, sig, s, off) {
+    const at = hairAt(s, off);
+    if (st) { const n = amylase().n; for (let j = 0; j < n; j++) { const u = s - j; if (u < 0) st.userData.put(j, 0, 0, 0, 0); else { const v = at(u); st.userData.put(j, v.x, v.y, v.z); } } st.userData.s = s; st.userData.done(); }
+    if (sig) { for (let m = 1; m <= SIG.n; m++) { const v = at(s + m); sig.userData.put(m - 1, v.x, v.y, v.z); } sig.userData.done(); }
+    world.kick();
+  }
+  const theSig = () => {
+    if (props.sig) return props.sig;
+    const m = keep(strand(SIG.n, TSZ.res, null)), c = new THREE.Color(SIG.color);
+    for (let i = 0; i < SIG.n; i++) m.setColorAt(i, c); m.instanceColor.needsUpdate = true; m.material.emissive.setHex(0x8a1c14); m.material.emissiveIntensity = 0.8; m.userData.kind = 'signal';
+    return (props.sig = m);
+  };
+  /* a point of the loop to name: its lowest part */
+  const loopSpot = s => { const p = hairPlan(s).c.getPointAt(0.5); return ep(p.x, p.y, p.z); };
+  /* a move of ms milliseconds: fn(k) at every frame, k from 0 to 1 (with Reduce motion: its end at once) */
+  const play = (ms, fn) => { const t0 = performance.now(), s0 = quest.session; return live(new Promise(res => { const f = () => { if (quest.session !== s0) return res(); const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms); fn(k); world.kick(); if (k < 1) requestAnimationFrame(f); else res(); }; f(); }), s0); };
   /* the ribosome joins amino acids from one count to another: a counter under it, and the chain growing out of the
-     channel, inside the ER, one bead for each amino acid joined */
-  async function count(r, from, to, ms) {
-    const counter = quest.hot(() => r.position.clone().addScaledVector(rerFace().n, 0.024), 'amino acids: ' + from, { cls: 'count', side: 't' }); counter.el.disabled = true;
-    const t0 = performance.now(), s0 = quest.session, st = theStrand(from - 60);
+     channel, inside the ER, one bead for each amino acid joined (hair: the signal still holds the chain's start) */
+  async function count(r, from, to, ms, hair) {
+    /* (a phone: under the membrane, away from the channel and the chain; above the ribosome is the corner box, and it had
+       stood on the channel: the second expert review, 13 Nov 2026) */
+    const counter = quest.hot(() => (PHONE() ? ep(46, -9) : r.position.clone().addScaledVector(rerFace().n, 0.024)), 'amino acids: ' + from, { cls: 'count', side: PHONE() ? 'b' : 't' }); counter.el.disabled = true;
+    const t0 = performance.now(), s0 = quest.session, st = theStrand(from - 60), sig = hair ? theSig() : null;
     await live(new Promise(res => {
       const f = () => {
         if (quest.session !== s0) return res();
         const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms), c = from + (to - from) * k;
         counter.el.querySelector('span').textContent = 'amino acids: ' + Math.round(c);
-        strandSet(st, c - 60);
+        if (hair) hairSet(st, sig, c - 60); else strandSet(st, c - 60);
         if (k < 1) requestAnimationFrame(f); else res();
       };
       f();
@@ -2337,26 +2418,64 @@ export function makePlay(world, quest) {
     await rerClose();
     /* the signal leaves the ribosome's tunnel when about 60 amino acids are joined: the count starts there */
     const r = ribAt(); rerCopy(r.position);
+    const sig = theSig(); if (!props.strand) hairSet(null, sig, 0);
     rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
     await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow });
-    await count(r, 60, 150, 2400);
-    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [chainSpot()]]]);
-    quest.say('The chain grows through the channel, inside the rough ER.', 'ok');
+    await count(r, 60, 150, 2400, true);
+    rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [loopSpot(90)]]]);
+    quest.say('The chain grows through the channel and into the rough ER. It grows as a loop, because the channel holds the start of the chain: the signal.', 'ok');
   }
   async function cut() {
     await rerClose();
     const r = ribAt(); rerCopy(r.position);
-    const st = theStrand(90);
-    const sig = props.sig || keep(chain([ep(-3, -5), ep(-4, -6)], [0, 1], TSZ.bead));
-    /* the enzyme that removes the signal: a protein in the membrane beside the channel, about 5 nm */
-    const enz = calm(keep(token('protein', TSZ.enz))); enz.position.copy(ep(-6, -1.5));
-    rerNames([memName(), ...sides(), ['e-enz', 'enzyme', [enz.position.clone()]], ['e-chain', 'the chain', [chainSpot()]]]);
-    await press(() => ep(-6, -14), 'Cut', { side: 'b' });
-    await tween(sig, { to: sig.position.clone().addScaledVector(rerFace().right, -0.012).addScaledVector(rerFace().n, -0.01), ms: 900, fade: 0 });
-    drop(sig); props.sig = null;
-    quest.say('The signal is removed. The ribosome continues to join amino acids.', 'ok');
+    const st = theStrand(90), sig = theSig(); sig.position.set(0, 0, 0); hairSet(st, sig, 90);
+    /* the enzyme that removes the signal: a protein in the membrane beside the channel, about 5 nm. It stands at the
+       membrane's inner side, where it cuts (the signal's end is there); so the signal's upper part is free of it, and
+       the signal's name has room beside it */
+    const enz = calm(keep(token('protein', TSZ.enz))), enzAt = ep(-6, -2.8); enz.position.copy(enzAt);
+    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [loopSpot(90)]]]);
+    /* two presses, one for each thing that moves (the second expert review, 13 Nov 2026: three new names had 1.5 s before
+       the cut): Go closer (the signal is 15 amino acids, about 5 nm long, and the cut is one bond), and there, with the
+       names standing as long as the pupil reads, Cut */
+    await press(() => ep(PHONE() ? 24 : -19, -8), 'Go closer', { side: 'b' });   /* (beside the loop, never on the chain) */
+    FOLD.on = true; quest.names.set([], HUD());
+    /* (the membrane in the upper middle of the picture and, on a wide screen, the channel to the right of the corner box,
+       which is 230 px tall with its list of items open: no name may stand on the box, and the signal's name stands
+       beside the signal) */
+    const P = PHONE(), mid = ep(P ? -9 : 6, P ? -2.5 : -3.5);   /* (a phone: towards the enzyme's side, so that its name has room beside it) */
+    await camGo(eyeLevel(foldView(mid, fitDist(P ? 27 : 34, 34), 0)), R.FAST ? 0 : 2000);
+    const sigAt = ep(SIG.x, SIG.y + 0.38 * 14, SIG.z), cutAt = ep(SIG.x, SIG.y + 0.19, SIG.z);   /* (the signal's name beside its top end: its line passes above the enzyme) */
+    /* (the enzyme's name level with it, on its far side from the channel: under it, the name lay on the chain) */
+    const enzSpot = () => { const [sp] = edge(enzAt.clone().addScaledVector(rerFace().n, -0.0008), 0.0028), sx = q => world.project(q).x, sig = sx(sigAt); return Math.abs(sx(sp[0]) - sig) > Math.abs(sx(sp[1]) - sig) ? [[sp[0]], { sides: [1] }] : [[sp[1]], { sides: [-1] }]; };
+    const near = chainAt => closeNames(rerFace(), [['e-sig', 'signal', [sigAt]], ['e-enz', 'cutting enzyme', ...enzSpot()]].concat(chainAt ? [['e-chain', 'the chain', [chainAt]]] : []), [enz], 3, ep(1, -6));   /* (no name stands on the channel: 3 nm each way from its middle, a little to the far side of the signal) */
+    near(loopSpot(90));
+    quest.say('<p>Each bead is one amino acid. The 15 red beads are the signal: the start of the chain. The channel holds the signal at the side of the channel.</p><p>In the membrane beside the signal there is a cutting enzyme.</p>');
+    await press(() => ep(P ? -17 : -13.5, -9.5), 'Cut', { side: 'b' });   /* (beside the loop, under the enzyme's name) */
+    /* the enzyme goes to where the signal joins the chain, cuts the bond there and goes back (so that the join is seen
+       when the chain leaves); then the start of the chain leaves: every amino acid goes from its place in the loop to
+       its place in the loose chain (strandSet's, the way) */
+    near(null);   /* (the chain's name would stay behind while the chain moves) */
+    await tween(enz, { to: enzAt.clone().lerp(cutAt, 0.45), ms: 550 });
+    await wait(R.TEST ? 0 : 300);
+    await tween(enz, { to: enzAt.clone(), ms: 500 });
+    const at = hairAt(90), q = [], from = [], to = [], v = new THREE.Vector3();
+    for (let j = 0; j <= 90; j++) { from.push(at(90 - j).clone()); wayNm(90 - j, q); to.push(ep(q[0], q[1], q[2])); }
+    await play(2000, k => { const e = smooth(0, 1, k); for (let j = 0; j <= 90; j++) { v.lerpVectors(from[j], to[j], e); st.userData.put(j, v.x, v.y, v.z); } st.userData.done(); });
+    enz.position.copy(enzAt); strandSet(st, 90);
+    near(wayAt(60));
+    quest.say('<p>The cutting enzyme has cut the signal from the chain. The work of the signal is finished: it stays in the membrane, and later other enzymes cut it into small pieces.</p><p>The start of the chain is now free inside the rough ER.</p>', 'ok');
+    await quest.next();
+    quest.names.set([], HUD());
+    await camGo(eyeLevel(rerView()), R.FAST ? 0 : 2000);
+    FOLD.on = false;
+    rerNames([memName(), ...sides(), ['e-chain', 'the chain', [chainSpot()]]]);
+    quest.say('The ribosome continues to join amino acids.', 'ok');
+    /* the signal is cut into pieces while the ribosome works: it fades little by little */
+    sig.material.transparent = true;
+    const gone = play(3600, k => { sig.material.opacity = 1 - smooth(0.1, 0.9, k); });
     const counter = await count(r, 150, 511, 3600);
-    counter.remove();
+    await gone;
+    counter.remove(); drop(sig); props.sig = null;
     /* the end of the copy: the ribosome releases the chain, whose last amino acids leave the channel, and its two parts
        separate and leave the membrane */
     const up = rerFace().n;
@@ -2405,7 +2524,7 @@ export function makePlay(world, quest) {
     const A = amylase(), f = rerFace(), inside = insideAt(), st = theStrand(STRAND_FREE);
     if (props.amylase) { drop(props.amylase); props.amylase = null; }
     rerNames([memName(), ...sides(), ['e-chain', 'the chain', [chainSpot()]]]);
-    await press(() => ep(2, -31), 'Fold', { side: 'b' });
+    await press(() => (PHONE() ? ep(-24, 13) : ep(2, -31)), 'Fold', { side: PHONE() ? 't' : 'b' });   /* (a phone: above the membrane; under the chain it stood on the scale bar's number) */
     FOLD.on = true; quest.names.set([], HUD());
     /* closer: the whole loose chain in the picture, each bead now seen */
     await camGo(eyeLevel(foldView(ep(2.4, PHONE() ? -10.5 : -16.5), fitDist(36, 29), 0)), R.FAST ? 0 : 2000);
@@ -2462,29 +2581,139 @@ export function makePlay(world, quest) {
     await camGo(eyeLevel(rerView()), R.FAST ? 0 : 3200);
     FOLD.on = false;
   }
+  /* ---- the vesicle buds (12 Nov 2026) ----
+     The expert review, 12 Nov 2026: "amylase crosses an intact membrane … a bubble appears on the cytosol side and
+     inflates to 70 nm in under 1 s. Amylase rises through the unbroken membrane into it" (Alberts, Molecular Biology of
+     the Cell, ch. 13: a vesicle is a piece of the membrane itself, which bends out and pinches off; what it carries
+     never crosses a membrane). So the membrane itself bends: budMake draws the piece that bends (BUD) in the game's own
+     section, the same three layers on the same cut face, round a circle that rises out of the membrane's plane: a low
+     swell, a dome, a ball on a narrow neck; then the neck closes, the ball is a vesicle, and the membrane is level
+     again. The far half of the ball is drawn behind the cut face (a pale wall), so that it is a ball and not a ring.
+     Amylase is inside the rough ER the whole time, then inside the swell, then inside the vesicle: it goes up through
+     the open mouth, at the circle's middle. u: 0 level, 1 the neck is narrow, 2 closed, 3 the vesicle is free. */
+  function budMake() {
+    const f = rerFace(), front = world.camera.position.clone().sub(f.p).dot(f.along) < 0 ? -1 : 1, g = new THREE.Group();
+    const NF = 2, NC = 16, NV = 73, NT = 26, NP = 16, v = new THREE.Vector3();
+    const mat = (color, rim, rimK, rough, see) => magicStandard(Object.assign({ color, roughness: rough, side: THREE.DoubleSide }, see ? { transparent: true } : {}), { rim, rimK });
+    /* (back: the strip runs the other way along the picture, so its triangles are wound the other way: each one must
+       face the camera, or its light comes from behind and it is dark) */
+    const strip = (n, m, back) => {
+      const geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 6), nor = new Float32Array(n * 6), idx = [], N = f.along.clone().multiplyScalar(front);
+      for (let i = 0; i < 2 * n; i++) { nor[3 * i] = N.x; nor[3 * i + 1] = N.y; nor[3 * i + 2] = N.z; }
+      for (let i = 0; i < n - 1; i++) { const a = 2 * i; if ((front > 0) !== !!back) idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); else idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); geo.setIndex(idx);
+      const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; g.add(mesh); return { pos, geo, m, mesh };
+    };
+    const BANDS = [[3, 1.8, 0xff9ac8, 0xffd6ea, 0.4, 0.5], [1.8, -1.8, 0xfff0f5, 0xffffff, 0.15, 0.7], [-1.8, -3, 0xff9ac8, 0xffd6ea, 0.4, 0.5]];   /* (the membrane's own: heads, tails, heads) */
+    const three = (n, see, back) => BANDS.map(b => strip(n, mat(b[2], b[3], b[4], b[5], see), back));
+    const ML = three(NF + NC), MR = three(NF + NC, false, true), VS = three(NV, true), LL = three(2);   /* (LL: the membrane beyond the channel) */
+    /* (for tools/fold-check.mjs: which part and which layer each strip is) */
+    g.userData.kind = 'bud'; [['ML', ML], ['MR', MR], ['VS', VS], ['LL', LL]].forEach(([part, S3]) => S3.forEach((s, band) => { s.mesh.userData.part = part; s.mesh.userData.band = band; }));
+    const w3 = (pos, k, x, y, z) => { v.copy(f.p).addScaledVector(f.right, x / 1000).addScaledVector(f.n, y / 1000).addScaledVector(f.along, z / 1000); pos[3 * k] = v.x; pos[3 * k + 1] = v.y; pos[3 * k + 2] = v.z; };
+    const put = (S, i, x, y, nx, ny) => S.forEach((s, b) => { w3(s.pos, 2 * i, x + BANDS[b][0] * nx, y + BANDS[b][0] * ny, front * 0.02); w3(s.pos, 2 * i + 1, x + BANDS[b][1] * nx, y + BANDS[b][1] * ny, front * 0.02); });
+    /* the far half of the ball: a pale wall behind the cut face */
+    const bgeo = new THREE.BufferGeometry(), bpos = new Float32Array(NT * NP * 3), bnor = new Float32Array(NT * NP * 3), bidx = [];
+    for (let i = 0; i < NT - 1; i++) for (let j = 0; j < NP - 1; j++) { const a = i * NP + j; bidx.push(a, a + 1, a + NP, a + 1, a + NP + 1, a + NP); }
+    /* (its colour fades to nothing towards the open mouth, until the neck closes: the second expert review, 13 Nov 2026:
+       "the pale fill of the far wall stops in a straight line across the mouth, and amylase sits on that line … it reads
+       as a thin skin that amylase crosses") */
+    const bcol = new Float32Array(NT * NP * 4).fill(1);
+    bgeo.setAttribute('position', new THREE.BufferAttribute(bpos, 3)); bgeo.setAttribute('normal', new THREE.BufferAttribute(bnor, 3)); bgeo.setAttribute('color', new THREE.BufferAttribute(bcol, 4)); bgeo.setIndex(bidx);
+    const bm = magicStandard({ color: 0xffd9e8, roughness: 0.35, side: THREE.DoubleSide, transparent: true, opacity: 0.34, depthWrite: false, vertexColors: true }, { rim: 0xffffff, rimK: 0.9 });
+    const bowl = new THREE.Mesh(bgeo, bm); bowl.frustumCulled = false; bowl.renderOrder = 6; g.add(bowl);
+    const { x: X, rho, r, neck, far } = BUD, ycT = r + Math.sqrt((rho + r) ** 2 - (r + 3 + neck) ** 2), dxT = r + 3 + neck, RISE = 6;
+    const S = g.userData.S = { u: -1, yv: -rho, alpha: 0 };
+    /* u: 0 to 1 the swell rises to a ball on a narrow neck; 1 to 2 the neck closes (b): the ball's two ends go round to
+       its lowest point, and the membrane's two sides go with them, joined to them all the way, so that the ball and
+       the membrane are each whole at the same moment, still touching, and the cytosol is never between open ends (the
+       second look, 13 Nov 2026: the ball had risen while both were still open); 2 to 3 the ball rises and the membrane
+       goes level (e) */
+    function set(u) {
+      const a = smooth(0, 1, Math.min(1, u)), b = smooth(0, 1, Math.max(0, Math.min(1, u - 1))), e = smooth(0, 1, Math.max(0, Math.min(1, u - 2)));
+      const yc = -rho + (ycT + rho) * a, dx = u >= 1 ? dxT : Math.sqrt(Math.max(0, (rho + r) ** 2 - (yc - r) ** 2)), beta = Math.atan2(yc - r, dx);
+      const al0 = Math.atan2(dx, r - yc), alpha = al0 + (Math.PI - al0) * b, yv = yc + RISE * e;
+      /* the ball's end on one side (mirrored: x is the distance from the bud's middle line), and where the membrane's
+         curve ended before the neck began to close */
+      const ex = rho * Math.sin(alpha), ey = yc + rho * Math.cos(alpha), tx = rho * Math.sin(al0), ty = yc + rho * Math.cos(al0);
+      /* the membrane on one side, as points (x from the middle line, y), from its level part up its small curve to the
+         ball's end: the curve's own points, each moved with the ball's end (its last point all the way, the others less);
+         at the end, level */
+      const px = [], py = [];
+      for (let j = 0; j < NC; j++) {
+        const an = -Math.PI / 2 + (beta + Math.PI / 2) * j / (NC - 1), k = j / (NC - 1), x0 = dx - r * Math.cos(an) + (ex - tx) * k * k, y0 = r + r * Math.sin(an) + (ey - ty) * k * k;
+        px.push(x0 + (dx * (1 - k) - x0) * e); py.push(y0 * (1 - e));
+      }
+      [[ML, -1], [MR, 1]].forEach(([M, sd]) => {
+        put(M, 0, sd < 0 ? 3.6 : X + far, 0, 0, 1); put(M, 1, X + sd * dx, 0, 0, 1);
+        for (let j = 0; j < NC; j++) {
+          /* the cytosol's side of the curve: across its direction (from the points on each side of this one) */
+          const j0 = Math.max(0, j - 1), j1 = Math.min(NC - 1, j + 1); let dxx = px[j1] - px[j0], dyy = py[j1] - py[j0]; if (j === 0 || Math.hypot(dxx, dyy) < 1e-6) { dxx = -1; dyy = 0; }
+          const L = Math.hypot(dxx, dyy), nx = dyy / L, ny = -dxx / L;   /* (going towards the middle line, x falls: the cytosol is on the left of that way) */
+          put(M, NF + j, X + sd * px[j], py[j], sd * nx, ny);
+        }
+      });
+      /* the ball: an arc of its circle from one side over the top to the other, closed at the end */
+      for (let k = 0; k < NV; k++) { const th = -alpha + 2 * alpha * k / (NV - 1); put(VS, k, X + rho * Math.sin(th), yv + rho * Math.cos(th), Math.sin(th), Math.cos(th)); }
+      for (let i = 0; i < NT; i++) for (let j = 0; j < NP; j++) {
+        const th = alpha * i / (NT - 1), ps = Math.PI * j / (NP - 1), k = i * NP + j, sx = Math.sin(th) * Math.cos(ps), sy = Math.cos(th), sz = -front * Math.sin(th) * Math.sin(ps);
+        w3(bpos, k, X + rho * sx, yv + rho * sy, rho * sz); bcol[4 * k + 3] = 1 - (1 - b) * smooth(0.35, 0.95, i / (NT - 1));
+        v.set(0, 0, 0).addScaledVector(f.right, sx).addScaledVector(f.n, sy).addScaledVector(f.along, sz); bnor[3 * k] = v.x; bnor[3 * k + 1] = v.y; bnor[3 * k + 2] = v.z;
+      }
+      put(LL, 0, -far, 0, 0, 1); put(LL, 1, -3.6, 0, 0, 1);
+      [...ML, ...MR, ...VS, ...LL].forEach(s => { s.geo.attributes.position.needsUpdate = true; }); bgeo.attributes.position.needsUpdate = true; bgeo.attributes.normal.needsUpdate = true; bgeo.attributes.color.needsUpdate = true;
+      S.u = u; S.yv = yv; S.alpha = alpha;
+    }
+    /* the ball's own drawing fades (the game's vesicle comes in its place); the membrane's does not */
+    const fade = o => { VS.forEach(s => { s.m.opacity = o; s.m.depthWrite = o > 0.6; }); bm.opacity = 0.34 * o; };
+    set(0);
+    return { g, set, fade, S };
+  }
+  /* the camera for the bud: the whole vesicle and amylase below it in the free part of the picture, the eye level with
+     the membrane (before, a phone's corner box covered the top half of the vesicle) */
+  const budView = () => (PHONE() ? foldView(ep(BUD.x, 38), fitDist(108, 128), 0) : foldView(ep(BUD.x, 31), fitDist(108, 114), 0));   /* (a phone: lower, clear of the buttons under the corner box) */
   async function bud() {
     await rerClose();
-    const inside = insideAt();
     const a = props.amylase || makeAmylase();
     if (props.strand) { drop(props.strand); props.strand = null; }
     if (!state.has('lipids')) {
-      quest.say('Every vesicle removes a piece of the ER membrane, so the ER needs new <b>lipids</b> first. The <b>smooth ER</b> makes them: go there, then return here.', 'no');
+      quest.say('Every vesicle removes a piece of the membrane of the rough ER, so the rough ER needs new <b>lipids</b> first. The <b>smooth ER</b> makes them: go there, then return here.', 'no');
       return false;
     }
     rerNames([memName(), ...sides(), ['e-amy', 'amylase', [a.position.clone()]]]);
-    await press(() => a.position.clone().addScaledVector(rerFace().n, -0.012), 'Bud', { side: 'b' });
+    await press(() => (PHONE() ? ep(-24, 13) : a.position.clone().addScaledVector(rerFace().n, -0.012)), 'Bud', { side: PHONE() ? 't' : 'b' });   /* (a phone: above the membrane; under amylase it stood on the scale bar's number) */
     state.use('lipids'); state.use('chain');
-    /* a piece of the membrane closes round amylase and pinches off into the cytosol: the vesicle grows up out of the
-       membrane (its foot on the membrane), about 70 nm across, amylase rising into it from inside the ER; it leaves, and
-       from far away it is too small to see, so a glow shows it on its way */
-    const ves = keep(token('vesicle', TSZ.ves)); const c = ep(30, 3 + 35); ves.position.copy(ep(30, 3)); ves.scale.setScalar(0.05);
-    await Promise.all([tween(a, { to: c, ms: 1600 }), tween(ves, { to: c, ms: 1600, scale: 1 })]);
-    const g = new THREE.Group(); g.position.copy(c); keep(g); a.position.set(0, 0, 0); g.add(a); ves.position.set(0, 0, 0); g.add(ves);
-    rerNames([memName(), ...sides(), ['e-ves', 'vesicle', ...edge(c, 0.034)]], [g]);
-    quest.say('The vesicle is about 70 nm across: fourteen times as wide as the amylase inside it.', 'ok');
-    await wait(R.TEST ? 0 : 2200);
+    /* no name stays on a part that moves away; the camera takes the place where the vesicle will be */
+    FOLD.on = true; quest.names.set([], HUD());
+    /* (a vesicle buds away from the ribosomes: amylase moves along inside the rough ER, and the camera with it) */
+    await Promise.all([camGo(eyeLevel(budView()), R.FAST ? 0 : 2600), tween(a, { to: ep(BUD.x - 22, -15), ms: 2600 })]);
+    const mem = membrane(), B = budMake(); keep(B.g); props.bud = B; (mem.userData.slabs || []).forEach(m => { m.visible = false; });
+    const a0 = a.position.clone(), under = ep(BUD.x, -14), up = rerFace().n, A_MS = 3700, B_MS = 1100, E_MS = 700, MS = A_MS + B_MS + E_MS;   /* (the neck closes in 1.1 s; then the vesicle rises) */
+    await play(MS, k => {
+      const ms = k * MS, u = ms < A_MS ? ms / A_MS : ms < A_MS + B_MS ? 1 + (ms - A_MS) / B_MS : 2 + (ms - A_MS - B_MS) / E_MS;
+      B.set(u);
+      /* amylase: to under the swell, then up with the circle's middle, through the open mouth */
+      a.position.lerpVectors(a0, under, smooth(0, 0.4, Math.min(1, u))).addScaledVector(up, Math.max(0, B.S.yv + 14) / 1000);
+    });
+    const c = ep(BUD.x, B.S.yv);
+    /* the game's own vesicle stands there from now on, not yet seen (opacity 0): the names keep off the vesicle by it */
+    const ves = keep(token('vesicle', TSZ.ves)), shell = ves.userData.shell, op = shell.material.opacity; ves.position.copy(c); shell.material.opacity = 0;
+    /* (a phone: the vesicle fills most of the picture's width, so its name stands beside its lower part, where it is
+       narrower, outside it, on a line that ends on its membrane; inside it, the name read as the name of what it holds:
+       the second expert review, 13 Nov 2026; the membrane's name below the membrane, in the middle) */
+    if (PHONE()) { const Rv = new THREE.Vector3().setFromMatrixColumn(world.camera.matrixWorld, 0).normalize(), ring = k => c.clone().addScaledVector(Rv, k * 0.0255).addScaledVector(rerFace().n, -0.0245);
+      closeNames(rerFace(), [['e-ves', 'vesicle', [ring(1), ring(-1)], { sides: [1, -1] }], ['e-mem', 'membrane of the rough ER', [ep(BUD.x - 16, 0), ep(BUD.x - 8, 0), ep(BUD.x, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }]], [ves], 2, c); }
+    else closeNames(rerFace(), [['e-mem', 'membrane of the rough ER', [ep(BUD.x - 46, 0), ep(BUD.x + 46, 0), ep(BUD.x - 38, 0), ep(BUD.x + 38, 0)], { up: 1, small: '<span class="nm__t">rough ER membrane</span>' }],
+      ['e-ves', 'vesicle', ...edge(c, 0.036)], ['e-cyt', 'cytosol', ...edge(ep(BUD.x, 66), 0.05)], ['e-in', 'inside the rough ER', ...edge(ep(BUD.x, -13), 0.046), { small: '<span class="nm__t">inside the<br>rough ER</span>' }]], [ves], 36, c);
+    quest.say('<p>A piece of the membrane has bent round amylase and closed: this is a <b>vesicle</b>. Amylase did not cross the membrane: it was inside the rough ER, and now it is inside the vesicle.</p><p>The vesicle is about 70 nm across. Amylase is about 5 nm wide: the vesicle is fourteen times as wide.</p>', 'ok');
+    await quest.next();
     quest.names.set([], HUD());
+    /* the game's vesicle comes in over the section's ball, and the membrane is its own boxes again (level, the two look the same) */
+    await play(900, k => { const e = smooth(0, 1, k); shell.material.opacity = op * e; B.fade(1 - e); });
+    (mem.userData.slabs || []).forEach(m => { m.visible = true; }); drop(B.g); props.bud = null;
+    const g = new THREE.Group(); g.position.copy(c); keep(g); a.position.set(0, 0, 0); g.add(a); ves.position.set(0, 0, 0); g.add(ves);
+    /* it leaves, and from far away it is too small to see, so a glow shows it on its way */
     farGlow(g, 0.06, 0xfff1a8);
+    FOLD.on = false;
     await nanoOut(world.P.rer.view);
     await tween(g, { to: g.position.clone().addScaledVector(rerFace().n, 1.0).add(V(0.6, 1.2, 0)), ms: 1400 });
     await quest.gain('amylase', g.position);

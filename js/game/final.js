@@ -6,6 +6,9 @@
    answer, 4 "choose every right answer", 2 "label the cell" with six names each, 1 order, 1 sort), all new, no help,
    nothing marked until the end, one go; the pupil sees the score and which questions were not right, never the answers;
    his board gets every answer, the score and the time.
+   Since 12 Nov 2026 (Daniel: "four for the plants, one for IB … 25 questions in total"): 25 questions, 35 marks. The last
+   five carry a `tag`: 'side' (the side quest, the plant cell) and 'x' (Explorer, beyond the Year 7 list); the page prints
+   it beside the question's number, and the first card says which questions they are.
    - The code: CELL- and four letters or digits, made from who the pupil is (the email they are signed in with, or this
      browser's own number when signed out), so a friend's code does not work here. It shows at the end of the journey (the
      win card of "Does your amylase work?", main.js); the Final check, last in the list of places, asks for it.
@@ -17,6 +20,11 @@
    - One go: kept in this browser under cellfinal.* (↺ Start again keeps it) and, signed in, in the teacher's record, so
      another computer does not open it again. Each mark is one square on the board (js/core.js lists them, part 13);
      "fc-begin" is when it started.
+   - Started on one computer and not finished (12 Nov 2026; Daniel: "fix any gaps in the code"): signed in, the start is
+     in the teacher's record (fc-begin), so on any other computer, or in this browser after its data was removed, the
+     check opens by itself and continues, with no code and no way back to the game, which shows the answers. The answers
+     given before are not there (they are kept only in the browser they were given in); the time is counted from the
+     first start. Before, the pupil could read the questions on one computer, play the game on another and start there.
    ============================================================ */
 const R = window.REV, { $, $$, h, esc } = R;
 const F = window.FINAL || null;
@@ -63,6 +71,14 @@ function finished() {
   return F && F.qs.some(x => squares(x).some(id => q[id] && q[id].r && q[id].r.length)) ? { elsewhere: 1 } : null;
 }
 
+/* started, on this computer or another: when (fc-begin in the record; 0: not started) */
+function begun() {
+  const b = record()['fc-begin'], r = b && Array.isArray(b.r) ? b.r.filter(x => x && x.c > 0) : [];
+  return r.length ? (Math.min(...r.map(x => x.a || x.z || 0)) * 1000 || Date.now()) : 0;
+}
+/* started and not finished, and this browser does not hold the work: it continues here (signed in only: the record is theirs) */
+const elsewhere = () => !!(F && email() && !work() && !finished() && begun());
+
 /* ---------- the pupil's work: their answers and their own order of every list ---------- */
 let W = null, box = null, svgText = null, cur = 0;
 function rng(seed) { let x = 0; for (let i = 0; i < seed.length; i++) x = (Math.imul(x, 31) + seed.charCodeAt(i)) | 0; x = x || 1;
@@ -92,6 +108,21 @@ function answered(q) {
 }
 const marksOf = q => q.kind === 'label' ? q.h.length : 1;
 
+/* a question's tag, as the pupil reads it (js/final-data.js `tag`): the side quest, or Explorer */
+const TAGS = { side: 'Side quest · the plant cell', x: 'Explorer · beyond the Year 7 list' };
+const tagOf = q => q.tag && TAGS[q.tag] ? `<span class="fc__tag fc__tag--${q.tag}">${TAGS[q.tag]}</span>` : '';
+/* "21 to 24", "25", "3, 7 and 9": the numbers of the questions with a tag */
+function numsOf(tag) {
+  const n = F.qs.map((q, k) => q.tag === tag ? k + 1 : 0).filter(Boolean); if (!n.length) return '';
+  const run = n.every((x, i) => !i || x === n[i - 1] + 1);
+  return n.length === 1 ? String(n[0]) : run ? `${n[0]} to ${n[n.length - 1]}` : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1];
+}
+function tagFacts() {
+  const s = numsOf('side'), x = numsOf('x'), many = v => / |,/.test(v);
+  return (s ? `<li>Question${many(s) ? 's' : ''} ${s} ${many(s) ? 'are' : 'is'} about the <b>side quest</b>: the plant cell.</li>` : '') +
+    (x ? `<li>Question${many(x) ? 's' : ''} ${x} ${many(x) ? 'are' : 'is'} for <b>Explorers</b>: beyond the Year 7 list.</li>` : '');
+}
+
 /* ---------- the layer over the page ---------- */
 function layer() {
   if (!box) { box = $('#final'); }
@@ -116,11 +147,13 @@ export async function openFinal(opts = {}) {
   if (done) return result(done);
   const w = work();
   if (w) { W = w; return question(W.i || 0); }            /* started: straight back to the question they were on */
+  if (elsewhere()) return carryOn();                      /* started on another computer: it continues here */
   const needSign = syncOn() && !email();
   card(`<p class="fc__eyebrow">Final check</p>
     <h2 id="fcH" tabindex="-1" data-first>Show what you learned on your journey</h2>
     <ul class="fc__facts">
       <li><b>${F.qs.length} questions, ${F.marks} marks.</b> It takes about 15 minutes.</li>
+      ${tagFacts()}
       <li>No hints, no word bank: nothing is marked until you finish.</li>
       <li>You have <b>one go</b>. When you start, the questions stay on the screen until you finish.</li>
       <li>At the end you see your score and which questions were not right.</li>
@@ -153,12 +186,33 @@ export async function openFinal(opts = {}) {
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); tryIt(); } });
 }
 
+/* started before, and this browser has none of it: one card, then the questions (no code: it was given at the start; no
+   way back to the game) */
+function carryOn() {
+  card(`<p class="fc__eyebrow">Final check</p><h2 id="fcH" tabindex="-1" data-first>You have already started the final check</h2>
+    <p>You have <b>one go</b>, so the final check continues here.</p>
+    <p>The answers that you gave before are not on this computer: answer every question here.</p>
+    <div class="fc__acts"><button type="button" class="btn" data-carry>Continue the final check</button></div>`);
+  $('[data-carry]', box).addEventListener('click', async e => {
+    e.currentTarget.disabled = true;
+    const t0 = begun(); W = await newWork(); if (t0) W.t0 = Math.min(t0, W.t0); W.carried = 1; save();
+    question(0);
+  });
+}
+/* the record comes back a moment after the page opens (js/lesson.js asks for it at sign-in): from then on a check that
+   was started on another computer is open here too */
+const watch = setInterval(() => {
+  if (!F || finished()) return clearInterval(watch);
+  if (!window.READY || (window.HOWTO && !window.HOWTO.done) || (box && !box.hidden)) return;
+  if (elsewhere()) openFinal();
+}, 3000);
+
 /* ---------- 2. a question, one at a time ---------- */
 function question(i) {
   cur = Math.max(0, Math.min(F.qs.length - 1, i)); W.i = cur; save();
   const q = F.qs[cur], last = cur === F.qs.length - 1, mk = marksOf(q);
   layer().innerHTML = `<div class="fc fc--q" role="dialog" aria-modal="true" aria-labelledby="fcH">
-    <div class="fc__bar"><b>Final check</b><span class="fc__n">Question ${cur + 1} of ${F.qs.length}</span><span class="fc__mk">${mk} mark${mk > 1 ? 's' : ''}</span></div>
+    <div class="fc__bar"><b>Final check</b><span class="fc__n">Question ${cur + 1} of ${F.qs.length}</span>${tagOf(q)}<span class="fc__mk">${mk} mark${mk > 1 ? 's' : ''}</span></div>
     <nav class="fc__dots" aria-label="Questions">${F.qs.map((x, k) => { const s = answered(x); return `<button type="button" data-k="${k}" class="${s === 2 ? 'is-done' : s ? 'is-part' : ''}${k === cur ? ' is-cur' : ''}" aria-label="Question ${k + 1}${s === 2 ? ', answered' : s ? ', partly answered' : ''}"${k === cur ? ' aria-current="step"' : ''}>${k + 1}</button>`; }).join('')}</nav>
     <section class="fc__q"><h2 id="fcH" class="fc__stem" tabindex="-1" data-first>${q.stem}</h2><div class="fc__a"></div></section>
     <div class="fc__nav"><button type="button" class="btn ghost" data-back ${cur ? '' : 'disabled'}>← Back</button>
@@ -260,7 +314,7 @@ async function drawLabel(a, q) {
     set: (pl, i, p) => { const was = Object.keys(pl).find(k => pl[k] === i); if (was != null) delete pl[was]; pl[p] = i; },   /* a number holds one name: the one there goes back */
     clear: (pl, i) => { const was = Object.keys(pl).find(k => pl[k] === i); if (was != null) delete pl[was]; }
   });
-  if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611121836')).text(); } catch (e) { svgText = ''; } }
+  if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611130101')).text(); } catch (e) { svgText = ''; } }
   const s = $('.fc-lab__svg', a); if (s) s.innerHTML = svgText || '<p>The drawing could not load: check the connection, then go to another question and back.</p>';
 }
 /* put in order: the numbers are places and stay; only the card moves (the estate's rule, 21 Oct 2026) */
@@ -383,8 +437,8 @@ export function finalLine() {
   const d = finished();
   if (d && d.elsewhere) return '✦ done';
   if (d) return `✦ done: ${d.score} of ${d.marks}`;
-  return work() ? 'started: continue' : 'needs your code from the end of the journey';
+  return work() || elsewhere() ? 'started: continue' : 'needs your code from the end of the journey';
 }
 /* started and not finished: the page opens on it again (the game would show the answers) */
-export const finalOpen = () => !!(F && work() && !finished());
+export const finalOpen = () => !!(F && !finished() && (work() || elsewhere()));
 window.CELLFINAL = { openFinal, finalCode, finalLine };

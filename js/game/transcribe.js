@@ -44,6 +44,7 @@
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
+import { courseLines } from './ribofilm.js?v=202611130101';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
@@ -392,6 +393,43 @@ const STEPS = [
   { t: 'At the end of the gene, the enzyme leaves the DNA, and the copy is finished: it reads like the top strand, with U where the strand has T.\nThe DNA stays in the nucleus. The copy leaves through a nuclear pore.\nMaking a copy of a gene like this has a name: <dfn data-w="transcription">transcription</dfn>.', go: { p: N + 5, ms: 2600 }, key: 2 }
 ];
 const paras = t => t.split('\n').map(x => `<p>${x}</p>`).join('');
+/* what each course asks about what each step shows (12 Nov 2026; Daniel: "you can add a toggle for IGCSE and a toggle for
+   IB, and it can be the same one but with more information for the IB"): shown under the step's words while that
+   course's switch is on (quest.js courseSwitch, store 'courseLv'); the film's own words never change. One entry per
+   step, in the steps' order; each line [level, statement, words] as in story.js `course` (IGCSE: Cambridge 0610 for
+   2026 to 2028, 'c' Core, 's' Supplement, 'n' not named; IB: the guide of 2025, 'sl' under "SL and HL", 'hl' under
+   "Additional higher level", 'x' beyond it). tools/course-check.mjs reads every statement number in its source. */
+const LINES = [
+  { igcse: [['c', '17.1.1', 'Chromosomes are made of DNA, which contains genetic information in the form of genes.']],
+    ib: [['sl', 'A1.2.1', 'DNA is the genetic material of all living organisms.']] },
+  { igcse: [['n', '', 'The IGCSE syllabus does not name this fibre.']],
+    ib: [['x', '', 'The guide does not name the 30 nm fibre.']] },
+  { igcse: [['n', '', 'The IGCSE syllabus does not name histones.']],
+    ib: [['sl', 'A2.2.6', 'Chromosomes are made of DNA bound to histones.'],
+      ['hl', 'A1.2.13', 'The structure of a nucleosome: a DNA molecule wrapped around a core of eight histone proteins, held together by an additional histone protein attached to linker DNA.']] },
+  { igcse: [['s', '4.1.4', 'A DNA molecule is two strands coiled together to form a double helix.']],
+    ib: [['sl', 'A1.2.6', 'DNA is a double helix made of two antiparallel strands of nucleotides.']] },
+  { igcse: [['s', '4.1.4', 'Each strand contains chemicals called bases.'], ['n', '', 'The syllabus says: "knowledge of the details of nucleotide structure is not required" (17.1.5).']],
+    ib: [['sl', 'A1.2.2', 'The components of a nucleotide: a phosphate, a pentose sugar and a base. In diagrams you draw them as a circle, a pentagon and a rectangle.'],
+      ['sl', 'A1.2.3', 'Sugar–phosphate bonding makes a continuous chain of covalently bonded atoms in each strand: a strong "backbone".'],
+      ['sl', 'A1.2.4', 'You know the names of the bases: adenine, thymine, cytosine and guanine in DNA.']] },
+  { igcse: [['s', '4.1.4', 'Bonds between pairs of bases hold the strands together. The bases always pair up in the same way: A with T, and C with G.']],
+    ib: [['sl', 'A1.2.6', 'The two strands are linked by hydrogen bonding between complementary base pairs: adenine (A) with thymine (T), and guanine (G) with cytosine (C). The guide says: "not required to memorize … the numbers of hydrogen bonds".'],
+      ['hl', 'A1.2.12', 'The A–T and C–G pairs have equal length, so the DNA helix has the same three-dimensional structure whatever its base sequence.']] },
+  { igcse: [['s', '17.1.8', 'The gene coding for the protein remains in the nucleus.'], ['n', '', 'The syllabus says: "knowledge of the details of transcription or translation is not required". It does not name RNA polymerase.']],
+    ib: [['sl', 'D1.2.1', 'Transcription is the synthesis of RNA using a DNA template. You understand the roles of RNA polymerase: here it separates the two strands.'],
+      ['hl', 'D1.2.13', 'Transcription is initiated at the promoter, a base sequence just before the start of the gene. Transcription factors bind to it; then RNA polymerase can bind.']] },
+  { igcse: [['s', '17.1.8', 'Messenger RNA (mRNA) is a copy of a gene.']],
+    ib: [['sl', 'D1.2.2', 'Hydrogen bonding and complementary base pairing in transcription: adenine (A) on the DNA template strand pairs with uracil (U) on the RNA strand.'],
+      ['sl', 'D1.2.3', 'The single DNA strand is only a template: its base sequence does not change.'],
+      ['sl', 'A1.2.7', 'RNA differs from DNA: one strand, not two; uracil where DNA has thymine; the sugar ribose, not deoxyribose.']] },
+  { igcse: [['s', '17.1.8', 'mRNA molecules are made in the nucleus.']],
+    ib: [['sl', 'A1.2.5', 'RNA is a polymer formed by condensation of nucleotide monomers: RNA polymerase joins them.'],
+      ['hl', 'D1.2.12', 'Transcription is 5′ to 3′: each RNA nucleotide is added to the 3′ end of the growing strand.']] },
+  { igcse: [['s', '17.1.8', 'mRNA molecules are made in the nucleus and move to the cytoplasm.']],
+    ib: [['sl', 'D1.2.4', 'Transcription is the first stage of gene expression: a key stage at which the expression of a gene can be switched on and off.'],
+      ['hl', 'D1.2.15', 'Before the mRNA leaves the nucleus: introns are removed, exons are spliced together, and a 5′ cap and a 3′ polyA tail are added.']] }
+];
 
 /* chromosome 1's thread as the game's nucleus draws it (cellbuild.js W.chromosomes[0].curve, µm), for the film's first
    picture: in nm, the middle of the amylase gene (half-way along it: play.js gene) at 0, 0, 0, the thread running along
@@ -431,10 +469,13 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <p class="cf__n" aria-live="polite"></p><div class="cf__t" aria-live="polite"></div>
       <p class="cf__key" hidden></p>
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
+      <div class="cf__lvs"></div>
     </div></div></div>`;
     box.hidden = false;
     const F = film($('.cf__3d', box), worldThread()); box.peek = F.peek;
     const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), kEl = $('.cf__key', box), back = $('.cf__do .btn.back', box);
+    /* the courses that are on (a pupil whose Year 7 checks of a place are right may switch them on: quest.js courseSwitch) */
+    const LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {})), lEl = $('.cf__lvs', box);
     /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
       '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];
@@ -453,6 +494,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     const show = async (dir = 1) => {
       const s = STEPS[i]; busy = true; btn.disabled = true; back.disabled = true;
       nEl.textContent = `${i + 1} of ${STEPS.length}`; tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
+      lEl.innerHTML = courseLines(LINES[i] || {}, LV); if (R.terms) R.terms(lEl);
       kEl.hidden = !s.key; kEl.innerHTML = KEY[s.key || 0];
       if (dir > 0) { for (const g of moves(i)) await F.go(g); }
       else { const ms = moves(i + 1).reduce((a, g) => a + (g.ms || 1200), 0); await F.go(Object.assign(stateAt(i), { ms: Math.max(1200, Math.min(4500, ms)) })); }

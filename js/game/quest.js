@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611121836';
-import { state, COST } from './state.js?v=202611121836';
-import { sound } from './sound.js?v=202611121836';
-import { finalLine } from './final.js?v=202611121836';
+import { ICON } from './icons.js?v=202611130101';
+import { state, COST } from './state.js?v=202611130101';
+import { sound } from './sound.js?v=202611130101';
+import { finalLine } from './final.js?v=202611130101';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611121836').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611121836';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611130101').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611130101';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -223,7 +223,7 @@ export class Quest {
       if (i < from) this.againBtn(id, i, li);
     });
     R.terms(ol);
-    this.ibSwitch(id);
+    this.ibSwitch(id); this.courseSwitch(id);
     if (from >= P.steps.length) { this.finishPanel(id); return; }
     for (let i = from; i < P.steps.length; i++) {
       if (my !== this.session) return;
@@ -285,6 +285,45 @@ export class Quest {
     ol.addEventListener('click', e => { const b = e.target.closest('.step__ibdoor'); if (b) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +b.dataset.ch } })); });
     draw(!!R.store.get('ibon', false));
   }
+  /* the course switches, "Your course: IGCSE · IB", in a place that has course layers (story.js `course`: the nucleus,
+     the ribosomes, the rough ER) and whose every Year 7 check is right (Daniel, 12 Nov 2026: "you can add a toggle for
+     IGCSE and a toggle for IB … only toggles that are activated once the student is done with the key stage 3"; the
+     side quest's own switches, js/plant/view.js, are the model). A switch on adds, under the words of each step, a
+     violet box with what that course asks about what the step shows, each line with its level and its statement; the
+     Year 7 words and the Year 7 checks never change. A box may hold a door to the film that shows the step in detail
+     (play.js opens it: 'coursefilm'). The choice is kept (store 'courseLv') and is the same in every place. */
+  courseSwitch(id) {
+    const P = STORY[id], C = P.course, top = $('.qp__top', this.panel), ol = $('.steps', this.panel);
+    if (!C || !top || !ol || !state.checks(id).length || !state.checked(id) || $('.qp__lv', this.panel)) return;
+    const NAME = { igcse: 'IGCSE', ib: 'IB' }, LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
+    const FILM = { copy: '🔬 How a cell copies a gene: the film, with your course →', ribo: '🔬 How a ribosome reads the copy: the film →' };
+    const LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {}));
+    const bar = h('div', { class: 'qp__lv' }, '<span class="qp__lvk">Your course</span>' + ['igcse', 'ib'].map(c =>
+      `<button type="button" class="qp__lvb" data-lv="${c}" aria-pressed="false"><span class="qp__ibt" aria-hidden="true"><i></i></span>${NAME[c]}</button>`).join(''));
+    top.insertAdjacentElement('afterend', bar);
+    const draw = () => {
+      $$('.step__lv', ol).forEach(x => x.parentNode.removeChild(x));
+      ['igcse', 'ib'].forEach(c => {
+        $(`[data-lv="${c}"]`, bar).setAttribute('aria-pressed', String(!!LV[c]));
+        if (LV[c]) C[c].forEach((b, i) => {
+          const li = ol.children[i]; if (!li || !b) return;
+          li.appendChild(h('div', { class: 'step__ib step__lv', 'data-lv': c }, `<p class="step__lvk">${NAME[c]}</p>`
+            + b.p.map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
+            + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm" data-film="${b.film}">${FILM[b.film]}</button>` : '')));
+        });
+      });
+      R.terms(ol);
+    };
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('.qp__lvb'); if (!b) return;
+      const c = b.dataset.lv; LV[c] = !LV[c]; R.store.set('courseLv', LV); draw();
+      /* the first box just opened comes into view */
+      const first = LV[c] && $(`.step__lv[data-lv="${c}"]`, ol);
+      if (first && first.scrollIntoView) first.scrollIntoView({ block: 'nearest', behavior: R.FAST ? 'auto' : 'smooth' });
+    });
+    ol.addEventListener('click', e => { const b = e.target.closest('.step__lvfilm'); if (b) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: b.dataset.film, id } })); });
+    draw();
+  }
   /* the end of a place: first its checks, then, when every one is right, the place is done (✦): its message, a "Did you
      know?", the real thing, and the way to the map (Daniel, 4 Nov 2026: "You have to complete the questions. It's like
      completing a game"). The first place has no way to the map before that: nothing is awake yet. */
@@ -319,7 +358,7 @@ export class Quest {
         ${P.plant ? `<div class="qp__side"><p class="qp__sidek">Side quest · extra</p><p class="qp__sidet">${esc(P.plantNote || '')}</p><button type="button" class="qp__real qp__plant">${esc(P.plant)}</button></div>` : ''}
         ${P.explore ? `<button type="button" class="qp__real qp__explore${P.ib ? ' qp__explore--ib' : ''}">${esc(P.explore)}</button>` : ''}`;
       R.terms(won);
-      this.ibSwitch(id);
+      this.ibSwitch(id); this.courseSwitch(id);
       /* See the real thing, before the place's extension (now, or once lens.js is here) */
       const lensBtn = () => {
         if (!HAS_LENS || !HAS_LENS(id) || !won.isConnected || $('.qp__real:not(.qp__explore):not(.qp__again):not(.qp__plant)', won)) return;

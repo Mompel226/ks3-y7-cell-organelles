@@ -865,6 +865,74 @@
    ]
   },
   {
+   "id": "fc-p1",
+   "part": 13,
+   "title": "Final check 21: Plant cell or animal cell?",
+   "short": "F21",
+   "kind": "all",
+   "gaps": [
+    "It has a nucleus.",
+    "It has a cell membrane.",
+    "It has chloroplasts.",
+    "It has a permanent vacuole.",
+    "It has a cell wall.",
+    "It has mitochondria."
+   ]
+  },
+  {
+   "id": "fc-p2",
+   "part": 13,
+   "title": "Final check 22: What enters and leaves a plant cell",
+   "short": "F22",
+   "kind": "mcq",
+   "opts": [
+    "the nucleus",
+    "the cytoplasm",
+    "the cell wall",
+    "the cell membrane"
+   ]
+  },
+  {
+   "id": "fc-p3",
+   "part": 13,
+   "title": "Final check 23: Energy in a leaf cell",
+   "short": "F23",
+   "kind": "mcq",
+   "opts": [
+    "in its ribosomes",
+    "in its chloroplasts",
+    "in its nucleus",
+    "in its mitochondria"
+   ]
+  },
+  {
+   "id": "fc-p4",
+   "part": 13,
+   "title": "Final check 24: Glucose that a leaf does not use",
+   "short": "F24",
+   "kind": "mcq",
+   "opts": [
+    "It is stored as chlorophyll.",
+    "It is stored as maltose.",
+    "It is stored as amylase.",
+    "It is stored as starch."
+   ]
+  },
+  {
+   "id": "fc-x1",
+   "part": 13,
+   "title": "Final check 25: Explorer: two names",
+   "short": "F25",
+   "ext": 1,
+   "kind": "mcq",
+   "opts": [
+    "Transcription joins the amino acids, and translation folds the chain.",
+    "Translation makes the mRNA, and transcription joins the amino acids.",
+    "Transcription makes the mRNA, and translation joins the amino acids.",
+    "Translation makes the mRNA, and transcription folds the chain."
+   ]
+  },
+  {
    "id": "game-plant",
    "part": 14,
    "title": "Side quest: followed glucose from a leaf to the blood",

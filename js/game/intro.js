@@ -25,7 +25,7 @@
    Sound button of its own. The press on ✦ Dive in lets the music start (cellgame:dive → sound.allowMusic).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { MAP_VIEW } from '../world/world.js?v=202611121836';
+import { MAP_VIEW } from '../world/world.js?v=202611130101';
 const R = window.REV, { $, h } = R;
 
 const STEPS = [
@@ -34,7 +34,7 @@ const STEPS = [
     text: 'Your mouth is always a little wet: <b>saliva</b>.\nMost of it is made by three pairs of large <dfn data-w="salivary-gland">salivary glands</dfn>, round your mouth.',
     gland: [0.552, 0.580, 0.161, 0.235] },         /* the parotid gland: its middle, its width and its height, as parts of the
                                                       picture (measured on the picture's colours, 4 Nov 2026) */
-  { svg: 'img/intro/gland.svg?v=202611121836',
+  { svg: 'img/intro/gland.svg?v=202611130101',
     credit: 'Drawing made for this page, to scale: the bar is 20 µm.',
     text: 'Inside a gland, the cells sit in small round bunches. Each bunch surrounds a tiny tube.\nThe cells make saliva. It flows along these tubes, the <b>ducts</b>, into your mouth.' },
   { text: 'This is one bunch of cells, in 3D. The front of one cell is removed, so that you can see inside it. You will enter that cell.\nImagine you become about a million times smaller: as small as a mitochondrion.\n<mark class="do">Press Dive in.</mark>', world: true }
@@ -87,7 +87,7 @@ function fade(world, ms) {
   const step = () => { const k = ms ? Math.min(1, (performance.now() - t0) / ms) : 1; world.acinus(1 - k); if (k < 1) requestAnimationFrame(step); };
   step();
 }
-/* the camera turns round the lumen: from the front to a view from above and to the side */
+/* the camera turns round the lumen: from the front to a view a little from above and to the side */
 function turn(world, d0, d1, yaw, pitch, ms) {
   const cam = world.camera, t0 = performance.now(), ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   return new Promise(res => {
@@ -168,8 +168,10 @@ export function intro(world) {
     inside.classList.add('is-gone');                                      /* the drawn bunch fades into the 3D one */
     await later(1300);
     fig.remove();
-    /* a slow turn round the bunch: it is the same bunch, and it has depth */
-    await turn(world, D, D * 1.12, -0.62, 0.3, R.FAST ? 0 : 3000);
+    /* a small, slow turn round the bunch: it is the same bunch, and it has depth. Small on purpose (Daniel, 12 Nov 2026:
+       "it twists a lot, and in the last screenshot, everything looks very dark"): at 35° to the side the cells on the far
+       side were seen edge on, one behind another, and read as dark blue; at 12° every cell still shows its lit front. */
+    await turn(world, D, D * 1.05, -0.21, 0.13, R.FAST ? 0 : 2600);
 
     /* ---- 3. the bunch in 3D ---- */
     await card(2);

@@ -274,6 +274,22 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .ibl--x{color:#4A5160;background:#E2E5EA;font-style:italic}
 .step__ibdoor{display:block;width:100%;font:800 15.5px/1.25 var(--sans);color:#fff;background:#7243C0;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left}
 .step__ibdoor:hover{background:#5A2FA8}
+/* the course switches of a place, "Your course: IGCSE · IB" (quest.js courseSwitch), and their boxes: the IB switch's look */
+.qp__lv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+.qp__lvk{font:800 14.5px/1 var(--sans);color:#5A2FA8;margin-right:2px}
+.qp__lvb{display:inline-flex;align-items:center;gap:8px;min-height:40px;font:800 15px/1 var(--sans);color:#5A2FA8;background:#EDE8FA;border:1.5px solid #C9BAEE;border-radius:999px;padding:5px 13px 5px 6px;cursor:pointer}
+.qp__lvb:hover,.qp__lvb[aria-pressed="true"]{border-color:#7243C0}
+.qp__lvb:focus-visible{outline:3px solid #7243C0;outline-offset:2px}
+.qp__lvb[aria-pressed="true"] .qp__ibt{background:#7243C0}
+.qp__lvb[aria-pressed="true"] .qp__ibt i{transform:translateX(14px)}
+.step__lvk{font:900 12.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#7243C0;margin:0 0 6px!important}
+.step__lv p:last-child{margin-bottom:0}
+.step__lv .step__lvfilm{margin-top:8px}
+.ibl--c{color:#17553B;background:#DDF2E6}
+.ibl--s{color:#3F4654;background:#E2E5EA}
+.ibl--n{color:#4A5160;background:#E2E5EA;font-style:italic}
+:root[data-theme="dark"] .qp__lvk{color:#B388FF}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__lvk{color:#B388FF} }
 .nm.nm--ib{font-size:14.5px;padding:5px 10px}
 .qp__ibchk{display:none;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:#E3F4EA;color:#14532D;font:700 15.5px/1.35 var(--sans)}
 .qp--ib .qp__ibchk{display:block}
@@ -282,10 +298,12 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ibchk{background:#123524;color:#A7F3C9} }
 :root[data-theme="dark"] .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root[data-theme="dark"] .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
 :root[data-theme="dark"] .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__x>b:first-child{color:#B388FF}
+:root[data-theme="dark"] .fc__tag--side{color:#A5E495;border-color:#7CC96A} :root[data-theme="dark"] .fc__tag--x{background:#2A2142;color:#B388FF;border-color:#B388FF}
 :root[data-theme="dark"] .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__ibdoor{color:#1B0E3A;background:#B388FF}
 :root[data-theme="dark"] .ibl--sl{color:#C9CFF7;background:#2A3170} :root[data-theme="dark"] .ibl--hl{color:#F59AB8;background:#3B1426} :root[data-theme="dark"] .ibl--x{color:#C7CCD6;background:#2E333D}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root:not([data-theme="light"]) .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
   :root:not([data-theme="light"]) .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__x>b:first-child{color:#B388FF}
+  :root:not([data-theme="light"]) .fc__tag--side{color:#A5E495;border-color:#7CC96A} :root:not([data-theme="light"]) .fc__tag--x{background:#2A2142;color:#B388FF;border-color:#B388FF}
   :root:not([data-theme="light"]) .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__ibdoor{color:#1B0E3A;background:#B388FF}
   :root:not([data-theme="light"]) .ibl--sl{color:#C9CFF7;background:#2A3170} :root:not([data-theme="light"]) .ibl--hl{color:#F59AB8;background:#3B1426} :root:not([data-theme="light"]) .ibl--x{color:#C7CCD6;background:#2E333D} }
 .qp__nav{margin-top:18px;display:flex;justify-content:flex-end}
@@ -461,6 +479,12 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .cf__lab--line span{background:rgba(10,14,40,.86);padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .cf__lab--line i{display:block;width:26px;height:2px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.6)}
 .cf__key[hidden]{display:none}
+/* the course lines under a film's words, and (ribofilm.js) the small names of the ribosome's sites and the mRNA's ends */
+.cf__lvs{margin-top:12px}
+.cf__lvs .cf__lv+.cf__lv{margin-top:8px}
+.cf__lvs .cf__lv p{font-size:15.5px}
+.cf__site{padding:3px 8px;border-radius:8px;border-color:#B388FF;color:#F1EAFF;background:rgba(42,26,84,.9);font-weight:900}
+@media (max-width:760px){.rf .cf__3d{height:min(44vh,330px)}}
 
 /* ---------- under the stage ---------- */
 
@@ -542,6 +566,10 @@ html.is-final{overflow:hidden}
 .fc__bar b{font:800 19px/1.2 var(--serif)}
 .fc__n{font-weight:800;color:var(--ink2)}
 .fc__mk{margin-left:auto;font-weight:800;color:var(--accent-ink)}
+/* a question of the side quest (the side quest's own dashed green) or for Explorers (the one extension violet) */
+.fc__tag{font:800 13px/1.2 var(--sans);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.fc__tag--side{border:1.5px dashed #5DAF4B;background:color-mix(in srgb,#7CC96A 14%,transparent);color:#2B6B1F}
+.fc__tag--x{border:1.5px solid color-mix(in srgb,#7243C0 45%,transparent);background:#EDE8FA;color:#7243C0}
 .fc__dots{display:flex;flex-wrap:wrap;gap:6px}
 .fc__dots button{width:34px;height:34px;padding:0;border-radius:50%;border:1.5px solid var(--rule2);background:var(--sheet);color:var(--ink2);font:800 14px/1 var(--sans);cursor:pointer}
 .fc__dots button.is-done{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}

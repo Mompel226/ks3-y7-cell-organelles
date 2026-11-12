@@ -177,6 +177,216 @@ window.STORY = {
       { play: 'copy', text: 'The DNA never leaves the nucleus. The cell makes a copy of the gene instead, called <dfn data-w="mrna">mRNA</dfn> (messenger RNA).\n<mark class="do">Press Copy to make the copy.</mark>\n<span class="step__x"><b>Explorer · beyond the Year 7 list.</b> Making a copy of a gene like this has a name: <dfn data-w="transcription">transcription</dfn>. <b>🔬 How a cell copies a gene</b> shows it step by step. When you finish it, the copy is made.</span>' },
       { play: 'export', text: '<mark class="do">Choose how the copy leaves the nucleus.</mark>' }
     ],
+    /* the course layers of this place (12 Nov 2026; Daniel: "you can add a toggle for IGCSE and a toggle for IB … be
+       specific for IGCSE students and IB"): shown by the panel's "Your course: IGCSE · IB" switches once every Year 7
+       check of the place is right (quest.js courseSwitch); the Year 7 words above never change. One entry per step, in
+       the steps' order (null: the course says nothing about what that step shows). Each line: [level, statement, words].
+       IGCSE: Cambridge 0610, syllabus for 2026 to 2028 (labs-shared/syllabus.json): 'c' Core, 's' Supplement, 'n' a
+       note on what the syllabus does not name. IB: the DP Biology guide, first assessment 2025: 'sl' under "SL and HL",
+       'hl' under "Additional higher level", 'x' beyond the guide. Every statement number was read in its source
+       (tools/course-check.mjs checks each one again); the words follow the source's own. `film`: a door to the film
+       that shows the step in detail. No line says what an examination will or will not ask. */
+    course: {
+     "igcse": [
+      {
+       "p": [
+        [
+         "c",
+         "2.1.1",
+         "The nucleus is in the list of cell structures that you describe and compare: cell membrane, nucleus, cytoplasm, ribosomes, mitochondria and, in plant cells, cell wall, chloroplasts and vacuoles."
+        ],
+        [
+         "n",
+         "",
+         "The nuclear envelope and the nuclear pores are not in that list."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "c",
+         "17.1.1",
+         "Chromosomes are made of DNA, which contains genetic information in the form of genes."
+        ],
+        [
+         "c",
+         "17.1.2",
+         "A gene is a length of DNA that codes for a protein."
+        ],
+        [
+         "s",
+         "17.1.11, 17.1.12",
+         "A diploid nucleus contains two sets of chromosomes. In a human diploid cell there are 23 pairs: the 46 threads of this nucleus."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.2.3",
+         "The exact replication of chromosomes occurs before mitosis: the second thread of this step."
+        ],
+        [
+         "s",
+         "17.2.4",
+         "During mitosis, the copies of chromosomes separate, maintaining the chromosome number in each daughter cell."
+        ],
+        [
+         "s",
+         "17.2.1",
+         "Mitosis is nuclear division giving rise to genetically identical cells. The syllabus says: \"details of the stages of mitosis are not required\"."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.1.5",
+         "The sequence of bases in a gene determines the sequence of amino acids used to make a specific protein."
+        ],
+        [
+         "s",
+         "17.1.9",
+         "Most body cells in an organism contain the same genes, but many genes in a particular cell are not expressed, because the cell only makes the specific proteins it needs. A cell of a salivary gland expresses the amylase gene."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.1.8",
+         "The gene coding for the protein remains in the nucleus. Messenger RNA (mRNA) is a copy of a gene. mRNA molecules are made in the nucleus."
+        ],
+        [
+         "s",
+         "4.1.4",
+         "A DNA molecule is two strands coiled together to form a double helix. Each strand contains chemicals called bases. Bonds between pairs of bases hold the strands together. The bases always pair up in the same way: A with T, and C with G."
+        ],
+        [
+         "n",
+         "",
+         "The syllabus says: \"knowledge of the details of transcription or translation is not required\". The film shows how it happens."
+        ]
+       ],
+       "film": "copy"
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.1.8",
+         "mRNA molecules move from the nucleus to the cytoplasm."
+        ]
+       ]
+      }
+     ],
+     "ib": [
+      {
+       "p": [
+        [
+         "sl",
+         "A2.2.6",
+         "The nucleus has a double membrane with pores, and its chromosomes are made of DNA bound to histones."
+        ],
+        [
+         "hl",
+         "B2.2.6",
+         "The pores are needed: mRNA and the parts of ribosomes leave through them, and proteins enter. During mitosis and meiosis the nuclear membrane breaks into vesicles."
+        ],
+        [
+         "sl",
+         "B2.2.2",
+         "The nucleus separates transcription from translation: mRNA can be modified before it meets ribosomes in the cytoplasm. In prokaryotes this is not possible."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "A1.2.1",
+         "DNA is the genetic material of all living organisms."
+        ],
+        [
+         "hl",
+         "A1.2.13",
+         "A nucleosome is a DNA molecule wrapped around a core of eight histone proteins, held together by an additional histone protein attached to linker DNA. The film of the copy step shows the nucleosomes of this thread."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "D2.1.5",
+         "DNA replication is a prerequisite for mitosis and for meiosis. After replication, each chromosome consists of two elongated DNA molecules (chromatids), held together until anaphase: the two threads of this step, joined in the middle."
+        ],
+        [
+         "sl",
+         "D2.1.6",
+         "Chromosomes condense in mitosis and in meiosis: histones condense the DNA by supercoiling. Microtubules and microtubule motors then move the chromosomes."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "D1.2.4",
+         "Not all genes in a cell are expressed at any given time. Transcription is the first stage of gene expression, and a key stage at which the expression of a gene can be switched on and off."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "D1.2.1",
+         "Transcription is the synthesis of RNA using a DNA template. RNA polymerase separates the two DNA strands and joins the RNA nucleotides into one strand."
+        ],
+        [
+         "sl",
+         "D1.2.2",
+         "Complementary base pairing and hydrogen bonding: each RNA nucleotide pairs with the complementary base of the DNA template strand. Adenine (A) on the template strand pairs with uracil (U) on the RNA strand."
+        ],
+        [
+         "sl",
+         "D1.2.3",
+         "The single DNA strand is only a template: its base sequence does not change when it is transcribed."
+        ],
+        [
+         "hl",
+         "D1.2.12",
+         "Transcription is 5′ to 3′: each RNA nucleotide is added to the 3′ end of the growing RNA strand."
+        ],
+        [
+         "hl",
+         "D1.2.13",
+         "Transcription is initiated at the promoter, a base sequence just before the start of the gene. Transcription factors bind to it; then RNA polymerase can bind."
+        ]
+       ],
+       "film": "copy"
+      },
+      {
+       "p": [
+        [
+         "hl",
+         "D1.2.15",
+         "Post-transcriptional modification in eukaryotic cells: introns are removed and exons are spliced together to form mature mRNA, and a 5′ cap and a 3′ polyA tail are added, which stabilize the mRNA. This happens in the nucleus, before the mRNA leaves."
+        ],
+        [
+         "x",
+         "",
+         "The game shows the copy leaving as one finished strand: it does not show the modification."
+        ]
+       ]
+      }
+     ]
+    },
     done: 'You carry the copy of the amylase gene. Next it needs a <b>ribosome</b>: the nucleolus makes the parts of ribosomes.',
     explore: '🔬 Explorer: how a cell copies a gene',
     again: '↺ Dive through a nuclear pore again',   /* the end card's button: the dive again (play.js dive-again; Daniel, 9 Nov 2026) */
@@ -204,6 +414,113 @@ window.STORY = {
       { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press the carrier that matches the code under the ribosome.</mark>\nEvery amino acid you join uses some energy.\n<span class="step__x"><b>Explorer · beyond the Year 7 list.</b> The ribosome reads the code of the copy and joins amino acids in that order. This has a name: <dfn data-w="translation">translation</dfn>.</span>' },
       { play: 'where', text: 'The first part of the amylase chain is a <b>signal</b>: it means that this protein must be made on the rough ER. Proteins that the cell releases are made there.\n<mark class="do">Choose where this ribosome must work.</mark>' }
     ],
+    course: {
+     "igcse": [
+      {
+       "p": [
+        [
+         "c",
+         "2.1.1, 2.1.4",
+         "Ribosomes are in the list of cell structures: they are where proteins are made (protein synthesis)."
+        ],
+        [
+         "n",
+         "",
+         "The syllabus does not name the two parts of a ribosome."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.1.8",
+         "The mRNA passes through ribosomes. The ribosome assembles amino acids into protein molecules. The specific sequence of amino acids is determined by the sequence of bases in the mRNA."
+        ],
+        [
+         "c",
+         "4.1.2",
+         "Proteins are large molecules made from smaller molecules: amino acids."
+        ],
+        [
+         "n",
+         "",
+         "The syllabus says: \"knowledge of the details of transcription or translation is not required\". The film shows how it happens."
+        ]
+       ],
+       "film": "ribo"
+      },
+      {
+       "p": [
+        [
+         "n",
+         "",
+         "The IGCSE syllabus for 2026 to 2028 does not name the rough ER. Its list of cell structures has ribosomes."
+        ]
+       ]
+      }
+     ],
+     "ib": [
+      {
+       "p": [
+        [
+         "sl",
+         "B2.2.1",
+         "In the IB guide, ribosomes and vesicles are organelles. The Year 7 list calls a structure an organelle only if it has a membrane of its own."
+        ],
+        [
+         "sl",
+         "D1.2.6",
+         "mRNA binds to the small subunit of the ribosome. Two tRNAs can bind at the same time to the large subunit."
+        ],
+        [
+         "hl",
+         "D1.2.17",
+         "Initiation of translation: the small subunit attaches to the 5′ terminal of the mRNA and moves to the start codon; the initiator tRNA binds; the large subunit attaches; then a second tRNA binds."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "D1.2.5",
+         "Translation is the synthesis of polypeptides from mRNA: the base sequence of the mRNA is translated into the amino acid sequence of a polypeptide."
+        ],
+        [
+         "sl",
+         "D1.2.7",
+         "Each carrier of the game is a transfer RNA (tRNA). Its anticodon, three bases, pairs with a codon of the mRNA by complementary base pairing. The shapes of the game stand for that fit."
+        ],
+        [
+         "sl",
+         "D1.2.10",
+         "The ribosome moves along the mRNA one codon at a time, and links each amino acid to the growing polypeptide chain by a peptide bond."
+        ],
+        [
+         "hl",
+         "D1.2.17",
+         "During elongation the ribosome has three binding sites for tRNA: A, P and E."
+        ]
+       ],
+       "film": "ribo"
+      },
+      {
+       "p": [
+        [
+         "hl",
+         "B2.2.7",
+         "Free ribosomes synthesize proteins for retention in the cell. Ribosomes bound to the rough endoplasmic reticulum synthesize proteins for transport within the cell and for secretion. Amylase is secreted."
+        ],
+        [
+         "x",
+         "",
+         "The signal is a short sequence of amino acids at the start of the polypeptide: a signal sequence."
+        ]
+       ]
+      }
+     ]
+    },
     done: 'Your ribosome is at the <b>rough ER</b>, with the start of the chain.',
     fact: { text: 'Electron micrographs showed one small box of a HeLa cell (a human cell grown in laboratories), only 7.5 × 4.6 × 7.5 µm. In it, a computer program found 553 130 ribosomes.', src: 'OpenOrganelle, dataset jrc_hela-2 (Xu et al. 2021, Nature 599:147; Heinrich et al. 2021, Nature 599:141)' },
     fact2: { text: 'The part of a ribosome that joins amino acids together is made of <dfn data-w="rna">RNA</dfn>, not protein.', src: 'Nissen et al. 2000, Science 289:920' }
@@ -214,11 +531,156 @@ window.STORY = {
     intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough. (On the map they are drawn about four times larger, so that you can see them; from very near, everything is at its true size.)\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'dock', text: '<mark class="do">Press Dock:</mark> because of the signal, the ribosome is taken to a channel in the membrane of the rough ER, a tunnel through the membrane.' },
-      { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel, inside the rough ER.\n<mark class="do">Press Go.</mark>' },
-      { play: 'cut', text: 'While the chain is still growing, an enzyme in the membrane of the rough ER removes the signal.\n<mark class="do">Press Cut.</mark>' },
+      { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel and into the rough ER.\n<mark class="do">Press Go.</mark>' },
+      { play: 'cut', text: 'While the chain is still growing, a cutting enzyme in the membrane of the rough ER removes the signal: the red start of the chain.\n<mark class="do">Press Go closer</mark> to see the signal. <mark class="do">Then press Cut.</mark>' },
       { play: 'fold', text: 'The chain cannot work yet: first it must fold into its shape.\n<mark class="do">Press Fold.</mark> The camera goes closer, so that you can see every bead: each bead is one amino acid.\nWhen the chain has folded, look for a groove in it. This groove is the <dfn data-w="active-site">active site</dfn>, where a short part of a starch chain fits: the shape is what lets amylase work.' },
-      { play: 'bud', text: 'Amylase leaves the rough ER in a vesicle, a small bubble of membrane: a piece of the membrane of the rough ER closes round it.\nSo every vesicle removes some membrane, and the ER needs new <dfn data-w="lipid">lipids</dfn>.\n<mark class="do">Press Bud to make a vesicle.</mark>' }
+      { play: 'bud', text: 'Amylase leaves the rough ER in a vesicle, a small bubble of membrane: a piece of the membrane of the rough ER bends round amylase and closes.\nSo every vesicle removes some membrane, and the rough ER needs new <dfn data-w="lipid">lipids</dfn>.\n<mark class="do">Press Bud to make a vesicle.</mark>' }
     ],
+    course: {
+     "igcse": [
+      {
+       "p": [
+        [
+         "n",
+         "",
+         "The IGCSE syllabus for 2026 to 2028 does not name the rough ER or the channel. It names vesicles only at a synapse (14.1.8). Its list of cell structures has ribosomes."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "s",
+         "17.1.8",
+         "The ribosome assembles amino acids into protein molecules."
+        ]
+       ]
+      },
+      null,
+      {
+       "p": [
+        [
+         "s",
+         "17.1.6",
+         "Different sequences of amino acids give different shapes to protein molecules."
+        ],
+        [
+         "c",
+         "5.1.2",
+         "Enzymes are proteins that are involved in all metabolic reactions, where they function as biological catalysts."
+        ],
+        [
+         "c",
+         "5.1.4",
+         "The shape of the active site of an enzyme is complementary to its substrate. For amylase the substrate is starch."
+        ],
+        [
+         "s",
+         "5.1.7",
+         "An enzyme is specific because of the complementary shape and fit of its active site with its substrate."
+        ],
+        [
+         "s",
+         "17.1.7",
+         "DNA controls cell function by controlling the production of proteins, including enzymes."
+        ]
+       ]
+      },
+      null
+     ],
+     "ib": [
+      {
+       "p": [
+        [
+         "sl",
+         "A2.2.6",
+         "Eukaryote cells have membrane-bound organelles in their cytoplasm, including endoplasmic reticulum, a Golgi apparatus and vesicles."
+        ],
+        [
+         "hl",
+         "B2.2.7",
+         "Ribosomes bound to the rough endoplasmic reticulum synthesize proteins for transport within the cell and for secretion."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "B1.2.2",
+         "Amino acids are linked by condensation reactions: each new peptide bond releases one molecule of water."
+        ],
+        [
+         "sl",
+         "B1.2.4",
+         "20 amino acids are coded for in the genetic code. A peptide chain can have any number of them, in any order. The chain of amylase has 496 amino acids once its signal is removed."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "hl",
+         "D1.2.18",
+         "Many polypeptides must be modified before they can function. Removing a signal sequence is one modification. The example of the guide is the two-stage modification of pre-proinsulin to insulin: its first stage, in the rough ER, also removes a signal sequence."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "hl",
+         "B1.2.7",
+         "Primary structure: the sequence of amino acids, and the position of each one, determines the three-dimensional shape of a protein. So the same chain folds into the same precise shape every time."
+        ],
+        [
+         "hl",
+         "B1.2.8",
+         "Secondary structure: parts of the chain coil into alpha helices, and parts form beta-pleated sheets, stabilized by hydrogen bonding in regular positions. Amylase has both."
+        ],
+        [
+         "hl",
+         "B1.2.9",
+         "Tertiary structure depends on hydrogen bonds, ionic bonds, disulfide covalent bonds (between pairs of cysteines) and hydrophobic interactions, all between R-groups."
+        ],
+        [
+         "hl",
+         "B1.2.10",
+         "Amylase is soluble in water: in such proteins the hydrophobic amino acids are clustered in the core."
+        ],
+        [
+         "hl",
+         "B1.2.12",
+         "Amylase is a globular protein: its rounded shape, with an active site, suits its function as an enzyme."
+        ]
+       ]
+      },
+      {
+       "p": [
+        [
+         "sl",
+         "B2.2.1",
+         "In the IB guide, a vesicle is an organelle."
+        ],
+        [
+         "hl",
+         "B2.2.9",
+         "Vesicles transport materials within the cell. The guide includes the role of clathrin in the formation of vesicles."
+        ],
+        [
+         "x",
+         "",
+         "The vesicles that leave the rough ER have another coat protein (COPII). Clathrin coats vesicles that form at the cell membrane and at the Golgi apparatus."
+        ],
+        [
+         "hl",
+         "B2.2.8",
+         "The Golgi apparatus processes proteins and prepares them for secretion: the next place of your mission."
+        ]
+       ]
+      }
+     ]
+    },
     done: 'A vesicle carries your amylase to the <b>Golgi apparatus</b>.',
     fact: { text: 'In a pancreas cell of a guinea pig, which makes digestive enzymes, 60 % of all its membrane is rough ER, and less than 1 % is smooth ER.', src: 'Bolender 1974, Journal of Cell Biology 61:269; Alberts et al., Molecular Biology of the Cell, 4th edition, table 12-2' }
   },

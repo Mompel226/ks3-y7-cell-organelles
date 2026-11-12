@@ -59,6 +59,7 @@
     const rows = [{ id: 'fc-begin', part, title: 'Final check: started (its time is counted from here)', short: 'start', kind: 'task' }];
     F.qs.forEach((q, k) => {
       const n = 'F' + (k + 1), base = { part, title: `Final check ${k + 1}: ${q.title}`, short: n };
+      if (q.tag === 'x') base.ext = 1;               /* an Explorer question: marked on the board as the game's own are */
       if (q.kind === 'one') rows.push(Object.assign({ id: q.id }, base, { kind: 'mcq', opts: q.opts.slice() }));
       else if (q.kind === 'all') rows.push(Object.assign({ id: q.id }, base, { kind: 'all', gaps: q.opts.slice() }));
       else if (q.kind === 'label') q.h.forEach((_, i) => rows.push({ id: q.id + '-' + (i + 1), part, title: `Final check ${k + 1}: ${q.title}, number ${i + 1}`, short: n + '.' + (i + 1), kind: 'label' }));

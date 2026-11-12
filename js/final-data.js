@@ -1,8 +1,8 @@
 /* final-data.js — the final check as the page gets it, written by tools/make-final.mjs (never by hand). The right
    answers are not here: only their scrambled fingerprints. */
 window.FINAL = {
- "salt": "0891be1c7914e76651d6ccf2",
- "marks": 30,
+ "salt": "c50b119968845c35c749e629",
+ "marks": 35,
  "qs": [
   {
    "id": "fc-01",
@@ -15,7 +15,7 @@ window.FINAL = {
     "It sends the amylase back to the nucleus.",
     "It joins the amino acids of amylase."
    ],
-   "h": "b6f4fda8b349e94b3a983afc7004b3a026d1b3d7e473212b08e9affaf4545610"
+   "h": "4391ab8c4ec2cb6b1783f1eaeb874fc39bde818d29031a7659090e7d455590bb"
   },
   {
    "id": "fc-02",
@@ -28,7 +28,7 @@ window.FINAL = {
     "It releases the energy that the cell uses for work.",
     "It makes the lipids that new membranes need."
    ],
-   "h": "bbc8619dc65b1011959ee5193461da7485940e9360e8b2171a06557ce2b19e43"
+   "h": "4efd0e0da3d5b228a950ac49bac1977aa4e65b0ce12d80395734250e5a45c20e"
   },
   {
    "id": "fc-03",
@@ -41,7 +41,7 @@ window.FINAL = {
     "Through a nuclear pore, then to a ribosome",
     "Through a nuclear pore, then to a mitochondrion"
    ],
-   "h": "a80afca590b1d93247ce7c2f3719ee1cdecf9c82ee4b69044e4dfd173e1a35db"
+   "h": "ff851e45f5086cf64820e8e47164f91d481e13343c775e066cf919c750978ade"
   },
   {
    "id": "fc-04",
@@ -54,7 +54,7 @@ window.FINAL = {
     "It has no membrane of its own.",
     "It has no specific job."
    ],
-   "h": "8151a9fefea6a165584421e5122c167cb0b4886a1f6606155ed3a3c377344992"
+   "h": "78e08d1c337837e67f544aec8e4306e7c7133eef45320a831a8dbcccfbfe57b4"
   },
   {
    "id": "fc-05",
@@ -67,7 +67,7 @@ window.FINAL = {
     "The DNA of a gene is copied.",
     "Amino acids are joined in a chain."
    ],
-   "h": "20c99fc0285c6648073e06f84ce800a4de521ec883fcecc72032ea4bbd32ae56"
+   "h": "88be04ebfc4c566a665a233ba894bda744f4b0fb89d0233fc700eaf9daa22a00"
   },
   {
    "id": "fc-06",
@@ -80,7 +80,7 @@ window.FINAL = {
     "in the saliva in your mouth",
     "inside the nucleus"
    ],
-   "h": "80d895e1e925fa66a00f5e665a284c291fcf2e60461964e420b0af9db0d498ae"
+   "h": "a1db7994c98a584e2262a74781231d2fbe102e54135eabe7aed3e6f2e74f7eb7"
   },
   {
    "id": "fc-07",
@@ -93,7 +93,7 @@ window.FINAL = {
     "Using light, they make glucose from carbon dioxide and water.",
     "They join amino acids together, so they make amylase."
    ],
-   "h": "b80fadd68f9499c6c79ede393206f420e047b76f4cc17c705e6c1808f87a16b5"
+   "h": "cb4110e07c3bf9446e0e39a970ea3b4ba4bfd68f39c4aacb9b2818298ac53e70"
   },
   {
    "id": "fc-08",
@@ -106,7 +106,7 @@ window.FINAL = {
     "It passes straight through the cell membrane.",
     "It arrives inside a vesicle from the duct."
    ],
-   "h": "524cf8e4c8e8c07dd1a567c44f42f2b10729a51505fdebffe7933244f5e9d82b"
+   "h": "48f4c3de9f95a42bb3c4f28f9375c1df360d1193e1455850c52255db9518c701"
   },
   {
    "id": "fc-09",
@@ -119,7 +119,7 @@ window.FINAL = {
     "mRNA",
     "DNA"
    ],
-   "h": "0f11ee56287e16c939892c0c574a5e4029fe632e770fab56537832e5b87e8521"
+   "h": "144f5e0e2bbcd69c9e7f85153cd3b92693c64e9a86dc61c51021cb13afcc3315"
   },
   {
    "id": "fc-10",
@@ -132,7 +132,7 @@ window.FINAL = {
     "They make the copies of genes that the ribosomes read.",
     "They fold the amylase chain into its shape."
    ],
-   "h": "2be7ee4c3addcd497c56814ca134ee14bff7c683d2bb752e4c0a42c21066e3b9"
+   "h": "9589d73d6d3f79de29f448b3b7851cfe93a8c6d4aa802cbc0d841da4a69e2489"
   },
   {
    "id": "fc-11",
@@ -145,7 +145,7 @@ window.FINAL = {
     "Amylase passes through carrier proteins in the membrane.",
     "The cell membrane bursts, so the amylase leaves."
    ],
-   "h": "acfc6ba636b4a2f6edb3603b51dae71893699ecdb74ba9f668fd164abf916728"
+   "h": "7b022191d1998b16e52f170e9a695b380dde636478430cfdfda1cd9307d11dda"
   },
   {
    "id": "fc-12",
@@ -158,7 +158,7 @@ window.FINAL = {
     "Both wells stay orange-brown.",
     "Both wells turn blue-black."
    ],
-   "h": "efc24be7f09a887eec199f7af732636a06304ce8a263edb5694fcca7b5028dcb"
+   "h": "cc64def7135e305a3131202dad43c504a61e3f35b3d4b312fdbc4556fcaa6494"
   },
   {
    "id": "fc-m1",
@@ -172,7 +172,7 @@ window.FINAL = {
     "the centrosome",
     "a ribosome"
    ],
-   "h": "03eb28d60524bd04901b1ef04bc12e124f6b3a702b5fffbd4cf3b6d2dfbe00cb"
+   "h": "47992d8b7e67cd883a2460697a8bf0c8c1c13a24b726f92d57c9a34e3fd43d85"
   },
   {
    "id": "fc-m2",
@@ -186,7 +186,7 @@ window.FINAL = {
     "red blood cells",
     "glucose"
    ],
-   "h": "8d0d48c0d42c851371df2f7ce909d0846b9138b8560115d81a44cf7f326a3bd4"
+   "h": "8ee43c5de53ded9483cde9473a32074c3086ff3738be1caae14c3143de958474"
   },
   {
    "id": "fc-m3",
@@ -200,7 +200,7 @@ window.FINAL = {
     "the nucleus",
     "the nucleolus"
    ],
-   "h": "0a1bac3ac4d0bc8427729dd5a7c81c19fc9887f42e6300b24bfca9a4ca00f9ec"
+   "h": "db0c2a9127f990c859a0a810c045843f1fbb4da12b790df14575dd4a1dae0895"
   },
   {
    "id": "fc-m4",
@@ -214,7 +214,7 @@ window.FINAL = {
     "Lipids are made.",
     "Amino acids are joined."
    ],
-   "h": "84a7e5d1c2d72233d45ebd9fcab4403d1bbbcbb03304c5d3db33b8b4336a7716"
+   "h": "5fa8b18a55138d8850632fee217112f5bd53145b8eb5a5bc228f973aac4dc609"
   },
   {
    "id": "fc-l1",
@@ -231,12 +231,12 @@ window.FINAL = {
     "nucleolus"
    ],
    "h": [
-    "d58751f312a36f9a3483293bbd17bef6f3df62f97a76011707730b9c289499c2",
-    "eaedfd8a20066c660d41669d4cb6cb3252378b8335d9d775fa6cfed353a95419",
-    "0083adaaac3417ed1e5f634dea34747e4250c2622f0cb0353a262c531ba5d509",
-    "ff1f85124a14412444b72d32daa1c049c04425c03e2859d6487355e8b117f0ea",
-    "c4ee4719b4052f5e79872036013658cdf017936358af257449ff33d1cdcc774a",
-    "4ba9bab18d13114a9c0741d46f6eadcde1472db031446a567cba3b93c7a0bc74"
+    "31c732bbc1ae4c68f9ca05bffe19dd3291e1705e0ff15a28c736f268668de24f",
+    "dbf2b8ae97d6583e96fd9c1d4148ae81d5d95d4e1bcbb713e0867bb967d5e931",
+    "3c9794990a14e06524274ff0544144253107fe14fc0fdaba7fa975f626742b13",
+    "65e257dee153852c4db95c6c95216159fda4e2d41b19db3a5dfbcf3e923d0a59",
+    "4c9922eb7a424fc7a457aeb4019b6eb16a98e3505418e73bead34faf69a188a5",
+    "4239f6e4ba3b47b7e64c782f24ebdbf489dcff8591be9b1e98b0428404fba479"
    ]
   },
   {
@@ -254,12 +254,12 @@ window.FINAL = {
     "smooth ER"
    ],
    "h": [
-    "e35b4560c12f5ef8c5d4128ee6d493fda52c72d0fac09307ba95e84b79560cf5",
-    "a84f04935884ecbe08e29c72101dfb4f68ba8e72fd7d240c15f9a079b68df2ae",
-    "f7964fc5f0d5efc50a822c71e225c86d828090642a2589094857893ccc61a14d",
-    "8d1df753c2530a175769d8f603488e57b639dc1e7089d93ba87e5aa907c8e066",
-    "f58d03c61dd62025236fd18abd1d73922d57d4ceb51425c987a6f05be712ef7f",
-    "4e2424774f8c2404fac9fcce7a41838811ab32bae1b58110f5ba9bf908a75906"
+    "178feccfc1ee8e145085dd30fc22f94b6e96b9104d3e98aeabcc3f1e67abe4af",
+    "c9abbc6f62a9b22af919fcc750deec7bfe82b63c42a645e3528d56bd606ca8df",
+    "faa87eeb73fbaf7d6a70f83344144700b5ee2970183b7ebe07f09d88a8a7c5b1",
+    "5cc214ec7ec0233be138bb401522d951b7594bfdb1f6e0591276c7a6df08c1d6",
+    "c00d01295e73b42512fbe76297d78d244c9e0207927366518b7751b38f9472a5",
+    "99d1b56927e30b12f9166123c624a09f216c084413d7fe5fe54f074efbb2112f"
    ]
   },
   {
@@ -275,7 +275,7 @@ window.FINAL = {
     "Its membrane joins the membrane of the cell.",
     "A nerve message reaches the cell."
    ],
-   "h": "7e62de6aeabe10cf7358b3f0c84e9f1158301fa0a3be634a80e9d2f50577d544"
+   "h": "2fa1e966d63b3aa671f254a2afedccce6852896e5499a2c59bf2e214a5569745"
   },
   {
    "id": "fc-sort",
@@ -294,7 +294,79 @@ window.FINAL = {
     "a ribosome",
     "the amylase gene"
    ],
-   "h": "2d19c048506a5954ab7caa88ffec6492e6cad89936acc6c863bd0a697750a993"
+   "h": "3494e2255e706d56122183679d50264fd096fcb7738cc5a200cc771efdd6aded"
+  },
+  {
+   "id": "fc-p1",
+   "kind": "all",
+   "title": "Plant cell or animal cell?",
+   "stem": "You see a cell with a microscope. Which of these show that it is a plant cell, and <b>not</b> an animal cell? Choose every right answer.",
+   "tag": "side",
+   "opts": [
+    "It has a nucleus.",
+    "It has a cell membrane.",
+    "It has chloroplasts.",
+    "It has a permanent vacuole.",
+    "It has a cell wall.",
+    "It has mitochondria."
+   ],
+   "h": "bc303eb941f80b1056fd631a49870823b978cb89d69b60d1cba9b69522d2a603"
+  },
+  {
+   "id": "fc-p2",
+   "kind": "one",
+   "title": "What enters and leaves a plant cell",
+   "stem": "In a plant cell, which structure controls the substances that enter and leave the cell?",
+   "tag": "side",
+   "opts": [
+    "the nucleus",
+    "the cytoplasm",
+    "the cell wall",
+    "the cell membrane"
+   ],
+   "h": "9bd96c6f876e62954f07759b043b8d988ebb7573de1115280d42b7c416d784e9"
+  },
+  {
+   "id": "fc-p3",
+   "kind": "one",
+   "title": "Energy in a leaf cell",
+   "stem": "A leaf cell makes glucose in the light. Where does the leaf cell release energy from glucose, for its own work?",
+   "tag": "side",
+   "opts": [
+    "in its ribosomes",
+    "in its chloroplasts",
+    "in its nucleus",
+    "in its mitochondria"
+   ],
+   "h": "0e977b052886f2c793d6266cbd63f991b151f4d2584874fa79ac985bda74655a"
+  },
+  {
+   "id": "fc-p4",
+   "kind": "one",
+   "title": "Glucose that a leaf does not use",
+   "stem": "In the light, a leaf makes more glucose than it uses. What happens to the glucose that the leaf does not use?",
+   "tag": "side",
+   "opts": [
+    "It is stored as chlorophyll.",
+    "It is stored as maltose.",
+    "It is stored as amylase.",
+    "It is stored as starch."
+   ],
+   "h": "d643f25c26a584882c2e5daa680ecb523673eebf2ef602c895ad97d349d2eb22"
+  },
+  {
+   "id": "fc-x1",
+   "kind": "one",
+   "title": "Explorer: two names",
+   "stem": "A cell makes a protein in two steps, and each step has a name. Which sentence uses the two names correctly?",
+   "tag": "x",
+   "opts": [
+    "Transcription joins the amino acids, and translation folds the chain.",
+    "Translation makes the mRNA, and transcription joins the amino acids.",
+    "Transcription makes the mRNA, and translation joins the amino acids.",
+    "Translation makes the mRNA, and transcription folds the chain."
+   ],
+   "h": "520570de9fcc0d366a3e5582e6084f9d40533e1a9e21f6e740d590fd17cbd60d"
   }
  ]
 };
