@@ -5,18 +5,18 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611121652';
-import { state, COST, RESPIRE } from './state.js?v=202611121652';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121652';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121652';
-import { sound } from './sound.js?v=202611121652';
-import { magicStandard } from '../world/magic.js?v=202611121652';
-import { buildCrowd } from '../world/crowd.js?v=202611121652';
-import { Names } from './names.js?v=202611121652';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611121712';
+import { state, COST, RESPIRE } from './state.js?v=202611121712';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611121712';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611121712';
+import { sound } from './sound.js?v=202611121712';
+import { magicStandard } from '../world/magic.js?v=202611121712';
+import { buildCrowd } from '../world/crowd.js?v=202611121712';
+import { Names } from './names.js?v=202611121712';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611121652').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611121712').then(m => m.openCopyFilm(o));
 const R = window.REV;
 /* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
    IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
@@ -964,7 +964,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611121652').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611121712').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -3292,22 +3292,23 @@ export function makePlay(world, quest) {
   async function simple() {
     world.simple(true);
     const G = W.groups, P = world.P;
-    quest.names.set([
+    quest.names.set(y7Names(), HUD());
+    await quest.next();
+    quest.names.set([]);
+  }
+  const y7Names = () => { const G = W.groups, P = world.P; return [
       nameOf('membrane', 'cell membrane', [V(-6.2, 9.5, 0.2), V(6.1, 9.2, 0.2), V(-6.7, 5.2, 0.6), V(6.6, 5.0, 0.6), V(-5.4, 12.6, 0.3), V(5.3, 12.4, 0.3)], [G.membrane], 'is-y7'),
       nameOf('cytoplasm', 'cytoplasm', [V(-3.0, 12.6, 1.0), V(3.0, 12.2, 1.2), V(-3.8, 9.0, 1.8), V(3.8, 8.6, 1.8), V(-2.2, 14.0, 0.8)], [G.cytosol], 'is-y7'),
       nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group], 'is-y7'),
       nameOf('mito', 'mitochondrion', P.mito.spots.concat(spotsOf(G.mitochondria, 8)), [G.mitochondria], 'is-y7'),
       nameOf('ribo', 'ribosome', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 40).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7')
-    ], HUD());
-    await quest.next();
-    quest.names.set([]);
-  }
+    ]; };
   /* each structure an electron microscope shows appears in turn, and its name joins the others */
-  async function full() {
-    const b = quest.hot(() => V(0, 10.5, 3), 'Show everything', { side: 'c', cls: 'big' });
-    await b.done; b.remove();
-    const G = W.groups, P = world.P;
-    const show = [
+  /* every structure of the first place with its name: they stay on the picture from Show everything on, through the
+     place's last steps and while its checks are answered (12 Nov 2026; Daniel, from a lesson: a pupil who had pressed ↻
+     on Show everything "is stuck. He can not answer the questions because the labels have disappeared": before, the
+     names went at the next press, and a step watched again showed them for three seconds only) */
+  const fullShow = () => { const G = W.groups, P = world.P; return [
       ['rer', P.rer.center, [nameOf('rer', 'rough ER', P.rer.spots, [G.rer])]],
       /* the nucleus closed (the pupil has not been inside yet: the inside is seen first in the dive): named "nucleus", as in
          the Year 7 view before (Daniel, 9 Nov 2026: it had been named "nuclear pore", for its pores, and "it should be
@@ -3322,7 +3323,13 @@ export function makePlay(world, quest) {
       ['lysosomes', V(-2.9, 10.6, -0.6), [nameOf('lysosomes', 'lysosome', [V(-2.9, 10.6, -0.6)].concat(spotsOf(G.lysosomes, 8)), [G.lysosomes])]],
       ['centrosome', V(0.1, 14.55, -1.1), [nameOf('centrosome', 'centrosome', [V(0.1, 14.55, -1.1)].concat(spotsOf(G.centrosome, 4)), [G.centrosome])]],
       ['apex', V(0, 16.6, 0), [nameOf('duct', 'the duct', [V(0, 16.6, 0), V(-0.9, 16.3, 0.4), V(0.9, 16.3, 0.4)].concat(spotsOf(G.apex, 6)), [G.apex])]]
-    ];
+    ]; };
+  /* all of them, with the Year 7 five (the nucleus once only) */
+  function arriveNames() { const all = fullShow().flatMap(x => x[2]); quest.names.set(all.concat(y7Names().filter(n => !all.some(a => a.key === n.key))), HUD()); }
+  async function full() {
+    const b = quest.hot(() => V(0, 10.5, 3), 'Show everything', { side: 'c', cls: 'big' });
+    await b.done; b.remove();
+    const show = fullShow();
     const list = [];
     for (const [k, p, items] of show) {
       world.reveal(k); burst(scene, p, { n: 36, r: 0.8 });
@@ -3330,11 +3337,13 @@ export function makePlay(world, quest) {
       await wait(700);
     }
     world.simple(false);
+    arriveNames();
     await quest.next();
-    quest.names.set([]);
   }
-  async function organelles() { await quest.next(); }
-  async function mission() { await quest.next('Go to the map'); }
+  async function organelles() { arriveNames(); await quest.next(); }
+  /* (the map opens only once this place's checks are right: until then the last button says what comes next. It had
+     said Go to the map, and the checks came instead) */
+  async function mission() { arriveNames(); await quest.next(state.checked('arrive') ? 'Go to the map' : 'Answer the checks'); }
 
   const ACT = { look, oxygen, carriers, amino, co2, mlook, minside, split, feed, respire, water, dam, release, enter, findchr, pack, findgene, copy, export: exportCopy, small: () => build('small'), large: () => build('large'), out,
     assemble, translate, where, dock, grow, cut, fold, bud, lipid, layer, join, through, sortgame, package: packageIt, grab, maze, smell, fuse, flatten,
@@ -3390,7 +3399,7 @@ export function makePlay(world, quest) {
   const STORY_STEPS = id => (window.STORY[id] || {}).steps || [];
 
   return {
-    watch,
+    watch, arriveNames,
     run: (name) => Promise.resolve().then(() => ACT[name] ? ACT[name]() : quest.next()).catch(e => { if (e === STALE) return false; throw e; }),
     reset,
     /* is the camera in a close view now (main.js: the place set up again after a ↻ stays there) */

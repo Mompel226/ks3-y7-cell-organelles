@@ -289,6 +289,8 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
   :root:not([data-theme="light"]) .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__ibdoor{color:#1B0E3A;background:#B388FF}
   :root:not([data-theme="light"]) .ibl--sl{color:#C9CFF7;background:#2A3170} :root:not([data-theme="light"]) .ibl--hl{color:#F59AB8;background:#3B1426} :root:not([data-theme="light"]) .ibl--x{color:#C7CCD6;background:#2E333D} }
 .qp__nav{margin-top:18px;display:flex;justify-content:flex-end}
+/* (12 Nov 2026: the first place has no way to the map until its checks are right; display:flex had shown the hidden button) */
+.qp__nav[hidden]{display:none}
 .pls{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .pl button{width:100%;text-align:left;display:flex;flex-direction:column;gap:2px;background:none;border:1.5px solid var(--qp-rule);border-radius:14px;padding:9px 12px;cursor:pointer;color:var(--qp-ink);font:inherit}
 .pl__n{font:800 17px/1.2 var(--sans)}

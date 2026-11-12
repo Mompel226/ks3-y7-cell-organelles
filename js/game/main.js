@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611121652';
-import { Names } from './names.js?v=202611121652';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611121652';
-import { makePlay } from './play.js?v=202611121652';
-import { setStill, wait } from './actors.js?v=202611121652';
-import { state, RESPIRE } from './state.js?v=202611121652';
-import { ICON } from './icons.js?v=202611121652';
-import { intro } from './intro.js?v=202611121652';
-import { sound } from './sound.js?v=202611121652';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611121652';
+import { World, MAP_VIEW } from '../world/world.js?v=202611121712';
+import { Names } from './names.js?v=202611121712';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611121712';
+import { makePlay } from './play.js?v=202611121712';
+import { setStill, wait } from './actors.js?v=202611121712';
+import { state, RESPIRE } from './state.js?v=202611121712';
+import { ICON } from './icons.js?v=202611121712';
+import { intro } from './intro.js?v=202611121712';
+import { sound } from './sound.js?v=202611121712';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611121712';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -106,6 +106,10 @@ async function go(id, stay) {
      opens with one press for it (quest.js moreBox, 'place-more' below), never every step again (the audit, 11 Nov 2026) */
   setInset();
   if (id === 'test') { busy = false; return test(); }
+  /* the first place is not a place of the map (it has no view of its own): it is set up again where the camera is.
+     Before 12 Nov 2026 this line was missing, so after ↻ on one of its steps the game stopped here with an error: the
+     step's button had gone and nothing came back (Daniel, from a lesson: "he's stuck") */
+  if (id === 'arrive') { busy = false; await quest.openPlace('arrive', (name) => play.run(name)); looks(); arriveNames(); return; }
   const P = world.P[id];
   world.setFrame(P.view.frameH || 0);
   if (!held) world.flyTo(P.view);
@@ -113,6 +117,9 @@ async function go(id, stay) {
   await quest.openPlace(id, (name) => play.run(name));
   looks();
 }
+/* the first place keeps every structure named while its checks are answered, also after a step watched again or when the
+   game is opened again there (12 Nov 2026: a pupil could not answer them, the names had gone) */
+function arriveNames() { if (quest.cur === 'arrive' && (state.done('arrive') || state.step('arrive') >= 2)) play.arriveNames(); }
 /* a return visit's one press (quest.js moreBox): the way in gives two glucose and two oxygen again, as its steps did; the
    mitochondria use one of each and release energy, as their last step did (play.js release: RESPIRE). Each item flies
    to the bag from the place, so the pupil sees where it came from */
@@ -250,7 +257,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611121652').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611121712').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -260,7 +267,7 @@ let opening = false;
 const openIB = start => {
   if (opening || document.documentElement.classList.contains('ibv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611121652').then(m => {
+  import('../ib/view.js?v=202611121712').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -270,10 +277,10 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611121652').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611121712').then(m => m.warm()).catch(() => { warmed = false; });
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611121652').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611121712').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
@@ -349,7 +356,7 @@ document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611121652').then(m => {
+  import('../plant/view.js?v=202611121712').then(m => {
     world.hold = true;
     m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
@@ -369,11 +376,14 @@ async function start() {
   if (finalOpen()) openFinal();
   if (!state.complete('arrive')) {
     if (!state.step('arrive') && !state.done('arrive')) await intro(world); else sound.allowMusic();   /* no intro: the pupil is in 3D already */
-    if (!state.done('arrive')) world.simple(true);
+    /* (only the five Year 7 parts lit, until Show everything has been pressed: a game opened again after it shows all) */
+    if (!state.done('arrive') && state.step('arrive') < 2) world.simple(true);
     setInset();
     /* its end is its checks; when every one is right, "Go to the map" leads on (quest.finishPanel) */
-    await quest.openPlace('arrive', (name) => play.run(name));
-    looks();
+    const opened = quest.openPlace('arrive', (name) => play.run(name));
+    setTimeout(arriveNames, 600);
+    await opened;
+    looks(); arriveNames();
     return;
   }
   sound.allowMusic();
