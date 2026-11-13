@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Dr Daniel Mompel Riera">
+<meta name="copyright" content="Dr Daniel Mompel Riera">
+<meta name="description" content="IB Biology, B2.1 Membranes: the fluid mosaic model in 3D at true sizes. Phospholipids move sideways in their own layer, proteins drift more slowly, cholesterol sits among the tails; follow one molecule and compare.">
+<title>The cell membrane: fluid and mosaic · IB Biology</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23221C55'/><g fill='%23FF9AC8'><circle cx='7' cy='9' r='3'/><circle cx='16' cy='9' r='3'/><circle cx='25' cy='9' r='3'/><circle cx='7' cy='23' r='3'/><circle cx='16' cy='23' r='3'/><circle cx='25' cy='23' r='3'/></g><path d='M7 12v4M16 12v4M25 12v4M7 16v4M16 16v4M25 16v4' stroke='%23FFD8A8' stroke-width='2'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
+<link rel="stylesheet" href="../css/membrane.css?v=202611131404" data-memcss="1">
+<!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
+<script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
+<style>html,body{margin:0;background:#070a1f}</style>
+</head>
+<body>
+<!-- The membrane view of the Y7 cell game at its own address, for an IB lesson on B2.1 (13 Nov 2026). The same view as
+     the game's door opens (js/membrane/view.js). -->
+<noscript><p style="color:#fff;font-family:system-ui;padding:20px">This view needs JavaScript to draw the membrane in 3D.</p></noscript>
+<script type="module">
+  import { openMembrane } from '../js/membrane/view.js?v=202611131404';
+  openMembrane({ mount: document.body });
+</script>
+</body>
+</html>

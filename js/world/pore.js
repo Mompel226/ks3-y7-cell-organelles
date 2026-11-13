@@ -39,7 +39,7 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, CUT } from './magic.js?v=202611130101';
+import { PAL, magicStandard, CUT } from './magic.js?v=202611131404';
 
 /* the sizes above, in nm (play.js reads them for the camera's way through) */
 export const NPC = {

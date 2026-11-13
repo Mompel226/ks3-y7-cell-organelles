@@ -5,33 +5,41 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611130101';
-import { state, COST, RESPIRE } from './state.js?v=202611130101';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611130101';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611130101';
-import { sound } from './sound.js?v=202611130101';
-import { magicStandard } from '../world/magic.js?v=202611130101';
-import { buildCrowd } from '../world/crowd.js?v=202611130101';
-import { Names } from './names.js?v=202611130101';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611131404';
+import { state, COST, RESPIRE } from './state.js?v=202611131404';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611131404';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611131404';
+import { sound } from './sound.js?v=202611131404';
+import { magicStandard } from '../world/magic.js?v=202611131404';
+import { buildCrowd } from '../world/crowd.js?v=202611131404';
+import { Names } from './names.js?v=202611131404';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611130101').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611131404').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611130101').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611131404').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
   try { await (e.detail.film === 'ribo' ? openRiboFilm() : openCopyFilm()); } finally { filmOpen = false; }
 });
 const R = window.REV;
-/* the IB switch (quest.js ibSwitch), shown in a place once every check is right: on, the names on the picture add the
-   IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein, the carrier proteins") */
+/* IB mode (quest.js courseSwitch: "Your course", IB on, in the way in and the mitochondria, once every check is right):
+   the names on the picture add the IB names (Daniel, 5 Nov 2026: the toggle "adds the labels to the transport protein,
+   the carrier proteins") */
 const ibOn = () => document.documentElement.classList.contains('ib-on');
-/* with IB on, the IB terms where Year 7 has simpler ones (Daniel, 5 Nov 2026: "if you used lipids for Key Stage 3, now
-   you use phospholipids"): ib(Year 7 words, IB words); the names on the magnified view by key: [name, a phone's name] */
-const ib = (y7, words) => ibOn() ? words : y7;
+/* in IB mode, what the place says is the Year 7 sentence and, under it, the same thing as IB writes it, each with its
+   level (Daniel, 13 Nov 2026: "being a KS3 level sentence next to an IB level one (as long as the distinction is
+   clear) is useful for the students to see how they need to improve/change the way they write as they progress";
+   until then the IB sentence replaced the Year 7 one): ib(Year 7 words, IB words). The choices a pupil presses stay in
+   the Year 7 words of the step they stand in. `lv`: the IB sentence's level in the guide of 2025, shown beside its
+   name as on every line of the course's box ('sl' under "SL and HL", 'hl' under "Additional higher level", 'x' beyond
+   the guide; the expert, 13 Nov 2026: an SL pupil read an HL sentence as plain "IB"). The names on the magnified view
+   by key: [name, a phone's name] */
+const IB_LV = { sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
+const ib = (y7, words, lv = 'sl') => ibOn() ? `<div class="say__lv say__lv--y7"><b class="say__k">Year 7 sentence</b>${y7}</div><div class="say__lv say__lv--ib"><b class="say__k">IB sentence <span class="ibl ibl--${lv}">${IB_LV[lv]}</span></b>${words}</div>` : y7;
 const IB_NAMES = { 'nm-om': ['outer membrane:<br>phospholipid bilayer'], 'nm-ch': ['channel protein:<br>porin'], 'nm-cp': ['carrier protein:<br>pyruvate carrier'],
   'nm-h': ['hydrogen, in reduced<br>NAD and FADH₂', 'hydrogen'], 'nm-h2': ['hydrogen, in reduced<br>NAD and FADH₂', 'hydrogen'],
   'nm-p4': ['complex IV, the last<br>protein of the chain'], 'nm-lum': ['intermembrane space<br>(inside a crista)', 'intermembrane space'],
@@ -92,11 +100,12 @@ export function makePlay(world, quest) {
     const f = t => { if (!o.parent || o.userData.bob !== f) { W.anim.splice(W.anim.indexOf(f), 1); return; } o.position.y = y0 + k * Math.sin(t * 1.4 + ph); o.rotation.y += 0.005; };
     o.userData.bob = f; W.anim.push(f);
   };
-  /* a button on a part, pressed once (the step goes on); the energy check, when a job costs energy */
+  /* a button on a part, pressed once (the step goes on); the energy check, when a job costs energy (`cost`, and `key`,
+     the job's name: quest.js energy charges a job once in a game) */
   const press = async (at, label, opts = {}) => {
     for (;;) {
       const b = quest.hot(at, label, opts); await b.done; b.remove();
-      if (!opts.cost || quest.energy(opts.cost)) return;
+      if (!opts.cost || quest.energy(opts.cost, opts.key)) return;
       await wait(400);
     }
   };
@@ -262,7 +271,7 @@ export function makePlay(world, quest) {
     molTag(g[0], 'glucose');
     await wayZoom(C.at.x + 0.2); wayNames(true, [...g, C.group]);   /* (and off the carrier, where the glucose goes through) */
     await press(() => g[0].position.clone().add(V(0, -0.1, 0)), 'glucose', { cls: 'tok', side: 'b' });
-    await quest.choose(ibOn() ? ['Through a glucose transporter (a carrier protein)', 'Straight between the phospholipids'] : ['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
+    await quest.choose(['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
       quest.say(ib('Glucose is a larger molecule: the two layers of lipids stop it.', 'Glucose is polar: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
       await bump(g[0], C.at.x + 1.15);
     });
@@ -277,7 +286,7 @@ export function makePlay(world, quest) {
     molTag(a, 'amino acid');
     await wayZoom(C.at.x - 0.5); wayNames(true, [a, C.group, G.group]);
     await press(() => a.position.clone().add(V(0, -0.1, 0)), 'amino acid', { cls: 'tok', side: 'b' });
-    await quest.choose(ibOn() ? ['Through its own transporter', 'Through the glucose transporter', 'Straight between the phospholipids'] : ['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
+    await quest.choose(['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
       if (i === 1) {
         quest.say(ib('The carrier protein for glucose lets only glucose pass through. Each kind of carrier protein lets only one kind of substance pass through.', 'The glucose transporter lets only glucose pass through. Each carrier protein is selective: only particles of the right shape and charge fit it.'), 'no');
         /* into its open side, but it does not bind in the pocket: the carrier does not change shape, and it drifts out */
@@ -288,11 +297,11 @@ export function makePlay(world, quest) {
         await tween(a, { to: at(-G.mouth), ms: 520 });
         await tween(a, { to: p0, ms: 1100 });
       } else {
-        quest.say(ib('An amino acid is a larger molecule: the two layers of lipids stop it.', 'An amino acid is charged: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
+        quest.say(ib('An amino acid is a larger molecule: the two layers of lipids stop it.', 'An amino acid has charged groups: the hydrophobic core of the phospholipid bilayer stops it.'), 'no');
         await bump(a, C.at.x - 1.2);
       }
     });
-    quest.say(ib('Its own carrier protein lets the amino acid pass through.', 'Its own carrier protein, an amino acid transporter, lets the amino acid pass through.'), 'ok');
+    quest.say(ib('Its own carrier protein lets the amino acid pass through.', 'An amino acid transporter, a carrier protein that is selective for amino acids, lets the amino acid pass through.'), 'ok');
     await viaCarrier(C, a);
     await quest.gain('amino', a.position); drop(a);
   }
@@ -321,7 +330,7 @@ export function makePlay(world, quest) {
       f();
     }));
     W.anim.push(function flowOn() { const p = inPlasma(); if (!t.parent || p.x > 9) { W.anim.splice(W.anim.indexOf(flowOn), 1); drop(t); return; } t.position.copy(p); });
-    quest.say(ib('<p>Carbon dioxide passes straight through the two layers of lipids, into the blood.</p><p>It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.</p>', '<p>Carbon dioxide is small and non-polar: it passes straight between the phospholipids, by simple diffusion, into the blood.</p><p>It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.</p>'), 'ok');
+    quest.say(ib('<p>Carbon dioxide passes straight through the two layers of lipids, into the blood.</p><p>It dissolves in the plasma, the liquid part of the blood, which carries it to your lungs.</p>', '<p>Carbon dioxide is small and non-polar: it passes straight between the phospholipids, by simple diffusion, into the blood.</p><p>The plasma carries it to your lungs.</p>'), 'ok');
     await quest.next('Check what you learned');
   }
 
@@ -583,7 +592,7 @@ export function makePlay(world, quest) {
     nburst(a.position, 0xfff1a8);
     await Promise.all([tween(a, { to: pW(-22.8, 6.6), ms: 700 }), tween(b, { to: pW(-18.6, 5.4), ms: 700 })]);
     props.halves = [a, b];
-    ok(ib('The glucose is split into two smaller molecules, in the cytosol. Each is smaller: about 0.6 nm across.', 'Glycolysis converts the glucose into two <b>pyruvate</b> molecules (3C each), in the cytosol; here one press stands for its ten steps. Each pyruvate is about 0.6 nm across.'));
+    ok(ib('The glucose is split into two smaller molecules, in the cytosol. Each is smaller: about 0.6 nm across.', 'Glycolysis converts the glucose into two <b>pyruvate</b> molecules (3C each), in the cytosol; here one press shows all ten steps. Each pyruvate is about 0.6 nm across.', 'hl'));
   }
   /* step 3's view: both membranes, the space between them, the top of the matrix and the cytosol where the molecules
      wait, all at once (46 nm, as tall as the free part of the screen allows), so that every name and every molecule to
@@ -642,7 +651,7 @@ export function makePlay(world, quest) {
       await tween(t, { to: pW(-18 + i * 3.2, -35 - i * 1.6, -2), ms: 900 });
       await back;
       await stop();
-      if (!i) ok(ib('It passes through a channel protein in the outer membrane, then a carrier protein in the inner membrane, into the matrix.', 'It passes through porin, a channel protein in the outer membrane, then the pyruvate carrier, a carrier protein in the inner membrane, into the matrix.'));
+      if (!i) ok(ib('It passes through a channel protein in the outer membrane, then a carrier protein in the inner membrane, into the matrix.', 'It passes through porin, a channel protein in the outer membrane, then the pyruvate carrier, a carrier protein in the inner membrane, into the matrix.', 'x'));
     }
     await over();
     await press(() => O2[2].position.clone().addScaledVector(pD(0, 1, 0), 0.0009), 'oxygen', { cls: 'tok', side: 't' });
@@ -691,7 +700,7 @@ export function makePlay(world, quest) {
       /* each kind named, now that they are still (the review: with nothing named, carbon dioxide was "just a new dot") */
       nanoNames([['nm-co2', 'carbon dioxide', co2.slice(0, 4).map(c => c.position.clone())], ['nm-o2', 'oxygen', props.o2.slice(0, 4).map(c => c.position.clone())],
         ['nm-h', 'hydrogen', hyd.slice(0, 4).map(c => c.position.clone())]], -30, -2, -35);
-      ok(ib('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.', 'The link reaction and the Krebs cycle oxidize the pyruvate, step by step: <b>carbon dioxide</b> is released (<dfn data-w="decarboxylation">decarboxylation</dfn>), and hydrogen is removed (<dfn data-w="dehydrogenation">dehydrogenation</dfn>), carried by reduced NAD and FADH₂. The oxygen waits in the matrix: it is used in the next step.'));
+      ok(ib('The smaller molecules are broken down, step by step: <b>carbon dioxide</b> and hydrogen are produced. The oxygen waits in the matrix: it is used in the next step.', 'The link reaction and the Krebs cycle oxidize the pyruvate, step by step: <b>carbon dioxide</b> is released (<dfn data-w="decarboxylation">decarboxylation</dfn>), and hydrogen is removed (<dfn data-w="dehydrogenation">dehydrogenation</dfn>): NAD accepts it and becomes reduced NAD. The oxygen waits in the matrix: it is used in the next step.', 'hl'));
       /* time to read the three names and the sentence before the camera moves back (2.6 s had been too short: Daniel, 5 Nov
          2026, "it zooms out too early") */
       await wait(R.TEST ? 0 : 5000);
@@ -788,7 +797,7 @@ export function makePlay(world, quest) {
     HC.full = true;
     /* the oxygen is not named here: its own button says "oxygen" (a name beside it said the same word twice) */
     nanoNames([p4name, ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
-    ok(ib('The proteins pumped <b>hydrogen ions</b> into the space inside the fold: now many are there.', 'The electron transport chain pumped <b>protons</b> (hydrogen ions) into the intermembrane space: now their concentration there is high.'));
+    ok(ib('The proteins pumped <b>hydrogen ions</b> into the space inside the fold: now many are there.', 'The electron transport chain pumped <b>protons</b> (hydrogen ions) into the intermembrane space: now their concentration there is high.', 'hl'));
     /* part 2, when the pupil presses: each oxygen molecule goes to the last protein; there it joins with hydrogen (four, from
        the smaller molecules): two water molecules (the review: four things had happened at once) */
     await press(() => O2[0].position.clone().addScaledVector(pD(0, 1, 0), 0.0009), 'oxygen', { cls: 'tok', side: 't' });
@@ -806,7 +815,7 @@ export function makePlay(world, quest) {
     props.water = out; props.o2 = null;
     await wait(R.TEST ? 0 : 800);
     nanoNames([p4name, ['nm-wat', 'water', out.slice(0, 6).map(w => w.position.clone())], ['nm-hi', 'many<br>hydrogen ions', crowdSpots(), 'hydrogen ions'], mxname], pump4[0] - 18, G.uc + G.hw + 3, -60);
-    ok(ib('At the last protein in the chain, oxygen joins with hydrogen from the smaller molecules: <b>water</b> is produced.', 'At the end of the chain, in complex IV, oxygen accepts electrons and protons: <b>water</b> is produced. Oxygen is the terminal electron acceptor.'));
+    ok(ib('At the last protein in the chain, oxygen joins with hydrogen from the smaller molecules: <b>water</b> is produced.', 'At the end of the chain, oxygen accepts electrons and protons: <b>water</b> is produced. Oxygen is the terminal electron acceptor.', 'hl'));
     await quest.next();
   }
   /* the dam: the hydrogen ions flow back only through ATP synthase, which turns in steps, one for each ion, and makes ATP
@@ -895,7 +904,7 @@ export function makePlay(world, quest) {
     await live(new Promise(res => { const f = () => (T >= T1 || quest.session !== s0 ? res() : requestAnimationFrame(f)); f(); }));
     /* (each ATP is named by its own tag as it is made; the one fixed name "ATP" at the head had not shown that it is made
        again and again) */
-    ok(ib('As the hydrogen ions flow back through it, the ring of ATP synthase turns, and it makes <b>ATP</b>. The cell uses the energy in ATP for its work.', 'As the protons flow back through it, down their gradient (<dfn data-w="chemiosmosis">chemiosmosis</dfn>), the ring of ATP synthase turns, and it phosphorylates ADP: <b>ATP</b>. The cell uses the energy in ATP for its work.'));
+    ok(ib('As the hydrogen ions flow back through it, the ring of ATP synthase turns, and it makes <b>ATP</b>. The cell uses the energy in ATP for its work.', 'As the protons flow back through it, down their gradient (<dfn data-w="chemiosmosis">chemiosmosis</dfn>), the ring of ATP synthase turns, and it phosphorylates ADP to <b>ATP</b>. The cell uses the energy in ATP for its work.', 'hl'));
     await quest.next();
     run = false; damTagsOff();
   }
@@ -913,7 +922,7 @@ export function makePlay(world, quest) {
     await live(quest.next(state.has('glucose') && state.has('oxygen') && state.energy() < 70 ? 'Next step' : 'Back to the map'));
   }
 
-  /* the IB switch turned on or off in a place: its names follow at once (quest.js ibSwitch). A finished way in shows its
+  /* IB mode turned on or off in a place: its names follow at once (quest.js courseSwitch). A finished way in shows its
      names only with IB on, the carrier proteins named; on the magnified mitochondrion, the last names are drawn again */
   document.addEventListener('ib-switch', e => {
     if (quest.cur !== e.detail.id) return;
@@ -924,11 +933,11 @@ export function makePlay(world, quest) {
   /* ---------------- nucleus ---------------- */
   const win = N.winDir.clone();
   const nucView = () => ({ pos: N0.clone().addScaledVector(win, 6.4).add(V(0.5, -0.2, 0)), at: N0.clone().add(V(0.15, 0.1, 0.2)) });
-  /* the names on the nucleus once it is open: a chromosome, the nucleolus, and the envelope at the edge of the window,
+  /* the names on the nucleus once it is open: the chromosomes (many are in view: plural), the nucleolus, and the envelope at the edge of the window,
      where its two membranes show (cleared when the step ends: the next step's buttons stand on the threads) */
   function insideNames() {
     quest.names.set([
-      nameOf('n-chr', 'chromosome', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group]),
+      nameOf('n-chr', 'chromosomes', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group]),
       nameOf('n-nol', 'nucleolus', world.P.nucleolus.spots, [N.group]),
       Object.assign(nameOf('n-env', 'nuclear envelope:<br>two membranes', N.rimPts.filter((p, i) => i % 10 === 0).map(p => inN(p)), [N.group]), { small: '<span class="nm__t">nuclear envelope</span>' })
     ], [...HUD(), document.getElementById('qHide')].filter(Boolean));
@@ -972,7 +981,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611130101').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611131404').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1593,7 +1602,7 @@ export function makePlay(world, quest) {
       quest.step.do.appendChild(ex);
       const pick = await live(Promise.race([b.done.then(() => 'copy'), new Promise(r => ex.addEventListener('click', () => r('film'), { once: true }))]));
       b.remove(); ex.remove();
-      if (quest.energy(COST.copy)) { film = pick === 'film'; break; }
+      if (quest.energy(COST.copy, 'copy')) { film = pick === 'film'; break; }
       await wait(400);
     }
     const rib = keep(copyThread(copyCurve()));
@@ -1719,7 +1728,7 @@ export function makePlay(world, quest) {
     if (kind === 'large' && !props.small) makePart('small');
     nolNames();
     const f = nolFrame(), at = PART[kind].at();
-    await press(() => at.clone().addScaledVector(f.dir, 0.03), 'Build', { cost: COST.parts / 2 });
+    await press(() => at.clone().addScaledVector(f.dir, 0.03), 'Build', { cost: COST.parts / 2, key: 'part-' + kind });
     /* its RNA is made here: a strand grows up out of the nucleolus and folds up where the part forms */
     const S0 = at.clone().addScaledVector(f.dir, -0.02), pts = [];
     for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push(S0.clone().lerp(at, t).addScaledVector(f.up, Math.sin(t * 11) * 0.007 * (1 - t * 0.6)).addScaledVector(f.right, Math.cos(t * 8) * 0.004)); }
@@ -2131,7 +2140,7 @@ export function makePlay(world, quest) {
           const b = quest.hot(() => t.position.clone().addScaledVector(F.up, 0.008), `<b class="sym s${c}">${['▲', '●', '■', '◆'][c]}</b>`, { cls: 'tok aa', aria: 'the carrier with a ' + ['triangle', 'circle', 'square', 'diamond'][c], right: c === ci });
           b.done.then(async () => {
             if (c !== ci) { quest.say('That carrier does not match the code. Look at its shape and colour.', 'no'); const p0 = t.position.clone(); await tween(t, { to: p0.clone().addScaledVector(F.up, -0.003), ms: 200 }); await tween(t, { to: p0, ms: 200 }); return; }
-            if (!quest.energy(COST.translate / CODES.length)) return;
+            if (!quest.energy(COST.translate / CODES.length, 'aa-' + k)) return;
             quest.clearHots(); quest.say('');
             await tween(t, { to: r.position.clone().addScaledVector(F.up, 0.008), ms: 450 });
             toks.forEach(x => drop(x.t));
@@ -2420,7 +2429,7 @@ export function makePlay(world, quest) {
     const r = ribAt(); rerCopy(r.position);
     const sig = theSig(); if (!props.strand) hairSet(null, sig, 0);
     rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
-    await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow });
+    await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow, key: 'grow' });
     await count(r, 60, 150, 2400, true);
     rerNames([memName(), ...sides(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-chain', 'the chain', [loopSpot(90)]]]);
     quest.say('The chain grows through the channel and into the rough ER. It grows as a loop, because the channel holds the start of the chain: the signal.', 'ok');
@@ -2935,7 +2944,7 @@ export function makePlay(world, quest) {
     props.lipids = props.lipids || [];
     closeNames(F, serBase(), [], 45);
     for (let i = props.lipids.length; i < 3; i++) {
-      await press(() => g.localToWorld(gapLocal(1, 43)), `Join (${i + 1} of 3)`, { cost: COST.lipid });
+      await press(() => g.localToWorld(gapLocal(1, 43)), `Join (${i + 1} of 3)`, { cost: COST.lipid, key: 'lipid-' + i });
       /* a head and two tails, apart in the cytosol, come together into one lipid */
       const l = newLip(i);
       l.children.forEach((c, j) => c.position.add(V(Math.cos(j * 2.1 + 0.4) * 0.0032, Math.sin(j * 2.1 + 0.4) * 0.0032, 0)));
@@ -3368,7 +3377,7 @@ export function makePlay(world, quest) {
         order.forEach(i => {
           const to = i === 0 ? up : down, at = i === 0 ? past(here, up) : past(X, down);
           quest.hot(() => at.clone(), 'this one', { side: 'c', aria: i === 0 ? 'the microtubule that goes up' : 'the microtubule that lies across the cell', right: i === 0 }).done.then(async (b) => {
-            if (!quest.energy(COST.step)) return;
+            if (!quest.energy(COST.step, 'mt-' + f + '-' + i)) return;
             quest.clearHots();
             if (i === 1) {
               quest.say('This microtubule lies across the cell: on it, your vesicle moves to the side, not to the top. Amylase must reach the top, next to the duct. Choose again.', 'no');
@@ -3525,12 +3534,17 @@ export function makePlay(world, quest) {
     await quest.next();
     quest.names.set([]);
   }
+  /* a name that stands for many parts in view is plural: mitochondria, ribosomes, vesicles (Daniel, 13 Nov 2026: "when
+     showing names, if you show multiple structures, use the plural form, this is not the case at the start of the
+     game"). At the start every mitochondrion and every ribosome is lit and the name is the kind's, so it is plural;
+     a name whose line ends on the one part a step is about stays singular (the map, main.js: 5 Nov 2026, "if you're
+     pointing to one mitochondrion, label it mitochondrion") */
   const y7Names = () => { const G = W.groups, P = world.P; return [
       nameOf('membrane', 'cell membrane', [V(-6.2, 9.5, 0.2), V(6.1, 9.2, 0.2), V(-6.7, 5.2, 0.6), V(6.6, 5.0, 0.6), V(-5.4, 12.6, 0.3), V(5.3, 12.4, 0.3)], [G.membrane], 'is-y7'),
       nameOf('cytoplasm', 'cytoplasm', [V(-3.0, 12.6, 1.0), V(3.0, 12.2, 1.2), V(-3.8, 9.0, 1.8), V(3.8, 8.6, 1.8), V(-2.2, 14.0, 0.8)], [G.cytosol], 'is-y7'),
       nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group], 'is-y7'),
-      nameOf('mito', 'mitochondrion', P.mito.spots.concat(spotsOf(G.mitochondria, 8)), [G.mitochondria], 'is-y7'),
-      nameOf('ribo', 'ribosome', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 40).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7')
+      nameOf('mito', 'mitochondria', P.mito.spots.concat(spotsOf(G.mitochondria, 8)), [G.mitochondria], 'is-y7'),
+      nameOf('ribo', 'ribosomes', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 40).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7')
     ]; };
   /* each structure an electron microscope shows appears in turn, and its name joins the others */
   /* every structure of the first place with its name: they stay on the picture from Show everything on, through the
@@ -3543,13 +3557,13 @@ export function makePlay(world, quest) {
          the Year 7 view before (Daniel, 9 Nov 2026: it had been named "nuclear pore", for its pores, and "it should be
          nucleus") */
       world.nucOpen ? ['nucleus-inside', P.nucleolus.center, [nameOf('nucleolus', 'nucleolus', P.nucleolus.spots, [N.group]),
-        nameOf('chromosomes', 'chromosome', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group])]]
+        nameOf('chromosomes', 'chromosomes', W.chromosomes.slice(0, 12).map(ch => inN(ch.curve.getPointAt(0.5))), [N.group])]]
         : ['nucleus-inside', inN(N.front[0].p), [nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group])]],
       ['ser', P.ser.center, [nameOf('ser', 'smooth ER', P.ser.spots, [G.ser])]],
       ['golgi', P.golgi.center, [nameOf('golgi', 'Golgi apparatus', P.golgi.spots, [G.golgi])]],
-      ['granules', P.exit.center, [nameOf('vesicles', 'vesicle', W.granules.slice(0, 40).filter((g, i) => i % 4 === 0).map(g => g.p.clone()), [G.granules])]],
-      ['microtubules', P.tracks.center, [nameOf('tracks', 'microtubule', P.tracks.spots, [G.microtubules])]],
-      ['lysosomes', V(-2.9, 10.6, -0.6), [nameOf('lysosomes', 'lysosome', [V(-2.9, 10.6, -0.6)].concat(spotsOf(G.lysosomes, 8)), [G.lysosomes])]],
+      ['granules', P.exit.center, [nameOf('vesicles', 'vesicles', W.granules.slice(0, 40).filter((g, i) => i % 4 === 0).map(g => g.p.clone()), [G.granules])]],
+      ['microtubules', P.tracks.center, [nameOf('tracks', 'microtubules', P.tracks.spots, [G.microtubules])]],
+      ['lysosomes', V(-2.9, 10.6, -0.6), [nameOf('lysosomes', 'lysosomes', [V(-2.9, 10.6, -0.6)].concat(spotsOf(G.lysosomes, 8)), [G.lysosomes])]],
       ['centrosome', V(0.1, 14.55, -1.1), [nameOf('centrosome', 'centrosome', [V(0.1, 14.55, -1.1)].concat(spotsOf(G.centrosome, 4)), [G.centrosome])]],
       ['apex', V(0, 16.6, 0), [nameOf('duct', 'the duct', [V(0, 16.6, 0), V(-0.9, 16.3, 0.4), V(0.9, 16.3, 0.4)].concat(spotsOf(G.apex, 6)), [G.apex])]]
     ]; };

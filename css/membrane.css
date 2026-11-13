@@ -1,0 +1,148 @@
+/* ============================================================
+   membrane.css — the membrane view "The fluid mosaic membrane" (13 Nov 2026), js/membrane/view.js: a view that fills
+   the window (over the game, or at its own address membrane/), the 3D picture on the left, the steps on a sheet on the
+   right (under the picture on a phone). Its look follows the IB view "From glucose to ATP" (css/ib.css): the same top
+   bar, the same sheet, the same level tags (SL and HL in the IB blue, HL only in rose, beyond the guide in grey
+   italics: memory level-colours-never-blank), bright and dark by the computer's setting until the reader chooses
+   (biology.theme). Text a pupil reads is 16 px or more on a laptop (17 px in the sheet, 16 px on the picture).
+   ============================================================ */
+.memv{
+  --mv-sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --mv-serif:'Fraunces',Georgia,serif;
+  --mv-sheet:#FFFFFF; --mv-ink:#141A24; --mv-ink2:#3D4657; --mv-rule:#D9DEE7; --mv-accent:#7243C0; --mv-accent-ink:#5A2FA8;
+  --lv-sl:#2E3A8C; --lv-sl-bg:#E7E9F7; --lv-hl:#9B1C4A; --lv-hl-bg:#FCE6EE; --lv-x:#4F5663; --lv-x-bg:#ECEEF2;
+  --mv-box:#F4F1FB; --mv-good:#0E6B3A;
+  position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:#070a1f;color:var(--mv-ink);
+  font-family:var(--mv-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .memv{
+  --mv-sheet:#151a2b; --mv-ink:#ECEFF7; --mv-ink2:#BCC3D3; --mv-rule:#2c3348; --mv-accent:#B388FF; --mv-accent-ink:#CDB3FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --mv-box:#1E2238; --mv-good:#7FE0A6 } }
+:root[data-theme="dark"] .memv{
+  --mv-sheet:#151a2b; --mv-ink:#ECEFF7; --mv-ink2:#BCC3D3; --mv-rule:#2c3348; --mv-accent:#B388FF; --mv-accent-ink:#CDB3FF;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#B9C0CC; --lv-x-bg:#262A33; --mv-box:#1E2238; --mv-good:#7FE0A6 }
+html.memv-open,html.memv-open body{overflow:hidden}
+.memv *{box-sizing:border-box}
+.memv button{font-family:inherit}
+.memv :focus-visible{outline:2.5px solid #FFD27A;outline-offset:2px}
+
+/* ---------- the top: what it is, who made it, close ---------- */
+.memv__top{display:flex;align-items:center;gap:8px 16px;padding:8px 14px;background:linear-gradient(180deg,#121741,#0b0f2a);color:#fff;border-bottom:1px solid rgba(255,226,154,.28)}
+.memv__id{min-width:0;flex:1;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px}
+.memv__eyebrow{flex-basis:100%;margin:0;font:800 11.5px/1.2 var(--mv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A}
+.memv__id h1{margin:1px 0 0;font:800 22px/1.15 var(--mv-serif);color:#fff}
+.memv__by{margin:2px 0 0;font:700 12px/1.2 var(--mv-sans);color:#C9CBEF}
+.memv__close{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font:700 24px/1 var(--mv-sans);cursor:pointer}
+.memv__close:hover{border-color:#FFD27A;color:#FFD27A}
+
+/* ---------- the picture and the steps ---------- */
+.memv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(440px,34vw));grid-template-rows:minmax(0,1fr) auto;grid-template-areas:'stage panel' 'key panel';min-height:0}
+/* the speed line and the pause button: over the foot of the picture on a laptop, in a strip under it on a phone (there the
+   picture's corners are needed for the numbered pins) */
+.memv__tools{grid-area:stage;position:relative;z-index:3;min-height:0;pointer-events:none}
+.memv__tools>*{pointer-events:auto}
+.memv__stage{grid-area:stage;position:relative;overflow:hidden;min-height:0;background:radial-gradient(ellipse at 50% 42%,#1a1f56 0%,#0a0d29 62%,#060819 100%);touch-action:none;cursor:grab}
+.memv__stage:active{cursor:grabbing}
+.memv__canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.memv__veil{position:absolute;inset:0;z-index:6;background:#070a1f;opacity:0;pointer-events:none;transition:opacity .32s ease}
+.memv__veil.is-on{opacity:1}
+.memv__veil.is-first{opacity:1;transition:none}
+.memv__wait{position:absolute;inset:0;z-index:7;display:grid;place-items:center;margin:0;color:#E8E4FF;font-weight:800;text-align:center;padding:0 16px}
+.memv__wait[hidden]{display:none}
+/* the two sides of the membrane, said on the picture (no line: each names a space, not a part) */
+.memv__place{position:absolute;z-index:2;left:12px;margin:0;padding:4px 10px;border-radius:999px;background:rgba(10,13,40,.6);color:#D9DCF8;font:800 16px/1.25 var(--mv-sans);letter-spacing:.01em;pointer-events:none}
+.memv__place--out{top:10px}
+.memv__place--cyt{bottom:52px}
+/* the scale bar: how long a few nanometres are at the point the camera looks at */
+.memv__bar{position:absolute;left:14px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;color:#fff;font:800 16px/1 var(--mv-sans);text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.memv__bar i{display:block;height:9px;border:solid #fff;border-width:0 2px 2px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
+.memv__slow{position:absolute;z-index:2;left:50%;bottom:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 330px);padding:5px 12px;border-radius:999px;background:rgba(10,13,40,.72);border:1px solid rgba(255,226,154,.4);color:#FFE9B8;font:800 16px/1.25 var(--mv-sans);text-align:center;pointer-events:none}
+.memv__pause{position:absolute;z-index:3;right:12px;bottom:10px;min-height:40px;padding:8px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.4);background:rgba(10,13,40,.78);color:#fff;font:800 16px/1 var(--mv-sans);cursor:pointer}
+.memv__pause:hover,.memv__pause[aria-pressed="true"]{border-color:#FFD27A;color:#FFD27A}
+.memv__pause[hidden]{display:none}
+.memv__short{display:none}
+
+/* ---------- names on the picture: one level line or one upright line, ending on its part (names.js) ---------- */
+.memv__names{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+.memv__nm{position:absolute;left:0;top:0;display:block;max-width:240px;white-space:nowrap;background:rgba(10,14,40,.9);color:#fff;font:800 16px/1.25 var(--mv-sans);padding:5px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.42);box-shadow:0 4px 12px rgba(0,0,0,.35);opacity:0;transition:opacity .32s ease;will-change:transform,opacity}
+.memv__nm--L,.memv__nm--R{max-width:134px;white-space:normal}
+.memv__nm--tag{border-color:#FFD27A;color:#FFE9B8}
+.memv__ln{position:absolute;left:0;top:0;display:block;width:2px;height:2px;background:#fff;box-shadow:0 0 0 1px rgba(10,14,40,.6);opacity:0;transition:opacity .32s ease;will-change:transform,opacity}
+.memv__pin{position:absolute;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 14px/1 var(--mv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.45);opacity:0;transition:opacity .32s ease;will-change:transform,opacity}
+.memv__pin--tag{background:#fff}
+.memv__nm.is-on,.memv__ln.is-on,.memv__pin.is-on{opacity:1}
+/* on a phone the numbers' names stand under the picture */
+.memv__key{grid-area:key;display:flex;flex-wrap:wrap;gap:5px 12px;padding:7px 12px;background:#0b0f2a;color:#EEF0FF;font:800 14.5px/1.25 var(--mv-sans);border-top:1px solid rgba(255,226,154,.28)}
+.memv__key[hidden]{display:none}
+.memv__k{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.memv__k b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 12.5px/1 var(--mv-sans)}
+
+/* ---------- the sheet: the step, its words, its buttons; then what the picture simplifies, and the sources ---------- */
+.memv__panel{grid-area:panel;overflow-y:auto;min-height:0;background:var(--mv-sheet);color:var(--mv-ink);padding:16px 20px 20px;border-left:1px solid var(--mv-rule)}
+.memv__count{margin:0 0 4px;font:900 12.5px/1 var(--mv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mv-accent)}
+.memv__st{margin:0 0 10px;font:800 23px/1.15 var(--mv-serif)}
+.memv__text p{margin:0 0 .6em}
+.memv__text p:last-child{margin-bottom:0}
+.memv__text--more{margin-top:12px}
+.memv__text--more:empty{display:none}
+.memv.is-loading .memv__text,.memv.is-loading .memv__ctl{opacity:.5;transition:opacity .3s}
+.memv .lv{display:inline-flex;align-items:baseline;gap:5px;vertical-align:1px;margin-right:4px;padding:2px 8px;border-radius:999px;font:900 11.5px/1.4 var(--mv-sans);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.memv .lv i{font-style:normal;font-weight:800;letter-spacing:0;text-transform:none;opacity:.85}
+.memv .lv--sl{color:var(--lv-sl);background:var(--lv-sl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-sl) 35%,transparent)}
+.memv .lv--hl{color:var(--lv-hl);background:var(--lv-hl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-hl) 35%,transparent)}
+.memv .lv--x{color:var(--lv-x);background:var(--lv-x-bg);font-style:italic;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-x) 30%,transparent)}
+.memv .lvp--x{color:var(--mv-ink2)}
+/* (the level tags are scoped to .memv: css/ib.css has its own .lv, and both sheets can be on the game's page) */
+/* the buttons that follow one molecule, each with what it has measured */
+.memv__ctl{display:flex;flex-direction:column;gap:10px;margin:12px 0 0}
+.memv__ctl:empty{display:none}
+.memv__f{padding:10px 12px;border-radius:14px;background:var(--mv-box);border:1.5px solid var(--mv-rule);scroll-margin:12px 0 76px}
+.memv__fb{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 16px;border-radius:999px;border:1.5px solid var(--mv-accent);background:var(--mv-sheet);color:var(--mv-accent-ink);font:800 16px/1.1 var(--mv-sans);cursor:pointer}
+.memv__fb:hover,.memv__fb[aria-pressed="true"]{background:var(--mv-accent);color:#fff}
+:root[data-theme="dark"] .memv__fb:hover,:root[data-theme="dark"] .memv__fb[aria-pressed="true"]{color:#1B0E3A}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .memv__fb:hover,:root:not([data-theme="light"]) .memv__fb[aria-pressed="true"]{color:#1B0E3A} }
+.memv__fb:disabled{opacity:.5;cursor:default}
+.memv__fb i{flex:none;display:block;width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(20,26,36,.5)}
+.memv__fb[data-f="lipid"] i{background:#FFD24A}
+.memv__fb[data-f="protein"] i{background:#8FE8FF}
+.memv__read{margin:8px 0 0;font-size:16px;line-height:1.45}
+.memv__read b{font-weight:900}
+.memv__still{margin:8px 0 0;font-size:16px;color:var(--mv-ink2)}
+.memv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--mv-sheet) 0%,transparent),var(--mv-sheet) 28%)}
+.memv__do button{border-radius:999px;font:800 16px/1 var(--mv-sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--mv-rule);background:var(--mv-sheet);color:var(--mv-ink)}
+.memv__do button:disabled{opacity:.42;cursor:default}
+.memv__next{margin-left:auto;background:#FFD27A!important;border-color:#F0B43A!important;color:#1b1640!important}
+.memv__next.pulse{animation:memvPulse 2.4s ease-in-out infinite}
+@keyframes memvPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,180,58,.55)}50%{box-shadow:0 0 0 8px rgba(240,180,58,0)}}
+@media (prefers-reduced-motion:reduce){.memv__next.pulse{animation:none}}
+.memv__more{margin-top:18px;padding-top:14px;border-top:1px solid var(--mv-rule)}
+.memv__more h3{margin:0 0 8px;font:800 19px/1.2 var(--mv-serif)}
+.memv__more h3:not(:first-child){margin-top:18px}
+.memv__more ul,.memv__more ol{margin:0;padding-left:1.2em}
+.memv__more li{margin:0 0 .5em;font-size:16px;line-height:1.5}
+.memv__more li>span.src{display:block;color:var(--mv-ink2)}
+.memv__more a{color:var(--mv-accent-ink);overflow-wrap:anywhere}
+.memv__tags p{margin:.35em 0 0;font-size:16px}
+
+/* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
+@media (max-width:860px),(max-aspect-ratio:4/5){
+  .memv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,46fr) auto auto minmax(0,54fr);grid-template-areas:'stage' 'tools' 'key' 'panel'}
+  .memv__tools{grid-area:tools;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 10px;background:#0b0f2a;border-top:1px solid rgba(255,226,154,.2)}
+  .memv__tools .memv__slow,.memv__tools .memv__pause{position:static;transform:none;max-width:none;margin:0}
+  .memv__panel{border-left:0;border-top:1px solid var(--mv-rule);padding:12px 16px 16px}
+  .memv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
+}
+@media (max-width:860px){
+  .memv{font-size:16px}
+  .memv__top{padding:7px 10px}
+  .memv__id h1{font-size:18px}
+  .memv__eyebrow{font-size:10.5px}
+  .memv__st{font-size:20px}
+  .memv__place{font-size:13px;left:8px;padding:3px 8px}
+  .memv__place--out{top:6px}
+  .memv__place--cyt{left:auto;right:6px;bottom:4px;font-size:12.5px;padding:2px 8px}
+  .memv__bar{font-size:13.5px;left:10px;bottom:8px}
+  .memv__slow{font-size:13px;padding:3px 10px;border-radius:12px;text-align:left}
+  .memv__pause{flex:none;font-size:14px;min-height:38px;padding:7px 14px}
+  .memv__wide{display:none}
+  .memv__short{display:inline}
+}

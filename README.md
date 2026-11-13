@@ -174,8 +174,9 @@ translation stay where a Year 7 Explorer reads them (the violet notes above), an
 what each course says of them. Every statement number was read in its source, the 0610 syllabus for 2026 to 2028 and
 the IB guide of 2025, and `node tools/course-check.mjs` reads them again each time (a line that names a statement at
 the wrong level, or one that is not there, fails), then drives the switches and the film in headless Chrome, on a
-laptop and a phone. An independent expert read every line and looked at the film before it went live. (The way in and
-the mitochondria keep their own older switch, "IB Biology", which leads to *From glucose to ATP*.)
+laptop and a phone. An independent expert read every line and looked at the film before it went live.
+*The way in and the mitochondria* have the same two switches since 13 Nov 2026 (below, "For IGCSE and IB pupils: the
+way in and the mitochondria"); until then they had a switch of their own, "IB Biology".
 
 **Faults from a lesson, fixed the same hour** (Daniel, 12 Nov 2026, with a class playing). A pupil who pressed ↻ on
 Show everything was stuck: the first place is not a place of the map, and setting it up again after a step watched again
@@ -214,7 +215,7 @@ tubes and branched ones), each drawn with its two membranes.
 but nothing is left out: each pause still lasts as long, so every name and every sentence it shows can be read on a still
 picture.
 
-**Checks.** After each place, two or three checks (32 in all): key words typed (a first letter, the word list or a hint
+**Checks.** After each place, two or three checks (32 in all in the twelve places; with the side quest's five, 37 of the game's own; the 20 course questions, below, are apart): key words typed (a first letter, the word list or a hint
 when stuck, counted as help on the teacher's board), choices with no give-away, sorting and ordering. Every word a check uses
 is explained above it, and every key word can be tapped for its meaning, with Korean and Chinese.
 **How to say the hard words.** Under a hard word's meaning, in the word bank and under each place's definition: its spelling
@@ -229,13 +230,114 @@ completing a game. So you have to do the actions, but also complete the question
 next places, and the list of places says "answer its checks to finish" until then. Answers shown after two tries are put
 in place, but the pupil still presses Check (it counts as help on the board).
 
-**For IB students: From glucose to ATP.** When every check of the way in or of the mitochondria is right, an **IB
-Biology** switch appears in that place (Daniel: "Don't provide the IB toggle until they have completed everything").
-Switched on, each step says what IB adds, every sentence tagged *SL and HL*, *HL only* or *Beyond the IB guide* with the
-statement of the IB Biology guide (2025); the place's sentences, choices and names on the picture use the IB terms instead
-of the Year 7 ones (a phospholipid bilayer, not two layers of lipids; pyruvate, protons, the intermembrane space, the
-glucose transporter and the amino acid transporter); the Year 7 checks fold away; and doors, like the place's end card,
-open **From glucose to ATP**. That is a view of its own, over the whole page, with its own address for IB lessons:
+**Energy: a clear stop, and each job paid once** (13 Nov 2026). A pupil wrote to Daniel: "The energy is deducted by
+itself, therefore I can't move to another level." Energy never falls by itself: it falls when the cell does a job
+(copying the gene 6, the two ribosome parts 6, joining the amino acids 20, growing the chain 20, three lipids 18, each
+move on a microtubule 4). A pupil starts with 30 and one visit to the mitochondria gives 50, so 80, and the jobs cost
+82 or more: nearly every pupil is stopped once. What was wrong was how the game said it and two unfair points:
+- *the stop was one sentence*, and the job's button came back unchanged. Now the step says "Not enough energy for
+  this job", with one button: **Go to the mitochondria**, or **Go to the way in** first when the pupil carries no
+  glucose or no oxygen (`quest.js` `energy`). The way in then leads on to the mitochondria, and the mitochondria,
+  once energy is released, lead back: "Back to: Smooth ER" (`moreBox`, `lowAt`). With Hide text on, the stop is also
+  said on the picture;
+- *the Release button was out of sight*: it stands at the end of the mitochondria's panel, under eight steps, and a
+  finished place opens at its top. A pupil who comes for energy now finds it in view;
+- *a job was charged again* when its step began again (the pupil left the place, or opened the page again: the rough
+  ER's Go, 20 each time). A job is now paid once in a game (the flag `paid-<job>` in the saved game; each cost in
+  `play.js` names its job). A step watched again with ↻ never cost anything.
+`node tools/energy-check.mjs` plays all of it from a saved game with little energy, on a laptop and a phone, and fails
+on the game of before.
+
+**A name that stands for many parts is plural** (Daniel, 13 Nov 2026: "when showing names, if you show multiple
+structures, use the plural form, this is not the case at the start of the game"). At the start every mitochondrion and
+every ribosome is lit, and the names said "mitochondrion" and "ribosome"; so did the Year 7 drawing beside them, and
+after Show everything "vesicle", "microtubule", "lysosome", and in the open nucleus "chromosome". They now say
+mitochondria, ribosomes, vesicles, microtubules, lysosomes and chromosomes (`play.js` `y7Names`, `fullShow`,
+`insideNames`; `simplecard.js`). A name whose line ends on the one part that a step is about stays singular: on the
+map, the mitochondrion, the ribosome and the microtubule that you visit (Daniel, 5 Nov 2026: "if you're pointing to
+one mitochondrion, label it mitochondrion, not mitochondria").
+
+**For IGCSE and IB pupils: the way in and the mitochondria.** When every check of the way in or of the mitochondria
+is right, **Your course: IGCSE · IB** appears in that place, both switches off (Daniel: "Don't provide the IB toggle
+until they have completed everything"). They are the switches of the nucleus, the ribosomes and the rough ER (above),
+and the choice is the same in all five places. A switch on adds a violet box under each step:
+- **IGCSE** (Cambridge 0610, the syllabus for 2026 to 2028), each line with its statement number and Core, Supplement
+  or "Not named". The way in: the cell membrane and its function, "partially permeable", red blood cells and plasma,
+  diffusion, the capillary's wall, active transport and its protein carriers. The mitochondria: the site of aerobic
+  respiration, the word equation and the balanced equation, enzymes, the uses of energy. Two fences, both from the
+  examiners. Glucose enters this cell through a carrier protein with no energy used; the report of November 2016 says
+  "Facilitated diffusion is beyond the scope of IGCSE", and the syllabus names protein carriers only in active
+  transport (3.3.3), so the box says what the syllabus names, and that it does not name this kind of movement. And
+  "Write 'energy is released'": the reports of March 2021, March 2022 and November 2022 list "energy is produced" as a
+  common error. The parts that the syllabus does not name (cristae, matrix, hydrogen ions, ATP synthase) say so, and
+  never that an examination leaves them out;
+- **IB** (the guide of 2025), every line tagged *SL and HL*, *HL only* or *Beyond the guide* with its statement, and a
+  door into the chapter of **From glucose to ATP** that shows the step.
+*The Year 7 words stay* (Daniel, 13 Nov 2026: "being a KS3 level sentence next to an IB level one (as long as the
+distinction is clear) is useful for the students to see how they need to improve/change the way they write as they
+progress"). So the steps, the choices and the checks are never changed or hidden; while a box stands under a step, the
+step's own words carry the label "Year 7"; and with IB on, what the place says after each action is the Year 7 sentence
+and, under it in the violet box, the IB sentence with its level in the guide ("Oxygen is a small molecule: it passes straight through the two
+layers of lipids" above "Oxygen is small and non-polar: it passes straight between the phospholipids, down its
+concentration gradient"). The names on the picture add the IB terms (phospholipid bilayer, glucose transporter, amino
+acid transporter, porin, pyruvate). Until 13 Nov 2026 the old "IB Biology" switch replaced the Year 7 sentences and
+choices with IB ones and folded the checks away; a pupil who had it on finds IB on. Every statement number is read in
+its source by `node tools/course-check.mjs`, and `node tools/ib-switch.mjs` plays both places as a pupil; on the game
+of before, both fail. An independent expert read every line and every pair, and said "ship after fixes"; each
+fault was fixed: a "Not named" note that was false (the syllabus names protein carriers, 3.3.3); pyruvate (HL) and
+porin (beyond the guide) in a line marked SL; the IB sentences that a place says had no level (each now carries "SL and
+HL", "HL only" or "Beyond the guide"); "in complex IV" (the guide: names of the complexes are not required) and FADH₂
+(not in the guide) in those sentences; "an amino acid is charged, so it is polar" (now: it has charged groups, so it is
+hydrophilic), with a line beyond the guide that many amino acid transporters are cotransporters and that the picture
+does not show which kind this one is; the glucose step's IGCSE note now says that the movement agrees with the
+description of diffusion; plainer words ("immediately", "shows all ten steps", "make oxaloacetate again"). Not changed:
+the IGCSE and the IB box share the one extension violet (the estate's rule), told apart by their headings.
+**Course questions** (Daniel, 13 Nov 2026: "if you toggle IGCSE and you toggle IB, maybe you want to add questions to
+those levels … if you're key stage 3, you just do the key stage 3 questions. If you're IGCSE, you do key stage 3 and
+IGCSE, and if you're IB, you do all of them"). In each of the five places with course layers, a switch that is on also
+shows that course's own two questions under the Year 7 checks, IGCSE above IB: 20 in all (`js/questions.js`: `place`,
+`lv`, `tier`, `code`; drawn by `quest.js` `courseQuestions`). Each place has one IGCSE Core and one Supplement
+question, and its IB questions say "SL and HL" or "HL only" in their titles. Every answer is in the words of the
+statement the question names, and every word it needs is in that course's box above it. Two of them carry the writing
+points of the boxes: "releases energy", never "produces" (the examiners' reports), and "complementary", never "the same
+shape". With IB on and IGCSE off, a line sends the IB student to the IGCSE questions too.
+*They are extra, and change nothing else.* A place's own checks are the questions of its own part (`state.js`
+`checks`); the course questions are in two parts of their own, 15 and 16, so they never keep a place from being done,
+wake nothing, and are not in the final check or its 35 marks. They show only where the switches do: once every Year 7
+check of the place is right. On the teacher's 🔬 Practicals board they are two groups of their own, "Your course
+(extra): IGCSE questions" and "… IB questions", each square named with its place; no record of a question of before
+moves (records are kept by question id). The labs script names and keeps only the questions listed in
+`data/questions.json`: after any change to the questions run `node tools/make-questions.mjs`, or the new answers are
+not kept. `node tools/questions-check.mjs` checks each one's data (its place, its course's part, its level and
+statements, its gaps' words in the course's box, two for each course in each place, the game's own 37 as before),
+`node tools/course-check.mjs` reads each statement in the syllabus and the IB guide, and `node tools/ib-switch.mjs`
+plays them as a pupil (section 8). An independent expert judged all 20 before they went live.
+**The cell membrane: fluid and mosaic** (Daniel, 13 Nov 2026: "for IB, there is one specific unit … about cell
+membranes, and it talks about the fluidity and the mosaic … show that the phospholipids move within their own layer,
+and so that actually proteins can migrate … how the cell membrane probably looks like and moves like in reality").
+A view of its own, over the page, with its own address, <https://nlcsbiology.com/ks3-y7-cell-organelles/membrane/>:
+`membrane/index.html`, `js/membrane/` (`sim.js` the model as numbers, `scene.js` the 3D picture, `seen.js` and
+`names.js` the names, `text.js` every word and the sources, `view.js` the frame), `css/membrane.css`. With IB on, the
+first IB box of the way in has its door (`story.js` `mem: true`; `quest.js` `courseSwitch`; `main.js` `openMem`, the
+event `memview`); it closes with ×, Esc or its last step, back to the game. It shows one patch of an animal cell's
+plasma membrane, 26 nm × 18 nm, at true sizes: in each layer 552 phospholipids and 276 cholesterol molecules, 10
+glycolipids outside, a channel protein, a carrier protein, a glycoprotein and a peripheral protein. Every phospholipid
+moves sideways in its own layer and changes places with its neighbours; the proteins move six times more slowly. Eight
+steps, each waiting for Next, every paragraph tagged *SL and HL*, *HL only* or *Beyond the guide* with its statement
+of B2.1; "Follow" draws the path of one phospholipid and of the carrier protein.
+What is true and what is a model is said on the page: the sideways movement is slowed about 4 million times (a
+phospholipid's diffusion coefficient is about 1 µm² s⁻¹; Alberts et al. 2002; Phillips 2018); the ratio of six is that
+of two measurements in the same rat kidney cells, 0.42 µm² s⁻¹ for a phospholipid and 0.070 µm² s⁻¹ for the
+transferrin receptor (Fujiwara et al. 2002, J Cell Biol 157:1071; both read at 33 ms a frame; the ratio is this page's
+arithmetic, not the paper's words); a phospholipid crosses to the other layer so rarely (hours to days; van Meer et
+al. 2008) that at this speed it would take thousands of years, so none is shown and the words say so; the proteins
+are bead models of the right size and do not work; the motion is a model of soft discs. Its 13 sources are listed at
+the end of the page. `node tools/membrane-check.mjs` proves what the page claims (no lipid leaves its layer in 240
+drawn frames; the stated speeds; every name on a molecule of the named kind, read back from the picture; each step a
+still with Reduce motion; a laptop and a phone) and exits 1 if the view is absent; `node tools/ib-switch.mjs` presses
+the door in the game. An independent reviewer judged its pictures and words, and its faults were fixed. Not done: no
+Korean or Chinese tip and no 🔊 on its words (they are explained in their sentences); not seen on a real phone.
+**From glucose to ATP** is the IB extension that the doors and the place's end card open. It is a view of its own, over the whole page, with its own address for IB lessons:
 <https://nlcsbiology.com/ks3-y7-cell-organelles/glucose-to-atp/>. It follows one glucose molecule from the blood into a
 muscle cell and on to ATP, at true sizes, in seven chapters: the map; into the cell (the glucose transporter, and
 hexokinase trapping glucose); glycolysis (its ten steps, each with its reason, and the lactate and yeast branches: above
@@ -474,8 +576,9 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   data are written by tools, never by hand: `python3 -I tools/ib-molecules.py` writes `js/ib/mol-data.js`,
   `python3 -I tools/ib-proteins.py` writes `js/ib/prot/*.js`, `python3 -I tools/ib-insulin.py` writes `js/ib/prot/ir.js`
   and `irk.js` (the insulin receptor's domains before and after insulin binds, insulin, the kinase), from files cached on
-  this computer. The IB switch is in
-  `js/game/quest.js` (`ibSwitch`); what IB adds to each step, and each step in IB terms, in `js/story.js` (`ib`).
+  this computer. The course switches are in
+  `js/game/quest.js` (`courseSwitch`); what each course asks about each step in `js/story.js` (`course`); the IB
+  sentence under each Year 7 one that a place says, and the IB names on the picture, in `js/game/play.js` (`ib`, `IB_NAMES`).
   The old Explorer film inside a mitochondrion is in the Biology Hub's `Archive/2026-11-05/`.
 - `js/plant/` is the plant-cell branch, Where glucose comes from (its own address: `plant-cell/index.html`; styles
   `css/plant.css`): `view.js` (the frame: the game's own panel, steps that wait, buttons that stand on the parts, ↻, the
@@ -555,8 +658,11 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   (`--w 390 --h 844 --mobile 1` a phone,
   `--film 1` a sheet of frames as a step plays, `--x x-nad` an Explore path (`--x x-insulin` the insulin path), `--full 1`
   through its Full screen button);
-  `node tools/ib-switch.mjs` plays the IB switch as a pupil (no switch before every check is right, the IB words and terms,
-  the names, the doors into the view and back, on or off kept after a reload; `--w`/`--h`, `--mobile 1`).
+  `node tools/ib-switch.mjs` plays the course switches of the way in and the mitochondria as a pupil (no switch before
+  every check is right; IB on: a box under each step, the names, the doors into the view and back; the Year 7 words
+  unchanged and labelled, the checks in view; IGCSE on: its boxes, and the picture not drawn again; the choice kept
+  after a reload; a pupil who had the old switch on finds IB on; the way in played with IB on: each thing the place
+  says is the Year 7 sentence, then the IB one, and the choices stay in Year 7 words; `--w`/`--h`, `--mobile 1`).
   `node tools/ib-speed.mjs --gate 1` checks how the view loads and moves on a pupil's first visit (a new browser profile;
   `--net 4g`, `--cpu 4`, `--mobile 1`): no fade left solid, every step smooth once its picture shows, still pictures
   light; `--x x-insulin` the insulin path, at its own address, to its end; `--double 1` presses Next twice, holds → and presses Back while a chapter loads; `--game 1` presses the game's IB

@@ -166,6 +166,8 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step__say:empty{display:none}
 .step__say.ok{color:#1E7A4A;font-weight:700}
 .step__say.no{color:#A14A10}
+.step__say .qp__lowgo{display:block;margin:10px 0 2px}
+.qp__more .qp__morego{margin:8px 8px 0 0}
 /* a longer message: one idea a line, the first line in bold and the rest plain, two facts that go together as a short list,
    an aside quieter (Daniel, 9 Nov 2026: "all in one lump is horrible for y7s") */
 .step__say p{margin:0}
@@ -251,15 +253,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .win__plant{display:block;margin:12px auto 0;color:#12300C;background:linear-gradient(180deg,#E2F6D4,#BDE7A6);border:1.5px solid #7CC96A;font-size:16.5px;line-height:1.25;padding:11px 16px;max-width:100%}
 .win__plant:hover,.win__plant:focus-visible{border-color:#fff;outline:2.5px solid #FFE39A;outline-offset:2px}
 .qp__real:disabled{opacity:.6;cursor:default}
-/* the IB switch and the IB words (quest.js ibSwitch), in IB blue; levels: SL and HL blue, HL only rose, beyond grey
-   (memory level-colours-never-blank: a filled tint, never a blank box) */
-.qp__ib{display:inline-flex;align-items:center;gap:8px;font:800 15px/1 var(--sans);color:#5A2FA8;background:#EDE8FA;border:1.5px solid #C9BAEE;border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer}
-.qp__ib:hover{border-color:#7243C0}
-.qp__ib b{font-weight:900}
+/* a course's words (quest.js courseSwitch), in the one extension violet; levels: SL and HL blue, HL only rose, beyond
+   grey (memory level-colours-never-blank: a filled tint, never a blank box) */
 .qp__ibt{position:relative;flex:none;width:36px;height:22px;border-radius:999px;background:#C9BAEE;transition:background .2s}
 .qp__ibt i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s}
-.qp__ib[aria-pressed="true"] .qp__ibt{background:#7243C0}
-.qp__ib[aria-pressed="true"] .qp__ibt i{transform:translateX(14px)}
 .qp__explore--ib{color:#fff;background:linear-gradient(180deg,#8456CF,#7243C0);border-color:#7243C0}
 .step__ib{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EDE8FA;border-left:4px solid #7243C0;color:#22123F}
 .step__ib p{margin:0 0 8px;font-size:16.5px}
@@ -284,24 +281,37 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__lvb[aria-pressed="true"] .qp__ibt i{transform:translateX(14px)}
 .step__lvk{font:900 12.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#7243C0;margin:0 0 6px!important}
 .step__lv p:last-child{margin-bottom:0}
-.step__lv .step__lvfilm{margin-top:8px}
+.step__lv .step__lvfilm,.step__lv .step__lvdoor,.step__lv .step__lvmem{margin-top:8px}
+/* a course's own questions (quest.js courseQuestions), under the place's Year 7 checks: the extension violet, as the boxes */
+.qp__cq{margin:18px 0 0;padding:2px 12px 12px;border-radius:14px;background:rgba(114,67,192,.07);border-left:4px solid #7243C0}
+.qp__cq .qp__k{color:#7243C0;margin-top:14px}
+.qp__cqn{margin:0 0 10px;font-size:15px;color:var(--qp-ink)}
+:root[data-theme="dark"] .qp__cq{background:rgba(179,136,255,.10);border-left-color:#B388FF} :root[data-theme="dark"] .qp__cq .qp__k{color:#B388FF}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__cq{background:rgba(179,136,255,.10);border-left-color:#B388FF} :root:not([data-theme="light"]) .qp__cq .qp__k{color:#B388FF} }
+/* while a course's box stands under a step, the step's own words say their level, and so does what the place says in
+   IB mode (play.js `ib`): the Year 7 sentence, then the IB one in the box's violet (Daniel, 13 Nov 2026: "as long as
+   the distinction is clear") */
+.steps--lv .step__t::before,.say__k{display:block;font:900 12.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;margin:0 0 4px}
+.steps--lv .step__t::before{content:"Year 7";color:var(--ink3)}
+.say__lv{display:block}
+.say__lv--y7 .say__k{color:var(--ink3)}
+.say__lv--y7 p+p{font-weight:500}
+.say__lv--ib{margin-top:8px;padding:8px 11px;border-radius:12px;background:#EDE8FA;border-left:4px solid #7243C0;color:#22123F;font-weight:500}
+.say__lv--ib .say__k{color:#7243C0}
+.say__k .ibl{margin-left:6px;vertical-align:0}
+:root[data-theme="dark"] .say__lv--ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .say__lv--ib .say__k{color:#B388FF}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .say__lv--ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .say__lv--ib .say__k{color:#B388FF} }
 .ibl--c{color:#17553B;background:#DDF2E6}
 .ibl--s{color:#3F4654;background:#E2E5EA}
 .ibl--n{color:#4A5160;background:#E2E5EA;font-style:italic}
 :root[data-theme="dark"] .qp__lvk{color:#B388FF}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__lvk{color:#B388FF} }
 .nm.nm--ib{font-size:14.5px;padding:5px 10px}
-.qp__ibchk{display:none;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:#E3F4EA;color:#14532D;font:700 15.5px/1.35 var(--sans)}
-.qp--ib .qp__ibchk{display:block}
-.qp--ib .qp__end > .qp__k, .qp--ib .qp__end > .qp__todo, .qp--ib .qp__end > .q{display:none}
-:root[data-theme="dark"] .qp__ibchk{background:#123524;color:#A7F3C9}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ibchk{background:#123524;color:#A7F3C9} }
-:root[data-theme="dark"] .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root[data-theme="dark"] .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
 :root[data-theme="dark"] .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__x>b:first-child{color:#B388FF}
 :root[data-theme="dark"] .fc__tag--side{color:#A5E495;border-color:#7CC96A} :root[data-theme="dark"] .fc__tag--x{background:#2A2142;color:#B388FF;border-color:#B388FF}
 :root[data-theme="dark"] .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root[data-theme="dark"] .step__ibdoor{color:#1B0E3A;background:#B388FF}
 :root[data-theme="dark"] .ibl--sl{color:#C9CFF7;background:#2A3170} :root[data-theme="dark"] .ibl--hl{color:#F59AB8;background:#3B1426} :root[data-theme="dark"] .ibl--x{color:#C7CCD6;background:#2E333D}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .qp__ib{color:#F1EAFF;background:#2A2142;border-color:#7A5BC8} :root:not([data-theme="light"]) .qp__ib[aria-pressed="true"] .qp__ibt{background:#B388FF}
+@media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .step__x{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__x>b:first-child{color:#B388FF}
   :root:not([data-theme="light"]) .fc__tag--side{color:#A5E495;border-color:#7CC96A} :root:not([data-theme="light"]) .fc__tag--x{background:#2A2142;color:#B388FF;border-color:#B388FF}
   :root:not([data-theme="light"]) .step__ib{background:#2A2142;color:#F1EAFF;border-left-color:#B388FF} :root:not([data-theme="light"]) .step__ibdoor{color:#1B0E3A;background:#B388FF}

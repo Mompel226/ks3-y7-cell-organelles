@@ -29,7 +29,12 @@ window.PARTS = [
   /* the final check (js/game/final.js): a test, one go, marked at the end; the board shows its score and its time */
   { n: 13, title: 'Final check', test: true },
   /* the plant-cell branch (js/plant/, 11 Nov 2026): not a place of the cell; its checks are drawn at its own end */
-  { n: 14, title: 'Side quest (extra): a plant cell, where glucose comes from' }
+  { n: 14, title: 'Side quest (extra): a plant cell, where glucose comes from' },
+  /* the course questions (js/questions.js, 13 Nov 2026): not places of the cell. Each is drawn at the end of its own
+     place (`place`), under the Year 7 checks, while that course's switch is on (quest.js courseQuestions); a place's
+     own checks are the questions of its own part, so these never count for a place, the mission or the final check */
+  { n: 15, title: 'Your course (extra): IGCSE questions' },
+  { n: 16, title: 'Your course (extra): IB questions' }
 ];
 /* a game finished is one square on the teacher's board (Lesson.done) */
 window.TASKS = {
@@ -92,23 +97,44 @@ window.STORY = {
       { play: 'amino', text: 'A <dfn data-w="carrier-protein">carrier protein</dfn> carried the glucose through the membrane. An amino acid is a larger molecule too.\n<mark class="do">Press the amino acid, then choose how it enters the cell.</mark>' },
       { play: 'co2', text: '<dfn data-w="carbon-dioxide">Carbon dioxide</dfn> is a waste product of respiration. It is a small molecule, like oxygen.\n<mark class="do">Press the carbon dioxide.</mark>' }
     ],
-    /* the IB switch (quest.js ibSwitch, once every check is right): what IB adds to each step, one sentence a level
-       (sl: SL and HL; hl: HL only; x: beyond the IB guide, 2025), the chapter of "From glucose to ATP" that shows it, and
-       `text`: the step's own words with the IB terms where Year 7 has simpler ones (Daniel, 5 Nov 2026: "if you used lipids
-       for Key Stage 3, now you use phospholipids") */
-    ib: [
-      { ch: 1, text: 'Here the membrane and the molecules are drawn about 100 times bigger, so that you can see them. The membrane is a <dfn data-w="phospholipid">phospholipid</dfn> bilayer, with proteins in it.\nAbove the membrane is the <b>inside</b> of the cell. Below it is the <b>outside</b>.',
-        p: [['sl', 'B2.1.1, B2.1.2', 'The membrane is a phospholipid bilayer, about 5 nm thick. The phosphate heads are hydrophilic: they face the water on each side. The hydrocarbon tails are <dfn data-w="hydrophobic">hydrophobic</dfn>: they form the core, a barrier to ions and polar molecules.']] },
-      { ch: null, p: [['sl', 'B2.1.3', 'Oxygen molecules are small and non-polar, so they pass between the phospholipids by simple diffusion, down their <dfn data-w="concentration-gradient">concentration gradient</dfn>.']] },
-      { ch: 1, p: [['sl', 'B2.1.8', 'Glucose is polar, so it cannot pass between the phospholipids. The carrier protein for glucose is a <dfn data-w="glucose-transporter">glucose transporter</dfn>: glucose enters by <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, and no ATP is used.'],
-        ['hl', 'C1.2.8', 'Inside the cell, an enzyme at once adds a phosphate group from ATP to the glucose (<dfn data-w="phosphorylation">phosphorylation</dfn>). Glucose 6-phosphate is charged, so it cannot leave through the transporter.'],
-        ['x', '', 'In most body cells the transporter is GLUT1. From glucose to ATP shows GLUT4, the one in muscle cells. The enzyme is hexokinase.']] },
-      { ch: null, text: 'A <dfn data-w="glucose-transporter">glucose transporter</dfn> (a <dfn data-w="carrier-protein">carrier protein</dfn>) carried the glucose through the membrane. An amino acid is charged, so it is polar too.\n<mark class="do">Press the amino acid, then choose how it enters the cell.</mark>',
-        p: [['sl', 'B2.1.8', 'Each carrier protein is selective: only particles of the right shape and charge fit it. So the membrane is selectively permeable.']] },
-      { ch: 4, text: '<dfn data-w="carbon-dioxide">Carbon dioxide</dfn> is a waste product of respiration. It is small and non-polar, like oxygen.\n<mark class="do">Press the carbon dioxide.</mark>',
-        p: [['sl', 'B2.1.3', 'Carbon dioxide leaves by simple diffusion too.'],
-        ['hl', 'C1.2.11, C1.2.12', 'It is produced in the mitochondria: in the link reaction and the Krebs cycle, each carbon dioxide molecule is removed from a larger molecule (<dfn data-w="decarboxylation">decarboxylation</dfn>). Its carbon atoms come from glucose.']] }
-    ],
+    /* the course layers of this place (quest.js courseSwitch; the rules are above the nucleus's `course`, below). They
+       replaced its "IB Biology" switch, which changed the Year 7 sentences into IB ones (13 Nov 2026; Daniel: "being a
+       KS3 level sentence next to an IB level one (as long as the distinction is clear) is useful for the students to
+       see how they need to improve/change the way they write as they progress"). `names`: with IB on, the names on
+       the picture add the IB terms, and what the place says adds its IB sentence under the Year 7 one (play.js `ib`).
+       `ch`: a door to that chapter of "From glucose to ATP". `mem`: a door to "The cell membrane: fluid and mosaic"
+       (js/membrane/view.js; Daniel, 13 Nov 2026: "show that the phospholipids move within their own layer, and so that
+       actually proteins can migrate … how the cell membrane probably looks like and moves like in reality"). IGCSE and the carrier protein for glucose: the examiners'
+       report of November 2016 says "Facilitated diffusion is beyond the scope of IGCSE", and the syllabus names
+       protein carriers only in active transport (3.3.3), so the lines say what the syllabus names and what it does not. */
+    course: {
+      names: true,
+      igcse: [
+        { p: [['c', '2.1.1, 2.1.4', 'The cell membrane is in the list of cell structures that you describe and compare. Its function: it controls what enters and leaves the cell.'],
+          ['c', '3.2.2, 3.2.3', 'The IGCSE term for a membrane like this is partially permeable: some substances pass through it, and others do not. Water passes through it by osmosis.'],
+          ['n', '', 'The syllabus does not name the lipids of the membrane. Of its proteins, it names one kind: the protein carriers of active transport.']] },
+        { p: [['c', '9.4.3', 'Red blood cells transport oxygen. Haemoglobin, inside the red blood cells, carries it.'],
+          ['c', '3.1.1, 3.1.3', 'Oxygen enters the cell by <dfn data-w="diffusion">diffusion</dfn> through the cell membrane. Diffusion is the net movement of particles from a region of their higher concentration to a region of their lower concentration (down a <dfn data-w="concentration-gradient">concentration gradient</dfn>), as a result of their random movement.']] },
+        { p: [['c', '9.4.3', 'Plasma transports nutrients, such as glucose and amino acids.'],
+          ['s', '9.3.5', 'The wall of a capillary is one cell thick, so the distance for diffusion through it is short.'],
+          ['n', '', 'Here the glucose moves through its carrier protein from a higher concentration to a lower concentration (down a concentration gradient), and no energy from respiration is used: this agrees with the description of diffusion. The syllabus does not name a protein carrier for diffusion.']] },
+        { p: [['s', '3.3.3', 'The syllabus names protein carriers in one process, active transport: they move molecules or ions across a membrane.'],
+          ['c', '3.3.1', 'Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy.']] },
+        { p: [['c', '3.1.3', 'Carbon dioxide leaves the cell by diffusion through the cell membrane: its concentration is higher inside the cell, where respiration produces it.'],
+          ['c', '9.4.3', 'Plasma transports carbon dioxide.']] }
+      ],
+      ib: [
+        { ch: 1, mem: true, p: [['sl', 'B2.1.1, B2.1.2', 'The membrane is a <dfn data-w="phospholipid">phospholipid</dfn> bilayer, about 5 nm thick, with proteins in it. The phosphate heads are <dfn data-w="hydrophilic">hydrophilic</dfn>: they face the water on each side. The hydrocarbon tails are <dfn data-w="hydrophobic">hydrophobic</dfn>: they form the core, a barrier to ions and <dfn data-w="polar">polar</dfn> molecules.']] },
+        { ch: null, p: [['sl', 'B2.1.3', 'Oxygen molecules are small and non-polar, so they pass between the phospholipids by simple diffusion, down their <dfn data-w="concentration-gradient">concentration gradient</dfn>.']] },
+        { ch: 1, p: [['sl', 'B2.1.8', 'Glucose is polar, so it cannot pass between the phospholipids. The carrier protein for glucose is a <dfn data-w="glucose-transporter">glucose transporter</dfn>: glucose enters by <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, and no ATP is used.'],
+          ['hl', 'C1.2.8', 'Inside the cell, an enzyme immediately adds a phosphate group from ATP to the glucose (<dfn data-w="phosphorylation">phosphorylation</dfn>). Glucose 6-phosphate is charged, so it cannot leave through the transporter.'],
+          ['x', '', 'In many body cells the transporter is GLUT1. <b>From glucose to ATP</b> shows GLUT4, the one in muscle cells. The enzyme is hexokinase.']] },
+        { ch: null, p: [['sl', 'B2.1.8', 'An amino acid has charged groups, so it is hydrophilic: it cannot pass between the phospholipids. Each carrier protein is selective: only particles of the right shape and charge fit it. So the membrane is selectively permeable.'],
+          ['x', '', 'Many amino acid transporters are cotransporters: a sodium ion enters with each amino acid. The picture does not show which kind this one is.']] },
+        { ch: 4, p: [['sl', 'B2.1.3', 'Carbon dioxide is small and non-polar, like oxygen: it leaves by simple diffusion too.'],
+          ['hl', 'C1.2.11, C1.2.12', 'It is produced in the mitochondria: in the link reaction and the Krebs cycle, each carbon dioxide molecule is removed from a larger molecule (<dfn data-w="decarboxylation">decarboxylation</dfn>). Its carbon atoms come from glucose.']] }
+      ]
+    },
     done: 'You carry glucose, oxygen and amino acids. The <b>mitochondria</b> are awake now.',
     /* a return visit (quest.js `more`, main.js `place-more`; the audit, 11 Nov 2026): one press, never the five steps again */
     more: { lacks: ['glucose', 'oxygen'], label: 'Take in more glucose and oxygen', text: 'Your cell has used its glucose or its oxygen. The blood brings more: they enter as before, glucose through its carrier protein and oxygen straight through the lipids.', wait: 'You still carry glucose and oxygen. Return here when the cell has used them.', did: 'More glucose and oxygen are in the cell.' },
@@ -139,29 +165,49 @@ window.STORY = {
     ],
     done: 'The energy bar is full. Every job of the cell uses some: when it is low, return here with more glucose and oxygen.',
     more: { needs: ['glucose', 'oxygen'], label: '⚡ Release energy again', text: 'You carry glucose and oxygen. The mitochondria release their energy as before: press ↻ beside a step to watch it again.', wait: 'To release more energy, bring glucose and oxygen from <b>the way in</b>.', did: 'Aerobic respiration released more energy: look at the energy bar.' },
-    /* the IB switch (quest.js ibSwitch, once every check is right): what IB adds to each step, one sentence a level, and
-       its chapter in "From glucose to ATP" (it replaced this place's Explorer film, 5 Nov 2026), and `text`: the step in IB terms */
-    ib: [
-      { ch: 0, p: [['sl', 'C1.2.5', 'Mitochondria are needed for aerobic respiration, but not for anaerobic respiration.']] },
-      { ch: 3, text: 'Inside, the inner membrane is folded. Its folds are the <dfn data-w="cristae">cristae</dfn> (one: a crista).\nInside the inner membrane is the <dfn data-w="matrix">matrix</dfn>, a fluid with the enzymes of the link reaction and the Krebs cycle.\nHere its two membranes look like one line: the <dfn data-w="intermembrane-space">intermembrane space</dfn> between them is only about 15 nm wide.\nA glucose molecule is about 1 <dfn data-w="nanometre">nanometre</dfn> (nm) across: this mitochondrion is 700 times wider.\nIn this place everything is drawn at its true size compared with everything else, so to see glucose and the two membranes, you zoom in.\n<mark class="do">Press 🔍 Zoom in, beside the ring of light on its edge.</mark>',
-        p: [['hl', 'B2.2.4', 'Adaptations for making ATP: a double membrane with a small volume of intermembrane space (so a few pumped protons give a high concentration), the large surface area of the cristae, and the enzymes and substrates of the Krebs cycle kept together in the matrix.']] },
-      { ch: 2, text: 'You are at the edge of the mitochondrion. The bar at the bottom left shows the scale.\nAbove is the <dfn data-w="cytosol">cytosol</dfn>; below, the outer membrane: a phospholipid bilayer, with proteins in it.\nIn the cytosol, <dfn data-w="glycolysis">glycolysis</dfn> converts each glucose molecule (6C) into two <dfn data-w="pyruvate">pyruvate</dfn> molecules (3C), in ten steps. Here one press stands for all ten.\n<mark class="do">Press the glucose.</mark>',
-        p: [['hl', 'C1.2.8', '<dfn data-w="glycolysis">Glycolysis</dfn> converts glucose (6C) into two <dfn data-w="pyruvate">pyruvate</dfn> (3C), in the cytosol, in ten steps, each catalysed by a different enzyme: phosphorylation, lysis, oxidation and ATP formation. Net yield per glucose: 2 ATP and 2 reduced NAD.']] },
-      { ch: 3, text: 'The two pyruvate molecules pass through the two membranes into the matrix: through porin, a <dfn data-w="channel-protein">channel protein</dfn>, then the pyruvate carrier, a <dfn data-w="carrier-protein">carrier protein</dfn>.\nOne glucose molecule needs six oxygen molecules.\n<mark class="do">Press the two pyruvate molecules, then the oxygen,</mark> to move them into the mitochondrion.',
-        p: [['sl', 'B2.1.6', 'The channel protein is porin: pyruvate crosses the outer membrane through its wide pore, by facilitated diffusion.'],
-        ['x', '', 'The carrier protein in the inner membrane is the mitochondrial pyruvate carrier: it carries a hydrogen ion in with each pyruvate. Reduced NAD from glycolysis cannot cross the inner membrane: only its electrons enter, by a shuttle.']] },
-      { ch: 4, text: 'In the matrix, the <dfn data-w="link-reaction">link reaction</dfn> and the <dfn data-w="krebs-cycle">Krebs cycle</dfn> oxidize the pyruvate, step by step; an <dfn data-w="enzyme">enzyme</dfn> catalyses each step. Watch what is produced.',
-        p: [['hl', 'C1.2.11', 'The link reaction: each pyruvate is decarboxylated and oxidized, and its acetyl group (2C) joins coenzyme A: acetyl CoA.'],
-        ['hl', 'C1.2.12', 'The Krebs cycle: the acetyl group joins oxaloacetate (4C) to form citrate (6C). Four oxidations and two decarboxylations give oxaloacetate back.']] },
-      { ch: 6, text: 'Reduced NAD and FADH₂ pass electrons from this hydrogen to the <dfn data-w="electron-transport-chain">electron transport chain</dfn>, in the inner membrane of the cristae.\nAs the electrons flow along the chain, the energy released pumps protons (<dfn data-w="hydrogen-ion">hydrogen ions</dfn>) into the intermembrane space.\nWatch the protons collect there. Then <mark class="do">press the oxygen</mark> to send it to the end of the chain: oxygen is the terminal electron acceptor.',
-        p: [['hl', 'C1.2.13, C1.2.14', 'Reduced NAD passes a pair of electrons to the first carrier of the electron transport chain. As the electrons flow along the chain, the energy released pumps protons (hydrogen ions) into the intermembrane space: a <dfn data-w="proton-gradient">proton gradient</dfn>.'],
-        ['hl', 'C1.2.16', 'Oxygen is the terminal electron acceptor: it accepts electrons and protons, so water is produced and the electrons can keep flowing.']] },
-      { ch: 6, text: 'Now the concentration of protons is high in the intermembrane space and low in the matrix: a <dfn data-w="proton-gradient">proton gradient</dfn>.\nThe phospholipid bilayer is a barrier to ions, as a dam (a wall across a river) holds water.\nProtons can diffuse back into the matrix only through <dfn data-w="atp-synthase">ATP synthase</dfn>: this is <dfn data-w="chemiosmosis">chemiosmosis</dfn>.\nAs they flow through, a ring inside it turns, like a watermill (a wheel that water turns), and ATP synthase phosphorylates ADP to <dfn data-w="atp">ATP</dfn>.',
-        p: [['hl', 'C1.2.15', '<dfn data-w="chemiosmosis">Chemiosmosis</dfn>: protons flow back through ATP synthase, down the gradient, and the energy released phosphorylates ADP to ATP.']] },
-      { ch: 7, text: '<span class="eq"><b class="eq-g">glucose</b> + <b class="eq-o">oxygen</b> → <b class="eq-c">carbon dioxide</b> + <b class="eq-w">water</b></span>\nAerobic respiration: <b>carbon dioxide</b> and <b>water</b> are produced, and the energy released makes ATP: about 30–32 ATP per glucose.\nATP supplies the energy for the work of the cell: to join amino acids, to make lipids and to move vesicles.\nThe whole story, molecule by molecule: <b>🧬 IB extension: from glucose to ATP</b>, at the end of this place.',
-        p: [['sl', 'C1.2.5', 'Aerobic respiration yields many more ATP per glucose than anaerobic respiration, which yields only the 2 ATP of glycolysis.'],
-        ['x', '', 'Measured: about 30–32 ATP per glucose (older books say 36–38).']] }
-    ],
+    /* the course layers of this place (quest.js courseSwitch; see the way in's, above, and the rules above the
+       nucleus's). `ch`: the step's chapter in "From glucose to ATP" (it replaced this place's Explorer film, 5 Nov
+       2026). IGCSE: the syllabus names the site, the two equations and the uses of energy, and none of the parts in
+       between. "Energy is released": the examiners' reports (March 2021, March 2022, November 2022) list "energy is
+       produced" as a common error; mark schemes (March 2016 paper 42, November 2023 paper 41) have "mitochondria are
+       site of aerobic respiration". */
+    course: {
+      names: true,
+      igcse: [
+        { p: [['c', '2.1.1, 2.1.3', 'Mitochondria are in the list of cell structures that you describe and compare, and that you identify in diagrams and images of cells.'],
+          ['n', '', 'The syllabus does not name the two membranes of a mitochondrion.']] },
+        { p: [['c', '2.1.4', 'The function of mitochondria: they are the site of aerobic respiration.'],
+          ['n', '', 'The syllabus does not name the cristae or the matrix.']] },
+        { p: [['c', '12.2.1', 'Aerobic respiration is the chemical reactions in cells that use oxygen to break down nutrient molecules to release energy. Glucose is a nutrient molecule.'],
+          ['n', '', 'The syllabus does not name the steps of respiration. The split of glucose in the cytosol is the first step.']] },
+        { p: [['s', '12.2.3', 'The six oxygen molecules are the 6O₂ of the balanced chemical equation: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O.'],
+          ['n', '', 'The syllabus does not name channel proteins.']] },
+        { p: [['c', '5.1.2', 'Enzymes are proteins that function as biological catalysts in all metabolic reactions. The reactions of respiration are metabolic reactions.']] },
+        { p: [['c', '12.2.1', 'Aerobic respiration uses oxygen: this is the step that uses it. Water is produced here.'],
+          ['n', '', 'The syllabus does not name hydrogen ions in respiration, or the chain of proteins.']] },
+        { p: [['c', '12.2.1', 'The syllabus says that respiration releases energy. Write "energy is released": the reports of the examiners for this syllabus list "energy is produced" as a common error.'],
+          ['n', '', 'The syllabus does not name ATP or ATP synthase.']] },
+        { p: [['c', '12.2.2', 'The word equation above is the one that the syllabus asks you to state.'],
+          ['s', '12.2.3', 'The balanced chemical equation: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O.'],
+          ['c', '12.1.1', 'Uses of energy in living organisms: muscle contraction, protein synthesis, cell division, active transport, growth, the passage of nerve impulses and the maintenance of a constant body temperature. To join amino acids is protein synthesis.']] }
+      ],
+      ib: [
+        { ch: 0, p: [['sl', 'C1.2.5', 'Mitochondria are needed for aerobic respiration, but not for anaerobic respiration.']] },
+        { ch: 3, p: [['hl', 'B2.2.4', 'The matrix is a fluid with the enzymes of the link reaction and the Krebs cycle. The space between the two membranes is the <dfn data-w="intermembrane-space">intermembrane space</dfn>, about 15 nm wide. Adaptations for making ATP: a double membrane with a small volume of intermembrane space (so a few pumped protons give a high concentration), the large surface area of the cristae, and the enzymes and substrates of the Krebs cycle kept together in the matrix.']] },
+        { ch: 2, p: [['hl', 'C1.2.8', '<dfn data-w="glycolysis">Glycolysis</dfn> converts glucose (6C) into two <dfn data-w="pyruvate">pyruvate</dfn> (3C), in the cytosol, in ten steps, each catalysed by a different enzyme: phosphorylation, lysis, oxidation and ATP formation. Net yield per glucose: 2 ATP and 2 reduced NAD. Here one press shows all ten steps.']] },
+        { ch: 3, p: [['sl', 'B2.1.6', 'A channel protein has a pore: particles diffuse through it, down their concentration gradient. This is facilitated diffusion.'],
+          ['hl', 'C1.2.8', 'The smaller molecules are pyruvate.'],
+          ['x', '', 'This channel protein is porin: its pore is wide, so pyruvate passes through it. The carrier protein in the inner membrane is the mitochondrial pyruvate carrier: it carries a hydrogen ion in with each pyruvate. Reduced NAD from glycolysis cannot cross the inner membrane: only its electrons enter, by a shuttle.']] },
+        { ch: 4, p: [['hl', 'C1.2.11', 'The <dfn data-w="link-reaction">link reaction</dfn>: each pyruvate is decarboxylated and oxidized, and its acetyl group (2C) joins coenzyme A: acetyl CoA.'],
+          ['hl', 'C1.2.12', 'The <dfn data-w="krebs-cycle">Krebs cycle</dfn>: the acetyl group joins oxaloacetate (4C) to form citrate (6C). Four oxidations and two decarboxylations make oxaloacetate again.']] },
+        { ch: 6, p: [['hl', 'C1.2.13, C1.2.14', 'The chain of proteins is the <dfn data-w="electron-transport-chain">electron transport chain</dfn>. Reduced NAD passes a pair of electrons to its first carrier. As the electrons flow along the chain, the energy released pumps protons (hydrogen ions) into the intermembrane space: a <dfn data-w="proton-gradient">proton gradient</dfn>.'],
+          ['hl', 'C1.2.16', 'Oxygen is the terminal electron acceptor: it accepts electrons and protons, so water is produced and the electrons can keep flowing.']] },
+        { ch: 6, p: [['hl', 'C1.2.15', 'The concentration of protons is high in the intermembrane space and low in the matrix. The phospholipid bilayer is a barrier to ions, so protons flow back only through ATP synthase, down the gradient, and the energy released phosphorylates ADP to ATP: this is <dfn data-w="chemiosmosis">chemiosmosis</dfn>.']] },
+        { ch: 7, p: [['sl', 'C1.2.1, C1.2.2', 'The energy released makes ATP, and ATP supplies the energy for the work of the cell: here, to join amino acids, to make lipids and to move vesicles.'],
+          ['sl', 'C1.2.5', 'Aerobic respiration yields many more ATP per glucose than anaerobic respiration.'],
+          ['x', '', 'Measured: about 30–32 ATP per glucose (older books say 36–38).']] }
+      ]
+    },
     explore: '🧬 IB extension: from glucose to ATP',
     fact: { text: 'Mitochondria have their own small piece of DNA. You inherit all of it from your mother.', src: 'MedlinePlus Genetics, Mitochondrial DNA (US National Library of Medicine)' }
   },

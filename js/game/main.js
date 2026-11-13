@@ -5,16 +5,16 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611130101';
-import { Names } from './names.js?v=202611130101';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611130101';
-import { makePlay } from './play.js?v=202611130101';
-import { setStill, wait } from './actors.js?v=202611130101';
-import { state, RESPIRE } from './state.js?v=202611130101';
-import { ICON } from './icons.js?v=202611130101';
-import { intro } from './intro.js?v=202611130101';
-import { sound } from './sound.js?v=202611130101';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611130101';
+import { World, MAP_VIEW } from '../world/world.js?v=202611131404';
+import { Names } from './names.js?v=202611131404';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611131404';
+import { makePlay } from './play.js?v=202611131404';
+import { setStill, wait } from './actors.js?v=202611131404';
+import { state, RESPIRE } from './state.js?v=202611131404';
+import { ICON } from './icons.js?v=202611131404';
+import { intro } from './intro.js?v=202611131404';
+import { sound } from './sound.js?v=202611131404';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611131404';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -160,6 +160,8 @@ qHide.addEventListener('click', () => {
   setInset();
 });
 new MutationObserver(() => { if (panelOff()) qHide.classList.add('is-new'); }).observe($('#quest'), { childList: true, subtree: true, characterData: true });
+/* a job stopped for energy while the text is hidden (quest.js energy): said on the picture too */
+document.addEventListener('low-energy', () => { if (panelOff()) toast('<b>Not enough energy for this job.</b> Press <b>Show text</b> to see what to do.'); });
 function setInset() {
   const s = world.size, panel = $('#quest');
   $('#stage').style.setProperty('--qh', panel.offsetHeight + 'px');   /* on a phone, Hide text stands just above the panel */
@@ -259,7 +261,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611130101').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611131404').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -267,9 +269,9 @@ document.addEventListener('lens', e => import('./lens.js?v=202611130101').then(m
    audit, 5 Nov 2026) */
 let opening = false;
 const openIB = start => {
-  if (opening || document.documentElement.classList.contains('ibv-open')) return;
+  if (opening || memOpening || document.documentElement.classList.contains('ibv-open') || document.documentElement.classList.contains('memv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611130101').then(m => {
+  import('../ib/view.js?v=202611131404').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -279,13 +281,28 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611130101').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../ib/view.js?v=202611131404').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../membrane/view.js?v=202611131404').then(m => m.warm()).catch(() => {});
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611130101').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611131404').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
+/* "The cell membrane: fluid and mosaic" (js/membrane/view.js, 13 Nov 2026; its own address: membrane/): a 3D patch of
+   membrane at true sizes, whose phospholipids move in their own layer and whose proteins move more slowly, opened over
+   the page by the door in the way in's first IB box (quest.js courseSwitch: 'memview'). One view at a time. */
+let memOpening = false;
+const openMem = () => {
+  const root = document.documentElement;
+  if (memOpening || opening || root.classList.contains('memv-open') || root.classList.contains('ibv-open') || root.classList.contains('plv-open')) return;
+  memOpening = true;
+  import('../membrane/view.js?v=202611131404').then(m => {
+    world.hold = true;
+    m.openMembrane({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); winNext(); } });
+  }).catch(e => { memOpening = false; world.hold = false; world.kick(); console.error(e); });
+};
+document.addEventListener('memview', openMem);
 /* ---------------- what next: the game asks the pupil to explore everything (12 Nov 2026) ----------------
    Daniel: "When the students complete the main quest, if they have not completed the side quest, it should pop up … A
    message should pop up, complete now the side quest. And when they have completed the side quest, if they have not
@@ -337,7 +354,7 @@ function nextOff() { if (NEXT.el) { NEXT.el.remove(); NEXT.el = null; } }
 function nextUp(from) {
   const N = nextStep(), root = document.documentElement;
   nextOff();
-  if (!N || NEXT.no.has(N.key) || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
+  if (!N || NEXT.no.has(N.key) || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   /* a phone, the Mission complete card up: the card's own box says it (the card has the whole picture) */
   if (world.size.w <= 860 && !$('#test').hidden && $('#test .win')) return;
   const el = NEXT.el = h('div', { class: 'nextup nextup--' + N.key, role: 'dialog', 'aria-labelledby': 'nextupT' },
@@ -359,9 +376,9 @@ world.on('resize', () => { if (NEXT.el) { NEXT.el.style.left = ((world.size.w - 
 let plantOpening = false;
 document.addEventListener('plant', e => {
   const root = document.documentElement;
-  if (plantOpening || opening || root.classList.contains('plv-open') || root.classList.contains('ibv-open')) return;
+  if (plantOpening || opening || memOpening || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611130101').then(m => {
+  import('../plant/view.js?v=202611131404').then(m => {
     world.hold = true;
     m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });

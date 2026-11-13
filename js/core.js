@@ -75,7 +75,8 @@
       if (p.test) { finalRows(p.n).forEach(r => qs.push(r)); return; }
       Object.keys(TASKS).filter(id => TASKS[id].part === p.n).forEach(id => qs.push({ id, part: p.n, title: TASKS[id].title, short: 'game', kind: 'task' }));
       Object.keys(QS).filter(id => QS[id].part === p.n).forEach(id => {
-        const q = QS[id], r = { id, part: q.part, title: q.title, short: q.short, kind: q.kind };
+        /* a course question (questions.js, parts 15 and 16) is drawn in a place: the board's title says which */
+        const q = QS[id], at = q.place && window.STORY && window.STORY[q.place], r = { id, part: q.part, title: (at ? at.title + ' · ' : '') + q.title, short: q.short, kind: q.kind };
         if (q.kind === 'mcq') r.opts = q.a.slice();
         if (q.kind === 'gaps') r.gaps = q.text.match(/\[\[([^\]]+)\]\]/g).map(m => m.slice(2, -2).split('|')[0]);
         if (q.ext) r.ext = 1;
@@ -116,7 +117,7 @@
   /* ---------------- the word bank (one list for the page, with Korean and Chinese) ---------------- */
   const WORD = {};
   (window.WORDS || []).forEach(g => g.w.forEach(w => { WORD[w.k] = w; }));
-  /* a word of the shared KS3 glossary that this page's bank does not list (the IB words of quest.js ibSwitch) still opens
+  /* a word of the shared KS3 glossary that this page's bank does not list (the IB words of quest.js courseSwitch) still opens
      its meaning where it is used; the bank's list stays the Year 7 words */
   const wordOf = k => WORD[k] || (window.KS3_GLOSSARY && window.KS3_GLOSSARY.by[k]) || null;
   /* how to say a hard word (Daniel, 8 Nov 2026: "the students can click on the very complex words ... to know how they

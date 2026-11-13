@@ -7,9 +7,11 @@
    ends ON its part (memory label-lines-never-cross), the points measured on the drawing's own outlines (4 Nov 2026:
    membrane x 271 at y 300, nucleus 383–455 × 173–264, the mitochondrion at 365, 433, the ribosome at 356, 151).
    ============================================================ */
+/* the drawing has many ribosomes and several mitochondria, so their names are plural (Daniel, 13 Nov 2026: "if you show
+   multiple structures, use the plural form"); each line still ends on one of them */
 const LAB = [
   /* text, label side, the point on the part (drawing units), the label row */
-  ['ribosome', 'L', 356, 151], ['nucleus', 'L', 383, 218], ['cell membrane', 'L', 271, 300], ['mitochondrion', 'L', 365, 433],
+  ['ribosomes', 'L', 356, 151], ['nucleus', 'L', 383, 218], ['cell membrane', 'L', 271, 300], ['mitochondria', 'L', 365, 433],
   ['cytoplasm', 'R', 610, 420]
 ];
 export function simpleCard() {

@@ -58,6 +58,14 @@
   {
    "n": 14,
    "title": "Side quest (extra): a plant cell, where glucose comes from"
+  },
+  {
+   "n": 15,
+   "title": "Your course (extra): IGCSE questions"
+  },
+  {
+   "n": 16,
+   "title": "Your course (extra): IB questions"
   }
  ],
  "groups": [],
@@ -992,6 +1000,263 @@
    "title": "The loop of glucose",
    "short": "order",
    "kind": "order"
+  },
+  {
+   "id": "cw-ig-diffusion",
+   "part": 15,
+   "title": "Cell membrane: the way in · IGCSE Core 3.1.1: what diffusion is",
+   "short": "IG q",
+   "kind": "mcq",
+   "opts": [
+    "The net movement of particles from a region of their higher concentration to a region of their lower concentration.",
+    "The net movement of particles from a region of their lower concentration to a region of their higher concentration.",
+    "The movement of particles through a cell membrane, down a concentration gradient, using energy from respiration.",
+    "The net movement of particles from the blood into a cell, as a result of the pumping of the heart muscle."
+   ]
+  },
+  {
+   "id": "cw-ig-active",
+   "part": 15,
+   "title": "Cell membrane: the way in · IGCSE Supplement 3.3.3: active transport",
+   "short": "IG gaps",
+   "kind": "gaps",
+   "gaps": [
+    "lower",
+    "higher",
+    "energy",
+    "respiration",
+    "carriers"
+   ]
+  },
+  {
+   "id": "cm-ig-released",
+   "part": 15,
+   "title": "Mitochondria · IGCSE Core 12.2.1: energy in respiration",
+   "short": "IG q",
+   "kind": "mcq",
+   "opts": [
+    "Chemical reactions in cells that use oxygen to break down nutrient molecules to release energy.",
+    "Chemical reactions in cells that use oxygen to break down nutrient molecules to produce energy.",
+    "Chemical reactions in cells that use carbon dioxide to break down nutrient molecules to release energy.",
+    "Chemical reactions in cells that use carbon dioxide to break down nutrient molecules to produce energy."
+   ]
+  },
+  {
+   "id": "cm-ig-equation",
+   "part": 15,
+   "title": "Mitochondria · IGCSE Supplement 12.2.3: the equations",
+   "short": "IG gaps",
+   "kind": "gaps",
+   "gaps": [
+    "O₂",
+    "CO₂",
+    "H₂O"
+   ]
+  },
+  {
+   "id": "cn-ig-gene",
+   "part": 15,
+   "title": "Nucleus · IGCSE Core 17.1.2: what a gene is",
+   "short": "IG q",
+   "kind": "mcq",
+   "opts": [
+    "A length of DNA that codes for a protein.",
+    "A length of protein that codes for a chromosome.",
+    "A thread of DNA that contains many chromosomes.",
+    "A copy of a chromosome that is made of protein."
+   ]
+  },
+  {
+   "id": "cn-ig-mrna",
+   "part": 15,
+   "title": "Nucleus · IGCSE Supplement 17.1.8: the copy of the gene",
+   "short": "IG gaps",
+   "kind": "gaps",
+   "gaps": [
+    "nucleus",
+    "mRNA",
+    "cytoplasm",
+    "ribosomes"
+   ]
+  },
+  {
+   "id": "cr-ig-protein",
+   "part": 15,
+   "title": "Ribosomes · IGCSE Core 2.1.4: what ribosomes do",
+   "short": "IG q",
+   "kind": "mcq",
+   "opts": [
+    "Ribosomes make proteins, which are large molecules made from amino acids.",
+    "Ribosomes make amino acids, which are large molecules made from proteins.",
+    "Ribosomes make proteins, which are large molecules made from glucose.",
+    "Ribosomes make mRNA, which is a large molecule made from amino acids."
+   ]
+  },
+  {
+   "id": "cr-ig-sequence",
+   "part": 15,
+   "title": "Ribosomes · IGCSE Supplement 17.1.8: how a protein is made",
+   "short": "IG gaps",
+   "kind": "gaps",
+   "gaps": [
+    "mRNA",
+    "protein",
+    "bases"
+   ]
+  },
+  {
+   "id": "ce-ig-site",
+   "part": 15,
+   "title": "Rough ER · IGCSE Core 5.1.4: the active site of amylase",
+   "short": "IG q",
+   "kind": "mcq",
+   "opts": [
+    "Its shape is complementary to the shape of its substrate, starch.",
+    "Its shape is the same as the shape of its substrate, starch.",
+    "Its shape is complementary to the shape of the gene for amylase.",
+    "Its shape is the same as the shape of the product of the reaction."
+   ]
+  },
+  {
+   "id": "ce-ig-shape",
+   "part": 15,
+   "title": "Rough ER · IGCSE Supplement 17.1.6: the shape of a protein",
+   "short": "IG gaps",
+   "kind": "gaps",
+   "gaps": [
+    "sequences",
+    "specific",
+    "active site",
+    "substrate"
+   ]
+  },
+  {
+   "id": "cw-ib-polar",
+   "part": 16,
+   "title": "Cell membrane: the way in · IB (SL and HL) B2.1.2: the bilayer as a barrier",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "Glucose is polar, so the hydrophobic core of the bilayer is a barrier to it.",
+    "Glucose is non-polar, so the hydrophilic core of the bilayer is a barrier to it.",
+    "Glucose is polar, so the hydrophilic heads of the bilayer are a barrier to it.",
+    "Glucose is non-polar, so the hydrophobic tails of the bilayer are a barrier to it."
+   ]
+  },
+  {
+   "id": "cw-ib-facilitated",
+   "part": 16,
+   "title": "Cell membrane: the way in · IB (SL and HL) B2.1.8: two kinds of diffusion",
+   "short": "IB gaps",
+   "kind": "gaps",
+   "gaps": [
+    "facilitated",
+    "simple",
+    "selectively"
+   ]
+  },
+  {
+   "id": "cm-ib-aerobic",
+   "part": 16,
+   "title": "Mitochondria · IB (SL and HL) C1.2.5: aerobic and anaerobic",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "Aerobic respiration needs mitochondria and yields many more ATP per glucose.",
+    "Anaerobic respiration needs mitochondria and yields many more ATP per glucose.",
+    "Aerobic respiration needs no mitochondria and yields fewer ATP per glucose.",
+    "Anaerobic respiration needs oxygen and yields the same ATP per glucose."
+   ]
+  },
+  {
+   "id": "cm-ib-chemiosmosis",
+   "part": 16,
+   "title": "Mitochondria · IB (HL only) C1.2.15: chemiosmosis",
+   "short": "IB gaps",
+   "kind": "gaps",
+   "gaps": [
+    "protons",
+    "ATP synthase",
+    "chemiosmosis",
+    "Oxygen"
+   ]
+  },
+  {
+   "id": "cn-ib-separate",
+   "part": 16,
+   "title": "Nucleus · IB (SL and HL) B2.2.2: why a nucleus",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "The mRNA can be modified before it meets ribosomes in the cytoplasm.",
+    "The DNA can be modified before it meets ribosomes in the cytoplasm.",
+    "The mRNA can be translated before it leaves the nucleus through a pore.",
+    "The DNA can be translated before it leaves the nucleus through a pore."
+   ]
+  },
+  {
+   "id": "cn-ib-transcription",
+   "part": 16,
+   "title": "Nucleus · IB (SL and HL) D1.2.1: transcription",
+   "short": "IB gaps",
+   "kind": "gaps",
+   "gaps": [
+    "template",
+    "polymerase",
+    "uracil"
+   ]
+  },
+  {
+   "id": "cr-ib-anticodon",
+   "part": 16,
+   "title": "Ribosomes · IB (SL and HL) D1.2.7: tRNA",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "Its anticodon pairs with a codon of the mRNA by complementary base pairing.",
+    "Its codon pairs with an anticodon of the mRNA by complementary base pairing.",
+    "Its anticodon pairs with a codon of the DNA by complementary base pairing.",
+    "Its amino acid pairs with a codon of the DNA by complementary base pairing."
+   ]
+  },
+  {
+   "id": "cr-ib-translation",
+   "part": 16,
+   "title": "Ribosomes · IB (SL and HL) D1.2.5: translation",
+   "short": "IB gaps",
+   "kind": "gaps",
+   "gaps": [
+    "polypeptides",
+    "small",
+    "codon",
+    "peptide"
+   ]
+  },
+  {
+   "id": "ce-ib-condensation",
+   "part": 16,
+   "title": "Rough ER · IB (SL and HL) B1.2.2: the peptide bond",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "A condensation reaction forms a peptide bond and releases one molecule of water.",
+    "A condensation reaction forms a peptide bond and uses one molecule of water.",
+    "A condensation reaction forms a hydrogen bond and uses one molecule of water.",
+    "A condensation reaction forms a hydrogen bond and releases one molecule of water."
+   ]
+  },
+  {
+   "id": "ce-ib-secretion",
+   "part": 16,
+   "title": "Rough ER · IB (HL only) B2.2.7: proteins for secretion",
+   "short": "IB gaps",
+   "kind": "gaps",
+   "gaps": [
+    "secretion",
+    "Vesicles",
+    "clathrin",
+    "Golgi apparatus"
+   ]
   }
  ]
 }

@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611130101';
-import { state, COST } from './state.js?v=202611130101';
-import { sound } from './sound.js?v=202611130101';
-import { finalLine } from './final.js?v=202611130101';
+import { ICON } from './icons.js?v=202611131404';
+import { state, COST } from './state.js?v=202611131404';
+import { sound } from './sound.js?v=202611131404';
+import { finalLine } from './final.js?v=202611131404';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611130101').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611130101';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611131404').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611131404';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -223,7 +223,7 @@ export class Quest {
       if (i < from) this.againBtn(id, i, li);
     });
     R.terms(ol);
-    this.ibSwitch(id); this.courseSwitch(id);
+    this.courseSwitch(id);
     if (from >= P.steps.length) { this.finishPanel(id); return; }
     for (let i = from; i < P.steps.length; i++) {
       if (my !== this.session) return;
@@ -252,67 +252,56 @@ export class Quest {
     (last || t || li).appendChild(b);
     b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('step-again', { detail: { id, i, li } })));
   }
-  /* the IB switch, in a place whose every check is right (Daniel, 5 Nov 2026: "Don't provide the IB toggle until they
-     have completed everything"; it stays after a pupil does the place again): on, each step says what IB adds, each
-     sentence with its level, and a door into the chapter of "From glucose to ATP" (js/ib/view.js) that shows it; the
-     steps, the names on the picture and what the place says use the IB terms (play.js). On or off is remembered (store
-     'ibon'). */
-  ibSwitch(id) {
-    const P = STORY[id], top = $('.qp__top', this.panel), ol = $('.steps', this.panel), root = document.documentElement;
-    if (!P.ib || !top || !ol || !state.checks(id).length || !state.checked(id)) { if (!$('.qp__ib', this.panel)) root.classList.remove('ib-on'); return; }
-    if ($('.qp__ib', top)) return;
-    /* its doors now show: the view's code may come (main.js warms it, never before a door shows) */
-    document.dispatchEvent(new CustomEvent('ib-door'));
-    const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
-    const LV = { sl: 'SL and HL', hl: 'HL only', x: 'Beyond the IB guide' };
-    const sw = h('button', { type: 'button', class: 'qp__ib', 'aria-pressed': 'false' }, '<span class="qp__ibt" aria-hidden="true"><i></i></span>IB Biology <b></b>');
-    top.appendChild(sw);
-    const draw = on => {
-      sw.setAttribute('aria-pressed', String(on)); $('b', sw).textContent = on ? 'on' : 'off';
-      root.classList.toggle('ib-on', on);
-      const qp = $('.qp', this.panel); if (qp) qp.classList.toggle('qp--ib', on);   /* the Year 7 checks fold away (game.css) */
-      P.steps.forEach((s, i) => { const li = ol.children[i], t = li && $('.step__t', li), b = P.ib[i]; if (t && b && b.text) { t.innerHTML = paras(on ? b.text : s.text); if (li.classList.contains('is-done')) this.againBtn(id, i, li); } });   /* the new words keep their ↻ */
-      $$('.step__ib', ol).forEach(x => x.remove());
-      if (on) P.ib.forEach((b, i) => {
-        const li = ol.children[i]; if (!li) return;
-        li.appendChild(h('div', { class: 'step__ib' }, b.p.map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${LV[lv]}${code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
-          + (b.ch == null ? '' : `<button type="button" class="step__ibdoor" data-ch="${b.ch}">🧬 From glucose to ATP: ${CH[b.ch]} →</button>`)));
-      });
-      R.terms(ol);
-      document.dispatchEvent(new CustomEvent('ib-switch', { detail: { id, on } }));
-    };
-    sw.addEventListener('click', () => { const on = sw.getAttribute('aria-pressed') !== 'true'; R.store.set('ibon', on); draw(on); });
-    ol.addEventListener('click', e => { const b = e.target.closest('.step__ibdoor'); if (b) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +b.dataset.ch } })); });
-    draw(!!R.store.get('ibon', false));
-  }
-  /* the course switches, "Your course: IGCSE · IB", in a place that has course layers (story.js `course`: the nucleus,
-     the ribosomes, the rough ER) and whose every Year 7 check is right (Daniel, 12 Nov 2026: "you can add a toggle for
+  /* the course switches, "Your course: IGCSE · IB", in a place that has course layers (story.js `course`: the way in,
+     the mitochondria, the nucleus, the ribosomes, the rough ER) and whose every Year 7 check is right (Daniel, 5 Nov
+     2026: "Don't provide the IB toggle until they have completed everything"; 12 Nov 2026: "you can add a toggle for
      IGCSE and a toggle for IB … only toggles that are activated once the student is done with the key stage 3"; the
      side quest's own switches, js/plant/view.js, are the model). A switch on adds, under the words of each step, a
-     violet box with what that course asks about what the step shows, each line with its level and its statement; the
-     Year 7 words and the Year 7 checks never change. A box may hold a door to the film that shows the step in detail
-     (play.js opens it: 'coursefilm'). The choice is kept (store 'courseLv') and is the same in every place. */
+     violet box with what that course asks about what the step shows, each line with its level and its statement. The
+     Year 7 words and the Year 7 checks never change, and while a box stands under them the step's own words say their
+     level, "Year 7" (game.css `steps--lv`; Daniel, 13 Nov 2026: "being a KS3 level sentence next to an IB level one
+     (as long as the distinction is clear) is useful for the students to see how they need to improve/change the way
+     they write as they progress"). A box may hold a door: to the film that shows the step in detail (`film`; play.js
+     opens it: 'coursefilm'), to a chapter of "From glucose to ATP" (`ch`; js/ib/view.js; main.js opens it:
+     'ibview') or to "The cell membrane: fluid and mosaic" (`mem`; js/membrane/view.js; main.js: 'memview'). In a place with `names` (the way in, the mitochondria), IB on also puts the page in IB mode (the class
+     ib-on): the names on the picture add the IB terms, and what the place says adds its IB sentence under the Year 7
+     one (play.js `ib`, which hears 'ib-switch'). The choice is kept (store 'courseLv') and is the same in every
+     place. Until 13 Nov 2026 those two places had a switch of their own, "IB Biology" (store 'ibon'), which changed
+     the Year 7 sentences into IB ones and hid the checks: a pupil who had it on finds IB on. */
   courseSwitch(id) {
-    const P = STORY[id], C = P.course, top = $('.qp__top', this.panel), ol = $('.steps', this.panel);
-    if (!C || !top || !ol || !state.checks(id).length || !state.checked(id) || $('.qp__lv', this.panel)) return;
+    const P = STORY[id], C = P.course, top = $('.qp__top', this.panel), ol = $('.steps', this.panel), root = document.documentElement;
+    if ($('.qp__lv', this.panel)) return;
+    if (!C || !top || !ol || !state.checks(id).length || !state.checked(id)) { root.classList.remove('ib-on'); return; }
     const NAME = { igcse: 'IGCSE', ib: 'IB' }, LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
     const FILM = { copy: '🔬 How a cell copies a gene: the film, with your course →', ribo: '🔬 How a ribosome reads the copy: the film →' };
-    const LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {}));
+    const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
+    const saved = R.store.get('courseLv', null), LV = Object.assign({ igcse: false, ib: !saved && R.store.get('ibon', false) === true }, saved || {});
+    if (!saved && LV.ib) R.store.set('courseLv', LV);
+    /* its doors into "From glucose to ATP" now show: the view's code may come (main.js warms it, never before a door shows) */
+    if (C.ib.some(b => b && (b.ch != null || b.mem))) document.dispatchEvent(new CustomEvent('ib-door'));
     const bar = h('div', { class: 'qp__lv' }, '<span class="qp__lvk">Your course</span>' + ['igcse', 'ib'].map(c =>
       `<button type="button" class="qp__lvb" data-lv="${c}" aria-pressed="false"><span class="qp__ibt" aria-hidden="true"><i></i></span>${NAME[c]}</button>`).join(''));
     top.insertAdjacentElement('afterend', bar);
+    let mode = null;
     const draw = () => {
       $$('.step__lv', ol).forEach(x => x.parentNode.removeChild(x));
+      ol.classList.toggle('steps--lv', !!(LV.igcse || LV.ib));
       ['igcse', 'ib'].forEach(c => {
         $(`[data-lv="${c}"]`, bar).setAttribute('aria-pressed', String(!!LV[c]));
         if (LV[c]) C[c].forEach((b, i) => {
           const li = ol.children[i]; if (!li || !b) return;
           li.appendChild(h('div', { class: 'step__ib step__lv', 'data-lv': c }, `<p class="step__lvk">${NAME[c]}</p>`
             + b.p.map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
-            + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm" data-film="${b.film}">${FILM[b.film]}</button>` : '')));
+            + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm" data-film="${b.film}">${FILM[b.film]}</button>` : '')
+            + (b.mem ? '<button type="button" class="step__ibdoor step__lvmem">🧬 The cell membrane: fluid and mosaic →</button>' : '')
+            + (b.ch == null ? '' : `<button type="button" class="step__ibdoor step__lvdoor" data-ch="${b.ch}">🧬 From glucose to ATP: ${CH[b.ch]} →</button>`)));
         });
       });
       R.terms(ol);
+      /* IB mode, in a place whose picture has IB names: the picture follows only when it changes (IGCSE pressed: no redraw) */
+      const on = !!(C.names && LV.ib); root.classList.toggle('ib-on', on);
+      if (C.names && on !== mode) { mode = on; document.dispatchEvent(new CustomEvent('ib-switch', { detail: { id, on } })); }
+      this.courseQuestions(id);
     };
     bar.addEventListener('click', e => {
       const b = e.target.closest('.qp__lvb'); if (!b) return;
@@ -321,8 +310,38 @@ export class Quest {
       const first = LV[c] && $(`.step__lv[data-lv="${c}"]`, ol);
       if (first && first.scrollIntoView) first.scrollIntoView({ block: 'nearest', behavior: R.FAST ? 'auto' : 'smooth' });
     });
-    ol.addEventListener('click', e => { const b = e.target.closest('.step__lvfilm'); if (b) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: b.dataset.film, id } })); });
+    ol.addEventListener('click', e => {
+      const f = e.target.closest('.step__lvfilm'), d = e.target.closest('.step__lvdoor'), m = e.target.closest('.step__lvmem');
+      if (f) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: f.dataset.film, id } }));
+      else if (d) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +d.dataset.ch } }));
+      else if (m) document.dispatchEvent(new CustomEvent('memview'));
+    });
     draw();
+  }
+  /* the course's own questions (js/questions.js: `place`, `lv`; parts 15 and 16), drawn at the end of their place under
+     its Year 7 checks while that course's switch is on, IGCSE above IB (Daniel, 13 Nov 2026: "if you toggle IGCSE and
+     you toggle IB, maybe you want to add questions to those levels … if you're key stage 3, you just do the key stage 3
+     questions. If you're IGCSE, you do key stage 3 and IGCSE, and if you're IB, you do all of them"). They show only
+     where the switches do: once every Year 7 check of the place is right. They are extra: a place's own checks are
+     those of its own part (state.js `checks`), so these never keep a place from being done, wake nothing and are not in
+     the final check; each is a square of its own on the teacher's board. An IB student is told to answer the IGCSE
+     ones too. Called when a switch is pressed (courseSwitch `draw`) and when the place's end is drawn (finishPanel). */
+  courseQuestions(id) {
+    const end = $('.qp__end', this.panel); if (!end) return;
+    $$('.qp__cq', end).forEach(x => x.parentNode.removeChild(x));
+    const won = $('.qp__won', end);
+    if (!won || end.hidden || !$('.qp__lv', this.panel) || !state.checked(id)) return;
+    const QS = window.QS || {}, LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {})), NAME = { igcse: 'IGCSE', ib: 'IB' };
+    const of = c => Object.keys(QS).filter(k => QS[k].place === id && QS[k].lv === c);
+    ['igcse', 'ib'].forEach(c => {
+      const ids = of(c); if (!LV[c] || !ids.length) return;
+      const box = h('div', { class: 'qp__cq', 'data-lv': c }, `<p class="qp__k">${NAME[c]} questions</p>
+        <p class="qp__cqn">These questions are extra, for ${NAME[c]} students. They do not change your mission or your final check.${c === 'ib' && !LV.igcse && of('igcse').length ? ' <b>For IB, answer the IGCSE questions as well: switch IGCSE on.</b>' : ''}</p>`
+        + ids.map(q => `<div class="q" data-q="${q}"></div>`).join(''));
+      end.insertBefore(box, won);
+      $$('.q', box).forEach(b => window.REVchecks.draw(b));
+      R.terms(box);
+    });
   }
   /* the end of a place: first its checks, then, when every one is right, the place is done (✦): its message, a "Did you
      know?", the real thing, and the way to the map (Daniel, 4 Nov 2026: "You have to complete the questions. It's like
@@ -332,7 +351,6 @@ export class Quest {
     const qs = state.checks(id), my = this.session, first = id === 'arrive';
     end.hidden = false;
     end.innerHTML = `${P.more ? '<div class="qp__more"></div>' : ''}<p class="qp__k">Check what you learned</p>
-      ${P.ib ? '<p class="qp__ibchk">✓ Your Year 7 checks are all right. While IB is on, they are hidden, because they use the Year 7 words.</p>' : ''}
       <p class="qp__todo" role="status"></p>
       ${qs.map(q => `<div class="q" data-q="${q}"></div>`).join('')}
       <div class="qp__won"></div>
@@ -356,9 +374,9 @@ export class Quest {
         ${P.fact ? fact(P.fact) : ''}${P.fact2 ? fact(P.fact2) : ''}
         ${P.again ? `<button type="button" class="qp__real qp__again">${esc(P.again)}</button>` : ''}
         ${P.plant ? `<div class="qp__side"><p class="qp__sidek">Side quest · extra</p><p class="qp__sidet">${esc(P.plantNote || '')}</p><button type="button" class="qp__real qp__plant">${esc(P.plant)}</button></div>` : ''}
-        ${P.explore ? `<button type="button" class="qp__real qp__explore${P.ib ? ' qp__explore--ib' : ''}">${esc(P.explore)}</button>` : ''}`;
+        ${P.explore ? `<button type="button" class="qp__real qp__explore${P.course && P.course.names ? ' qp__explore--ib' : ''}">${esc(P.explore)}</button>` : ''}`;
       R.terms(won);
-      this.ibSwitch(id); this.courseSwitch(id);
+      this.courseSwitch(id); this.courseQuestions(id);
       /* See the real thing, before the place's extension (now, or once lens.js is here) */
       const lensBtn = () => {
         if (!HAS_LENS || !HAS_LENS(id) || !won.isConnected || $('.qp__real:not(.qp__explore):not(.qp__again):not(.qp__plant)', won)) return;
@@ -395,10 +413,21 @@ export class Quest {
     const draw = said => {
       if (my !== this.session || !box.isConnected) return;
       const ok = can();
-      box.innerHTML = `${said ? `<p class="qp__moresaid" role="status">${said}</p>` : ''}<p>${ok ? M.text : M.wait}</p>${ok ? `<button type="button" class="btn next${said ? '' : ' pulse'} qp__morebtn">${esc(M.label)} →</button>` : ''}`;
+      /* the way on for a pupil whom a job stopped for energy (energy, above; `lowAt`: that place): from the way in to
+         the mitochondria once glucose and oxygen are carried; in the mitochondria, to the way in when they are
+         missing, and back to the place of the job once energy is released */
+      const low = this.lowAt && this.lowAt !== id && STORY[this.lowAt] ? this.lowAt : null;
+      const on = id === 'wayin' ? (low && !ok && state.awake('mito') ? ['mito', 'Go to the mitochondria'] : null)
+        : id === 'mito' ? (said && low ? [low, 'Back to: ' + STORY[low].title] : !ok ? ['wayin', 'Go to the way in'] : null) : null;
+      box.innerHTML = `${said ? `<p class="qp__moresaid" role="status">${said}</p>` : ''}<p>${ok ? M.text : M.wait}</p>${ok ? `<button type="button" class="btn next${said ? '' : ' pulse'} qp__morebtn">${esc(M.label)} →</button>` : ''}${on ? `<button type="button" class="btn next pulse qp__morego">${esc(on[1])} →</button>` : ''}`;
       R.terms(box);
+      const g = $('.qp__morego', box);
+      if (g) g.addEventListener('click', () => { if (on[0] === low) this.lowAt = null; this.onPlace(on[0]); }, { once: true });
       const b = $('.qp__morebtn', box);
       if (b) b.addEventListener('click', () => { b.disabled = true; document.dispatchEvent(new CustomEvent('place-more', { detail: { id, done: () => draw(M.did) } })); }, { once: true });
+      /* a pupil who comes for energy finds the box in view: it stands at the place's end, under all its steps, and a
+         finished place opens at its top (13 Nov 2026: the button to press was out of sight) */
+      if (!said && (b || g) && (this.lowAt || state.energy() < 20)) setTimeout(() => { if (my === this.session && box.isConnected) this.scrollTo(box, true); }, 60);
     };
     draw('');
   }
@@ -471,11 +500,24 @@ export class Quest {
       }));
     });
   }
-  /* enough energy for a job? If not, the step says where to get more and waits for the pupil to come back */
-  energy(n) {
-    if (state.spend(n)) return true;
-    this.say(`Not enough energy. <b>Go to the mitochondria</b>: with glucose and oxygen they release more. (Glucose and oxygen enter the cell at <b>the way in</b>.)`, 'no');
+  /* enough energy for a job? If not, the step says so and gives the way on: a button to the mitochondria, or to the
+     way in first when the pupil carries no glucose or no oxygen; the mitochondria then give a button back to this place
+     (moreBox). Before 13 Nov 2026 it was one sentence and the job's button came back unchanged: a pupil wrote to
+     Daniel that "the energy is deducted by itself, therefore I can't move to another level".
+     `key`: the job's name. A job is paid once in a game (the flag paid-<key>): a step begun again after the pupil left
+     the place or opened the page again had charged the same job again (the rough ER's Go, 20 each time). A step
+     watched again (play.js watch) pays nothing and marks nothing. */
+  energy(n, key) {
+    if (key && state.get().flags['paid-' + key]) return true;
+    if (state.spend(n)) { if (key) state.setFlag('paid-' + key); return true; }
+    const both = state.has('glucose') && state.has('oxygen'), to = both ? 'mito' : 'wayin';
+    this.lowAt = this.cur;
+    this.say(`<b>Not enough energy for this job.</b> The mitochondria release more energy from glucose and oxygen.${both ? '' : ' You need more glucose and oxygen first: they enter the cell at the way in.'}
+      <button type="button" class="btn next qp__lowgo">${both ? 'Go to the mitochondria' : 'Go to the way in'} →</button>`, 'no');
+    const b = this.step && $('.qp__lowgo', this.step.say);
+    if (b) b.addEventListener('click', () => this.onPlace(to), { once: true });
     this.bag.classList.add('low');
+    document.dispatchEvent(new CustomEvent('low-energy', { detail: { to } }));
     return false;
   }
 }
