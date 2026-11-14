@@ -18,14 +18,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/app.css?v=202611141500">
-<link rel="stylesheet" href="css/game.css?v=202611141500">
-<link rel="stylesheet" href="css/mito.css?v=202611141500">
+<link rel="stylesheet" href="css/app.css?v=202611141526">
+<link rel="stylesheet" href="css/game.css?v=202611141526">
+<link rel="stylesheet" href="css/mito.css?v=202611141526">
 <!-- the 3D game's modules, fetched all at once, not one after another as each asks for the next (5 Nov 2026, speed);
      the list is the static imports of js/game/main.js; tools/stamp.mjs keeps their ?v= -->
 <link rel="modulepreload" href="js/vendor/three/build/three.module.min.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/build/three.core.min.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/world.js?v=202611141500">
+<link rel="modulepreload" href="js/world/world.js?v=202611141526">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/EffectComposer.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/shaders/CopyShader.js?v=0.185.1">
@@ -35,23 +35,23 @@
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/shaders/LuminosityHighPassShader.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/cellbuild.js?v=202611141500">
+<link rel="modulepreload" href="js/world/cellbuild.js?v=202611141526">
 <link rel="modulepreload" href="js/vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1">
-<link rel="modulepreload" href="js/world/magic.js?v=202611141500">
-<link rel="modulepreload" href="js/world/mitoparts.js?v=202611141500">
-<link rel="modulepreload" href="js/world/mito-shapes.js?v=202611141500">
-<link rel="modulepreload" href="js/game/names.js?v=202611141500">
-<link rel="modulepreload" href="js/game/quest.js?v=202611141500">
-<link rel="modulepreload" href="js/game/icons.js?v=202611141500">
-<link rel="modulepreload" href="js/game/state.js?v=202611141500">
-<link rel="modulepreload" href="js/game/sound.js?v=202611141500">
-<link rel="modulepreload" href="js/game/final.js?v=202611141500">
-<link rel="modulepreload" href="js/game/simplecard.js?v=202611141500">
-<link rel="modulepreload" href="js/game/play.js?v=202611141500">
-<link rel="modulepreload" href="js/world/tracks.js?v=202611141500">
-<link rel="modulepreload" href="js/game/actors.js?v=202611141500">
-<link rel="modulepreload" href="js/game/amylase-data.js?v=202611141500">
-<link rel="modulepreload" href="js/game/intro.js?v=202611141500">
+<link rel="modulepreload" href="js/world/magic.js?v=202611141526">
+<link rel="modulepreload" href="js/world/mitoparts.js?v=202611141526">
+<link rel="modulepreload" href="js/world/mito-shapes.js?v=202611141526">
+<link rel="modulepreload" href="js/game/names.js?v=202611141526">
+<link rel="modulepreload" href="js/game/quest.js?v=202611141526">
+<link rel="modulepreload" href="js/game/icons.js?v=202611141526">
+<link rel="modulepreload" href="js/game/state.js?v=202611141526">
+<link rel="modulepreload" href="js/game/sound.js?v=202611141526">
+<link rel="modulepreload" href="js/game/final.js?v=202611141526">
+<link rel="modulepreload" href="js/game/simplecard.js?v=202611141526">
+<link rel="modulepreload" href="js/game/play.js?v=202611141526">
+<link rel="modulepreload" href="js/world/tracks.js?v=202611141526">
+<link rel="modulepreload" href="js/game/actors.js?v=202611141526">
+<link rel="modulepreload" href="js/game/amylase-data.js?v=202611141526">
+<link rel="modulepreload" href="js/game/intro.js?v=202611141526">
 <!-- Bright or dark: the reader's choice for the whole site (biology.theme), else the computer's setting. -->
 <script>(function () { try { var t = localStorage.getItem('biology.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();</script>
 </head>
@@ -119,7 +119,28 @@
     var box = document.getElementById('howto'), go = document.getElementById('howtoGo'), how = document.getElementById('btnHow'), stage = document.getElementById('stage'), first = true;
     try { var s = JSON.parse(localStorage.getItem('cellgame.state') || 'null'); first = !(s && ((s.done && s.done.arrive) || (s.step && s.step.arrive))); } catch (e) {}
     var H = window.HOWTO = { done: !first };
-    var show = function (on) { box.hidden = !on; stage.classList.toggle('is-howto', on); };
+    /* the card stands in the middle of the part of the stage that is in the window (14 Nov 2026). Daniel: "even when
+       the screen is not in full screen, you should try to center those messages … Full screen now centers, but not
+       when it's not in full screen". Before, the card was centred by the stylesheet only on a stage 640 px or more
+       inside, and in the middle of the whole stage; but outside full screen the stage goes on below the window's
+       bottom (by 17 px or more), and on a laptop the card stayed at the top. Now: the middle of what is seen, from the
+       stage's top (or the window's) to the stage's bottom (or the window's). Never higher than the 52 px kept for the
+       tools above it; a card taller than the room starts there, as before, and the layer scrolls. Worked out when the
+       card is shown and when the stage, the card or the window changes size; not while the page is scrolled (the card
+       would move under the pupil's eyes). */
+    var card = box.querySelector('.howto__card');
+    var place = function () {
+      if (box.hidden || !card) return;
+      var st = stage.getBoundingClientRect(), vh = window.innerHeight || document.documentElement.clientHeight;
+      var top = Math.max(st.top, 0), seen = Math.min(st.bottom, vh) - top, y = (top - st.top) + Math.max(52, (seen - card.offsetHeight) / 2);
+      card.style.marginTop = Math.max(0, Math.round(y - 52)) + 'px';
+    };
+    var show = function (on) { box.hidden = !on; stage.classList.toggle('is-howto', on); place(); };
+    /* (the page too: when the bar above the stage changes height, as the sign-in button arrives, the stage moves down
+       without changing size, and more or less of it is in the window) */
+    if (window.ResizeObserver) { var ro = new ResizeObserver(place); ro.observe(stage); ro.observe(document.body); if (card) ro.observe(card); }
+    window.addEventListener('resize', place); document.addEventListener('fullscreenchange', function () { setTimeout(place, 60); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
     show(first);
     go.addEventListener('click', function () {
       show(false);
@@ -160,17 +181,17 @@
 </footer>
 
 <script src="https://accounts.google.com/gsi/client?hl=en-GB" async defer></script>
-<script src="js/config.js?v=202611141500"></script>
-<script src="js/signin.js?v=202611141500"></script>
-<script src="js/lesson.js?v=202611141500"></script>
-<script src="js/glossary.js?v=202611141500"></script>
-<script src="js/words.js?v=202611141500"></script>
-<script src="js/say.js?v=202611141500"></script>
-<script src="js/story.js?v=202611141500"></script>
-<script src="js/questions.js?v=202611141500"></script>
-<script src="js/final-data.js?v=202611141500"></script>
-<script src="js/core.js?v=202611141500"></script>
-<script src="js/checks.js?v=202611141500"></script>
-<script type="module" src="js/game/main.js?v=202611141500"></script>
+<script src="js/config.js?v=202611141526"></script>
+<script src="js/signin.js?v=202611141526"></script>
+<script src="js/lesson.js?v=202611141526"></script>
+<script src="js/glossary.js?v=202611141526"></script>
+<script src="js/words.js?v=202611141526"></script>
+<script src="js/say.js?v=202611141526"></script>
+<script src="js/story.js?v=202611141526"></script>
+<script src="js/questions.js?v=202611141526"></script>
+<script src="js/final-data.js?v=202611141526"></script>
+<script src="js/core.js?v=202611141526"></script>
+<script src="js/checks.js?v=202611141526"></script>
+<script type="module" src="js/game/main.js?v=202611141526"></script>
 </body>
 </html>

@@ -678,8 +678,9 @@ html.is-final{overflow:hidden}
    larger stage, up to 2.4px), worked out from the size of the layer the card lies on (container units), and every
    size of the card is a number of them. So the card has the same shape at every size, only larger. On a laptop and
    on a phone --u is 1px and nothing changes; a browser without container units keeps the laptop card.
-   The mission card also stands in the middle of a tall stage (its inside 640 px and more: a shorter stage, a laptop's, goes on
-   below the window's bottom, where the card must stay at the top so that its button is seen). */
+   The mission card also stands in the middle of the part of the stage that is in the window, at every size and in
+   full screen: index.html works that out (its script, place()), because outside full screen the stage goes on below
+   the window's bottom, which a stylesheet cannot know. */
 @supports (container-type:size){
   .howto,.intro{container-type:size}
   @media (min-width:861px){
@@ -701,8 +702,8 @@ html.is-final{overflow:hidden}
     .intro__card .btn.next{font-size:calc(var(--u)*16.5);padding:calc(var(--u)*12) calc(var(--u)*18)}
     .intro__pic figcaption{font-size:calc(var(--u)*13);margin-top:calc(var(--u)*6)}
   }
-  /* (and there the mission stands level with the middle of the list, not above an empty column) */
-  @container (min-width:861px) and (min-height:640px){ .howto__card{margin:auto;transform:translateY(-20px)} .howto__m{align-self:center} }   /* (-20px: the layer keeps 52 px for the tools above and 12 px below; the card is in the middle of the stage) */
+  /* (on a tall stage the mission stands level with the middle of the list, not above an empty column) */
+  @container (min-width:861px) and (min-height:640px){ .howto__m{align-self:center} }
 }
 /* the final check's first card, its code card and its result (final.js `fc--card`) lie over the whole window: the
    same, from the window's own size (1px up to 1500 × 820, then larger) */

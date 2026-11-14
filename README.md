@@ -78,10 +78,15 @@ two thirds of the stage was empty. Now the mission card, the intro's cards (1 of
 first card grow with the room they have, with the same shape at every size: every size of the card is a number of `--u`,
 one of the card's "pixels", which is 1px on a laptop and up to 2.4px on a larger stage (worked out from the size of the
 layer the card lies on, by container units; the final check's from the window). The mission card also stands in the
-middle of a tall stage (640 px and more inside: a laptop's shorter stage goes on below the window, so there the card
-stays at the top, where its button is seen), and its mission stands level with the middle of the list. On a 2560 × 1440
+middle of the part of the stage that is in the window, at every size and in full screen (Daniel, the same day, of the
+first version, which centred it only on a tall stage: "even when the screen is not in full screen, you should try to
+center those messages"). Outside full screen the stage goes on below the window's bottom, by 17 px or more, which a
+stylesheet cannot know: the page's own script works it out (`index.html`, `place()`: the middle of what is seen, never
+higher than the 52 px of the tools; a card taller than the room starts there and the layer scrolls), when the card is
+shown and when the stage, the card, the page or the window changes size, not while the page is scrolled. On a tall
+stage its mission stands level with the middle of the list. On a 2560 × 1440
 window the card is about 1705 × 616 with 25 px lines; in full screen, about 2440 × 880 with 36 px lines. On a laptop, a tablet and
-a phone nothing changes, to the pixel; a browser without container units keeps the laptop card. Not changed: the stage
+a phone the card keeps its laptop size (a few per cent larger where there is room); a browser without container units keeps the laptop card. Not changed: the stage
 itself stays at most 1800 × 1100 outside full screen, and the game's panel, names and tools keep their sizes
 (`css/game.css`, "a big screen"; proof `node tools/big-screen.mjs`).
 

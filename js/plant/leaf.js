@@ -36,10 +36,10 @@
    dispose }. Every step can be shown from its start: the picture depends only on the knobs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611141500';
-import { token, riboPart } from '../game/actors.js?v=202611141500';
-import { bilayer } from '../ib/membrane.js?v=202611141500';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611141500';
+import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611141526';
+import { token, riboPart } from '../game/actors.js?v=202611141526';
+import { bilayer } from '../ib/membrane.js?v=202611141526';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611141526';
 
 /* every size in nm */
 export const S = {
