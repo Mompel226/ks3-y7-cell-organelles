@@ -70,6 +70,30 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**A step watched again shows what it showed the first time** (Daniel, 14 Nov 2026: "when I press a red blood cell, watch
+this step again … I'm already very close up to the membrane … I don't see the [oxygen] appearing from the red blood cell
+because it has not zoomed out to show it to me … there is very little time to see the animation and see the green text …
+when I press watch this again, the green text disappears. I cannot see the green text again … check that this issue does
+not appear here or any other place"). `tools/replay-view.mjs` was written to find every case: it plays a place once and
+writes down the camera at every button and every line, then watches every step again (from the next step, as he did, and
+with the place finished) and compares. What it found, in every place, and what changed:
+- **The view.** At the way in, a step whose molecule comes from the blood (oxygen, glucose, the amino acid) now begins
+  with the blood in the picture: the camera goes back to the whole base of the cell in one move, and only then does the
+  molecule leave the blood. (From 12 to 14 Nov no step went back, so that the oxygen step watched again from the glucose
+  step showed the membrane and not the red blood cell, and glucose and the amino acid came up from under the picture's
+  edge. The move back is now the first thing of the step that needs it, not the last thing of the step before.) In the
+  nucleus, the gene, the copy and the start of its way out are seen from inside the nucleus, as the first time; watched
+  again, or with the pupil back from the map, they had begun at the place's view, 10 µm away where the first time it
+  was 6.2 µm.
+- **The lines.** A step watched again says its lines again, at the moments it said them the first time (before, it said
+  nothing). Every finished step keeps the line it said last, in the panel, also after a ↻ and when the pupil comes back
+  to the place: the lines are saved with the game (`cellgame.said`). A game finished before 14 Nov has no saved lines:
+  each comes back the first time its step is watched again.
+- **The time.** In a replay, Next is a button again; it presses itself only after the time the line needs (0.3 s a word,
+  3 to 15 s). At the replay's end the picture and the last line stay until the pupil presses **Continue →** (by itself
+  after a minute, so that nobody is left in a replay). Before, Next waited 3 s whatever there was to read, and the place
+  was set up again at once: a line of 35 words had 2 s.
+
 **The first cards on a big screen** (Daniel, 14 Nov 2026: "when I start a game in a very big screen, your mission … sits
 at the top, is not well-centered, it's not really optimized to use all of the available space, increasing the size of
 the text … as well as any other screens that work the same way"). The first cards were made for a laptop, in fixed
@@ -638,7 +662,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
-  refuses if a label would touch a part or another label. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
+  refuses if a label would touch a part or another label. `node tools/replay-view.mjs --only <place>` plays one place, then watches every step again and compares the camera, the lines and the time to read with the first time. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
   every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
   more than the frames round it; the picture is made small for this by halving it step by step, so a thin level line that drifts is not taken for one), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
   drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion; `--again <n>`: a step watched again with ↻ after the nth press; it also says when a move away is at once taken back). `node tools/frames.mjs --out <folder>` films the intro's three

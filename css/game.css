@@ -158,6 +158,8 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step.is-done.is-watching{opacity:1;border-color:var(--qp-accent);background:color-mix(in srgb,var(--qp-accent) 9%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--qp-accent) 22%,transparent)}
 .step__watch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 0;font-weight:800;color:var(--qp-accent)}
 .step__watch .step__stop{padding:4px 12px;font-size:14px}
+.step__watch .step__cont{padding:8px 16px;font-size:15.5px}   /* at a replay's end: the picture and the line stay until it is pressed (play.js watch) */
+.step__do .step__wnext{opacity:.92}
 .hot3__b.is-auto{transform:scale(.94);filter:brightness(1.12)}
 .step__t p{margin:0}
 .step__do{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}

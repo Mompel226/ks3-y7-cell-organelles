@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611141526';
-import { state, COST } from './state.js?v=202611141526';
-import { sound } from './sound.js?v=202611141526';
-import { finalLine } from './final.js?v=202611141526';
+import { ICON } from './icons.js?v=202611141733';
+import { state, COST } from './state.js?v=202611141733';
+import { sound } from './sound.js?v=202611141733';
+import { finalLine } from './final.js?v=202611141733';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611141526').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611141526';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611141733').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611141733';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -27,6 +27,8 @@ export class Quest {
   constructor({ world, names, panel, hots, bag, onPlace }) {
     this.w = world; this.names = names; this.panel = panel; this.hotsEl = hots; this.bag = bag; this.onPlace = onPlace;
     this.hots = []; this.cur = null; this.session = 0;
+    /* the line each step said last (say below), kept so that a finished step still shows it: place:step → { html, cls } */
+    this.said = R.store.get('said', {}) || {};
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
     state.on(() => this.paintBag());
     /* the bag's fold button (paintBag): the pupil's own choice, until they go to another place or the map */
@@ -56,9 +58,15 @@ export class Quest {
     }
     return o;
   }
-  /* a finished step watched again (play.js watch): its buttons press themselves, a choice picks its right answer, Next
-     waits a moment, nothing is said again and no item flies to the bag; with Reduce motion these pauses keep their time
-     (only the tests' ?still=1 skips them), so the stills show */
+  /* a finished step watched again (play.js watch): its buttons press themselves, a choice picks its right answer, and
+     no item flies to the bag; with Reduce motion these pauses keep their time (only the tests' ?still=1 skips them), so
+     the stills show.
+     (14 Nov 2026, Daniel: "there is very little time to see the animation and see the green text … when I press watch
+     this again, the green text disappears. I cannot see the green text again". Before, a step watched again said
+     nothing, its Next waited 3 s whatever there was to read, and the panel, drawn again after it, had lost every
+     finished step's line. Now its lines are said again, where they were said the first time; Next is a button again,
+     which presses itself only after the time the line needs to be read (0.3 s a word, 3 to 15 s); and every finished
+     step keeps the line it said last (this.said, saved with the game). Proof: tools/replay-view.mjs) */
   watchingNow() { return !!(this.watching && this.watching.session === this.session); }
   place1(o) {
     const p = typeof o.at === 'function' ? o.at() : o.at; if (!p) return;
@@ -219,6 +227,10 @@ export class Quest {
     P.steps.forEach((s, i) => {
       const li = h('li', { class: 'step' + (i < from ? ' is-done' : i === from ? ' is-now' : ' is-later') }, `<div class="step__t">${paras(s.text)}</div><div class="step__do"></div><p class="step__say" aria-live="polite"></p>`);
       if (i > from) li.hidden = true;
+      /* a finished step shows the line it said (Daniel, 14 Nov 2026: "the green text disappears. I cannot see the green
+         text again"): the panel is drawn again each time the pupil comes back to a place, and after each ↻ */
+      const sd = i < from && this.said[id + ':' + i];
+      if (sd && sd.html) { const y = $('.step__say', li); y.className = 'step__say ' + (sd.cls || ''); y.innerHTML = sd.html; }
       ol.appendChild(li);
       if (i < from) this.againBtn(id, i, li);
     });
@@ -472,9 +484,31 @@ export class Quest {
   }
 
   /* ---------- inside a step ---------- */
-  say(html, cls = '') { if (!this.step || this.watching) return; this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); if (html) this.reveal(this.step.say); }
+  say(html, cls = '') {
+    const w = this.watching;
+    if (!this.step || (w && w.session !== this.session)) return;   /* (a replay that was stopped says nothing more) */
+    this.step.say.className = 'step__say ' + cls; this.step.say.innerHTML = html; R.terms(this.step.say); if (html) this.reveal(this.step.say);
+    const key = this.cur + ':' + this.step.i;
+    if (w) {
+      /* a step watched again: what it says is kept only if it plays to its end (play.js watch), and the time of its
+         last line is noted, for the pause after it */
+      (w.said || (w.said = {}))[key] = html ? { html, cls } : null;
+      if (html) w.last = { t: performance.now(), words: String(html).replace(/<[^>]+>/g, ' ').trim().split(/\s+/).length };
+    } else { if (html) this.said[key] = { html, cls }; else delete this.said[key]; R.store.set('said', this.said); }
+  }
+  /* how long a line of n words stays before a replay goes on by itself: 0.3 s a word, 3 to 15 s */
+  readMs(words) { return Math.max(3000, Math.min(15000, 300 * (words || 0))); }
   next(label = 'Next step') {
-    if (this.watching) { const w = this.watching; return new Promise(r => setTimeout(() => { if (this.watching === w && this.session === w.session) r(); }, R.TEST ? 0 : 3000)); }   /* stopped: it never resolves, so the stopped step goes no further */
+    if (this.watching) {
+      /* (stopped: it never resolves, so the stopped step goes no further) */
+      const w = this.watching, b = h('button', { type: 'button', class: 'btn next step__wnext' }, 'Next →');
+      const ms = R.TEST ? 0 : w.last ? Math.max(1500, this.readMs(w.last.words) - (performance.now() - w.last.t)) : 3000;
+      b.dataset.ms = Math.round(ms); this.step.do.appendChild(b);
+      return new Promise(r => {
+        let t = 0; const go = () => { clearTimeout(t); b.remove(); if (this.watching === w && this.session === w.session) { w.last = null; w.nextT = performance.now(); r(); } };
+        t = setTimeout(go, ms); b.addEventListener('click', go, { once: true });
+      });
+    }
     const b = h('button', { type: 'button', class: 'btn next pulse' }, label + ' →');
     this.step.do.appendChild(b); b.focus({ preventScroll: true }); this.reveal(b, false);
     return new Promise(res => b.addEventListener('click', () => { b.remove(); res(); }, { once: true }));

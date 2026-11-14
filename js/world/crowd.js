@@ -37,7 +37,7 @@
    into the cytosol; back, towards the camera. Positions in nm, the meshes scaled to µm.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { riboPart } from '../game/actors.js?v=202611141526';
+import { riboPart } from '../game/actors.js?v=202611141733';
 
 /* the true sizes (nm) that each shape is drawn at, and that tools/real-view.mjs measures: [smallest, largest] */
 export const SIZES = { ribosome: [27, 33], carrierBox: [6.8, 8.8], carrierThick: [1.8, 2.6], protein: [2.5, 12], proteinMedian: [4.2, 6.2],

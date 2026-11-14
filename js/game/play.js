@@ -5,21 +5,21 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611141526';
-import { state, COST, RESPIRE } from './state.js?v=202611141526';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611141526';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611141526';
-import { sound } from './sound.js?v=202611141526';
-import { magicStandard } from '../world/magic.js?v=202611141526';
-import { buildCrowd } from '../world/crowd.js?v=202611141526';
-import { Names } from './names.js?v=202611141526';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611141733';
+import { state, COST, RESPIRE } from './state.js?v=202611141733';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611141733';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611141733';
+import { sound } from './sound.js?v=202611141733';
+import { magicStandard } from '../world/magic.js?v=202611141733';
+import { buildCrowd } from '../world/crowd.js?v=202611141733';
+import { Names } from './names.js?v=202611141733';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611141526').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611141733').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611141526').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611141733').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
@@ -145,17 +145,22 @@ export function makePlay(world, quest) {
     { key: 'w-aat', free: true, side: 'R', aside: true, cls: 'nm--ib', small: '<span class="nm__t">amino acid transporter</span>', html: '<span class="nm__t">amino acid<br>transporter</span>', spots: onCarrier(BL.carriers.amino, [[-0.45, 0.21]]) }
   ] : []), [document.querySelector('.hud')], { l: V(-4.7, 0, 0.25), r: V(2.4, 0, 0.25) }, solid);
   /* each step starts in the place's view; already there, no flight (the names stay, never a flicker) */
-  async function wayFly() {
+  async function wayFly(wide) {
     world.wayIn(true);
-    /* near the membrane already (the step before ended there), the camera stays: the next molecule comes up from the
-       blood into this view, and the camera moves along the membrane to it. Before, each step ended with the camera back
-       at the whole base of the cell, and the next one went in again: three times out and in (Daniel, 12 Nov 2026: "the
-       animation zooms out and then zooms in without any reason … just remove it") */
-    if (wayNear()) return;
+    /* near the membrane already (the step before ended there): a step whose molecule comes from the blood (wide) begins
+       with the blood in the picture again: the camera goes back, in one move, to the whole base of the cell, and only
+       then does the molecule leave the blood (Daniel, 14 Nov 2026, of the oxygen step watched again from the glucose
+       step: "I'm already very close up to the membrane … I don't see the [oxygen] appearing from the red blood cell
+       because it has not zoomed out to show it to me"). A step whose molecule starts at the membrane (carbon dioxide)
+       stays near. Before 12 Nov each step ENDED with the camera going back out, before the pupil had pressed Next,
+       and that read as a move for no reason ("the animation zooms out and then zooms in without any reason … just
+       remove it"); from 12 to 14 Nov no step went back at all, and glucose and the amino acid came up from under the
+       picture's edge. Now the move back is the first thing of the step that needs it. Proof: tools/replay-view.mjs */
+    if (wayNear()) { if (!wide) return; await wayBack(1500); wayNames(); return; }
     if (world.camera.position.distanceTo(V(...WV.pos)) > 0.05 || world.controls.target.distanceTo(V(...WV.at)) > 0.05) await fly(WV.pos, WV.at);
     wayNames();
   }
-  async function look() { await wayFly(); await quest.next(); }
+  async function look() { await wayFly(true); await quest.next(); }
   /* the red blood cells move to the right, along the capillary: the one a little left of the middle stays in view longest */
   const pickRbc = (x = -2.2, ahead = 3.5) => {
     let best = 0, bd = Infinity;
@@ -191,7 +196,7 @@ export function makePlay(world, quest) {
   const wayZoom = (x, y = -0.25, ms = 1700) => camGo({ at: V(x, y, 0.12), dir: WVdir(), up: V(0, 1, 0), dist: fitDist(3300, 2500) }, R.FAST ? 0 : ms);
   const wayBack = (ms = 1600) => camGo({ at: V(...WV.at), dir: WVdir(), up: V(0, 1, 0), dist: V(...WV.pos).distanceTo(V(...WV.at)) }, R.FAST ? 0 : ms);
   async function oxygen() {
-    await wayFly();
+    await wayFly(true);
     let ri = pickRbc();
     const rbcPoint = () => { let p = BLD.rbcAt(ri, BLD.t || 0); if (p.x > 1.4) { ri = pickRbc(); p = BLD.rbcAt(ri, BLD.t || 0); } return p.add(V(0, 0.6, 2.2)); };
     await press(rbcPoint, 'red blood cell', { cls: 'tok', side: 't' });
@@ -265,7 +270,7 @@ export function makePlay(world, quest) {
     return ts;
   }
   async function carriers() {
-    await wayFly();
+    await wayFly(true);
     const C = BL.carriers.glucose; await turnTo(C, -1, 0);
     const g = await fromBlood('glucose', 2, C.at.x, WSZ.glucose);
     molTag(g[0], 'glucose');
@@ -280,7 +285,7 @@ export function makePlay(world, quest) {
     await quest.gain('glucose', g[0].position, 2); g.forEach(drop);
   }
   async function amino() {
-    await wayFly();
+    await wayFly(true);
     const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([turnTo(C, -1, 0), turnTo(G, -1, 0)]);
     const [a] = await fromBlood('amino', 1, C.at.x - 0.4, WSZ.amino, true);
     molTag(a, 'amino acid');
@@ -981,7 +986,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611141526').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611141733').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -1325,8 +1330,10 @@ export function makePlay(world, quest) {
     N.PK.uPoreK.value = 1; N.REV.uRevK.value = 0; spark.value = DV.spark0; if (bar) bar.hidden = true;
     DV.on = false;
     await live(world.landed({ pos: cam.position.toArray(), at: c.target.toArray() }, false));
-    if (again) { insideNames(); return; }
-    quest.say('<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only if a special protein takes it through.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>', 'ok');
+    /* (said again when the step is watched again by its ↻, not when ↺ Watch the dive again replays it under its own line) */
+    const ENTERED = '<p>You entered the nucleus through a <b>nuclear pore</b>.</p><p>A pore is about 120&nbsp;nanometres (nm) across. If the cell were a football pitch, a pore would be nearly as wide as a door.</p><ul><li>Small molecules pass freely through the protein net in a pore.</li><li>A large molecule passes only if a special protein takes it through.</li></ul><p>Now the front of the nucleus is removed, so that you can see inside: the threads are the <b>chromosomes</b>.</p><p class="say__aside">The game draws the pores and the chromosomes larger than they are.</p>';
+    if (again) { insideNames(); if (quest.watching) quest.say(ENTERED, 'ok'); return; }
+    quest.say(ENTERED, 'ok');
     insideNames();
     /* Next, or ↺ the dive again (as often as wanted; the message stays) */
     for (;;) {
@@ -1560,7 +1567,13 @@ export function makePlay(world, quest) {
     W.anim.push(function f(t) { if (!m.parent) { W.anim.splice(W.anim.indexOf(f), 1); return; } m.material.color.setHSL(0.13, 1, 0.65 + 0.2 * Math.sin(t * 4)); });
     return (props.gene = { curve, mesh: m });
   }
+  /* the gene, the copy and the start of its way out are seen from inside the nucleus, as the first time (the step before
+     left the camera there). Watched again, or with the pupil back from the map, these three steps began at the place's
+     own view, outside the nucleus, 10 µm away where the first time it was 6.2 µm (found by tools/replay-view.mjs,
+     14 Nov 2026) */
+  const nucIn = async () => { const v = nucView(); if (world.camera.position.distanceTo(v.pos) > 0.5) await fly(v.pos, v.at); };
   async function findgene() {
+    await nucIn();
     chr1Mat(); W.chromosomes[0].mesh.material.color.setHex(0xffcf6b);
     const g = gene();
     await press(() => g.curve.getPointAt(0.5).add(V(0, 0.2, 0)), 'the amylase gene', { side: 't' });
@@ -1594,6 +1607,7 @@ export function makePlay(world, quest) {
      gene, step by step, which makes the copy too (transcribe.js; Daniel, 4 Nov 2026: "keep it simple … Unless you could
      add the option") */
   async function copy() {
+    await nucIn();
     const g = gene();
     let film = false;
     for (;;) {
@@ -1615,6 +1629,7 @@ export function makePlay(world, quest) {
     quest.say('The copy of the gene: <b>mRNA</b>. It is only about 2 nm thick: far too thin to see from here, so a glow shows where it is.', 'ok');
   }
   async function exportCopy() {
+    await nucIn();
     let rib = props.rib; if (!rib) { rib = props.rib = keep(copyThread(copyCurve())); rib.userData.grow(1); }
     await quest.choose(['Through a nuclear pore', 'Straight through the two membranes of the nucleus', 'Send the DNA itself, not a copy'], 0, async (i) => {
       if (i === 1) {
@@ -3597,7 +3612,8 @@ export function makePlay(world, quest) {
      everything"; his "Yes, build it" to the plan, the replay playing by itself. A finished step's ↻ (quest.js againBtn)
      plays that step's own code again in watch mode: each button it uses shows for a moment and presses itself (of
      several, the right one: quest.hot right), a choice picks its right answer, Next waits a moment, nothing is said
-     again and no item flies to the bag (quest.js). Nothing of the game changes: while it plays, every change to the
+     again and no item flies to the bag (quest.js). (14 Nov 2026: its lines ARE said again, Next waits for the reader,
+     and at its end the picture stays until Continue: quest.js "watched again".) Nothing of the game changes: while it plays, every change to the
      saved game does nothing (items, energy, flags, saving), and what the step needs is there; the step that was running
      stops, as when a pupil leaves. Then main.js sets the place up again as when the pupil comes back to it, at the step
      they were on. Stop ends it early. With Reduce motion the moves jump and the pauses keep their time, so the stills
@@ -3631,9 +3647,24 @@ export function makePlay(world, quest) {
       const played = (name === 'enter' ? dive(true) : ACT[name] ? ACT[name]() : Promise.resolve());
       played.catch(e => { if (e !== STALE) console.error(e); });
       await Promise.race([played, stopped]);
+      /* played to its end: the picture and the step's last line stay until the pupil presses Continue (14 Nov 2026,
+         Daniel: "there is very little time to see the animation and see the green text"; before, the place was set up
+         again at once, and the end of the step was gone with its line). Not when Next was the step's own last thing
+         (the pupil has just pressed it), and with nothing said only a moment; by itself after a minute, so that no
+         pupil is left in a replay */
+      if (!W8.stopped && quest.session === W8.session && !R.TEST && !(W8.nextT && performance.now() - W8.nextT < 600)) {
+        if (!W8.last) await Promise.race([new Promise(r => setTimeout(r, 1500)), stopped]);
+        else {
+          bar.firstChild.textContent = '↻ You watched this step again'; stop.remove();
+          const cont = R.h('button', { type: 'button', class: 'btn next pulse step__cont' }, 'Continue →'); bar.appendChild(cont); quest.scrollTo(bar);
+          await Promise.race([new Promise(r => cont.addEventListener('click', r, { once: true })), new Promise(r => setTimeout(r, 60000)), stopped]);
+        }
+      }
     } catch (e) { if (e !== STALE) console.error(e); }
     finally {
       clearInterval(tick);
+      /* what it said is kept if it played to its end (a replay that was stopped keeps the lines of before) */
+      if (W8.said && !W8.stopped && quest.session === W8.session) { Object.keys(W8.said).forEach(k => { if (W8.said[k]) quest.said[k] = W8.said[k]; }); R.store.set('said', quest.said); }
       Object.assign(state, keep0); W8.active = false; quest.watching = null;
       li.classList.remove('is-watching'); bar.remove(); quest.clearHots();
     }
