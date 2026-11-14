@@ -70,6 +70,34 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**The IB extension's insulin path: binding and the change of shape in one step, seen whole** (Daniel, 14 Nov 2026: "when
+insulin binds … it changes shape so that the inside of the cell can meet. Now that happens in two different steps, and so
+it's a bit confusing … it shows it too zoomed in … you don't see the whole transmembrane protein changing shape as insulin
+binds … does multiple insulin molecules need to bind … it changes complete shape with three, but then there's two more
+that are attached and doesn't really change anything. Also, the phosphate groups on tyrosine just kind of pop up. Where
+were they? … when you write text, sometimes you're referring to the receptor and it's not very clear"). `js/ib/xins.js`,
+`js/ib/text.js` ('x-insulin'), steps 3 to 5 of 12:
+- **Step 3** shows the whole receptor, from the front (its part inside the cell, its part in the membrane, its part
+  outside the cell): ONE insulin binds, and in the same move the V closes into an upside-down T, the two helices come
+  together and the two parts inside the cell meet. Before, the binding was a close-up (27 nm away), the change of shape
+  was the next step, seen with the inside of the cell out of the picture, and the kinases met in the step after.
+- **Step 4** is only what it says: three more insulin molecules bind (four, as in the measured T), and the shape hardly
+  changes. Its words say so; before, three bound during the change and the picture gave no reason.
+- **Step 5:** each phosphate group is brought by an ATP. The ATP binds in the active site of the OTHER kinase part, its
+  last phosphate group (its own four atoms) goes across to the tyrosine, and the rest, ADP, leaves; each is named once
+  on the picture. Eight tyrosines: three in each kinase part and one near the membrane on each half. Before, each
+  group grew from nothing on its tyrosine. Drawn, and the line over the picture says so: in the cell the tyrosine
+  comes into the active site.
+- **The words** of steps 1 to 6 name their subject in every sentence (insulin, the receptor, the part of the receptor …:
+  no "it", "its" or "there" that a reader must work out), and "active" is kept for the phosphorylated receptor.
+A fresh reader (an IB teacher's reading of the films, the stills and the words) found no error in what is shown and
+sixteen points, all applied: among them that "active" named two states, that the caption called the T measured while
+it was drawn with one insulin, that no kinase was seen doing the phosphorylation, and three level tags that the guide
+does not support (C2.1.11 asks for the binding, the phosphorylation of tyrosine and the vesicles, not for the V and
+the T). What is still a simplification, and said in the words: the T with one insulin bound is drawn as the T measured
+with four (the real one is uneven), and whether one or two insulin molecules fully activate the receptor is still
+studied ("Scientists think …").
+
 **The dark theme: every piece of text can be read** (Daniel, 14 Nov 2026, with a picture of the map: "in dark mode … the
 light blue, it's a bit hard to see … It might not be the only place where dark mode fails, because of the contrast and
 the colors chosen. So explore dark mode"). `tools/dark-check.mjs` opens fourteen screens of the game in each theme and

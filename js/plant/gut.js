@@ -15,10 +15,10 @@
    so the words say only "less than 1 millimetre". The tiny folds of the cells' own membrane (microvilli) are not drawn.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, PAL } from '../world/magic.js?v=202611141922';
-import { token, riboPart, AMY_S } from '../game/actors.js?v=202611141922';
-import { bilayer } from '../ib/membrane.js?v=202611141922';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611141922';
+import { magicStandard, PAL } from '../world/magic.js?v=202611142038';
+import { token, riboPart, AMY_S } from '../game/actors.js?v=202611142038';
+import { bilayer } from '../ib/membrane.js?v=202611142038';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611142038';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 export const S = { glucose: 0.9, amylase: 8.3, maltase: 9, link: 0.5, villus: 600000, villusW: 130000, capillary: 8500, cellH: 25000, cellW: 8000,

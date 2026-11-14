@@ -23,16 +23,27 @@
    bilayer (each is tested over the whole change of shape, and turned away if it would); the cascade proteins are drawn
    at the volumes of their masses (0.81 kDa per nm3); the two Mg2+ of the active site are measured (1IR3); steps 4, 5 and
    7 are seen 30 degrees round, so that each half stays on its side as the legs close one behind the other.
+   14 Nov 2026, Daniel: "when insulin binds … it changes shape so that the inside of the cell can meet. Now that happens
+   in two different steps, and so it's a bit confusing … it shows it too zoomed in … you don't see the whole
+   transmembrane protein changing shape as insulin binds … does multiple insulin molecules need to bind … it changes
+   complete shape with three, but then there's two more that are attached and doesn't really change anything. Also,
+   the phosphate groups on tyrosine just kind of pop up. Where were they?" Before: step 3 was a close-up of one insulin
+   binding (27 nm away); step 4 changed the receptor's shape outside the cell while three more insulin bound, with its
+   part inside the cell out of the picture; step 5 then moved the kinases together and made six phosphate groups
+   appear. Now step 3 shows the whole receptor (its part outside the cell, its part in the membrane and its part
+   inside the cell): one insulin binds, and in the same move the V closes, the helices come together and the kinases
+   meet. Step 4 is only what it says: more insulin can bind, and little changes. In step 5 each phosphate group is
+   brought by an ATP: the ATP arrives, its last phosphate group goes over to the tyrosine, the rest (ADP) leaves.
    Speed (a slow phone, tools/ib-speed.mjs --x x-insulin): while the vesicle only moves, its lipids are placed once and
    carried; while it fuses, their matrices and its far half's surfaces are written straight into their arrays.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611141922';
-import { MOL } from './mol-data.js?v=202611141922';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611141922';
-import { bilayer, MEM } from './membrane.js?v=202611141922';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611141922';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142038';
+import { MOL } from './mol-data.js?v=202611142038';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142038';
+import { bilayer, MEM } from './membrane.js?v=202611142038';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611142038';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -508,14 +519,17 @@ export async function build(stage, { V }) {
   const glB_rock = rockOf(glB); glB_rock(1);
 
   /* ================= the frame's knobs, its views and its steps ================= */
-  const knobs = { cam: 0, i1: 0, i2: 0, i3: 0, i4: 0, morph: 0, kin: 0, pa: 0, pj: 0, irs: 0, rx: 0, irsP: 0, pi3k: 0, pip: 0, akt: 0, aktP: 0, aktGo: 0, as160: 0, rab: 0, ves: 0, dock: 0, fuse: 0, glc: 0 };
+  const knobs = { cam: 0, i1: 0, i2: 0, i3: 0, i4: 0, morph: 0, kin: 0, pa: 0, irs: 0, rx: 0, irsP: 0, pi3k: 0, pip: 0, akt: 0, aktP: 0, aktGo: 0, as160: 0, rab: 0, ves: 0, dock: 0, fuse: 0, glc: 0 };
   const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
-  const SITE1 = (() => { const I = INS[0], e = smooth(0, 1, 0.42), q = new THREE.Quaternion().slerpQuaternions(QI, I.P.q, e); return I.P.c.clone().lerp(I.P.cb, e).add(I.lp.clone().applyQuaternion(q)); })();
   /* views (the camera moves straight from one to the next; `fit`: what must be seen, round the point looked at) */
   const views = [
     { at: V(-2, -4.5, -2), dist: 68, dir: D(0.1, 0.04, 1), up: UP },                                   /* 0 insulin arrives */
     { at: V(0, -3.6, -3), dist: 60, dir: D(0.16, 0.05, 1), up: UP },                                   /* 1 the receptor: its three parts */
-    { at: SITE1.clone().add(V(-1.5, 1.5, 0)), dist: 27, dir: D(0.2, -0.05, 1), up: UP },               /* 2 binding */
+    /* 2: the whole receptor, from its kinases to its sugar chains, while insulin binds and its shape changes (before 14 Nov
+       2026 a close-up of the binding site, 27 nm away). From the front, as step 2 left it: there the V closes into an
+       upside-down T that reads as one (a stem and a wide foot), and the two kinases meet side by side. Tried 30, 60 and
+       90 degrees round: at 30 (as steps 4-5) the T is a column, seen end-on; at 60 one kinase hides the other */
+    { at: V(0, -4.6, -3), dist: 70, dir: D(0.12, 0.06, 1), up: UP, fit: { pts: [[13, 21.5, 0]] } },
     /* 3-4 and 6 are seen 30 degrees round: there each half stays on its side as the legs close one behind the other, and
        each kinase stays above its own half's helix (the expert review: from the front the halves crossed, an X) */
     { at: V(0, -11.3, -3), dist: 47, dir: D(-0.5, 0.06, 0.87), up: UP },                               /* 3 the T */
@@ -541,6 +555,12 @@ export async function build(stage, { V }) {
   const halos = [glow(4.5, 0xfff1c8, 0.55), glow(2.2, 0xffd8a0, 0.0), glow(7, 0xffe2b0, 0.0)]; halos.forEach(h => g.add(h));
   const pGlow = [glow(1.6, 0xffc070, 0), glow(1.6, 0xffc070, 0)]; pGlow.forEach(h => { h.visible = false; g.add(h); });
 
+  /* the ATP of step 5 (mol-data.js, the PDB's ideal coordinates): the way from its middle to its last phosphorus, and the
+     names of its last phosphate group's atoms, in the order of phosphate()'s own (P, then three O) */
+  const PG_NAMES = ['PG', 'O1G', 'O2G', 'O3G'];
+  const { ATP_AX, ATP_PG } = (() => { const D_ = molData('atp'), c = V3(); let n = 0; D_.P.forEach((p_, i) => { if (D_.el[i] !== 'H') { c.add(p_); n++; } }); c.multiplyScalar(1 / n); const pg_ = D_.P[D_.names.indexOf('PG')].clone(); return { ATP_AX: pg_.clone().sub(c).normalize(), ATP_PG: pg_ }; })();
+  /* eight phosphorylations, each 3 units long, a new one every 2.4 units: one is all but over when the next ATP arrives */
+  const PA_LEN = 3, PA_GAP = 2.4, PA_ALL = 7 * PA_GAP + PA_LEN;
   let drawn = { atoms: [], bonds: [] }, lastK = {};
   function draw(K, t) {
     lastK = K;
@@ -587,23 +607,48 @@ export async function build(stage, { V }) {
     const atoms = [], bonds = [];
     const addFrag = F => { const base = atoms.length; atoms.push(...F.atoms); F.bonds.forEach(([a, b, o]) => bonds.push({ a: base + a, b: base + b, o, s: F.atoms[0].s })); };
     const addInsts = insts => { const G_ = gather(insts), base = atoms.length; atoms.push(...G_.atoms); G_.bonds.forEach(b => bonds.push({ a: b.a + base, b: b.b + base, o: b.o, s: b.s })); };
-    /* each kinase phosphorylates three tyrosines of the other's activation loop (their places measured in 1IR3) */
-    const order = [['A', '1158'], ['B', '1158'], ['A', '1162'], ['B', '1162'], ['A', '1163'], ['B', '1163']];
+    /* each kinase phosphorylates three tyrosines of the other's activation loop (their places measured in 1IR3), and the
+       tyrosine near the membrane where IRS-1 will bind (drawn).
+       (14 Nov 2026) Each phosphate group is brought by an ATP: the ATP comes from the cytosol with its last phosphate
+       group towards the tyrosine, that group's four atoms go over to the tyrosine's oxygen, and the rest of the molecule,
+       ADP, leaves. Before, each group grew from nothing on its tyrosine (Daniel: "the phosphate groups on tyrosine just
+       kind of pop up. Where were they?"). One after another: K.pa 0 to 1 is all eight */
+    const order = [['A', '1158'], ['B', '1158'], ['A', '1162'], ['B', '1162'], ['A', '1163'], ['B', '1163'], ['A', 'jm'], ['B', 'jm']];
     const close = K.cam > 4.4 && K.cam < 5.6;
     /* the receptor's molecules are drawn only in its own pictures (views 0-6): from the vesicle's pictures they are far
        smaller than a pixel, and drawing them cost a slow phone 10 ms a frame at rest */
     const recNear = K.cam < 6.6;
     let pg = 0;
     if (recNear) order.forEach(([h, k], j) => {
-      const s = smooth(j / 6, (j + 1) / 6, K.pa); if (s <= 0.01 || (close && h === 'B')) return;
-      const S = IRK.ptr[k], o = kin[h];
-      const at = o.localToWorld(V3(...S.OH)), dir = o.localToWorld(V3(...S.P)).sub(at);
-      addFrag(phosphate(at, dir, s));
-      if (s < 0.97 && pg < pGlow.length) { const G_ = pGlow[pg++]; G_.visible = true; G_.position.copy(at); G_.material.opacity = 0.7 * Math.sin(Math.PI * s); }
+      const u = Math.min(1, Math.max(0, (K.pa * PA_ALL - j * PA_GAP) / PA_LEN));
+      if (u <= 0.001 || (close && h === 'B' && k !== 'jm')) return;
+      let at, dir;
+      if (k === 'jm') { at = jmPoint(h).clone().add(V3(0, 0, 0.3)); dir = V3(0.2, 0.3, 1); }
+      else { const S = IRK.ptr[k], o = kin[h]; at = o.localToWorld(V3(...S.OH)); dir = o.localToWorld(V3(...S.P)).sub(at); }
+      const F = phosphate(at, dir, 1);   /* the group on its tyrosine: P, three O, and the tyrosine's own O */
+      if (u >= 0.999 || close) { addFrag(F); return; }
+      /* the ATP binds in the active site of the OTHER kinase part (the fresh reader, 14 Nov 2026: brought straight to the
+         tyrosine, "it reads as ATP phosphorylates tyrosine by itself, or as each kinase phosphorylating itself"); its last
+         phosphate group then goes across to the tyrosine. In the cell the tyrosine comes into that active site: the
+         step's line under the picture says so */
+      const oth = kin[h === 'A' ? 'B' : 'A'], site = oth.localToWorld(V3(...IRK.sites.atp)), n = at.clone().sub(site).normalize();
+      const give = smooth(0.4, 0.68, u), sc = Math.max(0.02, u < 0.5 ? smooth(0, 0.14, u) : 1 - smooth(0.84, 1, u));
+      const q = new THREE.Quaternion().setFromUnitVectors(ATP_AX, n);
+      const here = site.clone().addScaledVector(n, 0.5).sub(ATP_PG.clone().applyQuaternion(q)), sx = h === 'A' ? 1 : -1;
+      const from = here.clone().add(V3(sx * 3.6, 4.2, 2.2)), away = here.clone().add(V3(sx * 4.4, 5.6, 1.4));
+      const pos = u < 0.5 ? from.lerp(here, smooth(0, 0.36, u)) : here.clone().lerp(away, smooth(0.7, 1, u));
+      const G_ = gather([{ key: 'atp', id: 'pa' + j, P: { p: pos, q }, s: sc }]), base = atoms.length;
+      G_.atoms.forEach(a => { const t = PG_NAMES.indexOf(a.name); if (t >= 0) { a.p.lerp(F.atoms[t].p, give); a.s = Math.max(sc, give); } atoms.push(a); });
+      G_.bonds.forEach(b => {
+        const an = G_.atoms[b.a].name, bn = G_.atoms[b.b].name, ga = PG_NAMES.includes(an), gb = PG_NAMES.includes(bn);
+        if (ga !== gb && give > 0.03) return;   /* the bond that joined the last phosphate group to the rest of ATP is broken */
+        bonds.push({ a: b.a + base, b: b.b + base, o: b.o, s: ga && gb ? Math.max(sc, give) : b.s });
+      });
+      /* the tyrosine's own oxygen, and its new bond to the phosphorus once the group is there */
+      atoms.push(F.atoms[4]); if (give > 0.97) bonds.push({ a: base + G_.atoms.findIndex(a => a.name === 'PG'), b: atoms.length - 1, o: 1, s: 1 });
+      if (u > 0.36 && u < 0.74 && pg < pGlow.length) { const Gl = pGlow[pg++]; Gl.visible = true; Gl.position.copy(site).lerp(at, give); Gl.material.opacity = 0.7 * Math.sin(Math.PI * (u - 0.36) / 0.38); }
     });
     for (let k = pg; k < pGlow.length; k++) pGlow[k].visible = false;
-    /* and the juxtamembrane tyrosine where IRS-1 binds (drawn) */
-    if (recNear) ['A', 'B'].forEach(h => { const s = smooth(0, 1, K.pj); if (s > 0.01) { const p = jmPoint(h); addFrag(phosphate(p.clone().add(V3(0, 0, 0.3)), V3(0.2, 0.3, 1), s)); } });
     /* IRS-1's other tyrosines (YXXM), phosphorylated by the receptor */
     if (recNear && irs.visible && irs.userData.tail) [0.62, 0.78, 0.93].forEach((u, j) => { const s = smooth(j / 3, (j + 1) / 3, K.irsP); if (s > 0.01) addFrag(phosphate(irs.userData.tail.getPointAt(u).add(V3(0, 0.25, 0.25)), V3(0.1, 0.6, 1), s)); });
     /* PIP2 → PIP3 (two phosphate groups, then three) */
@@ -660,12 +705,20 @@ export async function build(stage, { V }) {
   const labels = {
     insulin: { html: 'insulin, a protein hormone', side: 'l', pts: () => INS.slice(0, 3).flatMap(I => surfacePoints(I.o, [I.o.position.clone().add(V3(-1.5, -0.5, 1.5))])) },
     ligand: { html: 'insulin, the ligand', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
+    one: { html: 'one insulin molecule is bound', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
+    met: { html: 'the two parts inside the cell meet', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
+    tmNear: { html: 'in the membrane, the two parts are close together', side: 'r', pts: () => ['A', 'B'].map(h => curves[h] ? V3(curves[h].x + 0.6, 0.2, curves[h].z + 0.6) : V3()) },
+    atp5: { html: 'ATP, in the active site of the purple kinase part', side: 'r', pts: () => drawn.atoms.filter(a => a.id === 'pa0' && a.el !== 'H' && !PG_NAMES.includes(a.name)).map(a => a.p.clone()) },
+    adp5: { html: 'ADP leaves', side: 'r', pts: () => drawn.atoms.filter(a => a.id === 'pa0' && a.el !== 'H' && !PG_NAMES.includes(a.name)).map(a => a.p.clone()) },
+    tyr5: { html: 'a tyrosine of the blue half', side: 'l', pts: () => [kin.A.localToWorld(V3(...IRK.ptr['1158'].OH))] },
+    pgrp5: { html: 'the phosphate group, now on the tyrosine', side: 'l', pts: () => [kin.A.localToWorld(V3(...IRK.ptr['1158'].P))] },
+    receptorSame: { html: 'insulin receptor: the same shape as in step 3', side: 'r', pts: recPts([['B', 'F2'], ['B', 'F3'], ['A', 'F2']], V3(2.5, 0, 2.5)) },
     ins4: { html: 'insulin: four molecules bound', side: 'r', pts: () => INS.flatMap(I => surfacePoints(I.o, [I.o.position.clone().add(V3(1.5, -0.6, 1.5))])) },
     receptor: { html: 'insulin receptor, a glycoprotein', side: 'r', pts: recPts([['B', 'F2'], ['B', 'F3'], ['B', 'L2']], V3(2.5, 0, 2.5)) },
     receptorT: { html: 'insulin receptor: its shape has changed', side: 'r', pts: recPts([['B', 'F2'], ['B', 'F3'], ['A', 'F2']], V3(2.5, 0, 2.5)) },
     sugars: { html: 'carbohydrate chains', side: 'l', pts: glyWorld },
     site: { html: 'binding site', side: 'r', pts: recPts([['A', 'L1'], ['B', 'aCT']], V3(1.5, -0.8, 2)) },
-    tm: { html: 'it crosses the membrane: hydrophobic amino acids', side: 'r', pts: () => ['A', 'B'].map(h => curves[h] ? V3(curves[h].x + 0.6, 0.2, curves[h].z + 0.6) : V3()) },
+    tm: { html: 'the receptor crosses the membrane here: hydrophobic amino acids', side: 'r', pts: () => ['A', 'B'].map(h => curves[h] ? V3(curves[h].x + 0.6, 0.2, curves[h].z + 0.6) : V3()) },
     outpart: { html: 'part outside the cell', side: 'r', pts: recPts([['B', 'F3']], V3(2.5, -1, 2.5)) },
     inpart: { html: 'part inside the cell', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, -1.6, 1.4)), kin.B.position.clone().add(V3(2.6, -0.4, 1.2)), kin.B.position.clone().add(V3(1.8, -2.8, 1.6))])
       .concat(surfacePoints(kin.A, [kin.A.position.clone().add(V3(2.0, -2.6, 1.4)), kin.A.position.clone().add(V3(2.4, -1.2, 1.2))])).concat(curves.A ? [curves.A.jm.getPointAt(0.5)] : []) },
@@ -705,10 +758,19 @@ export async function build(stage, { V }) {
       pic: 'Every size is true. Measured: insulin, and the receptor outside and inside the cell. Drawn: its part in the membrane. Insulin is far more concentrated here than in the blood.' },
     { phases: [{ to: { cam: 1 }, ms: 2400 }], labs: { receptor: 1, sugars: 1, tm: 1, inpart: 1, outpart: 2, mem: 2 },
       pic: 'Drawn: the carbohydrate chains (they move too much to be measured). Each ball is one sugar.' },
-    { phases: [{ to: { cam: 2 }, ms: 2400 }, { to: { i1: 0.55 }, ms: 1800 }, { to: { i1: 1, morph: 0.42 }, ms: 3400 }], labs: { ligand: 1, site: 1 } },
-    { phases: [{ to: { cam: 3 }, ms: 2000 }, { to: { i2: 1, morph: 1 }, ms: 4600 }, { to: { i3: 1, i4: 1 }, ms: 2600 }], labs: { receptorT: 1, ins4: 1 },
-      pic: 'Both shapes are measured; the movement between them is drawn. In the new shape, one leg is behind the other.' },
-    { phases: [{ to: { cam: 4 }, ms: 2400 }, { to: { kin: 1 }, ms: 3200 }, { hold: 1400, labs: { kinase: 1, kinases: 2 } }, { to: { pa: 1 }, ms: 3600 }, { to: { pj: 1 }, ms: 1200 }], labs: { kinase: 1, phos: 1, tm: 2 } },
+    /* 3: one insulin binds, and in the same step the whole receptor changes shape: the V closes, the helices come together
+       and the kinases meet, all in the picture (before 14 Nov 2026: three steps, the first a close-up) */
+    { phases: [{ to: { cam: 2 }, ms: 2200 }, { to: { i1: 0.55 }, ms: 1800 }, { to: { i1: 1, morph: 0.14 }, ms: 2200 }, { hold: 1500, labs: { ligand: 1, site: 1 } }, { to: { morph: 1, kin: 1 }, ms: 5600 }],
+      labs: { one: 1, receptorT: 1, met: 1, tmNear: 2 },
+      pic: 'Measured: the V (no insulin) and the T (four insulin molecules). Drawn: the movement between them.' },   /* (short: on a phone a longer line lay over the kinases) */
+    /* 4: more insulin can bind (to four); the receptor is already in its new shape */
+    { phases: [{ to: { cam: 3 }, ms: 2000 }, { to: { i2: 1 }, ms: 2200 }, { to: { i3: 1, i4: 1 }, ms: 2600 }], labs: { ins4: 1, receptorSame: 2 },
+      pic: 'This shape was measured with four insulin molecules bound.' },
+    /* 5: the kinases, already together: each phosphate group comes on an ATP (draw: K.pa) */
+    { phases: [{ to: { cam: 4 }, ms: 2400 }, { hold: 1400, labs: { kinase: 1, kinases: 2 } }, { to: { pa: 0.38 * PA_LEN / PA_ALL }, ms: 1700, lin: ['pa'] }, { hold: 2000, labs: { atp5: 1, tyr5: 1 } },
+      { to: { pa: 0.78 * PA_LEN / PA_ALL }, ms: 1900, lin: ['pa'] }, { hold: 1700, labs: { adp5: 1, pgrp5: 1 } }, { to: { pa: 1 }, ms: 12000, lin: ['pa'] }],
+      labs: { kinase: 1, phos: 1, tm: 2 },
+      pic: 'Drawn: the phosphate group going across. In the cell, the tyrosine comes to the ATP.' },
     { phases: [{ to: { cam: 5, irs: 1 }, ms: 3000 }, { hold: 1800, labs: { atp: 1, tyr: 1, mg: 2 } }, { to: { rx: 1 }, ms: 4200, lin: [] }], labs: { adp: 1, ptyr: 1, mg: 2 },
       pic: 'Measured: the active kinase with an ATP-like molecule and a piece of IRS-1 (X-ray, 1997).' },
     { phases: [{ to: { cam: 6 }, ms: 2600 }, { to: { irsP: 1 }, ms: 2200 }, { to: { pi3k: 1 }, ms: 2600 }, { to: { pip: 1 }, ms: 2800 }], labs: { irs: 1, pi3k: 1, pip3: 1 },

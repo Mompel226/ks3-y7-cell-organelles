@@ -16,10 +16,10 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P } from './sim.js?v=202611141922';
-import { makeScene, makeStage } from './scene.js?v=202611141922';
-import { makeNames } from './names.js?v=202611141922';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611141922';
+import { makeSim, P } from './sim.js?v=202611142038';
+import { makeScene, makeStage } from './scene.js?v=202611142038';
+import { makeNames } from './names.js?v=202611142038';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611142038';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -55,7 +55,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611141922', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611142038', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
