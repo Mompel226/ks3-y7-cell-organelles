@@ -70,6 +70,32 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**The insulin path's words, for a first-time reader** (Daniel, 14 Nov 2026, after asking whether step 6 shows the same
+thing as step 5: "you use all the time very similar words … it's very hard to understand and to visualize what is
+happening … you tend to focus a lot on phosphate group … but you don't really explain what this is for … I was very
+confused of what was happening and where and why … technical, yes, but easy to understand and to follow. For someone
+that is for the first time reading these"). `js/ib/text.js` 'x-insulin', drawn by `js/ib/view.js` paras:
+- **One idea runs through the twelve steps**: insulin is a signal that cannot enter the cell, so the signal must cross
+  the membrane and then go from protein to protein; a phosphate group on a protein is what activates the protein or
+  lets the next protein bind. Before, each step described its own molecules, and nothing said what a step was for.
+- **Each step has a short title** (`h`), shown above its words, that says what happens ("Insulin binds, and the receptor
+  changes shape"; "The receptor activates the next protein").
+- **Each step begins with a plain first line** (`[!]`, highlighted, no level chip): what happens, where (outside the
+  cell, in the membrane, inside the cell, at the vesicles) and why it matters for the signal. The twelve first lines
+  alone tell the whole path.
+- **Then the lines the guide asks**, with their chips, and the few beyond-the-guide lines the story needs.
+- **Detail that the story does not need is folded** (`[x+]`: "More detail" at the step's end): the names and reactions
+  of PI3-kinase, PIP2, Akt and AS160, the measured shapes, the magnesium ions. A folded line may carry a guide tag of
+  its own.
+- **Steps 5 and 6 say how they differ**: in 5 the receptor phosphorylates itself and becomes active; in 6 the active
+  receptor does the same reaction to another protein, IRS-1, shown atom by atom.
+A fresh reader then read the steps cold, as a pupil who reads English as a second language and as a teacher. It
+could "mostly" retell the path from the first lines, and named what was missing; all of it was applied: the starting
+situation is said in step 1 (glucose enters only through transporters, and most wait in vesicles); the receptor's two
+halves are defined in step 2's first line; step 5 says what a phosphate group is and what it does there (two jobs), and
+step 8 that this time it inactivates a protein; one word for one thing ("meet"; "plasma membrane"; "sequence of
+reactions"); and "a phosphate group works as a signal" was dropped ("signal" stays insulin's).
+
 **A button for every step, and a direct way back** (Daniel, 14 Nov 2026: "I have to go back and next step and there is no
 way to kind of easily navigate between all of the stages … add all of the steps as they appear, 1, 2, 3, as a clickable
 button … right now I am in the insulin, but there's no way I can go back to the ATP IB extension, and there's no way for

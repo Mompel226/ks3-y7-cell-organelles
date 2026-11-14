@@ -140,6 +140,13 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__tag span{padding:2px 7px;font-size:12.5px;border-radius:8px}
 .ibv__text p{margin:0 0 .6em}
 .ibv__text p:last-child{margin-bottom:0}
+/* a step's title, its plain first line and its folded detail (view.js paras; text.js 'x-insulin') */
+.ibv__sth{margin:0 0 8px;font:800 19px/1.25 var(--ibv-serif);color:var(--ibv-ink)}
+.ibv__text .lvp--lead{font-size:1.04em;font-weight:700;color:var(--ibv-ink);padding:9px 12px;margin:0 0 .8em;border-left:4px solid #FFD27A;border-radius:0 10px 10px 0;background:color-mix(in srgb,#FFD27A 9%,transparent)}
+.ibv__more{margin:.2em 0 0;border-top:1px solid var(--ibv-rule);padding-top:.5em}
+.ibv__more summary{cursor:pointer;font:800 14px/1.3 var(--ibv-sans);color:var(--ibv-ink2);margin-bottom:.5em}
+.ibv__more summary:hover{color:var(--ibv-ink)}
+.ibv__more[open] summary{margin-bottom:.6em}
 .ibv__xs{display:flex;flex-direction:column;gap:6px;margin:12px 0 0}
 .ibv__xb{align-self:flex-start;text-align:left;border:1.5px dashed var(--ibv-accent);background:color-mix(in srgb,var(--ibv-accent) 8%,var(--ibv-sheet));color:var(--ibv-accent-ink);border-radius:12px;padding:8px 12px;font:800 15px/1.3 var(--ibv-sans);cursor:pointer}
 .ibv__xb:hover{border-style:solid}

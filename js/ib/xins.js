@@ -39,11 +39,11 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142141';
-import { MOL } from './mol-data.js?v=202611142141';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142141';
-import { bilayer, MEM } from './membrane.js?v=202611142141';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611142141';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142326';
+import { MOL } from './mol-data.js?v=202611142326';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142326';
+import { bilayer, MEM } from './membrane.js?v=202611142326';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611142326';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -722,7 +722,7 @@ export async function build(stage, { V }) {
     insulin: { html: 'insulin, a protein hormone', side: 'l', pts: () => INS.slice(0, 3).flatMap(I => surfacePoints(I.o, [I.o.position.clone().add(V3(-1.5, -0.5, 1.5))])) },
     ligand: { html: 'insulin, the ligand', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
     one: { html: 'one insulin molecule is bound', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
-    met: { html: 'the two parts inside the cell meet', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
+    met: { html: 'the two ends inside the cell meet', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
     tmNear: { html: 'in the membrane, the two parts are close together', side: 'r', pts: () => ['A', 'B'].map(h => curves[h] ? V3(curves[h].x + 0.6, 0.2, curves[h].z + 0.6) : V3()) },
     atp5: { html: 'ATP, in the active site of the purple kinase part', side: 'r', pts: () => drawn.atoms.filter(a => a.id === 'pa0' && a.el !== 'H' && !PG_NAMES.includes(a.name)).map(a => a.p.clone()) },
     adp5: { html: 'ADP leaves', side: 'r', pts: () => drawn.atoms.filter(a => a.id === 'pa0' && a.el !== 'H' && !PG_NAMES.includes(a.name)).map(a => a.p.clone()) },
@@ -738,8 +738,8 @@ export async function build(stage, { V }) {
     outpart: { html: 'part outside the cell', side: 'r', pts: recPts([['B', 'F3']], V3(2.5, -1, 2.5)) },
     inpart: { html: 'part inside the cell', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, -1.6, 1.4)), kin.B.position.clone().add(V3(2.6, -0.4, 1.2)), kin.B.position.clone().add(V3(1.8, -2.8, 1.6))])
       .concat(surfacePoints(kin.A, [kin.A.position.clone().add(V3(2.0, -2.6, 1.4)), kin.A.position.clone().add(V3(2.4, -1.2, 1.2))])).concat(curves.A ? [curves.A.jm.getPointAt(0.5)] : []) },
-    kinase: { html: 'tyrosine kinase: the part inside the cell', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
-    kinases: { html: 'tyrosine kinase', side: 'l', pts: () => surfacePoints(kin.A, [kin.A.position.clone().add(V3(-2.4, 1.2, 1.4))]) },
+    kinase: { html: 'kinase part: the end of the receptor inside the cell', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
+    kinases: { html: 'kinase part (a tyrosine kinase)', side: 'l', pts: () => surfacePoints(kin.A, [kin.A.position.clone().add(V3(-2.4, 1.2, 1.4))]) },
     physJm: { html: 'a tyrosine near the membrane: phosphorylated too', side: 'r', pts: () => [jmPoint('B').clone().add(V3(0, 0, 0.3))] },
     phos: { html: 'phosphate groups on tyrosines of the kinase parts', side: 'r', pts: () => drawn.atoms.filter(a => a.el === 'P' && a.s > 0.5).slice(0, 6).map(a => a.p.clone()) },
     mem: { html: 'plasma membrane', side: 'l', pts: () => [-30, -27, -33, XF - 52, XF - 58, XF + 54].map(x => V3(x, MEM.headY + 0.3, -0.4)) },

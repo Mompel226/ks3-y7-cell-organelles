@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611142141';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142141';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611142326';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142326';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -37,13 +37,23 @@ let numsNow = null;     /* the carbon numbers the step on show names (show(), be
 
 /* a paragraph's level chip: [sl], [hl], [x], with an IB code after it ([hl C1.2.8]) */
 function paras(t) {
-  return t.split('\n').map(p => {
+  /* [!] a step's plain first line: what happens, where, and why (no chip); [x+] detail beyond the guide that the story does
+     not need, folded under "More detail" at the step's end (it may carry a tag of its own: [x+] [hl B1.2.11] …)
+     (14 Nov 2026, text.js 'x-insulin') */
+  const one = p => {
     /* a tag may carry several codes, or a range: [hl C1.2.8, C1.2.12], [hl C1.2.11–16] */
     const m = /^\[(sl|hl|x)(?:\s+([A-Z][0-9.]+(?:[–-][0-9.]+)?(?:,\s*[A-Z][0-9.]+(?:[–-][0-9.]+)?)*))?\]\s*/.exec(p);
     if (!m) return `<p>${p}</p>`;
     const L = LEVELS[m[1]];
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}" title="">${esc(L.name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
-  }).join('');
+  };
+  const main = [], more = [];
+  t.split('\n').forEach(p => {
+    if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`);
+    else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|hl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); }
+    else main.push(one(p));
+  });
+  return main.join('') + (more.length ? `<details class="ibv__more"><summary>More detail</summary>${more.join('')}</details>` : '');
 }
 
 /* where the chapter happens, on a small map (the same places as chapter 0's) */
@@ -101,7 +111,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611142141', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611142326', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -110,7 +120,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142141' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142326' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -355,11 +365,11 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
        way I can go back to the ATP IB extension, and there's no way for me to go back to the key stage 3 with buttons").
        Before: Back and Next only, one step at a time; an Explore path led back to its chapter only from its last step;
        the way to the game was a small × */
-    if (stepsEl.children.length !== steps.length) stepsEl.innerHTML = steps.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+    if (stepsEl.children.length !== steps.length || stepsEl.dataset.of !== String(ci)) stepsEl.dataset.of = String(ci), stepsEl.innerHTML = steps.map((x, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}${x.h ? ': ' + esc(x.h) : ''}">${k + 1}</button>`).join('');
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     upB.hidden = !xRet;
     if (xRet) { const P = CHAPTERS[xRet.ci]; upB.textContent = '← Back to ' + (/^\d+$/.test(P.n) ? `chapter ${P.n}: ${P.short}` : P.short); }
-    textEl.innerHTML = paras(st.t); termsIn(textEl);
+    textEl.innerHTML = (st.h ? `<h3 class="ibv__sth">${esc(st.h)}</h3>` : '') + paras(st.t); termsIn(textEl);
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
     picEl.hidden = !picEl.textContent;
     /* a step with a board: its hint stands at the left from the start, clear of the board (top right on a wide screen) */
