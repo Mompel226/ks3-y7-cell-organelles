@@ -70,6 +70,21 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**The first cards on a big screen** (Daniel, 14 Nov 2026: "when I start a game in a very big screen, your mission … sits
+at the top, is not well-centered, it's not really optimized to use all of the available space, increasing the size of
+the text … as well as any other screens that work the same way"). The first cards were made for a laptop, in fixed
+pixels: on a stage of 1800 × 1100 the mission card (How the game works) was 1080 × 392 at the top with 16 px lines, and
+two thirds of the stage was empty. Now the mission card, the intro's cards (1 of 3 … ✦ Dive in) and the final check's
+first card grow with the room they have, with the same shape at every size: every size of the card is a number of `--u`,
+one of the card's "pixels", which is 1px on a laptop and up to 2.4px on a larger stage (worked out from the size of the
+layer the card lies on, by container units; the final check's from the window). The mission card also stands in the
+middle of a tall stage (640 px and more inside: a laptop's shorter stage goes on below the window, so there the card
+stays at the top, where its button is seen), and its mission stands level with the middle of the list. On a 2560 × 1440
+window the card is about 1705 × 616 with 25 px lines; in full screen, about 2440 × 880 with 36 px lines. On a laptop, a tablet and
+a phone nothing changes, to the pixel; a browser without container units keeps the laptop card. Not changed: the stage
+itself stays at most 1800 × 1100 outside full screen, and the game's panel, names and tools keep their sizes
+(`css/game.css`, "a big screen"; proof `node tools/big-screen.mjs`).
+
 **From the chain to the lump, from the thread to the X, and two words** (Daniel, 12 Nov 2026, of the film *From DNA to
 protein - 3D* by yourgenome: "it's so nice, the transitions … I really like when it shows at the end how the different
 proteins, when they kind of form the 3D structure, that 3D structure changes into what the animation itself shows the
@@ -618,7 +633,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
-  refuses if a label would touch a part or another label. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
+  refuses if a label would touch a part or another label. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
   every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
   more than the frames round it; the picture is made small for this by halving it step by step, so a thin level line that drifts is not taken for one), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
   drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion; `--again <n>`: a step watched again with ↻ after the nth press; it also says when a move away is at once taken back). `node tools/frames.mjs --out <folder>` films the intro's three

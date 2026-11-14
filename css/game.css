@@ -669,6 +669,54 @@ html.is-final{overflow:hidden}
   .howto__list li{font-size:15.5px;grid-template-columns:28px 1fr;gap:9px}
   .howto__i{width:28px;height:28px;font-size:15px}
 }
+/* ---------- a big screen (14 Nov 2026) ----------
+   Daniel: "when I start a game in a very big screen, your mission … sits at the top, is not well-centered, it's not
+   really optimized to use all of the available space, increasing the size of the text … as well as any other screens
+   that work the same way". The first cards were made for a laptop, in fixed pixels: on a stage of 1800 × 1100 the
+   mission card was 1080 × 390 at the top, with 16 px text, and two thirds of the stage empty.
+   Now each of these cards grows with the room it has: --u is one of the card's "pixels" (1px on a laptop, more on a
+   larger stage, up to 2.4px), worked out from the size of the layer the card lies on (container units), and every
+   size of the card is a number of them. So the card has the same shape at every size, only larger. On a laptop and
+   on a phone --u is 1px and nothing changes; a browser without container units keeps the laptop card.
+   The mission card also stands in the middle of a tall stage (its inside 640 px and more: a shorter stage, a laptop's, goes on
+   below the window's bottom, where the card must stay at the top so that its button is seen). */
+@supports (container-type:size){
+  .howto,.intro{container-type:size}
+  @media (min-width:861px){
+    .howto__card{--u:clamp(1px,min(100cqw / 1120,100cqh / 540),2.4px);width:min(calc(var(--u)*1080),100%);padding:calc(var(--u)*16) calc(var(--u)*24) calc(var(--u)*18);border-radius:calc(var(--u)*22);column-gap:calc(var(--u)*26)}
+    .howto__eyebrow,.howto__h{font-size:calc(var(--u)*13);margin-bottom:calc(var(--u)*6)}
+    .howto__h{margin:calc(var(--u)*2) 0 calc(var(--u)*10)}
+    .howto__mission{font-size:calc(var(--u)*24)}
+    .howto__why{font-size:calc(var(--u)*15.5);margin-top:calc(var(--u)*4)}
+    .howto__w{padding-left:calc(var(--u)*24)}
+    .howto__list{margin-bottom:calc(var(--u)*14);gap:calc(var(--u)*6)}
+    .howto__list li{grid-template-columns:calc(var(--u)*32) 1fr;gap:calc(var(--u)*10);font-size:calc(var(--u)*16)}
+    .howto__i{width:calc(var(--u)*32);height:calc(var(--u)*32);font-size:calc(var(--u)*17)}
+    .howto .howto__go{font-size:calc(var(--u)*16.5);padding:calc(var(--u)*12) calc(var(--u)*18);margin-top:calc(var(--u)*16)}   /* (16.5 and 12 18: what .btn.next gives it on a laptop) */
+    /* the intro's cards (1 of 3 … ✦ Dive in) and the line under its picture */
+    .intro__card,.intro__pic{--u:clamp(1px,min(100cqw / 1300,100cqh / 530),2.4px)}
+    .intro__card{padding:calc(var(--u)*20) calc(var(--u)*22);border-radius:calc(var(--u)*20)}
+    .intro__n{font-size:calc(var(--u)*13);margin-bottom:calc(var(--u)*8)}
+    .intro__t{font-size:calc(var(--u)*19);margin-bottom:calc(var(--u)*14)}
+    .intro__card .btn.next{font-size:calc(var(--u)*16.5);padding:calc(var(--u)*12) calc(var(--u)*18)}
+    .intro__pic figcaption{font-size:calc(var(--u)*13);margin-top:calc(var(--u)*6)}
+  }
+  /* (and there the mission stands level with the middle of the list, not above an empty column) */
+  @container (min-width:861px) and (min-height:640px){ .howto__card{margin:auto;transform:translateY(-20px)} .howto__m{align-self:center} }   /* (-20px: the layer keeps 52 px for the tools above and 12 px below; the card is in the middle of the stage) */
+}
+/* the final check's first card, its code card and its result (final.js `fc--card`) lie over the whole window: the
+   same, from the window's own size (1px up to 1500 × 820, then larger) */
+@media (min-width:1500px) and (min-height:820px){
+  .fc--card{--u:clamp(1px,min(100vw / 1500,100vh / 820),2.2px);max-width:calc(var(--u)*660);font-size:calc(var(--u)*17.5);gap:calc(var(--u)*14);padding-bottom:calc(var(--u)*24)}
+  .fc--card .fc__eyebrow{font-size:calc(var(--u)*13)}
+  .fc--card h2{font-size:calc(var(--u)*28)}
+  .fc--card .fc__facts{padding-left:calc(var(--u)*22);gap:calc(var(--u)*6)}
+  .fc--card .fc__warn{padding:calc(var(--u)*12) calc(var(--u)*14);border-radius:calc(var(--u)*12)}
+  .fc--card .fc__code{gap:calc(var(--u)*10)}
+  .fc--card .fc__code input{font-size:calc(var(--u)*22);padding:calc(var(--u)*10) calc(var(--u)*12);border-radius:calc(var(--u)*12)}
+  .fc--card .fc__acts{gap:calc(var(--u)*10);margin-top:calc(var(--u)*4)}
+  .fc--card .btn{font-size:calc(var(--u)*16);min-height:calc(var(--u)*44);padding:calc(var(--u)*12) calc(var(--u)*20)}
+}
 /* the foot: the contact line, then the sources, credits and licences, folded (Daniel: "a collapsible … if they're curious") */
 footer .credits{margin-top:4px}
 footer .credits summary{cursor:pointer;font-weight:700;color:var(--ink2)}

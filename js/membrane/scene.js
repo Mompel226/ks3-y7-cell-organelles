@@ -24,7 +24,7 @@
    Nothing is allocated while it runs: every molecule is an instance whose numbers are written in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { classOf } from './seen.js?v=202611131404';
+import { classOf } from './seen.js?v=202611141500';
 
 export const Y = { head: 2.0, headR: 0.4, tailTop: 1.66, tailL: 1.6, tailOff: 0.23, tailR: 0.21, chol: 1.78, top: 2.4 };
 const COL = {
