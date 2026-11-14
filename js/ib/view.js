@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611142326';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142326';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611142352';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142352';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -111,7 +111,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611142326', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611142352', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -120,7 +120,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142326' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142352' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -494,12 +494,20 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   /* ---------------- full screen, keys, close ---------------- */
   const fsB = $('.ibv__full'), isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
   fsB.addEventListener('click', () => {
+    /* full screen is the PAGE's, as in the game (main.js) and the side quest (plant/view.js), not this view's own element:
+       then it stays when the pupil goes back to the game, or on to another view (Daniel, 14 Nov 2026: "I went back to the
+       game, it took me out of full screen … if I'm in full screen, … going back or going somewhere should not take you
+       out of the full screen"). Before: this view asked for full screen for itself, and a browser ends full screen when
+       its element leaves the page; and close() ended it besides, also when the game itself was in full screen.
+       Proof: tools/fullscreen-check.mjs */
+    const d = document.documentElement;
     if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-    else (root.requestFullscreen || root.webkitRequestFullscreen || (() => {})).call(root);
+    else (d.requestFullscreen || d.webkitRequestFullscreen || (() => {})).call(d);
   });
   /* in full screen the button says how to leave it (Esc does too) */
   const onFull = () => { const on = isFull(); fsB.innerHTML = on ? '⛶<span> Leave full screen</span>' : '⛶<span> Full screen</span>'; fsB.setAttribute('aria-label', on ? 'Leave full screen' : 'Full screen'); fsB.classList.toggle('on', on); };
   document.addEventListener('fullscreenchange', onFull); document.addEventListener('webkitfullscreenchange', onFull);
+  onFull();   /* (opened while the page is already in full screen: the button says Leave full screen from the start) */
   const onKey = e => {
     if (e.key === 'Escape') { if (tip) { closeTip(); return; } if (!wb.hidden) { wb.hidden = true; return; } if (inGame && !document.fullscreenElement) close(); return; }
     if (e.target.closest && e.target.closest('input, textarea')) return;
@@ -511,7 +519,6 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   function close() {
     if (closed) return; closed = true; token++;
     if (scene && scene.dispose) scene.dispose();
-    if (isFull()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     document.removeEventListener('fullscreenchange', onFull); document.removeEventListener('webkitfullscreenchange', onFull);
     stage.stop(); document.removeEventListener('keydown', onKey); closeTip(); root.remove();
     document.documentElement.classList.remove('ibv-open');

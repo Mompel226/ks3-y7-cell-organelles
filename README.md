@@ -70,6 +70,24 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**Full screen stays when the pupil goes from one view to another** (Daniel, 14 Nov 2026: "I was in the IB extension …
+and I went back to the game, it took me out of full screen. So if I'm in full screen, … going back or going somewhere
+should not take you out of the full screen"). The IB view asked for full screen for its own element, and a browser ends
+full screen when that element leaves the page; its close() ended full screen besides, also when the game itself was in
+full screen. Now full screen is the page's in every view (the game, the IB view, the side quest; the membrane view has
+no button of its own), and no view ends it when it closes; the IB view's button says "Leave full screen" from the
+start when it opens in a page that is already in full screen. `node tools/fullscreen-check.mjs` (headless Chrome grants
+no full screen, so the page gets a stand-in that follows the browser's rules: it fails on the code of before).
+
+**Step 6 of the insulin path shows where IRS-1 comes from** (Daniel, 14 Nov 2026: "where is [IRS-1] protein coming from?
+… I don't know what protein is that. Is the green bit? … Where is it coming from? Was it already there?"). IRS-1 had
+arrived while the camera went into the active site, where it is not in the picture, and it was first named in step 7.
+Now step 6 begins in step 5's own view, the camera still: the green IRS-1 comes from the cytosol and binds beside the
+kinase parts, and is named there ("IRS-1: a protein that was in the cytosol"; "IRS-1 binds here: the phosphate group
+near the membrane"); then the close-up. Its first line says that IRS-1 is not a part of the receptor and is in the
+cytosol all the time, and a line says why it binds only now (its binding place is the phosphate group of step 5).
+The close-up is now a knob of its own (`cu`), no longer read from the camera's number.
+
 **The insulin path's words, for a first-time reader** (Daniel, 14 Nov 2026, after asking whether step 6 shows the same
 thing as step 5: "you use all the time very similar words … it's very hard to understand and to visualize what is
 happening … you tend to focus a lot on phosphate group … but you don't really explain what this is for … I was very
@@ -755,7 +773,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
-  refuses if a label would touch a part or another label. `node tools/dark-check.mjs` measures the contrast of every piece of text on fourteen screens, in the dark theme and the bright one. `node tools/replay-view.mjs --only <place>` plays one place, then watches every step again and compares the camera, the lines and the time to read with the first time. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
+  refuses if a label would touch a part or another label. `node tools/fullscreen-check.mjs` goes from the game to each view and back in full screen and checks that the page stays in it. `node tools/dark-check.mjs` measures the contrast of every piece of text on fourteen screens, in the dark theme and the bright one. `node tools/replay-view.mjs --only <place>` plays one place, then watches every step again and compares the camera, the lines and the time to read with the first time. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
   every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
   more than the frames round it; the picture is made small for this by halving it step by step, so a thin level line that drifts is not taken for one), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
   drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion; `--again <n>`: a step watched again with ↻ after the nth press; it also says when a move away is at once taken back). `node tools/frames.mjs --out <folder>` films the intro's three

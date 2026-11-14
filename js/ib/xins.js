@@ -39,11 +39,11 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142326';
-import { MOL } from './mol-data.js?v=202611142326';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142326';
-import { bilayer, MEM } from './membrane.js?v=202611142326';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611142326';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142352';
+import { MOL } from './mol-data.js?v=202611142352';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142352';
+import { bilayer, MEM } from './membrane.js?v=202611142352';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611142352';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -519,7 +519,7 @@ export async function build(stage, { V }) {
   const glB_rock = rockOf(glB); glB_rock(1);
 
   /* ================= the frame's knobs, its views and its steps ================= */
-  const knobs = { cam: 0, i1: 0, i2: 0, i3: 0, i4: 0, morph: 0, kin: 0, pa: 0, irs: 0, rx: 0, irsP: 0, pi3k: 0, pip: 0, akt: 0, aktP: 0, aktGo: 0, as160: 0, rab: 0, ves: 0, dock: 0, fuse: 0, glc: 0 };
+  const knobs = { cam: 0, i1: 0, i2: 0, i3: 0, i4: 0, morph: 0, kin: 0, pa: 0, irs: 0, cu: 0, rx: 0, irsP: 0, pi3k: 0, pip: 0, akt: 0, aktP: 0, aktGo: 0, as160: 0, rab: 0, ves: 0, dock: 0, fuse: 0, glc: 0 };
   const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
   /* views (the camera moves straight from one to the next; `fit`: what must be seen, round the point looked at) */
   const views = [
@@ -594,7 +594,9 @@ export async function build(stage, { V }) {
         b.clone().add(V3(1.6, -0.6, 0.8)), V3(7.6, 6.2, -0.8).add(slide), V3(9.6, 5.5, -1.2).add(slide), V3(12.0, 6.6, -0.4).add(slide)]);
       const tk = ia.toFixed(4) + tubeKey;
       if (irs.userData.tk !== tk) { irs.userData.tk = tk; irs.userData.tail = tail; irsTail.geometry.dispose(); irsTail.geometry = new THREE.TubeGeometry(tail, 90, 0.24, 7, false); }
-      irsTail.visible = ia > 0.5 && !(K.cam > 4.4 && K.cam < 5.6);
+      irsTail.visible = ia > 0.5 && !(K.cu > 0.4);
+      /* IRS-1 comes into the picture: it is not there in one frame */
+      [irsPTB, irsPH].forEach(m => fadeProt(m, smooth(0, 0.22, K.irs)));
     }
     /* PI3-kinase arrives and binds to an IRS-1 phosphotyrosine (its p85 part), its p110 part on the membrane */
     const pa = smooth(0, 1, K.pi3k);
@@ -627,7 +629,9 @@ export async function build(stage, { V }) {
        ADP, leaves. Before, each group grew from nothing on its tyrosine (Daniel: "the phosphate groups on tyrosine just
        kind of pop up. Where were they?"). One after another: K.pa 0 to 1 is all eight */
     const order = [['A', '1158'], ['B', '1158'], ['A', '1162'], ['B', '1162'], ['A', '1163'], ['B', '1163'], ['A', 'jm'], ['B', 'jm']];
-    const close = K.cam > 4.4 && K.cam < 5.6;
+    /* the close-up of the active site (step 6's second half): a knob of its own, cu. Before 14 Nov 2026 it was read from
+       the camera's number (between 4.4 and 5.6), which is also true while the camera goes from view 4 to view 6 */
+    const close = K.cu > 0.4;
     /* the receptor's molecules are drawn only in its own pictures (views 0-6): from the vesicle's pictures they are far
        smaller than a pixel, and drawing them cost a slow phone 10 ms a frame at rest */
     const recNear = K.cam < 6.6;
@@ -751,6 +755,8 @@ export async function build(stage, { V }) {
     tyr: { html: 'tyrosine (an amino acid of <i>IRS-1</i>)', side: 'l', cls: 'ibv__lab--two', pts: atomPts('t'), mid: 't' },
     ptyr: { html: 'phosphorylated tyrosine', side: 'l', cls: 'ibv__lab--two', pts: atomPts('t'), mid: 't' },
     pgrp: { html: 'phosphate group', side: 'r', pts: atomPts('t', ['P']) },
+    irs6: { html: '<i>IRS-1</i>: a protein that was in the cytosol', side: 'r', lv: 'x', pts: () => surfacePoints(irsPH, [irsPH.position.clone().add(V3(1.4, 0.6, 1))]) },
+    irsBind: { html: '<i>IRS-1</i> binds here: the phosphate group near the membrane', side: 'l', lv: 'x', pts: () => [jmPoint('B').clone().add(V3(0, 0, 0.3))] },
     irs: { html: '<i>IRS-1</i>', side: 'r', lv: 'x', pts: () => surfacePoints(irsPH, [irsPH.position.clone().add(V3(1.4, 0.6, 1))]) },
     pi3k: { html: '<i>PI3-kinase</i>', side: 'l', lv: 'x', pts: () => surfacePoints(p85, [pi3k.position.clone().add(V3(-2.4, 4.6, 0.6)), pi3k.position.clone().add(V3(-1.2, 5.6, 0.2))]) },
     pip3: { html: '<i>PIP3</i>: three phosphate groups (orange) on its ring', side: 'r', lv: 'x', pts: () => pipP.slice(0, 3).map(p => p[2].clone()) },
@@ -788,9 +794,16 @@ export async function build(stage, { V }) {
       { to: { pa: PA_H2 }, ms: 1900, lin: ['pa'] }, { hold: 1700, labs: { adp5: 1, pgrp5: 1 } }, { to: { pa: 1 }, ms: 12000, lin: ['pa'] }],
       labs: { kinase: 1, phos: 1, physJm: 1, tm: 2 },
       pic: 'Drawn: the phosphate group going across. In the cell, the tyrosine comes to the ATP.' },
-    { phases: [{ to: { cam: 5, irs: 1 }, ms: 3000 }, { hold: 1800, labs: { atp: 1, tyr: 1, mg: 2 } }, { to: { rx: 1 }, ms: 4200, lin: [] }], labs: { adp: 1, ptyr: 1, mg: 2 },
-      pic: 'Measured: the active kinase with an ATP-like molecule and a piece of IRS-1 (X-ray, 1997).' },
-    { phases: [{ to: { cam: 6 }, ms: 2600 }, { to: { irsP: 1 }, ms: 2200 }, { to: { pi3k: 1 }, ms: 2600 }, { to: { pip: 1 }, ms: 2800 }], labs: { irs: 1, pi3k: 1, pip3: 1 },
+    /* 6: IRS-1 is seen coming from the cytosol and binding, and is named; only then the close-up (Daniel, 14 Nov 2026: "where
+       is [IRS-1] protein coming from? … I don't know what protein is that. Is the green bit? … Was it already there?".
+       Before: it arrived while the camera went into the active site, where it is not in the picture, and it was first
+       named in step 7) */
+    /* (in step 5's own view, the camera still: the kinase parts the pupil has just watched, and IRS-1 coming to them. Tried in
+       view 6, which step 7 needs as it is: there the receptor stood at the picture's left edge) */
+    { phases: [{ to: { cam: 4 }, ms: 500 }, { to: { irs: 1 }, ms: 3600 }, { hold: 2600, labs: { irs6: 1, irsBind: 1 } }, { to: { cam: 5, cu: 1 }, ms: 3000 },
+      { hold: 1800, labs: { atp: 1, tyr: 1, mg: 2 } }, { to: { rx: 1 }, ms: 4200, lin: [] }], labs: { adp: 1, ptyr: 1, mg: 2 },
+      pic: 'The close-up is measured: the kinase with an ATP-like molecule and a piece of IRS-1 (X-ray, 1997).' },
+    { phases: [{ to: { cam: 6, cu: 0 }, ms: 2600 }, { to: { irsP: 1 }, ms: 2200 }, { to: { pi3k: 1 }, ms: 2600 }, { to: { pip: 1 }, ms: 2800 }], labs: { irs: 1, pi3k: 1, pip3: 1 },
       pic: 'True sizes, simplified shapes: IRS-1 and PI3-kinase.' },
     { phases: [{ to: { cam: 7 }, ms: 2600 }, { to: { akt: 1 }, ms: 2400 }, { to: { aktP: 1 }, ms: 1600 }, { to: { aktGo: 1 }, ms: 3600 }, { hold: 1600, labs: { akt: 1, as160: 1 } }, { to: { as160: 1 }, ms: 2400 }, { to: { rab: 1 }, ms: 1400 }], labs: { akt: 1, rab: 1, vesicle: 1 },
       pic: 'True sizes, simplified shapes: Akt, AS160 and the Rab proteins.' },
@@ -802,7 +815,7 @@ export async function build(stage, { V }) {
       pic: 'Sizes are true, times are not: in a muscle cell, these steps take several minutes.' }
   ];
   /* no name stands on a molecule of the close-up */
-  const avoid = () => (lastK.cam > 4.5 && lastK.cam < 5.5) ? drawn.atoms.filter(a => a.el !== 'H' && (a.s == null || a.s > 0.5)).concat(mgW().map(p => ({ p, id: 'a' }))) : [];   /* the Mg2+ ions hold ATP's phosphate groups: named with it */
+  const avoid = () => (lastK.cu > 0.5) ? drawn.atoms.filter(a => a.el !== 'H' && (a.s == null || a.s > 0.5)).concat(mgW().map(p => ({ p, id: 'a' }))) : [];   /* the Mg2+ ions hold ATP's phosphate groups: named with it */
   return {
     group: g, knobs, views, steps, labels, draw, avoid, turn: true,
     dispose() { BS.dispose(); disposeGroup(g); tags.forEach(el => el.remove()); }

@@ -44,7 +44,7 @@
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { courseLines } from './ribofilm.js?v=202611142326';   /* how a course's lines are drawn, the same in both films */
+import { courseLines } from './ribofilm.js?v=202611142352';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
