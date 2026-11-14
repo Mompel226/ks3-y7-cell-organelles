@@ -70,6 +70,27 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**Less text on show in everything IB** (Daniel, 15 Nov 2026: "for all of the IB, there's quite a lot of text … there is
+that text, and then a lot of text below, and then a lot of beyond the syllabus text … when you … are going step by step
+and seeing so much text over and over again, even myself, I stop reading … the idea is to help the students understand,
+not to overwhelm them with text … decide what is worth keeping, removing, rephrasing, highlighting").
+The rule, for every step of the IB extension (`js/ib/text.js`) and of the membrane view (`js/membrane/text.js`):
+- **on show:** at most one plain first line (`[!]`, highlighted), the lines the guide asks (with their chips), kept
+  short, and only the beyond-the-guide lines that the step cannot be followed without;
+- **folded under "More detail"** (`[x+]`): the names of enzymes and of the molecules between, measured shapes and
+  their dates, numbers, mechanisms beyond the guide. Nothing was deleted that a curious pupil might want;
+- a step that had only beyond-the-guide lines (ten of them: for example the isomerase, mutase and enolase steps of
+  glycolysis, the pyruvate carrier, the shuttles, the ATP-ADP exchanger) now has one plain line that says what
+  happens and why, and its detail folded;
+- a tagged line that only repeated the first line was cut.
+Words on show, before and after, in all of `js/ib/text.js`: from 5,575 to 3,706; the beyond-the-guide words on
+show from 1,972 to 429. The chapters and the tally now have 27 to 49 words a step (before: 37 to 63); the insulin
+path 63 a step (before: 123). The membrane view's fifteen beyond-the-guide lines are all folded but one.
+A teacher's read of the trimmed words then corrected the science where a short line had become wrong or too thin
+(for example why FADH₂ gives fewer ATP: its electrons do not pass through the first complex). `node <scratch>/inv.mjs` style counts are easy to remake from text.js (lines not starting with
+`[x+]`). Not changed: the course boxes of the game's places and films (each line there is one statement of the
+guide, shown only when a pupil turns the IB switch on).
+
 **Full screen stays when the pupil goes from one view to another** (Daniel, 14 Nov 2026: "I was in the IB extension …
 and I went back to the game, it took me out of full screen. So if I'm in full screen, … going back or going somewhere
 should not take you out of the full screen"). The IB view asked for full screen for its own element, and a browser ends

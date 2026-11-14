@@ -16,10 +16,10 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P } from './sim.js?v=202611142352';
-import { makeScene, makeStage } from './scene.js?v=202611142352';
-import { makeNames } from './names.js?v=202611142352';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611142352';
+import { makeSim, P } from './sim.js?v=202611150027';
+import { makeScene, makeStage } from './scene.js?v=202611150027';
+import { makeNames } from './names.js?v=202611150027';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611150027';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -31,11 +31,16 @@ const million = n => { const m = n / 1e6; return (Math.abs(m - Math.round(m)) < 
 const FILL = { slow: million(P.SLOW), wide: String(P.W), ratio: String(P.RATIO), real: String(Math.round(1e8 / P.SLOW) / 100) };
 const fill = t => t.replace(/\{(\w+)\}/g, (m, k) => FILL[k] != null ? FILL[k] : m);
 function paras(t) {
-  return fill(t).split('\n').map(p => {
+  /* [x+]: a line beyond the guide that the step can be followed without, folded under "More detail" at the step's end
+     (text.js; as in the IB view, js/ib/view.js paras) */
+  const one = p => {
     const m = /^\[(sl|hl|x)(?:\s+([A-Z][0-9.]+(?:,\s*[A-Z][0-9.]+)*))?\]\s*/.exec(p);
     if (!m) return `<p>${p}</p>`;
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}">${esc(LEVELS[m[1]].name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
-  }).join('');
+  };
+  const main = [], more = [];
+  fill(t).split('\n').forEach(p => { if (p.startsWith('[x+] ')) more.push(one('[x] ' + p.slice(5))); else main.push(one(p)); });
+  return main.join('') + (more.length ? `<details class="memv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
 }
 const tagX = `<span class="lv lv--x">${esc(LEVELS.x.name)}</span> `;
 
@@ -55,7 +60,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611142352', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611150027', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }

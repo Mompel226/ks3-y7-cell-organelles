@@ -96,6 +96,10 @@ html.memv-open,html.memv-open body{overflow:hidden}
 .memv__st{margin:0 0 10px;font:800 23px/1.15 var(--mv-serif)}
 .memv__text p{margin:0 0 .6em}
 .memv__text p:last-child{margin-bottom:0}
+/* the folded detail of a step (view.js paras: [x+]) */
+.memv__fold{margin:.2em 0 0;border-top:1px solid var(--mv-rule);padding-top:.5em}
+.memv__fold summary{cursor:pointer;font:800 14px/1.3 var(--mv-sans);color:var(--mv-ink2);margin-bottom:.5em}
+.memv__fold summary:hover{color:var(--mv-ink)}
 .memv__text--more{margin-top:12px}
 .memv__text--more:empty{display:none}
 .memv.is-loading .memv__text,.memv.is-loading .memv__ctl{opacity:.5;transition:opacity .3s}
