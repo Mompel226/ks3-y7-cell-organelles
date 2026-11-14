@@ -2,13 +2,18 @@
    Daniel: "Fantasyland inspired … make it magical … like you're diving into a new world". The world is always a night of
    jewel light; the panels follow the reader's bright or dark choice. Year 7 sizes (memory year7-text-and-instructions):
    page text 17–18 px, nothing a pupil must read under 15 px; what to press stands on the part, and is highlighted. */
+/* (--pane, 14 Nov 2026: the dark glass of the boxes that lie on the picture: the energy box, the tools, Hide text, the
+   names. It was called --glass, the name css/app.css gives to the colour of laboratory glass, and app.css sets that
+   one again for the dark theme, by a stronger rule: in the dark theme every box on the picture was pale blue (#AFC7DD)
+   under its cream words. Daniel, with a picture: "in dark mode … the light blue, it's a bit hard to see". A name of
+   the game's own; the boxes are the same dark glass in both themes, as they were meant to be) */
 :root{
   --serif:'Fraunces',Georgia,'Times New Roman',serif;
-  --gold:#FFD27A; --gold2:#F0B43A; --night:#0B0F2A; --night2:#151a46; --glass:rgba(14,16,46,.78); --glass-rule:rgba(255,226,154,.38);
-  --qp-bg:rgba(255,253,247,.97); --qp-ink:#1B1B33; --qp-ink2:#45476A; --qp-rule:#E4DDCB; --qp-accent:#6B3FD1; --qp-accent2:#4E2BB0;
+  --gold:#FFD27A; --gold2:#F0B43A; --night:#0B0F2A; --night2:#151a46; --pane:rgba(14,16,46,.78); --glass-rule:rgba(255,226,154,.38);
+  --qp-bg:rgba(255,253,247,.97); --qp-ink:#1B1B33; --qp-ink2:#45476A; --qp-rule:#E4DDCB; --qp-accent:#6B3FD1; --qp-accent2:#4E2BB0; --qp-on-accent:#fff;
 }
-:root[data-theme="dark"]{ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF }
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF } }
+:root[data-theme="dark"]{ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A } }
 
 body{background:var(--page)}
 .top{padding-bottom:8px}
@@ -39,7 +44,7 @@ body{background:var(--page)}
 .nml.nml--away{opacity:0}
 .nml.is-asleep{stroke:rgba(196,190,255,.55);stroke-dasharray:4 4}
 .nml.is-done{stroke:rgba(140,240,200,.85)}
-.nm{position:absolute;left:0;top:0;will-change:transform;transition:opacity .18s;display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 7px;max-width:205px;padding:7px 13px;border-radius:18px;font:800 16px/1.15 var(--sans);color:#FFF8E6;background:var(--glass);border:1.5px solid var(--glass-rule);box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 0 14px rgba(255,210,122,.12);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.nm{position:absolute;left:0;top:0;will-change:transform;transition:opacity .18s;display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 7px;max-width:205px;padding:7px 13px;border-radius:18px;font:800 16px/1.15 var(--sans);color:#FFF8E6;background:var(--pane);border:1.5px solid var(--glass-rule);box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 0 14px rgba(255,210,122,.12);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 button.nm{pointer-events:auto;cursor:pointer}
 .nm.nm--away{opacity:0;pointer-events:none}
 .nm--L{flex-direction:row-reverse}
@@ -67,7 +72,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .hot3__b .ico{width:22px;height:22px}
 @keyframes hotPulse{0%{box-shadow:0 0 0 0 rgba(255,214,110,.7),0 6px 18px rgba(0,0,0,.4)}75%,100%{box-shadow:0 0 0 14px rgba(255,214,110,0),0 6px 18px rgba(0,0,0,.4)}}
 .hot3.tok .hot3__b{font-size:16px;padding:7px 12px;color:#0E2230;background:linear-gradient(180deg,#E8FBFF,#B9EEFF);border-color:#fff}
-.hot3.tag .hot3__b{animation:none;cursor:default;font-size:15.5px;padding:6px 12px;color:#FFF8E6;background:var(--glass);border:1.5px solid var(--glass-rule)}
+.hot3.tag .hot3__b{animation:none;cursor:default;font-size:15.5px;padding:6px 12px;color:#FFF8E6;background:var(--pane);border:1.5px solid var(--glass-rule)}
 .hot3.tag.y7 .hot3__b{border-color:var(--gold);color:#FFE7A8}
 .hot3.code .hot3__b,.hot3.count .hot3__b{animation:none;cursor:default;color:#FFF8E6;background:rgba(20,22,60,.9);border-color:#9FF3FF}
 .hot3.q3 .hot3__b{min-width:44px;justify-content:center}
@@ -81,7 +86,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 
 /* ---------- the bag and the tools ---------- */
 .hud{position:absolute;left:14px;top:14px;z-index:9;display:flex;flex-direction:column;gap:8px;align-items:flex-start;max-width:min(400px,36%)}
-.bag{background:var(--glass);border:1.5px solid var(--glass-rule);border-radius:18px;padding:10px 12px;color:#FFF8E6;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.bag{background:var(--pane);border:1.5px solid var(--glass-rule);border-radius:18px;padding:10px 12px;color:#FFF8E6;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 24px rgba(0,0,0,.35)}
 .bag.pop{animation:bagPop .5s ease-out}
 @keyframes bagPop{40%{transform:scale(1.06)}}
 .bag__e{display:flex;align-items:center;gap:10px;font-size:15px}
@@ -102,7 +107,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .bag__it .ico{width:22px;height:22px}
 .bag__none{font-size:15px;color:#CFCBF5}
 .tools{display:flex;gap:6px;flex-wrap:wrap}
-.tool{font:800 15px/1 var(--sans);color:#FFF8E6;background:var(--glass);border:1.5px solid var(--glass-rule);border-radius:999px;padding:9px 13px;cursor:pointer}
+.tool{font:800 15px/1 var(--sans);color:#FFF8E6;background:var(--pane);border:1.5px solid var(--glass-rule);border-radius:999px;padding:9px 13px;cursor:pointer}
 .tool:hover,.tool:focus-visible{border-color:var(--gold)}
 .wbbtn{flex:none;font:800 15.5px/1 var(--sans);color:#2B1A00;background:linear-gradient(180deg,#FFE7A8,#FFC95E);border:0;border-radius:100px;padding:10px 15px;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
 .wbbtn .lang{font-weight:700;opacity:.85;font-size:13.5px}
@@ -138,7 +143,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__def p{margin:4px 0 0}
 .qp__y7,.qp__x{display:inline-block;font:900 12.5px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:4px 7px}
 .qp__y7{color:#5A3B00;background:#FFE39A}
-.qp__x{color:#fff;background:var(--qp-accent)}
+.qp__x{color:var(--qp-on-accent);background:var(--qp-accent)}
 .qp__intro{margin:0 0 12px}
 .qp__intro p,.qp__done p,.intro__t p,.qp__lead p{margin:0}
 .qp__intro p+p,.step__t p+p,.qp__done p+p,.intro__t p+p,.qp__lead p+p{margin-top:.5em}   /* one idea a paragraph */
@@ -147,15 +152,16 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step::before{content:counter(st);position:absolute;left:10px;top:10px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:900 14px/1 var(--sans);color:#fff;background:var(--qp-ink2)}
 .step.is-now{border-color:var(--qp-accent);background:color-mix(in srgb,var(--qp-accent) 7%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--qp-accent) 18%,transparent)}
 .step.is-now::before{background:var(--qp-accent)}
-.step.is-done{opacity:.8}
+.step.is-done>.step__t{opacity:.92}   /* (14 Nov 2026: the instructions only, and a little. The whole step at 80 % had taken its green line, which now stays, to 3.4 to 1, and its small violet markers to 3.7 to 1) */
 .step.is-done::before{content:"✓";background:#2E9F64}
 /* ↻ beside a finished step: watch it again (Daniel, 9 Nov 2026); its words show at once on pointing or focus (no title) */
 .step__again{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-left:6px;vertical-align:middle;border:1.5px solid color-mix(in srgb,var(--qp-accent) 55%,transparent);border-radius:50%;background:var(--paper,#fff);color:var(--qp-accent);font:800 17px/1 inherit;cursor:pointer}
-.step__again:hover,.step__again:focus-visible{background:var(--qp-accent);color:#fff;outline:none}
+.step__again:hover,.step__again:focus-visible{background:var(--qp-accent);color:var(--qp-on-accent);outline:none}
 .step__again::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;padding:4px 9px;border-radius:8px;background:#1c142c;color:#fff;font:700 13px/1.3 inherit;opacity:0;pointer-events:none}
 .step__again:hover::after,.step__again:focus-visible::after{opacity:1}
 .is-watching .step__again{opacity:.35;pointer-events:none}
-.step.is-done.is-watching{opacity:1;border-color:var(--qp-accent);background:color-mix(in srgb,var(--qp-accent) 9%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--qp-accent) 22%,transparent)}
+.step.is-done.is-watching>.step__t{opacity:1}
+.step.is-done.is-watching{border-color:var(--qp-accent);background:color-mix(in srgb,var(--qp-accent) 9%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--qp-accent) 22%,transparent)}
 .step__watch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 0;font-weight:800;color:var(--qp-accent)}
 .step__watch .step__stop{padding:4px 12px;font-size:14px}
 .step__watch .step__cont{padding:8px 16px;font-size:15.5px}   /* at a replay's end: the picture and the line stay until it is pressed (play.js watch) */
@@ -180,7 +186,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step__say .say__aside{font-size:.92em;font-style:italic;opacity:.85}
 :root[data-theme="dark"] .step__say.ok{color:#7EE2AC} :root[data-theme="dark"] .step__say.no{color:#FFB27A}
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .step__say.ok{color:#7EE2AC} :root:not([data-theme="light"]) .step__say.no{color:#FFB27A} }
-.btn.next{font:900 16.5px/1 var(--sans);color:#fff;background:var(--qp-accent);border:0;border-radius:999px;padding:12px 18px;cursor:pointer}
+.btn.next{font:900 16.5px/1 var(--sans);color:var(--qp-on-accent);background:var(--qp-accent);border:0;border-radius:999px;padding:12px 18px;cursor:pointer}
 .btn.next:hover{background:var(--qp-accent2)}
 .btn.next.pulse{animation:nextPulse 1.8s ease-out infinite}
 @keyframes nextPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--qp-accent) 60%,transparent)}80%,100%{box-shadow:0 0 0 12px transparent}}
@@ -427,7 +433,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .lens__both p{margin:0;font-size:16px;line-height:1.45}.lens__both .lens__ch{margin-bottom:3px}
 .lens__tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 12px}
 .lens__tabs button{font:800 15px/1 var(--sans);color:var(--qp-ink2);background:none;border:1.5px solid var(--qp-rule);border-radius:999px;padding:9px 14px;cursor:pointer}
-.lens__tabs button[aria-selected="true"]{color:#fff;background:var(--qp-accent);border-color:var(--qp-accent)}
+.lens__tabs button[aria-selected="true"]{color:var(--qp-on-accent);background:var(--qp-accent);border-color:var(--qp-accent)}
 .lens__fig{margin:0 0 12px}
 .lens__fig svg,.lens__fig img{display:block;width:100%;height:auto;border-radius:12px;background:#fff}
 .lens__fig figcaption{font-size:15.5px;margin-top:6px;color:var(--qp-ink)}
@@ -465,7 +471,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .lens__key span{display:inline-flex;align-items:center;gap:7px}
 .lens__key span::before{content:'';width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 /* the Explorer film of the nucleus: how a cell copies a gene (js/game/transcribe.js), in the lens's window */
-.cf__x{display:inline-block;margin:2px 0 10px;font:800 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#7a5cff;background:rgba(160,140,255,.14);border:1.5px dashed #b9a6ff;border-radius:999px;padding:6px 10px}
+.cf__x{display:inline-block;margin:2px 0 10px;font:800 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#5B3FD6;background:rgba(160,140,255,.14);border:1.5px dashed #b9a6ff;border-radius:999px;padding:6px 10px}
 .cf__key{margin:8px 0 6px;font-size:15px;color:var(--qp-ink)}
 .cf__key span{display:inline-grid;place-items:center;width:1.6em;height:1.6em;margin:0 2px;border-radius:50%;background:var(--c);color:#10142e;font-weight:900}
 .cf__n{margin:8px 0 4px;font:900 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--qp-accent)}
@@ -720,6 +726,32 @@ html.is-final{overflow:hidden}
   .fc--card .fc__acts{gap:calc(var(--u)*10);margin-top:calc(var(--u)*4)}
   .fc--card .btn{font-size:calc(var(--u)*16);min-height:calc(var(--u)*44);padding:calc(var(--u)*12) calc(var(--u)*20)}
 }
+/* ---------- the dark theme: text that was hard to read (14 Nov 2026) ----------
+   Daniel, with a picture of the map in the dark theme: "the light blue, it's a bit hard to see … It might not be the
+   only place where dark mode fails, because of the contrast and the colors chosen. So explore dark mode."
+   tools/dark-check.mjs measures every piece of text on every screen, in both themes (4.5 to 1; 3 to 1 for large text).
+   What it found, and what is set here or above: the boxes on the picture (--pane, at the top of this file); white
+   words on the panel's accent, which is a pale violet in the dark theme (--qp-on-accent: Next step, Continue, Shrink
+   me and start, the lens's tab, the film's Next); the course boxes' heading and the Explorer marker (the bright
+   theme's deep violet on a dark box); "done" in the list of places (the bright theme's green); the film's marker;
+   the "Not named" chip (pale on the dark panel); the message of a finished place (light words on a pale gold); and
+   the mission card's ✦ and ↻ (dark gold on a dark circle: seen by eye, the check does not read icons). */
+:root[data-theme="dark"] .step__lvk{color:#C9B3FF}
+:root[data-theme="dark"] .step__x>b:first-child{color:#C9B3FF}
+:root[data-theme="dark"] .pl.is-done .pl__s{color:#7EE2AC}
+:root[data-theme="dark"] .cf__x{color:#CFC2FF;border-color:#8E7BE0}
+:root[data-theme="dark"] .ibl--n{color:#C7CCD6;background:#2E333D}
+:root[data-theme="dark"] .qp__done{background:linear-gradient(135deg,rgba(255,231,168,.16),rgba(255,210,122,.07));border-color:#B8923A}
+:root[data-theme="dark"] .howto__i{color:#FFD27A;background:rgba(255,210,122,.16)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .step__lvk{color:#C9B3FF}
+  :root:not([data-theme="light"]) .step__x>b:first-child{color:#C9B3FF}
+  :root:not([data-theme="light"]) .pl.is-done .pl__s{color:#7EE2AC}
+  :root:not([data-theme="light"]) .cf__x{color:#CFC2FF;border-color:#8E7BE0}
+  :root:not([data-theme="light"]) .ibl--n{color:#C7CCD6;background:#2E333D}
+  :root:not([data-theme="light"]) .qp__done{background:linear-gradient(135deg,rgba(255,231,168,.16),rgba(255,210,122,.07));border-color:#B8923A}
+  :root:not([data-theme="light"]) .howto__i{color:#FFD27A;background:rgba(255,210,122,.16)}
+}
 /* the foot: the contact line, then the sources, credits and licences, folded (Daniel: "a collapsible … if they're curious") */
 footer .credits{margin-top:4px}
 footer .credits summary{cursor:pointer;font-weight:700;color:var(--ink2)}
@@ -728,7 +760,7 @@ footer .credits p{margin:.5em 0 0}
 /* "As it really is" (11 Nov 2026; play.js REAL): a switch at the foot of the picture, above the scale bar, in a close view
    of the ribosome place or the rough ER; on, the step's buttons wait (the picture's are hidden, the panel's paused) and a
    note in the step says what is there */
-.realsw{position:absolute;left:16px;top:0;z-index:5;display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--glass);border:1.5px solid var(--glass-rule);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.realsw{position:absolute;left:16px;top:0;z-index:5;display:inline-flex;padding:3px;gap:2px;border-radius:999px;background:var(--pane);border:1.5px solid var(--glass-rule);box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .realsw[hidden]{display:none}
 .realsw__b{font:800 14.5px/1 var(--sans);color:#FFF8E6;background:transparent;border:0;border-radius:999px;padding:8px 13px;cursor:pointer;white-space:nowrap}
 .realsw__b[aria-pressed="true"]{background:var(--gold);color:#1B1B33}

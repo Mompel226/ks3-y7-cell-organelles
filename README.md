@@ -70,6 +70,24 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**The dark theme: every piece of text can be read** (Daniel, 14 Nov 2026, with a picture of the map: "in dark mode … the
+light blue, it's a bit hard to see … It might not be the only place where dark mode fails, because of the contrast and
+the colors chosen. So explore dark mode"). `tools/dark-check.mjs` opens fourteen screens of the game in each theme and
+works out, for every piece of text that shows, the contrast with what is drawn behind it (WCAG AA: 4.5 to 1; 3 to 1 for
+large text). Before, the dark theme failed on ten screens; now both themes pass on all fourteen. What was wrong:
+- **The boxes on the picture were pale blue under cream words** (the energy box, the tools, Hide text, the names). The
+  game called its dark glass `--glass`, the name `css/app.css` gives to the colour of laboratory glass, and app.css sets
+  that one again for the dark theme by a stronger rule. The game's own is now `--pane`: the same dark glass in both themes.
+- **White words on a pale violet button** (Next step, Continue, ✦ Shrink me and start, the lens's tab, the films' Next):
+  the panel's accent is pale in the dark theme. The words on it are now `--qp-on-accent`: white in the bright theme,
+  dark in the dark one.
+- **The bright theme's colours kept in the dark one:** the course boxes' heading and the Explorer marker (deep violet on
+  a dark box, 2 to 1), "done" in the list of places (dark green), the films' marker, the "Not named" chip, the message
+  of a finished place (light words on pale gold), and the mission card's ✦ and ↻.
+- **In both themes:** a finished step was drawn at 80 %, which took its green line (which now stays) to 3.4 to 1. Only
+  its instructions are dimmed now, and a little (92 %).
+Not read by the check: text inside drawings and on the 3D picture itself, and icons.
+
 **A step watched again shows what it showed the first time** (Daniel, 14 Nov 2026: "when I press a red blood cell, watch
 this step again … I'm already very close up to the membrane … I don't see the [oxygen] appearing from the red blood cell
 because it has not zoomed out to show it to me … there is very little time to see the animation and see the green text …
@@ -662,7 +680,7 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   if a place lights under the mouse where a press does nothing (inside a place), or the nucleus does not light on the map.
   `python3 tools/gland-svg.py` draws the intro's picture of the inside of a gland, to scale (each cell drawn as the 3D cell
   seen from the front, seven to a bunch, so the bunch with "one cell" lies exactly over the 3D bunch at the hand-over), and
-  refuses if a label would touch a part or another label. `node tools/replay-view.mjs --only <place>` plays one place, then watches every step again and compares the camera, the lines and the time to read with the first time. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
+  refuses if a label would touch a part or another label. `node tools/dark-check.mjs` measures the contrast of every piece of text on fourteen screens, in the dark theme and the bright one. `node tools/replay-view.mjs --only <place>` plays one place, then watches every step again and compares the camera, the lines and the time to read with the first time. `node tools/big-screen.mjs` measures the first cards (the mission card, the intro, the final check's first card) on a big window, a laptop and a phone: larger and in the middle on the big one, unchanged on the others. `node tools/transitions.mjs --place <id> --out <folder>` plays one place as a pupil, films
   every move the game makes, lays each move out on a sheet and fails on a cut (one frame of the 3D picture that changes far
   more than the frames round it; the picture is made small for this by halving it step by step, so a thin level line that drifts is not taken for one), on a stop of over 0.4 s, or when a close view's handover does not start on the map's
   drawing, change little by little and end on the close drawing alone (`--mobile 1`: a phone; `--calm 1`: Reduce motion; `--again <n>`: a step watched again with ↻ after the nth press; it also says when a move away is at once taken back). `node tools/frames.mjs --out <folder>` films the intro's three
