@@ -44,7 +44,7 @@
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { courseLines } from './ribofilm.js?v=202611142038';   /* how a course's lines are drawn, the same in both films */
+import { courseLines } from './ribofilm.js?v=202611142141';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
@@ -466,7 +466,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <div class="lens__top"><h2 id="cf-h">🔬 How a cell copies a gene</h2><button type="button" class="close-x" aria-label="Close">×</button></div>
       <div class="cf__grid"><div class="lens__3d cf__3d"></div><div class="cf__side">
       <p class="cf__x">Explorer: beyond the Year 7 list</p>
-      <p class="cf__n" aria-live="polite"></p><div class="cf__t" aria-live="polite"></div>
+      <p class="cf__n" aria-live="polite"></p><nav class="cf__steps" aria-label="The steps of the film"></nav><div class="cf__t" aria-live="polite"></div>
       <p class="cf__key" hidden></p>
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
       <div class="cf__lvs"></div>
@@ -479,7 +479,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
       '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];
-    let i = 0, busy = false;
+    let i = 0, busy = false; const sEl = $('.cf__steps', box);
     const close = () => { F.stop(); box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); done(); };
     const esc1 = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', esc1);
@@ -493,16 +493,22 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
        be drawn and nothing jumps. Both buttons wait while a step plays */
     const show = async (dir = 1) => {
       const s = STEPS[i]; busy = true; btn.disabled = true; back.disabled = true;
-      nEl.textContent = `${i + 1} of ${STEPS.length}`; tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
+      nEl.textContent = `${i + 1} of ${STEPS.length}`;
+      /* a button for every step (14 Nov 2026, Daniel: "there is no way to kind of easily navigate between all of the
+         stages … 1, 2, 3, as a clickable button"): the film goes straight to that step's end, in one move */
+      if (sEl.children.length !== STEPS.length) sEl.innerHTML = STEPS.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+      Array.from(sEl.children).forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); }); tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
       lEl.innerHTML = courseLines(LINES[i] || {}, LV); if (R.terms) R.terms(lEl);
       kEl.hidden = !s.key; kEl.innerHTML = KEY[s.key || 0];
       if (dir > 0) { for (const g of moves(i)) await F.go(g); }
+      else if (dir === 0) await F.go(Object.assign(stateAt(i), { ms: 1500 }));
       else { const ms = moves(i + 1).reduce((a, g) => a + (g.ms || 1200), 0); await F.go(Object.assign(stateAt(i), { ms: Math.max(1200, Math.min(4500, ms)) })); }
       busy = false; btn.disabled = false; back.disabled = i === 0;
       btn.textContent = i === STEPS.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });
     };
     btn.addEventListener('click', () => { if (busy) return; if (i === STEPS.length - 1) { close(); return; } i++; show(); });
     back.addEventListener('click', () => { if (busy || i === 0) return; i--; show(-1); });
+    sEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || busy) return; const k = +b.dataset.s; if (k === i) return; if (k === i + 1) { i++; show(); } else { i = k; show(0); } });
     show();
   });
 }

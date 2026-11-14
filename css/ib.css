@@ -43,8 +43,9 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__tools{grid-area:tools;display:flex;gap:8px;align-items:center}
 .ibv__tool{border:1.5px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(255,255,255,.06);color:#fff;font:800 14px/1 var(--ibv-sans);padding:8px 12px;cursor:pointer;white-space:nowrap}
 .ibv__tool:hover{border-color:#FFD27A}
-.ibv__close{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font:700 24px/1 var(--ibv-sans);cursor:pointer}
-.ibv__close:hover{border-color:#FFD27A;color:#FFD27A}
+/* the way back to the game: a button with its words (14 Nov 2026; before, a small ×, and at the view's own address nothing) */
+.ibv__home{border-color:rgba(255,210,122,.75);color:#FFE7A8;text-decoration:none;display:inline-block}
+.ibv__home:hover{border-color:#FFD27A;color:#fff}
 
 /* ---------- the picture and the steps ---------- */
 .ibv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(460px,35vw));min-height:0}
@@ -125,6 +126,18 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__chn{margin:0;font:900 12.5px/1 var(--ibv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ibv-accent)}
 .ibv__cht{margin:4px 0 0;font:800 23px/1.15 var(--ibv-serif)}
 .ibv__count{margin:10px 0 6px;font:900 12.5px/1 var(--ibv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ibv-ink2)}
+/* a button for every step, and in an Explore path the way back to its chapter (view.js show) */
+.ibv__steps{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}
+.ibv__steps button{min-width:30px;height:30px;padding:0 7px;border-radius:15px;border:1.5px solid var(--ibv-rule);background:none;color:var(--ibv-ink);font:800 13.5px/1 var(--ibv-sans);cursor:pointer}
+.ibv__steps button:hover,.ibv__steps button:focus-visible{border-color:#FFD27A;outline:none}
+.ibv__steps button[aria-current]{background:#FFD27A;border-color:#FFD27A;color:#1b1640}
+.ibv.is-loading .ibv__steps{opacity:.45;pointer-events:none}
+.ibv__up{display:block;margin:2px 0 8px;border-radius:999px;border:1.5px solid rgba(255,210,122,.75);background:rgba(255,210,122,.1);color:var(--ibv-ink);font:800 14px/1.2 var(--ibv-sans);padding:8px 13px;cursor:pointer;text-align:left}
+.ibv__up[hidden]{display:none}
+.ibv__up:hover,.ibv__up:focus-visible{border-color:#FFD27A;outline:none}
+/* a name that moves with a molecule (xins.js: every ATP and ADP of step 5) */
+.ibv__tag{pointer-events:none;transition:none;z-index:2}
+.ibv__tag span{padding:2px 7px;font-size:12.5px;border-radius:8px}
 .ibv__text p{margin:0 0 .6em}
 .ibv__text p:last-child{margin-bottom:0}
 .ibv__xs{display:flex;flex-direction:column;gap:6px;margin:12px 0 0}
@@ -210,7 +223,7 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 @media (max-width:860px){
   .ibv__top{gap:5px 10px;padding:7px 10px}
   .ibv__id .ibv__by{flex-basis:100%}
-  .ibv__id h1{font-size:18px}
+  .ibv__id h1{font-size:17px;white-space:normal}   /* (it may break: with the way back to the game beside it, the title ran under Words) */
   .ibv__eyebrow{font-size:10.5px}
   .ibv__tool span{display:none}
   .ibv__tool{padding:8px 10px}

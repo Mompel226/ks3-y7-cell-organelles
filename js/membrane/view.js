@@ -16,10 +16,10 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P } from './sim.js?v=202611142038';
-import { makeScene, makeStage } from './scene.js?v=202611142038';
-import { makeNames } from './names.js?v=202611142038';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611142038';
+import { makeSim, P } from './sim.js?v=202611142141';
+import { makeScene, makeStage } from './scene.js?v=202611142141';
+import { makeNames } from './names.js?v=202611142141';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611142141';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -55,7 +55,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611142038', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611142141', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -72,7 +72,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     <header class="memv__top">
       <div class="memv__id"><p class="memv__eyebrow">IB Biology · B2.1 Membranes and membrane transport</p><h1 id="memv-h">The cell membrane: fluid and mosaic</h1>
         <p class="memv__by">Made by Dr Daniel Mompel Riera</p></div>
-      ${inGame ? '<button type="button" class="memv__close" aria-label="Close and return to the game">×</button>' : ''}
+      ${inGame ? '<button type="button" class="memv__close memv__home">← Back to the game</button>' : '<a class="memv__home" href="../">← The cell game</a>'}
     </header>
     <div class="memv__main">
       <div class="memv__stage">
@@ -89,6 +89,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       <div class="memv__key" hidden></div>
       <aside class="memv__panel" aria-label="The steps">
         <p class="memv__count" aria-live="polite"></p>
+        <nav class="memv__steps" aria-label="The steps"></nav>
         <h2 class="memv__st"></h2>
         <div class="memv__text" aria-live="polite"></div>
         <div class="memv__ctl"></div>
@@ -121,7 +122,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   if (inGame) document.documentElement.classList.add('memv-open');
   const $ = s => root.querySelector(s);
   const stageEl = $('.memv__stage'), veilEl = $('.memv__veil'), waitEl = $('.memv__wait'), keyEl = $('.memv__key'), panelEl = $('.memv__panel');
-  const countEl = $('.memv__count'), titleEl = $('.memv__st'), textEl = $('.memv__text'), moreEl = $('.memv__text--more'), ctlEl = $('.memv__ctl'), nextB = $('.memv__next'), backB = $('.memv__back');
+  const countEl = $('.memv__count'), titleEl = $('.memv__st'), textEl = $('.memv__text'), moreEl = $('.memv__text--more'), ctlEl = $('.memv__ctl'), nextB = $('.memv__next'), backB = $('.memv__back'), stepsEl = $('.memv__steps');
   const barEl = $('.memv__bar'), pauseB = $('.memv__pause');
 
   /* ---------------- the model, its picture, the camera ---------------- */
@@ -431,6 +432,10 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       stopFollow();
     }
     countEl.textContent = `Step ${s + 1} of ${STEPS.length}`; titleEl.textContent = st.title;
+    /* a button for every step (Daniel, 14 Nov 2026, of the IB view: "there is no way to kind of easily navigate between all
+       of the stages … add all of the steps … 1, 2, 3, as a clickable button"; the same here) */
+    if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+    Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     /* a step with buttons: its first paragraph (what to do), the buttons, then the rest, so that the buttons are in
        view beside the picture without scrolling */
     const cut = st.ctl ? st.t.indexOf('\n') : -1;
@@ -457,6 +462,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   }
   nextB.addEventListener('click', () => { if (nextB.disabled || loading) return; if (si < STEPS.length - 1) show(si + 1); else if (inGame) close(); else show(0); });
   backB.addEventListener('click', () => { if (backB.disabled || loading) return; if (si > 0) show(si - 1); });
+  stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || loading || +b.dataset.s === si) return; show(+b.dataset.s); });
 
   /* the pupil may turn the picture (a drag); the next step brings the camera back */
   let down = null;

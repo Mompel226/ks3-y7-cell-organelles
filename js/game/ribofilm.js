@@ -307,14 +307,14 @@ export function openRiboFilm({ last = 'Back to the ribosomes' } = {}) {
       <div class="lens__top"><h2 id="rf-h">🔬 How a ribosome reads the copy</h2><button type="button" class="close-x" aria-label="Close">×</button></div>
       <div class="cf__grid"><div class="lens__3d cf__3d"></div><div class="cf__side">
       <p class="cf__x">${LV.igcse && LV.ib ? 'IGCSE and IB' : LV.ib ? 'IB' : LV.igcse ? 'IGCSE' : 'Explorer'}: beyond the Year 7 list</p>
-      <p class="cf__n" aria-live="polite"></p><div class="cf__t" aria-live="polite"></div>
+      <p class="cf__n" aria-live="polite"></p><nav class="cf__steps" aria-label="The steps of the film"></nav><div class="cf__t" aria-live="polite"></div>
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
       <div class="cf__lvs"></div>
     </div></div></div>`;
     box.hidden = false;
     const F = film($('.cf__3d', box), !!LV.ib); box.peek = F.peek;
     const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), back = $('.cf__do .btn.back', box), lEl = $('.cf__lvs', box);
-    let i = 0, busy = false;
+    let i = 0, busy = false; const sEl = $('.cf__steps', box);
     const close = () => { F.stop(); box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); done(); };
     const esc1 = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', esc1);
@@ -322,13 +322,18 @@ export function openRiboFilm({ last = 'Back to the ribosomes' } = {}) {
     /* Next plays the step; Back plays the step after it in reverse, to where this step ended. Both wait while it plays */
     const show = async (dir = 1) => {
       const s = STEPS[i]; busy = true; btn.disabled = true; back.disabled = true;
-      nEl.textContent = `${i + 1} of ${STEPS.length}`; tEl.innerHTML = paras(s.t); lEl.innerHTML = courseLines(s, LV); if (R.terms) { R.terms(tEl); R.terms(lEl); }
-      if (dir > 0) await F.go(s.p, s.ms, s.lin); else await F.go(s.p, Math.max(1200, Math.min(4500, STEPS[i + 1].ms)), false);
+      nEl.textContent = `${i + 1} of ${STEPS.length}`;
+      /* a button for every step (14 Nov 2026, Daniel: "there is no way to kind of easily navigate between all of the
+         stages … 1, 2, 3, as a clickable button"): the film goes straight to that step's end, in one move */
+      if (sEl.children.length !== STEPS.length) sEl.innerHTML = STEPS.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+      Array.from(sEl.children).forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); }); tEl.innerHTML = paras(s.t); lEl.innerHTML = courseLines(s, LV); if (R.terms) { R.terms(tEl); R.terms(lEl); }
+      if (dir > 0) await F.go(s.p, s.ms, s.lin); else if (dir === 0) await F.go(s.p, 1500, false); else await F.go(s.p, Math.max(1200, Math.min(4500, STEPS[i + 1].ms)), false);
       busy = false; btn.disabled = false; back.disabled = i === 0;
       btn.textContent = i === STEPS.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });
     };
     btn.addEventListener('click', () => { if (busy) return; if (i === STEPS.length - 1) { close(); return; } i++; show(); });
     back.addEventListener('click', () => { if (busy || i === 0) return; i--; show(-1); });
+    sEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || busy) return; const k = +b.dataset.s; if (k === i) return; if (k === i + 1) { i++; show(); } else { i = k; show(0); } });
     show();
   });
 }

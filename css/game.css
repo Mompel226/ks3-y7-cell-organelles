@@ -726,6 +726,11 @@ html.is-final{overflow:hidden}
   .fc--card .fc__acts{gap:calc(var(--u)*10);margin-top:calc(var(--u)*4)}
   .fc--card .btn{font-size:calc(var(--u)*16);min-height:calc(var(--u)*44);padding:calc(var(--u)*12) calc(var(--u)*20)}
 }
+/* a button for every step of a film (transcribe.js, ribofilm.js: cf__steps) */
+.cf__steps{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 8px}
+.cf__steps button{min-width:30px;height:30px;padding:0 7px;border-radius:15px;border:1.5px solid var(--qp-rule);background:none;color:var(--qp-ink);font:800 13.5px/1 var(--sans);cursor:pointer}
+.cf__steps button:hover,.cf__steps button:focus-visible{border-color:var(--qp-accent);outline:none}
+.cf__steps button[aria-current]{background:var(--qp-accent);border-color:var(--qp-accent);color:var(--qp-on-accent)}
 /* ---------- the dark theme: text that was hard to read (14 Nov 2026) ----------
    Daniel, with a picture of the map in the dark theme: "the light blue, it's a bit hard to see … It might not be the
    only place where dark mode fails, because of the contrast and the colors chosen. So explore dark mode."

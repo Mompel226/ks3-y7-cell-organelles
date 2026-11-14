@@ -31,8 +31,9 @@ html.memv-open,html.memv-open body{overflow:hidden}
 .memv__eyebrow{flex-basis:100%;margin:0;font:800 11.5px/1.2 var(--mv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A}
 .memv__id h1{margin:1px 0 0;font:800 22px/1.15 var(--mv-serif);color:#fff}
 .memv__by{margin:2px 0 0;font:700 12px/1.2 var(--mv-sans);color:#C9CBEF}
-.memv__close{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08);color:#fff;font:700 24px/1 var(--mv-sans);cursor:pointer}
-.memv__close:hover{border-color:#FFD27A;color:#FFD27A}
+/* the way back to the game, with its words (14 Nov 2026; before, a small ×, and at the view's own address nothing) */
+.memv__home{flex:none;border-radius:999px;border:1.5px solid rgba(255,210,122,.75);background:rgba(255,255,255,.06);color:#FFE7A8;font:800 14px/1 var(--mv-sans);padding:9px 13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.memv__home:hover{border-color:#FFD27A;color:#fff}
 
 /* ---------- the picture and the steps ---------- */
 .memv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(440px,34vw));grid-template-rows:minmax(0,1fr) auto;grid-template-areas:'stage panel' 'key panel';min-height:0}
@@ -79,6 +80,19 @@ html.memv-open,html.memv-open body{overflow:hidden}
 /* ---------- the sheet: the step, its words, its buttons; then what the picture simplifies, and the sources ---------- */
 .memv__panel{grid-area:panel;overflow-y:auto;min-height:0;background:var(--mv-sheet);color:var(--mv-ink);padding:16px 20px 20px;border-left:1px solid var(--mv-rule)}
 .memv__count{margin:0 0 4px;font:900 12.5px/1 var(--mv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mv-accent)}
+/* a button for every step (view.js show) */
+.memv__steps{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 8px}
+.memv__steps button{min-width:30px;height:30px;padding:0 7px;border-radius:15px;border:1.5px solid var(--mv-rule);background:none;color:var(--mv-ink);font:800 13.5px/1 var(--mv-sans);cursor:pointer}
+.memv__steps button:hover,.memv__steps button:focus-visible{border-color:var(--mv-accent);outline:none}
+.memv__steps button[aria-current]{background:#FFD27A;border-color:#FFD27A;color:#1b1640}
+/* a phone: the buttons stand beside "Step n of m", smaller, so that they take no height of their own (with a row of
+   their own, step 6's Next and its two Follow buttons were under the screen's edge: tools/membrane-check.mjs) */
+@media (max-width:860px){
+  .memv__count{float:left;margin:7px 10px 0 0}
+  .memv__steps{margin:0 0 5px;gap:4px}
+  .memv__steps button{min-width:26px;height:26px;padding:0 5px;border-radius:13px;font-size:12.5px}
+  .memv__st{clear:both}
+}
 .memv__st{margin:0 0 10px;font:800 23px/1.15 var(--mv-serif)}
 .memv__text p{margin:0 0 .6em}
 .memv__text p:last-child{margin-bottom:0}
@@ -134,6 +148,10 @@ html.memv-open,html.memv-open body{overflow:hidden}
 @media (max-width:860px){
   .memv{font-size:16px}
   .memv__top{padding:7px 10px}
+  /* the way back stands on the credit's line, at its right, small: beside the title it made the title break onto a
+     second line, the top bar grew by 22 px and the picture lost them (a name no longer fitted: tools/membrane-check.mjs) */
+  .memv__top{position:relative}
+  .memv__home{position:absolute;right:10px;bottom:4px;font-size:12px;padding:3px 9px}
   .memv__id h1{font-size:18px}
   .memv__eyebrow{font-size:10.5px}
   .memv__st{font-size:20px}

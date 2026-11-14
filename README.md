@@ -70,6 +70,27 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**A button for every step, and a direct way back** (Daniel, 14 Nov 2026: "I have to go back and next step and there is no
+way to kind of easily navigate between all of the stages … add all of the steps as they appear, 1, 2, 3, as a clickable
+button … right now I am in the insulin, but there's no way I can go back to the ATP IB extension, and there's no way for
+me to go back to the key stage 3 with buttons … Probably there are other animations like this one").
+- **Step buttons** (1, 2, 3 …, the step you are on filled) under "Step n of m": in the IB extension (every chapter and
+  every Explore path, `js/ib/view.js`), in the membrane view (`js/membrane/view.js`) and in the two films (How a cell
+  copies a gene, How a ribosome reads the copy: `transcribe.js`, `ribofilm.js`). A press goes straight to that step: the
+  IB view and the membrane view play it from its start; a film moves to its end in one move (the step after the one
+  you are on plays as Next does). Before: Back and Next only, one step at a time.
+- **In an Explore path** (insulin, NAD, coenzyme A …), "← Back to chapter 1: Into the cell" stands above the steps all
+  the time. Before, the way back was only the last step's Next, or Back from the first step.
+- **Back to the game**: the IB view's and the membrane view's small × is now a button with its words, "← Back to the
+  game"; at the view's own address (glucose-to-atp/, membrane/) it is a link, "← The cell game" (before, nothing). The
+  side quest already had "← Back to your mission".
+- **Step 5 of the insulin path**: every ATP carries its name as it moves, and the name becomes ADP once the phosphate
+  group has gone across (he: "every time an ATP molecule appears, make sure that it's labeled ATP … you might think
+  it's a new molecule"). The view's own names stand only while the picture rests, so these are laid on the molecule
+  each frame (`xins.js` tagAt). And the tyrosine near the membrane is named at the step's end: the phosphate groups go
+  to two kinds of place on purpose (three tyrosines in each kinase part, one near the membrane on each half, where
+  IRS-1 binds in the next step).
+
 **The IB extension's insulin path: binding and the change of shape in one step, seen whole** (Daniel, 14 Nov 2026: "when
 insulin binds … it changes shape so that the inside of the cell can meet. Now that happens in two different steps, and so
 it's a bit confusing … it shows it too zoomed in … you don't see the whole transmembrane protein changing shape as insulin

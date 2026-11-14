@@ -39,11 +39,11 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142038';
-import { MOL } from './mol-data.js?v=202611142038';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142038';
-import { bilayer, MEM } from './membrane.js?v=202611142038';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611142038';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611142141';
+import { MOL } from './mol-data.js?v=202611142141';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611142141';
+import { bilayer, MEM } from './membrane.js?v=202611142141';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611142141';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -558,9 +558,22 @@ export async function build(stage, { V }) {
   /* the ATP of step 5 (mol-data.js, the PDB's ideal coordinates): the way from its middle to its last phosphorus, and the
      names of its last phosphate group's atoms, in the order of phosphate()'s own (P, then three O) */
   const PG_NAMES = ['PG', 'O1G', 'O2G', 'O3G'];
-  const { ATP_AX, ATP_PG } = (() => { const D_ = molData('atp'), c = V3(); let n = 0; D_.P.forEach((p_, i) => { if (D_.el[i] !== 'H') { c.add(p_); n++; } }); c.multiplyScalar(1 / n); const pg_ = D_.P[D_.names.indexOf('PG')].clone(); return { ATP_AX: pg_.clone().sub(c).normalize(), ATP_PG: pg_ }; })();
+  const { ATP_AX, ATP_PG, ATP_C } = (() => { const D_ = molData('atp'), c = V3(); let n = 0; D_.P.forEach((p_, i) => { if (D_.el[i] !== 'H') { c.add(p_); n++; } }); c.multiplyScalar(1 / n); const pg_ = D_.P[D_.names.indexOf('PG')].clone(); return { ATP_AX: pg_.clone().sub(c).normalize(), ATP_PG: pg_, ATP_C: c.clone() }; })();
   /* eight phosphorylations, each 3 units long, a new one every 2.4 units: one is all but over when the next ATP arrives */
-  const PA_LEN = 3, PA_GAP = 2.4, PA_ALL = 7 * PA_GAP + PA_LEN;
+  const PA_LEN = 3, PA_GAP = 2.4, PA_ALL = 7 * PA_GAP + PA_LEN, PA_H1 = 0.38 * PA_LEN / PA_ALL, PA_H2 = 0.78 * PA_LEN / PA_ALL;   /* (H1, H2: the step's two pauses) */
+  /* a name that moves with each ATP, and with the ADP it becomes (Daniel, 14 Nov 2026: "every time an ATP molecule
+     appears, make sure that it's labeled ATP, because they appear so quickly … you might think it's a new molecule, but
+     no, it's always ATP"). The view's own names stand only while the picture rests; these are laid on the molecule each
+     frame, by the stage's own projection */
+  const tags = [];
+  function tagAt(k, text, p) {
+    let el = tags[k];
+    if (!el) { el = tags[k] = document.createElement('div'); el.className = 'ibv__lab ibv__tag'; el.innerHTML = '<span></span>'; stage.wrap.appendChild(el); }
+    const q = stage.project(p);
+    if (!q[2]) { el.style.visibility = 'hidden'; return; }
+    if (el.dataset.t !== text) { el.dataset.t = text; el.firstChild.textContent = text; }
+    el.style.visibility = 'visible'; el.style.opacity = 1; el.style.transform = `translate(${Math.round(q[0] + 9)}px,${Math.round(q[1] - 26)}px)`;
+  }
   let drawn = { atoms: [], bonds: [] }, lastK = {};
   function draw(K, t) {
     lastK = K;
@@ -618,7 +631,7 @@ export async function build(stage, { V }) {
     /* the receptor's molecules are drawn only in its own pictures (views 0-6): from the vesicle's pictures they are far
        smaller than a pixel, and drawing them cost a slow phone 10 ms a frame at rest */
     const recNear = K.cam < 6.6;
-    let pg = 0;
+    let pg = 0, nt = 0;
     if (recNear) order.forEach(([h, k], j) => {
       const u = Math.min(1, Math.max(0, (K.pa * PA_ALL - j * PA_GAP) / PA_LEN));
       if (u <= 0.001 || (close && h === 'B' && k !== 'jm')) return;
@@ -638,6 +651,8 @@ export async function build(stage, { V }) {
       const from = here.clone().add(V3(sx * 3.6, 4.2, 2.2)), away = here.clone().add(V3(sx * 4.4, 5.6, 1.4));
       const pos = u < 0.5 ? from.lerp(here, smooth(0, 0.36, u)) : here.clone().lerp(away, smooth(0.7, 1, u));
       const G_ = gather([{ key: 'atp', id: 'pa' + j, P: { p: pos, q }, s: sc }]), base = atoms.length;
+      /* (not in the step's two pauses, where the view's own names say more: "ATP, in the active site …", "ADP leaves") */
+      if (sc > 0.3 && !(j === 0 && (Math.abs(K.pa - PA_H1) < 1e-6 || Math.abs(K.pa - PA_H2) < 1e-6))) tagAt(nt++, give < 0.5 ? 'ATP' : 'ADP', ATP_C.clone().applyQuaternion(q).add(pos));
       G_.atoms.forEach(a => { const t = PG_NAMES.indexOf(a.name); if (t >= 0) { a.p.lerp(F.atoms[t].p, give); a.s = Math.max(sc, give); } atoms.push(a); });
       G_.bonds.forEach(b => {
         const an = G_.atoms[b.a].name, bn = G_.atoms[b.b].name, ga = PG_NAMES.includes(an), gb = PG_NAMES.includes(bn);
@@ -649,6 +664,7 @@ export async function build(stage, { V }) {
       if (u > 0.36 && u < 0.74 && pg < pGlow.length) { const Gl = pGlow[pg++]; Gl.visible = true; Gl.position.copy(site).lerp(at, give); Gl.material.opacity = 0.7 * Math.sin(Math.PI * (u - 0.36) / 0.38); }
     });
     for (let k = pg; k < pGlow.length; k++) pGlow[k].visible = false;
+    for (let k = nt; k < tags.length; k++) tags[k].style.visibility = 'hidden';
     /* IRS-1's other tyrosines (YXXM), phosphorylated by the receptor */
     if (recNear && irs.visible && irs.userData.tail) [0.62, 0.78, 0.93].forEach((u, j) => { const s = smooth(j / 3, (j + 1) / 3, K.irsP); if (s > 0.01) addFrag(phosphate(irs.userData.tail.getPointAt(u).add(V3(0, 0.25, 0.25)), V3(0.1, 0.6, 1), s)); });
     /* PIP2 → PIP3 (two phosphate groups, then three) */
@@ -724,7 +740,8 @@ export async function build(stage, { V }) {
       .concat(surfacePoints(kin.A, [kin.A.position.clone().add(V3(2.0, -2.6, 1.4)), kin.A.position.clone().add(V3(2.4, -1.2, 1.2))])).concat(curves.A ? [curves.A.jm.getPointAt(0.5)] : []) },
     kinase: { html: 'tyrosine kinase: the part inside the cell', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
     kinases: { html: 'tyrosine kinase', side: 'l', pts: () => surfacePoints(kin.A, [kin.A.position.clone().add(V3(-2.4, 1.2, 1.4))]) },
-    phos: { html: 'phosphate groups on tyrosines', side: 'r', pts: () => drawn.atoms.filter(a => a.el === 'P' && a.s > 0.5).slice(0, 6).map(a => a.p.clone()) },
+    physJm: { html: 'a tyrosine near the membrane: phosphorylated too', side: 'r', pts: () => [jmPoint('B').clone().add(V3(0, 0, 0.3))] },
+    phos: { html: 'phosphate groups on tyrosines of the kinase parts', side: 'r', pts: () => drawn.atoms.filter(a => a.el === 'P' && a.s > 0.5).slice(0, 6).map(a => a.p.clone()) },
     mem: { html: 'plasma membrane', side: 'l', pts: () => [-30, -27, -33, XF - 52, XF - 58, XF + 54].map(x => V3(x, MEM.headY + 0.3, -0.4)) },
     outside: { html: 'tissue fluid: outside the cell', side: 'l', pts: () => [V3(-26, -11, 0), V3(-30, -9, 0)] },
     inside: { html: 'cytosol: inside the cell', side: 'l', pts: () => [V3(-26, 9, 0), V3(-30, 11, 0)] },
@@ -767,9 +784,9 @@ export async function build(stage, { V }) {
     { phases: [{ to: { cam: 3 }, ms: 2000 }, { to: { i2: 1 }, ms: 2200 }, { to: { i3: 1, i4: 1 }, ms: 2600 }], labs: { ins4: 1, receptorSame: 2 },
       pic: 'This shape was measured with four insulin molecules bound.' },
     /* 5: the kinases, already together: each phosphate group comes on an ATP (draw: K.pa) */
-    { phases: [{ to: { cam: 4 }, ms: 2400 }, { hold: 1400, labs: { kinase: 1, kinases: 2 } }, { to: { pa: 0.38 * PA_LEN / PA_ALL }, ms: 1700, lin: ['pa'] }, { hold: 2000, labs: { atp5: 1, tyr5: 1 } },
-      { to: { pa: 0.78 * PA_LEN / PA_ALL }, ms: 1900, lin: ['pa'] }, { hold: 1700, labs: { adp5: 1, pgrp5: 1 } }, { to: { pa: 1 }, ms: 12000, lin: ['pa'] }],
-      labs: { kinase: 1, phos: 1, tm: 2 },
+    { phases: [{ to: { cam: 4 }, ms: 2400 }, { hold: 1400, labs: { kinase: 1, kinases: 2 } }, { to: { pa: PA_H1 }, ms: 1700, lin: ['pa'] }, { hold: 2000, labs: { atp5: 1, tyr5: 1 } },
+      { to: { pa: PA_H2 }, ms: 1900, lin: ['pa'] }, { hold: 1700, labs: { adp5: 1, pgrp5: 1 } }, { to: { pa: 1 }, ms: 12000, lin: ['pa'] }],
+      labs: { kinase: 1, phos: 1, physJm: 1, tm: 2 },
       pic: 'Drawn: the phosphate group going across. In the cell, the tyrosine comes to the ATP.' },
     { phases: [{ to: { cam: 5, irs: 1 }, ms: 3000 }, { hold: 1800, labs: { atp: 1, tyr: 1, mg: 2 } }, { to: { rx: 1 }, ms: 4200, lin: [] }], labs: { adp: 1, ptyr: 1, mg: 2 },
       pic: 'Measured: the active kinase with an ATP-like molecule and a piece of IRS-1 (X-ray, 1997).' },
@@ -788,6 +805,6 @@ export async function build(stage, { V }) {
   const avoid = () => (lastK.cam > 4.5 && lastK.cam < 5.5) ? drawn.atoms.filter(a => a.el !== 'H' && (a.s == null || a.s > 0.5)).concat(mgW().map(p => ({ p, id: 'a' }))) : [];   /* the Mg2+ ions hold ATP's phosphate groups: named with it */
   return {
     group: g, knobs, views, steps, labels, draw, avoid, turn: true,
-    dispose() { BS.dispose(); disposeGroup(g); }
+    dispose() { BS.dispose(); disposeGroup(g); tags.forEach(el => el.remove()); }
   };
 }

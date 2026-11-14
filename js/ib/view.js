@@ -20,8 +20,8 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611142038';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142038';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611142141';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611142141';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -101,7 +101,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611142038', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611142141', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -110,7 +110,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142038' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611142141' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -132,7 +132,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       <div class="ibv__tools">
         <button type="button" class="ibv__tool ibv__wbtn" aria-expanded="false">Words</button>
         <button type="button" class="ibv__tool ibv__full" aria-label="Full screen">⛶<span> Full screen</span></button>
-        ${inGame ? '<button type="button" class="ibv__close" aria-label="Close and return to the game">×</button>' : ''}
+        ${inGame ? '<button type="button" class="ibv__tool ibv__home ibv__close">← <span>Back to the </span>game</button>' : '<a class="ibv__tool ibv__home" href="../">← <span>The cell </span>game</a>'}
       </div>
     </header>
     <div class="ibv__main">
@@ -145,7 +145,9 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       </div>
       <aside class="ibv__panel" aria-label="The steps">
         <div class="ibv__where"><div class="ibv__mmwrap"></div><div><p class="ibv__chn"></p><h2 class="ibv__cht"></h2></div></div>
+        <button type="button" class="ibv__up" hidden></button>
         <p class="ibv__count" aria-live="polite"></p>
+        <nav class="ibv__steps" aria-label="The steps of this part"></nav>
         <div class="ibv__text" aria-live="polite"></div>
         <div class="ibv__xs"></div>
         <div class="ibv__do">
@@ -173,7 +175,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   if (inGame) document.documentElement.classList.add('ibv-open');
   const $ = s => root.querySelector(s), $$ = s => Array.from(root.querySelectorAll(s));
   const stageEl = $('.ibv__stage'), textEl = $('.ibv__text'), countEl = $('.ibv__count'), nextB = $('.ibv__next'), backB = $('.ibv__back'), againB = $('.ibv__replay');
-  const picEl = $('.ibv__pic'), waitEl = $('.ibv__wait'), boardEl = $('.ibv__board'), paperEl = $('.ibv__paper');
+  const picEl = $('.ibv__pic'), waitEl = $('.ibv__wait'), boardEl = $('.ibv__board'), paperEl = $('.ibv__paper'), stepsEl = $('.ibv__steps'), upB = $('.ibv__up');
   const keyEl = document.createElement('div'); keyEl.className = 'ibv__key'; keyEl.hidden = true; $('.ibv__stage').appendChild(keyEl);
   const veilEl = $('.ibv__veil');
 
@@ -347,6 +349,16 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     numsNow = sst.nums || null;
     window.IBV.at = { ci, si: s, rest: false };
     countEl.textContent = `Step ${s + 1} of ${steps.length}`;
+    /* a button for every step, to go straight to any of them, and in an Explore path the way straight back to its chapter
+       (Daniel, 14 Nov 2026: "I have to go back and next step and there is no way to kind of easily navigate between all of
+       the stages … add all of the steps … 1, 2, 3, as a clickable button … right now I am in the insulin, but there's no
+       way I can go back to the ATP IB extension, and there's no way for me to go back to the key stage 3 with buttons").
+       Before: Back and Next only, one step at a time; an Explore path led back to its chapter only from its last step;
+       the way to the game was a small × */
+    if (stepsEl.children.length !== steps.length) stepsEl.innerHTML = steps.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+    Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    upB.hidden = !xRet;
+    if (xRet) { const P = CHAPTERS[xRet.ci]; upB.textContent = '← Back to ' + (/^\d+$/.test(P.n) ? `chapter ${P.n}: ${P.short}` : P.short); }
     textEl.innerHTML = paras(st.t); termsIn(textEl);
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
     picEl.hidden = !picEl.textContent;
@@ -412,6 +424,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     if (typeof ci === 'number') { for (let j = ci - 1; j >= 0; j--) if (!CHAPTERS[j].soon) { openChapter(j, CHAPTERS[j].steps.length - 1); return; } }
   });
   againB.addEventListener('click', () => show(si));
+  stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || loading) return; show(+b.dataset.s); });
+  upB.addEventListener('click', () => { if (loading || !xRet) return; const r = xRet; openChapter(r.ci, r.si); });
   $('.ibv__tabs').addEventListener('click', e => { const b = e.target.closest('.ibv__tab'); if (!b || b.classList.contains('is-soon')) return; openChapter(+b.dataset.ch, 0); });
   $('.ibv__xs').addEventListener('click', e => { const b = e.target.closest('.ibv__xb'); if (!b) return; openChapter(b.dataset.x, 0, { fromExplore: { ci, si } }); });
   /* a press on the picture: the map's numbers open their chapters */
