@@ -63,7 +63,7 @@ export const STEPS = [
   { title: 'The proteins move too', view: 'top', labels: [], ctl: ['protein', 'lipid'],
     t: `[sl B2.1.10] The bilayer is fluid, so the proteins are not fixed. They move slowly among the lipids, and they turn. Follow the carrier protein and one phospholipid, and compare their paths.
 [x+] A number says how fast a molecule spreads by random movement: its diffusion coefficient. In rat kidney cells, scientists measured 0.42 µm² s⁻¹ for a phospholipid and 0.07 µm² s⁻¹ for a membrane protein: {ratio} times smaller. This picture uses the same ratio.
-[x+] So in the same time a phospholipid moves about 2.4 times as far as a protein, on average (the distance depends on the square root of the diffusion coefficient).
+[x+] So in the same time a phospholipid moves about 2.4 times as far as a protein, on average (the distance depends on the square root of the diffusion coefficient, and the square root of {ratio} is about 2.4).
 [x+] Why are proteins slower? A protein is much larger than a phospholipid. In a living cell, other proteins and the cytoskeleton (the cell's frame of protein fibres) also limit its movement.
 [x+] Each path is random. Follow again and the path is different, so compare the averages too.
 [x+] The evidence that membrane proteins move: in 1970, Frye and Edidin joined a mouse cell and a human cell into one cell. They marked the membrane proteins of each cell with a different colour. After 40 minutes the two colours were mixed over the whole surface of almost every joined cell.` },

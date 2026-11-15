@@ -87,7 +87,17 @@ Words on show, before and after, in all of `js/ib/text.js`: from 5,575 to 3,706;
 show from 1,972 to 429. The chapters and the tally now have 27 to 49 words a step (before: 37 to 63); the insulin
 path 63 a step (before: 123). The membrane view's fifteen beyond-the-guide lines are all folded but one.
 A teacher's read of the trimmed words then corrected the science where a short line had become wrong or too thin
-(for example why FADH₂ gives fewer ATP: its electrons do not pass through the first complex). `node <scratch>/inv.mjs` style counts are easy to remake from text.js (lines not starting with
+(for example why FADH₂ gives fewer ATP: its electrons do not pass through the first complex).
+**"More detail" is a button, and its contents are complete** (Daniel, the same day: "make sure that the more detail is
+a bit more visible … it's easy to miss … add the names of the enzymes if they want to know more … maybe you're
+explaining a process that's a bit complicated and you need to add a little bit more just so that it's more clear").
+The fold's handle (`.ibv__more summary`, `.memv__fold summary`) is a violet pill with a + that becomes − (before: a
+grey 14 px line with the browser's triangle). In the fold, every step that an enzyme catalyses names the enzyme
+first ("The enzyme is …. The product is …."), spelled as the picture spells it; and where a folded line explained a
+hard process too thinly, the line now says the missing step in plain sentences (for example the Q cycle, the two
+differences across the inner membrane, the ring of ATP synthase, the count of the 24 electrons, the working of
+30 to 32 ATP, why citrate is rearranged before the first oxidation). On show, one line came back: the proton that
+enters with pyruvate, because the picture names that proton. `node <scratch>/inv.mjs` style counts are easy to remake from text.js (lines not starting with
 `[x+]`). Not changed: the course boxes of the game's places and films (each line there is one statement of the
 guide, shown only when a pupil turns the IB switch on).
 

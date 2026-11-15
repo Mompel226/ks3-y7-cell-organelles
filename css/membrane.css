@@ -97,9 +97,15 @@ html.memv-open,html.memv-open body{overflow:hidden}
 .memv__text p{margin:0 0 .6em}
 .memv__text p:last-child{margin-bottom:0}
 /* the folded detail of a step (view.js paras: [x+]) */
-.memv__fold{margin:.2em 0 0;border-top:1px solid var(--mv-rule);padding-top:.5em}
-.memv__fold summary{cursor:pointer;font:800 14px/1.3 var(--mv-sans);color:var(--mv-ink2);margin-bottom:.5em}
-.memv__fold summary:hover{color:var(--mv-ink)}
+/* "More detail": a button that a reader cannot miss (Daniel, 15 Nov 2026: "a bit more visible … it's easy to miss").
+   Before: a grey 14 px line with the browser's small triangle. The violet is the view's own accent (Explore, the chapter line) */
+.memv__fold{margin:.6em 0 0;border-top:1px solid var(--mv-rule);padding-top:.75em}
+.memv__fold summary{display:inline-flex;align-items:center;gap:8px;list-style:none;cursor:pointer;box-sizing:border-box;min-height:38px;padding:7px 15px 7px 9px;border-radius:999px;border:1.5px solid var(--mv-accent);background:color-mix(in srgb,var(--mv-accent) 14%,transparent);font:800 15px/1.2 var(--mv-sans);color:var(--mv-ink);margin-bottom:.2em}
+.memv__fold summary::-webkit-details-marker{display:none}
+.memv__fold summary::before{content:'+';flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--mv-accent);color:var(--mv-sheet);font:900 17px/1 var(--mv-sans)}
+.memv__fold[open] summary::before{content:'−'}
+.memv__fold summary:hover,.memv__fold summary:focus-visible{background:color-mix(in srgb,var(--mv-accent) 26%,transparent);outline:none}
+.memv__fold[open] summary{margin-bottom:.7em}
 .memv__text--more{margin-top:12px}
 .memv__text--more:empty{display:none}
 .memv.is-loading .memv__text,.memv.is-loading .memv__ctl{opacity:.5;transition:opacity .3s}
