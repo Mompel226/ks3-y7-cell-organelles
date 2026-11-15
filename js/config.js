@@ -12,5 +12,10 @@ window.PRACTICAL_CONFIG = {
 
   /* Signing in, so that a student's progress can be attributed: only students on the teacher's Students tab are
      recorded. A Client ID is a name-tag for the app, issued by Google: not a secret, and the same as every lab's. */
-  googleClientId: '749068441640-jgh9s0rbg8ed9hl14mtv6kdhg5jg6ddf.apps.googleusercontent.com'
+  googleClientId: '749068441640-jgh9s0rbg8ed9hl14mtv6kdhg5jg6ddf.apps.googleusercontent.com',
+
+  /* The school's staff addresses end in @ this (pupils' are under it, @pupils.…, and never count): a teacher signed in
+     with one sees the IB pass's toggle, "See it as: Year 7 · IB" (js/ibpass.js; 15 Nov 2026). The labs script names a
+     teacher only while Google's hour-long sign-in is fresh, so the address is what tells the page after that hour. */
+  staffDomain: 'nlcsjeju.kr'
 };

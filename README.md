@@ -73,7 +73,9 @@ the game depends on it. On a phone the small card never covers the Mission compl
 **Year 12 and 13: the IB pass and the IB map** (15 Nov 2026; Daniel: "make sure that this only appears for IB students.
 So when an IB student signs in and that IB student is a year 12 or year 13, then this is activated. Otherwise, just
 leave it as it is for any other year group"). A pupil signed in with the school Google account, on the class list, whose
-class is in Year 12 or 13, gets the pass; so does a teacher, to see what they see. With it, every place in the cell is
+class is in Year 12 or 13, gets the pass. A teacher (anyone signed in with a staff address of the school) chooses at the
+top of the page, "Teacher · see it as: Year 7 · IB" (IB at first; the choice is kept), to see the game as either pupil
+finds it (Daniel, 15 Nov 2026: "as a teacher, it'd be nice to have it as a toggle"). With it, every place in the cell is
 open from the start (the nucleolus still after the nucleus, since it is inside it), the first place has its way to the
 map at once, going into a place gives the bag what that place uses (a short message says so), the energy bar is filled
 again when a job needs more, and each place's course switch shows at once, on IB the first time. **🧬 IB map** at the top

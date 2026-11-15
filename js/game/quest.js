@@ -7,15 +7,15 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611152122';
-import { state, COST } from './state.js?v=202611152122';
-import { sound } from './sound.js?v=202611152122';
-import { finalLine } from './final.js?v=202611152122';
+import { ICON } from './icons.js?v=202611152200';
+import { state, COST } from './state.js?v=202611152200';
+import { sound } from './sound.js?v=202611152200';
+import { finalLine } from './final.js?v=202611152200';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611152122').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611152122';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611152200').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611152200';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -27,7 +27,7 @@ const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
 /* the box at the top of the map for a pass holder: what the pass opens, and the IB map (js/game/ibmap.js) */
 export function ibPassBox() {
   if (!ibPass()) return '';
-  const who = window.IBPASS.why() === 'teacher' ? 'You are signed in as a teacher, so you see the game as Year 12 and 13 students see it.' : 'You are signed in as a Year 12 or 13 student.';
+  const who = window.IBPASS.why() === 'teacher' ? 'You are signed in as a teacher, and you see the game as Year 12 and 13 students see it. To see it as Year 7 students see it, press Year 7 at the top of the page.' : 'You are signed in as a Year 12 or 13 student.';
   return `<div class="qp__ibpass"><p class="qp__ibpk">IB Biology</p><p>${who} Every place is open, and its course switch is on IB. When you enter a place, you are given what it needs.</p>
     <button type="button" class="btn qp__ibmap" data-ibmap>🧬 IB map: go straight to a topic →</button></div>`;
 }

@@ -787,6 +787,13 @@ footer .credits p{margin:.5em 0 0}
 .pill--ib{color:var(--ext);background:var(--ext-tint);border-color:var(--ext-rule)}
 .pill--ib:hover,.pill--ib:focus-visible{color:var(--ext);border-color:var(--ext)}
 .pill--ib[hidden]{display:none}
+/* a teacher's "See it as: Year 7 · IB" (the chosen one filled with the violet; the sheet's colour on it, so both themes read) */
+.tview{display:inline-flex;align-items:center;border:1px solid var(--ext-rule);border-radius:100px;background:var(--sheet);overflow:hidden}
+.tview[hidden]{display:none}
+.tview__k{font:700 12.5px/1 var(--sans);color:var(--ink3);padding:0 6px 0 12px;white-space:nowrap}
+.tview button{font:700 14px/1 var(--sans);color:var(--ink2);background:none;border:0;padding:8px 12px;cursor:pointer}
+.tview button[aria-pressed="true"]{background:var(--ext);color:var(--sheet)}
+.tview button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 .qp__ibpass{margin:0 0 12px;padding:10px 12px;border:1px solid var(--ext-rule);border-left:4px solid var(--ext);border-radius:10px;background:var(--ext-tint);color:var(--ink)}
 .qp__ibpass p{margin:0 0 8px;font-size:15px;line-height:1.4}
 .qp__ibpk{font-weight:900;color:var(--ext);font-size:12.5px !important;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px !important}

@@ -45,7 +45,7 @@ export async function doors() {
     C.ib.forEach(b => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') codes[c] = codes[c] === 'sl' ? 'sl' : lv; })));
     out.push({ id, kind: 'place', title: STORY[id].title, codes });
   });
-  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611152122'), import('../ib/text.js?v=202611152122')]);
+  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611152200'), import('../ib/text.js?v=202611152200')]);
   out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS) });
   T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes }); });
   out.push({ id: 'plant', kind: 'side', title: 'Side quest: the plant cell (its chloroplasts and its vacuole)', codes: Object.assign({}, PLANT) });
