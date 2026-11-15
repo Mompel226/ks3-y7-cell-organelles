@@ -12,6 +12,10 @@
      Lesson.done(id)                 a written answer finished (a model answer opened after their own);
      Lesson.restart(ids)             ↺ Start again: the next check of each opens a new round (nothing is deleted);
      Lesson.restartAll()             the whole page started again.
+   And the page may ask who the records say the pupil is (15 Nov 2026, for the Y7 cell game, which opens its IB layer
+   to Year 12 and 13): Lesson.who() is { email, onList, cls, teacher } once the records have answered, else null, and
+   the window hears 'lesson:who' (detail: the same) each time that changes, null at sign-out. It is only what the
+   reply to lesson.mine already holds (the class from the teacher's Students tab); nothing more is asked or kept.
    Each question keeps its rounds (round 1 is the first go), each with its checks, how it went (f right at the first
    check, 1 right after more checks, t tried and not right yet, d written) and its wrong answers. The rules are the labs
    script's own (§practicals: _prRound_, _prMergeQ_, _prFold_): round 1 and the newest five kept, older ones only add
@@ -30,6 +34,10 @@
   var QID = /^[a-z0-9][a-z0-9-]{0,47}$/, ROUNDS = 6, WRONG = 6, SAVE_AFTER = 60000, RETRY = 60000;
   var RANK = { '': 0, t: 1, '1': 2, f: 3, d: 3 };
   var me = SI ? SI.who() : null, server = null, pending = {}, timer = null, gen = 0, state = 'idle', notListedSaid = false;
+  function whoNow() {
+    return me && server ? { email: me.email, onList: !!server.onList, cls: String(server.cls || ''), teacher: !!server.teacher } : null;
+  }
+  function tell() { try { global.dispatchEvent(new CustomEvent('lesson:who', { detail: whoNow() })); } catch (e) { /* an old browser: nothing hears it */ } }
 
   /* ---------- the record, kept in this browser ---------- */
   function store() { try { return global.localStorage || null; } catch (e) { return null; } }
@@ -250,6 +258,7 @@
         flush();
       }
       set(state === 'saving' ? 'saving' : 'saved');
+      tell();
     }).catch(function () { if (asking === asked) asking = ''; if (me && me.email === asked) set('failed'); });
   }
 
@@ -258,13 +267,13 @@
   if (SI) SI.on(function (v) {
     var was = me && me.email, other = !v || v.email !== was;
     me = v;
-    if (v && other) { server = null; notListedSaid = false; state = 'idle'; claimFor(v.email); paint(); fetchMine(); return; }
-    if (!v) { server = null; state = 'idle'; paint(); return; }
+    if (v && other) { server = null; notListedSaid = false; state = 'idle'; claimFor(v.email); paint(); tell(); fetchMine(); return; }
+    if (!v) { server = null; state = 'idle'; paint(); tell(); return; }
     if (state === 'stale' || !server || Object.keys(pending).length || unsentHere()) { state = 'idle'; fetchMine(); }
     paint();
   });
 
-  global.Lesson = { check: check, done: done, restart: restart, restartAll: restartAll,
+  global.Lesson = { check: check, done: done, restart: restart, restartAll: restartAll, who: whoNow,
                     /* for tests and the page's own checks */
                     record: function () { return JSON.parse(JSON.stringify(REC)); }, mergeQ: mergeQ };
   function start() {

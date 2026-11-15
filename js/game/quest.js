@@ -7,21 +7,30 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611150943';
-import { state, COST } from './state.js?v=202611150943';
-import { sound } from './sound.js?v=202611150943';
-import { finalLine } from './final.js?v=202611150943';
+import { ICON } from './icons.js?v=202611152122';
+import { state, COST } from './state.js?v=202611152122';
+import { sound } from './sound.js?v=202611152122';
+import { finalLine } from './final.js?v=202611152122';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611150943').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611150943';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611152122').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611152122';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
 const paras = t => String(t).split('\n').map(x => `<p>${x}</p>`).join('');
 const STORY = window.STORY, ITEMS = window.ITEMS;
 const MAPPED = ['wayin', 'nucleus', 'nucleolus', 'mito', 'ribosome', 'ser', 'rer', 'golgi', 'tracks', 'exit'];
+/* the IB pass (js/ibpass.js): a signed-in Year 12 or 13 pupil, or a teacher (Daniel, 15 Nov 2026) */
+const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
+/* the box at the top of the map for a pass holder: what the pass opens, and the IB map (js/game/ibmap.js) */
+export function ibPassBox() {
+  if (!ibPass()) return '';
+  const who = window.IBPASS.why() === 'teacher' ? 'You are signed in as a teacher, so you see the game as Year 12 and 13 students see it.' : 'You are signed in as a Year 12 or 13 student.';
+  return `<div class="qp__ibpass"><p class="qp__ibpk">IB Biology</p><p>${who} Every place is open, and its course switch is on IB. When you enter a place, you are given what it needs.</p>
+    <button type="button" class="btn qp__ibmap" data-ibmap>🧬 IB map: go straight to a topic →</button></div>`;
+}
 
 export class Quest {
   constructor({ world, names, panel, hots, bag, onPlace }) {
@@ -188,11 +197,13 @@ export class Quest {
     this.setPanel(`<div class="qp qp--map">
       <p class="qp__eyebrow">Your mission</p>
       <h2 class="qp__title">Make amylase and release it from the cell</h2>
-      <div class="qp__lead">${left ? paras('Go to a place that is <b>awake</b>. A place that is asleep wakes when you carry what it needs.\n<mark class="do">Press a glowing place on the cell, or choose one here.</mark>') : paras('Every place is done. Well done: you made amylase, released it and tested it.\n<mark class="do">Then do the ✦ Final check, last in this list, with the code you got at the end of your journey.</mark>')}</div>
+      ${ibPassBox()}
+      <div class="qp__lead">${left ? paras('Go to a place that is <b>awake</b>.' + (ibPass() ? '' : ' A place that is asleep wakes when you carry what it needs.') + '\n<mark class="do">Press a glowing place on the cell, or choose one here.</mark>') : paras('Every place is done. Well done: you made amylase, released it and tested it.\n<mark class="do">Then do the ✦ Final check, last in this list, with the code you got at the end of your journey.</mark>')}</div>
       <ol class="pls">${list.map(row).join('')}${fin}</ol>
       <p class="qp__note">On the map, small things such as ribosomes are drawn larger, so that you can see them. From very near, everything is at its true size.</p>
     </div>`);
     $$('[data-go]', this.panel).forEach(b => b.addEventListener('click', () => { if (b.getAttribute('aria-disabled') !== 'true') this.onPlace(b.dataset.go); else this.whyAsleep(b.dataset.go, b); }));
+    const im = $('[data-ibmap]', this.panel); if (im) im.addEventListener('click', () => document.dispatchEvent(new CustomEvent('ibmap')));
   }
   whyAsleep(id, near) {
     const miss = state.missing(id).map(n => n.indexOf('in-') === 0 ? 'Enter the nucleus first: the nucleolus is inside it.'
@@ -212,7 +223,7 @@ export class Quest {
     /* a word with two meanings (nucleus: a cell's and an atom's): here, only the cell's */
     const defText = def ? def.d.replace(/^In a cell: (.*?) In an atom:.*$/, (m, a) => a.charAt(0).toUpperCase() + a.slice(1)) : '';
     this.setPanel(`<div class="qp qp--place" data-place="${id}">
-      <div class="qp__top">${id === 'arrive' && !state.done('arrive') ? '' : '<button type="button" class="qp__back">← The map</button>'}${P.kind ? `<span class="qp__kind">${esc(P.kind)}</span>` : ''}</div>
+      <div class="qp__top">${id === 'arrive' && !state.done('arrive') && !ibPass() ? '' : '<button type="button" class="qp__back">← The map</button>'}${P.kind ? `<span class="qp__kind">${esc(P.kind)}</span>` : ''}</div>
       <h2 class="qp__title">${esc(P.title)}</h2>
       ${def ? `<div class="qp__def">${P.y7 ? '<span class="qp__y7">Year 7 must know</span>' : '<span class="qp__x">Explorer: beyond the Year 7 list</span>'}<p><b>${esc(def.en)}:</b> ${esc(defText)}</p>${R.say(def)}</div>` : ''}
       ${P.intro ? `<div class="qp__intro">${paras(P.intro)}</div>` : ''}
@@ -283,12 +294,15 @@ export class Quest {
   courseSwitch(id) {
     const P = STORY[id], C = P.course, top = $('.qp__top', this.panel), ol = $('.steps', this.panel), root = document.documentElement;
     if ($('.qp__lv', this.panel)) return;
-    if (!C || !top || !ol || !state.checks(id).length || !state.checked(id)) { root.classList.remove('ib-on'); return; }
+    /* (the IB pass: the switches show at once, before the place's checks) */
+    if (!C || !top || !ol || !state.checks(id).length || (!state.checked(id) && !ibPass())) { root.classList.remove('ib-on'); return; }
     const NAME = { igcse: 'IGCSE', ib: 'IB' }, LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
     const FILM = { copy: '🔬 How a cell copies a gene: the film, with your course →', ribo: '🔬 How a ribosome reads the copy: the film →' };
     const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
     const saved = R.store.get('courseLv', null), LV = Object.assign({ igcse: false, ib: !saved && R.store.get('ibon', false) === true }, saved || {});
     if (!saved && LV.ib) R.store.set('courseLv', LV);
+    /* the IB pass: the first time, the course is IB; a pupil who then switches it off keeps that choice */
+    if (ibPass() && !R.store.get('ibpassLv', false)) { LV.ib = true; R.store.set('courseLv', LV); R.store.set('ibpassLv', true); }
     /* its doors into "From glucose to ATP" now show: the view's code may come (main.js warms it, never before a door shows) */
     if (C.ib.some(b => b && (b.ch != null || b.mem))) document.dispatchEvent(new CustomEvent('ib-door'));
     const bar = h('div', { class: 'qp__lv' }, '<span class="qp__lvk">Your course</span>' + ['igcse', 'ib'].map(c =>
@@ -366,7 +380,7 @@ export class Quest {
       <p class="qp__todo" role="status"></p>
       ${qs.map(q => `<div class="q" data-q="${q}"></div>`).join('')}
       <div class="qp__won"></div>
-      <div class="qp__nav"${first ? ' hidden' : ''}><button type="button" class="qp__mapbtn">← Back to the map</button></div>`;
+      <div class="qp__nav"${first && !ibPass() ? ' hidden' : ''}><button type="button" class="qp__mapbtn">← Back to the map</button></div>`;
     R.terms(end);
     this.moreBox(id);
     $$('.q', end).forEach(b => window.REVchecks.draw(b));
@@ -543,6 +557,8 @@ export class Quest {
      watched again (play.js watch) pays nothing and marks nothing. */
   energy(n, key) {
     if (key && state.get().flags['paid-' + key]) return true;
+    /* the IB pass: the energy bar is filled again before it is short (the pupil goes straight to any place) */
+    if (ibPass() && state.energy() < n) state.add('energy', 100);
     if (state.spend(n)) { if (key) state.setFlag('paid-' + key); return true; }
     const both = state.has('glucose') && state.has('oxygen'), to = both ? 'mito' : 'wayin';
     this.lowAt = this.cur;

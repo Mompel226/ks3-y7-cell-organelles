@@ -18,9 +18,9 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611150943';
-import { gameLook } from './look.js?v=202611150943';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611150943';
+import { makeStage, smooth } from '../ib/stage.js?v=202611152122';
+import { gameLook } from './look.js?v=202611152122';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611152122';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -32,12 +32,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611150943'), potato: () => import('./potato.js?v=202611150943'), gut: () => import('./gut.js?v=202611150943'), ring: () => import('./ring.js?v=202611150943') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611152122'), potato: () => import('./potato.js?v=202611152122'), gut: () => import('./gut.js?v=202611152122'), ring: () => import('./ring.js?v=202611152122') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611150943', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611152122', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -208,8 +208,12 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
      on, a picture that has a second set of names (its step's labsX: the piece of leaf) shows the names of the IGCSE
      syllabus, each on its part; on a phone there is no room for eleven names beside the picture, so each is a numbered
      pin on a level line and the box's key has the same numbers. The choice is kept. */
-  const ks3Done = () => { try { const A = JSON.parse(localStorage.getItem('cellgame.answers') || '{}'); return CHECKS.every(q => A[q] && A[q].ok); } catch (e) { return false; } };
+  /* (the IB pass, js/ibpass.js: a signed-in Year 12 or 13 pupil, or a teacher, has the switches at once, and IB on the
+     first time; Daniel, 15 Nov 2026. On the branch's own address, plant-cell/, there is no pass: as before.) */
+  const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
+  const ks3Done = () => { if (ibPass()) return true; try { const A = JSON.parse(localStorage.getItem('cellgame.answers') || '{}'); return CHECKS.every(q => A[q] && A[q].ok); } catch (e) { return false; } };
   const LV = Object.assign({ igcse: false, ib: false }, store.get('plantLv', {})), lvEl = $('.plv__lv');
+  if (ibPass() && !store.get('ibpassPlantLv', false)) { LV.ib = true; store.set('plantLv', LV); store.set('ibpassPlantLv', true); }
   let xStep = null, xLabs = {};
   const lvOn = c => ks3Done() && !!LV[c];
   function paintX() { curLabs = xStep && lvOn('igcse') ? xStep.labsX : xLabs; }

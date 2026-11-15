@@ -70,6 +70,23 @@ side quest closes, and once when the game is opened again. Not now closes it unt
 the game depends on it. On a phone the small card never covers the Mission complete card, whose code must be seen
 (`main.js`, "what next"; proof `node tools/what-next.mjs`, and `--mobile 1`).
 
+**Year 12 and 13: the IB pass and the IB map** (15 Nov 2026; Daniel: "make sure that this only appears for IB students.
+So when an IB student signs in and that IB student is a year 12 or year 13, then this is activated. Otherwise, just
+leave it as it is for any other year group"). A pupil signed in with the school Google account, on the class list, whose
+class is in Year 12 or 13, gets the pass; so does a teacher, to see what they see. With it, every place in the cell is
+open from the start (the nucleolus still after the nucleus, since it is inside it), the first place has its way to the
+map at once, going into a place gives the bag what that place uses (a short message says so), the energy bar is filled
+again when a job needs more, and each place's course switch shows at once, on IB the first time. **🧬 IB map** at the top
+of the page (and a box at the top of the map's list) opens a list of the IB topics this game shows, in the guide's order
+(B2.1 Membranes, B2.2 Organelles and compartmentalization, C1.2 Cell respiration, D2.3 Water potential and others), each
+with doors straight to a place, a chapter of "From glucose to ATP", the membrane view or the side quest, and the
+statement numbers each one shows (SL or HL). Each door has its own address, for a slide or Google Classroom:
+`…/ks3-y7-cell-organelles/#ib-rer`, `#ib-atp-c3`, `#ib-membrane`, `#ib-plant`, and `#ib` for the map; a teacher has
+a Copy link beside each door. For everyone else nothing changes, and such an address only says that the map is for
+Year 12 and 13. The class comes from the sign-in's own reply (nothing more is asked or kept); the pass is kept for that
+account only, so another pupil on the same computer never gets it, and signing out ends it. (`js/ibpass.js`,
+`js/game/ibmap.js`; proof `node tools/ib-pass.mjs`, and `node tools/playthrough.mjs --year 12` and `--year 7`.)
+
 **Less text on show in everything IB** (Daniel, 15 Nov 2026: "for all of the IB, there's quite a lot of text … there is
 that text, and then a lot of text below, and then a lot of beyond the syllabus text … when you … are going step by step
 and seeing so much text over and over again, even myself, I stop reading … the idea is to help the students understand,

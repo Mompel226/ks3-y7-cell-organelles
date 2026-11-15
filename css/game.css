@@ -780,3 +780,40 @@ footer .credits p{margin:.5em 0 0}
 .realnote__s{font-size:.86em;opacity:.8}
 .realnote__go{font-weight:700}
 @media (max-width:560px){ .realsw__b{font-size:13.5px;padding:7px 10px} }
+
+/* ---------- the IB pass and the IB map (15 Nov 2026; js/ibpass.js, js/game/ibmap.js) ----------
+   Only for a signed-in Year 12 or 13 pupil, or a teacher. Colours from the theme's own tokens (the extension violet,
+   --ext, and the sheet), so the dark theme follows by itself. */
+.pill--ib{color:var(--ext);background:var(--ext-tint);border-color:var(--ext-rule)}
+.pill--ib:hover,.pill--ib:focus-visible{color:var(--ext);border-color:var(--ext)}
+.pill--ib[hidden]{display:none}
+.qp__ibpass{margin:0 0 12px;padding:10px 12px;border:1px solid var(--ext-rule);border-left:4px solid var(--ext);border-radius:10px;background:var(--ext-tint);color:var(--ink)}
+.qp__ibpass p{margin:0 0 8px;font-size:15px;line-height:1.4}
+.qp__ibpk{font-weight:900;color:var(--ext);font-size:12.5px !important;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px !important}
+.qp__ibmap{width:100%;justify-content:center}
+.toast--long{max-width:min(640px,92%);border-radius:16px;text-align:center;font-weight:700}
+.ibmap{position:absolute;inset:0;z-index:44;display:flex;overflow:auto;padding:52px 16px 16px;background:rgba(10,12,30,.55)}
+.ibmap[hidden]{display:none}
+.ibmap__card{position:relative;margin:0 auto auto;width:min(860px,100%);background:var(--sheet);color:var(--ink);border:1px solid var(--ext-rule);border-radius:16px;padding:18px 20px 16px;box-shadow:var(--shadow)}
+.ibmap__x{position:absolute;top:12px;right:12px}
+.ibmap__k{margin:0;font:900 12.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ext)}
+.ibmap__t{margin:4px 0 6px;font:900 26px/1.15 var(--sans)}
+.ibmap__p{margin:0 0 10px;font-size:15.5px;line-height:1.45;color:var(--ink2);max-width:70ch}
+.ibmap__p--t{color:var(--ink);background:var(--surface);border-radius:8px;padding:8px 10px}
+.ibmap__sec{margin:14px 0 0;padding-top:10px;border-top:1px solid var(--rule)}
+.ibmap__h{margin:0 0 6px;font:800 17px/1.3 var(--sans)}
+.ibmap__h span{color:var(--ext);margin-right:4px}
+.ibmap__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ibmap__row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ibmap__door{display:flex;align-items:baseline;gap:8px;flex:0 1 auto;min-width:min(330px,100%);text-align:left;font:700 15.5px/1.3 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-radius:10px;padding:8px 11px;cursor:pointer}
+.ibmap__door:hover,.ibmap__door:focus-visible{border-color:var(--ext);color:var(--ink)}
+.ibmap__dk{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--ext);white-space:nowrap}
+.ibmap__codes{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 200px}
+.ibmap__copy{font:700 12.5px/1 var(--sans);color:var(--ink2);background:none;border:1px dashed var(--rule2);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.ibmap__end{margin-top:16px;display:flex;justify-content:flex-end}
+@media (max-width:560px){
+  .ibmap{padding:46px 8px 8px}
+  .ibmap__card{padding:14px 12px}
+  .ibmap__t{font-size:22px}
+  .ibmap__door{min-width:100%}
+}

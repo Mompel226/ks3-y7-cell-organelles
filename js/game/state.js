@@ -18,6 +18,7 @@
    again for more (the way in, the mitochondria) never puts the others back to sleep.
    ============================================================ */
 const R = window.REV;
+const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
 export const COST = { copy: 6, parts: 6, translate: 20, grow: 20, lipid: 6, step: 4 };
 export const RESPIRE = 50;     /* one glucose + one oxygen, in the game's units */
 
@@ -49,10 +50,13 @@ export const state = {
   flag: k => !!S.flags[k],
   setFlag(k, v = true) { S.flags[k] = v; this.save(); },
   /* is a place awake? Every item it needs is carried, from a place whose checks are all right; or (the nucleolus) the
-     pupil has gone into the nucleus */
+     pupil has gone into the nucleus. With the IB pass (js/ibpass.js: a signed-in Year 12 or 13 pupil, or a teacher;
+     Daniel, 15 Nov 2026) every place is awake from the start, but the nucleolus still waits until the pupil has been
+     inside the nucleus (it is inside it); main.js go gives what the place uses as the pupil goes in. */
   awake(id) {
     const P = window.STORY[id];
     if (id === 'arrive') return true;
+    if (ibPass()) return P.inside ? !!S.flags['in-' + P.inside] : true;
     if (!this.complete('arrive')) return false;
     if (S.done[id]) return true;
     /* a place whose steps have begun stays awake: its first steps have used what it needed (the ribosome place uses the
@@ -65,6 +69,7 @@ export const state = {
   /* what a sleeping place still needs: an item's name, 'in-<place>', or 'checks:<place>' (its checks are not all right) */
   missing(id) {
     const P = window.STORY[id]; if (P.inside && !S.flags['in-' + P.inside]) return ['in-' + P.inside];
+    if (ibPass()) return [];
     const out = [];
     (P.needs || []).forEach(n => {
       if (!this.has(n)) { out.push(n); return; }

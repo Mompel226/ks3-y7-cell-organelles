@@ -5,19 +5,22 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611150943';
-import { Names } from './names.js?v=202611150943';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611150943';
-import { makePlay } from './play.js?v=202611150943';
-import { setStill, wait } from './actors.js?v=202611150943';
-import { state, RESPIRE } from './state.js?v=202611150943';
-import { ICON } from './icons.js?v=202611150943';
-import { intro } from './intro.js?v=202611150943';
-import { sound } from './sound.js?v=202611150943';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611150943';
+import { World, MAP_VIEW } from '../world/world.js?v=202611152122';
+import { Names } from './names.js?v=202611152122';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611152122';
+import { makePlay } from './play.js?v=202611152122';
+import { setStill, wait } from './actors.js?v=202611152122';
+import { state, RESPIRE } from './state.js?v=202611152122';
+import { ICON } from './icons.js?v=202611152122';
+import { intro } from './intro.js?v=202611152122';
+import { sound } from './sound.js?v=202611152122';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611152122';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
+/* the IB pass (js/ibpass.js; Daniel, 15 Nov 2026): a signed-in Year 12 or 13 pupil, or a teacher */
+const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
+let gameOn = false;          /* the game has begun (start, below): the IB map and its addresses wait for it */
 const stage = $('#stage');
 let world;
 try { world = new World($('#world'), { still: R.FAST, quality: R.params.get('quality') || '' }); }
@@ -43,7 +46,7 @@ world.solids = [world.W.nucleus.outerEnv, ...WG.rer.children.filter(m => m.name.
 function looks() {
   /* before the map (the start), every place is simply there to see: nothing sleeps yet. Done (✦) is the jobs AND every
      check right (state.complete) */
-  const map = state.complete('arrive');
+  const map = state.complete('arrive') || (ibPass() && quest.cur !== 'arrive');
   MAPPED.forEach(id => world.setPlace(id, !map ? 'idle' : state.complete(id) ? 'done' : state.awake(id) ? 'open' : 'sleep', { instant: !looks.ran }));
   looks.ran = true;
 }
@@ -70,7 +73,10 @@ function mapNames() {
 /* a place pressed on the cell or its name; it lights under the mouse only when that press would go there (world.js) */
 world.canPress = () => !quest.cur && !busy;
 world.on('press', id => { if (!id || quest.cur) return; go(id); });
-world.on('woke', id => { toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} awake.`); sound.wake(); });
+/* (when the IB pass comes during play, every place wakes at once: the box at the top of the map says so, and no
+   message a place stands over the picture: ibChanged) */
+let wakeQuiet = false;
+world.on('woke', id => { if (wakeQuiet) return; toast(`<b>${esc(STORY[id].title)}</b> ${isAre(id)} awake.`); sound.wake(); });
 
 /* ---------- 🔈 Sound (off until pressed) and ⛶ Full screen ---------- */
 /* every Sound button (the tools' one, and the intro card's: during the intro the tools are under it) says the same */
@@ -95,10 +101,17 @@ async function go(id, stay) {
   nextOff();
   if (id === 'final') { openFinal(); return; }
   if (id !== 'test') $('#test').hidden = true;
+  /* the IB pass: a pupil may leave the first place before its end, where only the Year 7 structures are drawn
+     (world.simple): on the map and in every other place, every structure is drawn again */
+  if (ibPass() && id !== 'arrive' && world.isSimple) world.simple(false);
   if (!id) { world.wayIn(false); world.setFrame(0); busy = true; play.reset(); quest.openMap(); setInset(); await world.flyTo(MAP_VIEW, { isMap: true }); looks(); mapNames(); busy = false; return; }
   /* (the test too: it had been let through here whatever the pupil carried; the list's own button was the only guard: the
      order audit, 12 Nov 2026) */
   if (!state.awake(id)) { quest.openMap(); quest.whyAsleep(id, $(`[data-go="${id}"]`, $('#quest'))); return; }
+  /* the IB pass: only the Year 7 structures drawn again when the pupil comes back to the first place before its end, as
+     at the start (the other half is above, before the map) */
+  if (ibPass() && id === 'arrive' && !world.isSimple && !state.done('arrive') && state.step('arrive') < 2) world.simple(true);
+  if (ibPass() && id) ibFill(id);
   /* stay: the place set up again after a step was watched again; in a close view the camera stays there (play.js reset) */
   const held = !!stay && id === quest.cur && play.close();
   busy = true; names.set([]); play.reset(held);
@@ -111,6 +124,9 @@ async function go(id, stay) {
   /* the first place is not a place of the map (it has no view of its own): it is set up again where the camera is.
      Before 12 Nov 2026 this line was missing, so after ↻ on one of its steps the game stopped here with an error: the
      step's button had gone and nothing came back (Daniel, from a lesson: "he's stuck") */
+  /* (the IB pass: a pupil may come back to the first place from another place before its end; its steps are drawn on
+     the whole cell, where the dive leaves the camera at the start, so the camera goes there first) */
+  if (id === 'arrive' && ibPass() && quest.cur !== 'arrive' && !state.done('arrive')) { world.setFrame(0); await world.flyTo(MAP_VIEW, { isMap: true }); }
   if (id === 'arrive') { busy = false; await quest.openPlace('arrive', (name) => play.run(name)); looks(); arriveNames(); return; }
   const P = world.P[id];
   world.setFrame(P.view.frameH || 0);
@@ -122,6 +138,16 @@ async function go(id, stay) {
 /* the first place keeps every structure named while its checks are answered, also after a step watched again or when the
    game is opened again there (12 Nov 2026: a pupil could not answer them, the names had gone) */
 function arriveNames() { if (quest.cur === 'arrive' && (state.done('arrive') || state.step('arrive') >= 2)) play.arriveNames(); }
+/* the IB pass: going into a place, the pupil is given what it uses that the bag does not hold (its needs, and the rough
+   ER's lipids for its last step: play.js bud), so a place can be done in any order; the energy bar is filled again when a
+   job needs more (quest.js energy). Said in a short message. */
+const USES = { rer: ['lipids'] };
+function ibFill(id) {
+  const P = STORY[id]; if (!P) return;
+  const given = (P.needs || []).concat(USES[id] || []).filter(n => n !== 'energy' && window.ITEMS[n] && !state.has(n));
+  given.forEach(n => state.add(n));
+  if (given.length) toast(`IB: you are given what this place needs: ${given.map(n => '<b>' + esc(window.ITEMS[n].name) + '</b>').join(', ').replace(/, ([^,]*)$/, ' and $1')}.`, 5200);
+}
 /* a return visit's one press (quest.js moreBox): the way in gives two glucose and two oxygen again, as its steps did; the
    mitochondria use one of each and release energy, as their last step did (play.js release: RESPIRE). Each item flies
    to the bag from the place, so the pupil sees where it came from */
@@ -177,9 +203,9 @@ new ResizeObserver(() => { if (insetSoon) return; insetSoon = true; requestAnima
 new ResizeObserver(() => $('#stage').style.setProperty('--hudh', $('.hud').offsetHeight + 'px')).observe($('.hud'));
 
 /* a short message at the top of the world */
-function toast(html) {
-  const t = h('div', { class: 'toast', role: 'status' }, html); $('#toasts').appendChild(t);
-  setTimeout(() => t.classList.add('out'), 3200); setTimeout(() => t.remove(), 3900);
+function toast(html, ms = 3200) {
+  const t = h('div', { class: 'toast' + (ms > 3200 ? ' toast--long' : ''), role: 'status' }, html); $('#toasts').appendChild(t);
+  setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 700);
 }
 state.on(() => { if (!quest.cur) mapNames(); });
 /* a place finished (its jobs and every check right): what it gave wakes the next places now */
@@ -261,7 +287,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611150943').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611152122').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -271,7 +297,7 @@ let opening = false;
 const openIB = start => {
   if (opening || memOpening || document.documentElement.classList.contains('ibv-open') || document.documentElement.classList.contains('memv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611150943').then(m => {
+  import('../ib/view.js?v=202611152122').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -281,11 +307,11 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611150943').then(m => m.warm()).catch(() => { warmed = false; });
-  import('../membrane/view.js?v=202611150943').then(m => m.warm()).catch(() => {});
+  import('../ib/view.js?v=202611152122').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../membrane/view.js?v=202611152122').then(m => m.warm()).catch(() => {});
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611150943').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611152122').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
@@ -297,7 +323,7 @@ const openMem = () => {
   const root = document.documentElement;
   if (memOpening || opening || root.classList.contains('memv-open') || root.classList.contains('ibv-open') || root.classList.contains('plv-open')) return;
   memOpening = true;
-  import('../membrane/view.js?v=202611150943').then(m => {
+  import('../membrane/view.js?v=202611152122').then(m => {
     world.hold = true;
     m.openMembrane({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { memOpening = false; world.hold = false; world.kick(); console.error(e); });
@@ -378,11 +404,79 @@ document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || memOpening || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611150943').then(m => {
+  import('../plant/view.js?v=202611152122').then(m => {
     world.hold = true;
     m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
 });
+
+/* ---------------- the IB map (js/game/ibmap.js; Daniel, 15 Nov 2026) ----------------
+   Only with the IB pass. Opened by 🧬 IB map at the top of the page (#btnIB), by the box at the top of the map's list
+   (quest.js ibPassBox: 'ibmap') and by the page's address: #ib opens the map, #ib-<door> opens that door (a place with
+   the course on IB, a view at its chapter, the side quest), once the game has begun; the address is then put back to
+   the page's own, so a reload does not open it again. Without the pass the address changes nothing, but a line says
+   who the map is for (a pupil who is signed in waits for the records' answer first). */
+let mapOpening = false;
+const viewOpen = () => ['ibv-open', 'memv-open', 'plv-open'].some(c => document.documentElement.classList.contains(c));
+async function openIBMap() {
+  if (!ibPass() || !gameOn || mapOpening || viewOpen() || ($('#ibmap') && !$('#ibmap').hidden)) return;
+  mapOpening = true; nextOff();
+  document.dispatchEvent(new CustomEvent('ib-door'));            /* the views' code comes while the map is read */
+  try { const m = await import('./ibmap.js?v=202611152122'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher' }); }
+  catch (e) { console.error(e); }
+  mapOpening = false;
+}
+document.addEventListener('ibmap', openIBMap);
+function ibOpen(d) {
+  if (!d || !ibPass()) return;
+  if (d.kind === 'place') {
+    R.store.set('courseLv', Object.assign({ igcse: false }, R.store.get('courseLv', {}) || {}, { ib: true })); R.store.set('ibpassLv', true);
+    go(d.id);
+  } else if (d.id === 'membrane') openMem();
+  else if (d.id === 'plant') document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'ibmap' } }));
+  else if (d.ci != null) openIB({ ci: d.ci, si: 0 });
+}
+const ibBtn = $('#btnIB');
+const paintIBBtn = () => { if (ibBtn) ibBtn.hidden = !(ibPass() && gameOn); };
+if (ibBtn) ibBtn.addEventListener('click', openIBMap);
+const readHash = () => { const m = /^#ib(?:-([a-z0-9-]+))?$/.exec(location.hash || ''); return m ? (m[1] || 'map') : null; };
+let hashWant = readHash();
+async function hashDoor() {
+  if (!hashWant || !gameOn) return;
+  if (!ibPass()) {
+    if (window.SignIn && window.SignIn.who() && !(window.IBPASS && window.IBPASS.known())) return;   /* the records' answer is coming */
+    hashWant = null;
+    toast('The IB map is for Year 12 and 13 students. Sign in with your school Google account, at the top of the page, and open this link again.', 9000);
+    return;
+  }
+  const want = hashWant; hashWant = null;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  if (want === 'map') { openIBMap(); return; }
+  try { const m = await import('./ibmap.js?v=202611152122'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
+  catch (e) { console.error(e); }
+}
+addEventListener('hashchange', () => { hashWant = readHash(); hashDoor(); });
+/* the first place, opened before the pass was known: its way to the map now */
+function arriveWay() {
+  if (!ibPass() || quest.cur !== 'arrive') return;
+  const top = $('#quest .qp__top');
+  if (top && !$('.qp__back', top)) { const b = h('button', { type: 'button', class: 'qp__back' }, '← The map'); top.insertBefore(b, top.firstChild); b.addEventListener('click', () => go(null)); }
+  const nav = $('#quest .qp__nav'); if (nav && nav.hidden && $('#quest .qp__end:not([hidden])')) nav.hidden = false;
+}
+/* the pass came (or went) while the game is open: the button, the map's list, the place's switches, the address */
+function ibChanged() {
+  paintIBBtn();
+  if (!gameOn) return;
+  wakeQuiet = true;
+  if (!quest.cur && !busy && $('#quest .qp--map')) { quest.openMap(); looks(); mapNames(); }
+  else if (quest.cur) { quest.courseSwitch(quest.cur); arriveWay(); looks(); }
+  wakeQuiet = false;
+  if (ibPass()) sound.wake();
+  hashDoor();
+}
+document.addEventListener('ibpass', ibChanged);
+document.addEventListener('ibpass-known', hashDoor);
+function begun() { gameOn = true; paintIBBtn(); hashDoor(); }
 
 /* ---------- start ---------- */
 async function start() {
@@ -403,13 +497,14 @@ async function start() {
     setInset();
     /* its end is its checks; when every one is right, "Go to the map" leads on (quest.finishPanel) */
     const opened = quest.openPlace('arrive', (name) => play.run(name));
+    begun();
     setTimeout(arriveNames, 600);
     await opened;
     looks(); arriveNames();
     return;
   }
   sound.allowMusic();
-  go(null).then(() => setTimeout(() => { if (!quest.cur) nextUp('load'); }, 1200));
+  go(null).then(() => { begun(); setTimeout(() => { if (!quest.cur) nextUp('load'); }, 1200); });
 }
 start();
 window.READY = true;
