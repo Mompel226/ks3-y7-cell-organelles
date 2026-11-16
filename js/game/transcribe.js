@@ -44,7 +44,8 @@
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { courseLines } from './ribofilm.js?v=202611161111';   /* how a course's lines are drawn, the same in both films */
+import { courseLines } from './ribofilm.js?v=202611161858';
+import { levelSwitch } from './iblevel.js?v=202611161858';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
@@ -476,6 +477,8 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), kEl = $('.cf__key', box), back = $('.cf__do .btn.back', box);
     /* the courses that are on (a pupil whose Year 7 checks of a place are right may switch them on: quest.js courseSwitch) */
     const LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {})), lEl = $('.cf__lvs', box);
+    /* with IB on, the IB level under the course boxes (js/game/iblevel.js, 16 Nov 2026), as in the ribosome's film */
+    if (LV.ib) lEl.insertAdjacentHTML('afterend', `<div class="cf__lvl">${levelSwitch()}</div>`);
     /* which base fits which: shown from the step where the pairs are on the picture, and U from the step where RNA comes */
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
       '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];

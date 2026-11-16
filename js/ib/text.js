@@ -74,7 +74,8 @@ export const CHAPTERS = [
       { t: '[!] Ions and polar molecules cannot cross the inner membrane by themselves. Pyruvate crosses through a carrier protein for pyruvate, which changes shape and releases pyruvate into the matrix.\n[x+] This is the mitochondrial pyruvate carrier. Its shape was measured in 2025, in three positions: open to the intermembrane space, closed round pyruvate, open to the matrix.\n[x] The carrier takes one proton (H⁺) into the matrix with each pyruvate.' },
       { t: '[hl B2.2.4] Pyruvate is now in the matrix. The enzymes of the link reaction and the Krebs cycle are here, together with their substrates, in one compartment: compartmentalization.' },
       { t: '[!] The two NADH from glycolysis cannot cross the inner membrane. Only the electrons of these NADH reach the electron transport chain: shuttle systems carry the electrons (the dashed line on the map).\n[x+] In skeletal muscle most of these electrons go by the glycerol phosphate shuttle, which gives the electrons to FAD, not NAD. Electrons from FADH₂ enter the chain after the first complex (chapter 6), so fewer ATP are made. The heart and the liver use another shuttle, which gives them to NAD. This is one reason why ATP totals differ.' },
-      { t: 'Next: the link reaction, in the matrix (chapter 4).' }
+      /* (16 Nov 2026) at SL the next chapter is 6: the link reaction and the Krebs cycle are HL only (js/game/iblevel.js) */
+      { t: 'Next: <span class="iblv-hlonly">the link reaction, in the matrix (chapter 4).</span><span class="iblv-slonly">the electron transport chain, in the inner membrane (chapter 6). The link reaction and the Krebs cycle (chapters 4 and 5) are HL only.</span>' }
     ]
   },
   {

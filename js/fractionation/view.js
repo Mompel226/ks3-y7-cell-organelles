@@ -19,7 +19,7 @@
    Reduce motion (the computer's setting, or ?still=1 for the tests): every motion jumps to its end, nothing is left out.
    For tools/fractionation-check.mjs: window.FRACTIONATION.
    ============================================================ */
-import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611161111';
+import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611161858';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const params = new URLSearchParams(location.search);
@@ -434,7 +434,7 @@ function paras(t) {
 
 function styles() {
   let l = document.querySelector('link[data-frcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611161111', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */

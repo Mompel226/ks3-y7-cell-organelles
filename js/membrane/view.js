@@ -19,11 +19,15 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P, AQP_PATCH } from './sim.js?v=202611161111';
-import { makeScene, makeStage } from './scene.js?v=202611161111';
-import { makeWater, WATER } from './water.js?v=202611161111';
-import { makeNames } from './names.js?v=202611161111';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611161111';
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611161858';
+import { makeScene, makeStage } from './scene.js?v=202611161858';
+import { makeWater, WATER } from './water.js?v=202611161858';
+import { makeNames } from './names.js?v=202611161858';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611161858';
+import { levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+/* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
+   its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
+   and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -69,7 +73,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611161111', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611161858', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -102,7 +106,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       </div>
       <div class="memv__key" hidden></div>
       <aside class="memv__panel" aria-label="The steps">
-        <p class="memv__count" aria-live="polite"></p>
+        <div class="iblv-cline"><p class="memv__count" aria-live="polite"></p><div class="memv__lvl">${levelSwitch()}</div></div>
         <nav class="memv__steps" aria-label="The steps"></nav>
         <h2 class="memv__st"></h2>
         <div class="memv__text" aria-live="polite"></div>
@@ -112,6 +116,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
           <button type="button" class="memv__back" aria-label="The step before">← Back</button>
           <button type="button" class="memv__next">Next step →</button>
         </div>
+        <div class="iblv-foot">${levelSwitch()}</div>
         <section class="memv__more">
           <h3>What the tags mean</h3>
           <div class="memv__tags">
@@ -147,7 +152,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
      fetched then), or when step 9 is asked for first */
   let A = null, aqpMaking = null, patch = 'main';
-  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611161111').then(async m => {
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611161858').then(async m => {
     if (closed) return null;
     const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1);
     sc2.draw(0); sc2.setWater(w2);
@@ -491,12 +496,12 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     countEl.textContent = `Step ${s + 1} of ${STEPS.length}`; titleEl.textContent = st.title;
     /* a button for every step (Daniel, 14 Nov 2026, of the IB view: "there is no way to kind of easily navigate between all
        of the stages … add all of the steps … 1, 2, 3, as a clickable button"; the same here) */
-    if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+    if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((x, k) => `<button type="button" data-s="${k}"${hlOnly(x) ? ' data-hlo=""' : ''} aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     /* a step with buttons: its first paragraph (what to do), the buttons, then the rest, so that the buttons are in
        view beside the picture without scrolling */
     const cut = st.ctl ? st.t.indexOf('\n') : -1;
-    textEl.innerHTML = paras(cut < 0 ? st.t : st.t.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(st.t.slice(cut + 1));
+    textEl.innerHTML = hlNote(st) + paras(cut < 0 ? st.t : st.t.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(st.t.slice(cut + 1));
     drawControls(); panelEl.scrollTop = 0;
     /* the other piece of membrane (step 9, and back): it changes under the veil, with or without Reduce motion */
     const want = st.patch || 'main';
@@ -520,13 +525,13 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     }
     defineNames(); namesOn = true; keepsStale = true;
     veilEl.classList.remove('is-on', 'is-first');
-    backB.disabled = s === 0; nextB.disabled = false; nextB.classList.add('pulse');
-    nextB.textContent = s < STEPS.length - 1 ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →');
+    backB.disabled = skip(STEPS, s, -1) < 0; nextB.disabled = false; nextB.classList.add('pulse');
+    nextB.textContent = skip(STEPS, s, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →');
     if (!inGame) history.replaceState(null, '', '#s' + (s + 1));
     window.MEMBRANE.at = { step: s, rest: true };
   }
-  nextB.addEventListener('click', () => { if (nextB.disabled || loading) return; if (si < STEPS.length - 1) show(si + 1); else if (inGame) close(); else show(0); });
-  backB.addEventListener('click', () => { if (backB.disabled || loading) return; if (si > 0) show(si - 1); });
+  nextB.addEventListener('click', () => { if (nextB.disabled || loading) return; const j = skip(STEPS, si, 1); if (j < STEPS.length) show(j); else if (inGame) close(); else show(Math.max(0, skip(STEPS, -1, 1))); });
+  backB.addEventListener('click', () => { if (backB.disabled || loading) return; const j = skip(STEPS, si, -1); if (j >= 0) show(j); });
   stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || loading || +b.dataset.s === si) return; show(+b.dataset.s); });
 
   /* the pupil may turn the picture (a drag); the next step brings the camera back */

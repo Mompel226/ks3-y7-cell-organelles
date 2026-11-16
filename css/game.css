@@ -281,6 +281,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step__ibdoor:hover{background:#5A2FA8}
 /* the course switches of a place, "Your course: IGCSE · IB" (quest.js courseSwitch), and their boxes: the IB switch's look */
 .qp__lv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px}
+/* the IB level beside the course switches (js/game/iblevel.js, 16 Nov 2026), in a place and in a film */
+.qp__lvl{display:inline-flex;margin-left:4px;color:var(--qp-ink,var(--ink))}
+.qp__lvl[hidden],.plv__lvl[hidden]{display:none}
+.cf__lvl{margin:8px 0 0;color:inherit}
 .qp__lvk{font:800 14.5px/1 var(--sans);color:#5A2FA8;margin-right:2px}
 .qp__lvb{display:inline-flex;align-items:center;gap:8px;min-height:40px;font:800 15px/1 var(--sans);color:#5A2FA8;background:#EDE8FA;border:1.5px solid #C9BAEE;border-radius:999px;padding:5px 13px 5px 6px;cursor:pointer}
 .qp__lvb:hover,.qp__lvb[aria-pressed="true"]{border-color:#7243C0}
@@ -835,30 +839,70 @@ footer .credits p{margin:.5em 0 0}
 .qp__ibpk{font-weight:900;color:var(--ext);font-size:12.5px !important;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px !important}
 .qp__ibmap{width:100%;justify-content:center}
 .toast--long{max-width:min(640px,92%);border-radius:16px;text-align:center;font-weight:700}
-.ibmap{position:absolute;inset:0;z-index:44;display:flex;overflow:auto;padding:52px 16px 16px;background:rgba(10,12,30,.55)}
+/* the IB map (16 Nov 2026): the guide's roadmap, themes across and levels of organisation down, a button a topic; a
+   topic opens its own small window over the roadmap (js/game/ibmap.js). On a phone, rows by level of organisation. */
+.ibmap{position:fixed;inset:0;z-index:60;display:flex;overflow:auto;padding:16px;background:rgba(10,12,30,.6)}
 .ibmap[hidden]{display:none}
-.ibmap__card{position:relative;margin:0 auto auto;width:min(860px,100%);background:var(--sheet);color:var(--ink);border:1px solid var(--ext-rule);border-radius:16px;padding:18px 20px 16px;box-shadow:var(--shadow)}
+.ibmap__card{position:relative;margin:auto;width:min(1180px,100%);background:var(--sheet);color:var(--ink);border:1px solid var(--ext-rule);border-radius:16px;padding:18px 20px 16px;box-shadow:var(--shadow)}
 .ibmap__x{position:absolute;top:12px;right:12px}
 .ibmap__k{margin:0;font:900 12.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ext)}
-.ibmap__t{margin:4px 0 6px;font:900 26px/1.15 var(--sans)}
-.ibmap__p{margin:0 0 10px;font-size:15.5px;line-height:1.45;color:var(--ink2);max-width:70ch}
+.ibmap__head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:4px 44px 6px 0}
+.ibmap__t{margin:0;font:900 26px/1.15 var(--sans)}
+.ibmap__head .iblvs{color:var(--ink)}
+.ibmap__p{margin:0 0 8px;font-size:15.5px;line-height:1.45;color:var(--ink2)}
 .ibmap__p--t{color:var(--ink);background:var(--surface);border-radius:8px;padding:8px 10px}
-.ibmap__sec{margin:14px 0 0;padding-top:10px;border-top:1px solid var(--rule)}
-.ibmap__h{margin:0 0 6px;font:800 17px/1.3 var(--sans)}
-.ibmap__h span{color:var(--ext);margin-right:4px}
-.ibmap__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.ibmap__row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
-.ibmap__door{display:flex;align-items:baseline;gap:8px;flex:0 1 auto;min-width:min(330px,100%);text-align:left;font:700 15.5px/1.3 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-radius:10px;padding:8px 11px;cursor:pointer}
-.ibmap__door:hover,.ibmap__door:focus-visible{border-color:var(--ext);color:var(--ink)}
-.ibmap__dk{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--ext);white-space:nowrap}
-.ibmap__codes{display:flex;flex-wrap:wrap;gap:4px;flex:1 1 200px}
+.ibmap__road{display:grid;grid-template-columns:7.2em repeat(4,minmax(0,1fr));gap:0 8px;margin:10px 0 6px}
+.ibmap__r{display:contents}
+.ibmap__th{margin:0;padding:4px 2px 6px;font:800 14px/1.25 var(--sans);color:var(--ink);border-bottom:3px solid var(--ext-rule)}
+.ibmap__th b,.ibmap__lv b{color:var(--ext);font-weight:900;margin-right:3px}
+.ibmap__lv{margin:0;padding:9px 4px 0 2px;font:800 14px/1.25 var(--sans);color:var(--ink2);border-top:1px solid var(--rule)}
+.ibmap__cell{display:flex;flex-direction:column;gap:5px;padding:6px 0;border-top:1px solid var(--rule);min-width:0}
+.ibmap__topic{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:2px 7px;width:100%;text-align:left;font:700 14.5px/1.25 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-left:4px solid var(--ext);border-radius:10px;padding:7px 8px 7px 9px;cursor:pointer}
+.ibmap__topic b{font-weight:900;color:var(--ext)}
+.ibmap__tm{align-self:center;min-width:1.9em;text-align:center;font:800 12px/1 var(--sans);color:var(--ext);background:var(--ext-tint);border-radius:100px;padding:4px 6px}
+.ibmap__topic:hover,.ibmap__topic:focus-visible{border-color:var(--ext);background:var(--ext-tint)}
+.ibmap__topic.is-hlo{border-style:dashed;border-left-style:solid;border-left-color:var(--rule2);opacity:.62}
+.ibmap__topic.is-hlo b{color:var(--ink3)}
+.ibmap__key{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;font-size:14px;color:var(--ink2)}
+.ibmap__key .ibl+.ibl{margin-left:10px}
+.ibmap__end{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+/* a topic's window, over the roadmap */
+.ibmap__win{position:fixed;inset:0;z-index:61;display:flex;overflow:auto;padding:16px;background:rgba(10,12,30,.42)}
+.ibmap__win[hidden]{display:none}
+.ibmap__wcard{position:relative;margin:auto;width:min(820px,100%);background:var(--sheet);color:var(--ink);border:1px solid var(--ext-rule);border-top:5px solid var(--ext);border-radius:14px;padding:16px 18px 14px;box-shadow:var(--shadow)}
+.ibmap__wx{position:absolute;top:10px;right:10px}
+.ibmap__wt{margin:4px 44px 8px 0;font:900 22px/1.2 var(--sans)}
+.ibmap__wt span{color:var(--ext);margin-right:4px}
+.ibmap__grp{margin:10px 0 0}
+.ibmap__gk{margin:0 0 6px;font:900 12.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.ibmap__doors{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
+.ibmap__row{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ibmap__door{display:grid;grid-template-columns:1fr auto;align-items:start;align-content:start;gap:6px 10px;width:100%;height:100%;text-align:left;font:700 15.5px/1.3 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-radius:10px;padding:8px 11px;cursor:pointer}
+.ibmap__dt{grid-column:1}
+.ibmap__go{grid-column:2;grid-row:1;font-size:19px;line-height:1;color:var(--ext)}
+.ibmap__door:hover,.ibmap__door:focus-visible{border-color:var(--ext);background:var(--ext-tint)}
+.ibmap__codes{grid-column:1/3;display:flex;flex-wrap:wrap;gap:4px}
+.ibmap__more{margin:10px 0 0;font-size:14.5px;color:var(--ink2)}
 .ibmap__copy{font:700 12.5px/1 var(--sans);color:var(--ink2);background:none;border:1px dashed var(--rule2);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
-.ibmap__end{margin-top:16px;display:flex;justify-content:flex-end}
+.ibmap__wend{margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+@media (max-width:760px){
+  .ibmap__road{display:block}
+  .ibmap__corner,.ibmap__th{display:none}
+  .ibmap__r{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+  .ibmap__lv{flex-basis:100%;padding:8px 0 2px}
+  .ibmap__cell{display:contents}
+  .ibmap__topic{width:calc(50% - 3px);grid-template-columns:1fr auto;align-content:start;font-size:14px}
+  .ibmap__topic b{grid-column:1;grid-row:1}
+  .ibmap__tm{grid-column:2;grid-row:1}
+  .ibmap__tn{grid-column:1/3;grid-row:2;font-size:13.5px;line-height:1.25}
+}
 @media (max-width:560px){
-  .ibmap{padding:46px 8px 8px}
+  .ibmap{padding:8px}
   .ibmap__card{padding:14px 12px}
   .ibmap__t{font-size:22px}
-  .ibmap__door{min-width:100%}
+  .ibmap__win{padding:8px}
+  .ibmap__wcard{padding:14px 12px}
+  .ibmap__wt{font-size:19px}
 }
 
 /* a question's picture with numbered pins (js/checks.js figure; 16 Nov 2026): each ring stands ON its part */

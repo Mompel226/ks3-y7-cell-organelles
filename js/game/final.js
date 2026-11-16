@@ -356,7 +356,7 @@ async function drawLabel(a, q) {
     set: (pl, i, p) => { const was = Object.keys(pl).find(k => pl[k] === i); if (was != null) delete pl[was]; pl[p] = i; },   /* a number holds one name: the one there goes back */
     clear: (pl, i) => { const was = Object.keys(pl).find(k => pl[k] === i); if (was != null) delete pl[was]; }
   });
-  if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611161111')).text(); } catch (e) { svgText = ''; } }
+  if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611161858')).text(); } catch (e) { svgText = ''; } }
   const s = $('.fc-lab__svg', a); if (s) s.innerHTML = svgText || '<p>The drawing could not load: check the connection, then go to another question and back.</p>';
 }
 /* put in order: the numbers are places and stay; only the card moves (the estate's rule, 21 Oct 2026) */
@@ -602,7 +602,7 @@ async function review(i) {
   $('[data-score]', box).addEventListener('click', () => { if (teach) { teach = false; close(); return; } const d = finished(); if (d) result(d); else close(); });
   $$('.fr__go', box).forEach(b => b.addEventListener('click', () => goWhere(b.dataset.go, +b.dataset.step, cur)));
   if (q.kind === 'label') {
-    if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611161111')).text(); } catch (e) { svgText = ''; } }
+    if (svgText == null) { try { svgText = await (await fetch('img/final/cell.svg?v=202611161858')).text(); } catch (e) { svgText = ''; } }
     const sv = $('.fc-lab__svg', box); if (sv) sv.innerHTML = svgText || '<p>The drawing could not load: check the connection.</p>';
   }
   focusTop();

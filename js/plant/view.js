@@ -18,9 +18,10 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611161111';
-import { gameLook } from './look.js?v=202611161111';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611161111';
+import { makeStage, smooth } from '../ib/stage.js?v=202611161858';
+import { gameLook } from './look.js?v=202611161858';
+import { course, setCourse, levelSwitch } from '../game/iblevel.js?v=202611161858';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611161858';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -32,12 +33,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611161111'), potato: () => import('./potato.js?v=202611161111'), gut: () => import('./gut.js?v=202611161111'), ring: () => import('./ring.js?v=202611161111') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611161858'), potato: () => import('./potato.js?v=202611161858'), gut: () => import('./gut.js?v=202611161858'), ring: () => import('./ring.js?v=202611161858') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611161111', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -86,7 +87,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       <aside class="quest plv__panel" aria-label="The steps">
         <div class="qp qp--place">
           <div class="qp__top"><span class="qp__kind">${esc(KIND)}</span><span class="plv__count" aria-live="polite"></span></div>
-          <div class="plv__lv" hidden><span class="plv__lvk">Your course</span><button type="button" class="plv__lvb" data-lv="igcse" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IGCSE</button><button type="button" class="plv__lvb" data-lv="ib" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IB</button></div>
+          <div class="plv__lv" hidden><span class="plv__lvk">Your course</span><button type="button" class="plv__lvb" data-lv="igcse" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IGCSE</button><button type="button" class="plv__lvb" data-lv="ib" aria-pressed="false"><span class="plv__lvt" aria-hidden="true"><i></i></span>IB</button><span class="plv__lvl" hidden>${levelSwitch()}</span></div>
           ${inGame ? '<p class="plv__side"><b>Side quest.</b> This is extra, not part of your mission. Your game waits: press <b>← Back to your mission</b> at any time.</p>' : ''}
           <div class="plv__loop"></div>
           <ol class="steps"></ol>
@@ -216,22 +217,30 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
      first time; Daniel, 15 Nov 2026. On the branch's own address, plant-cell/, there is no pass: as before.) */
   const ibPass = () => !!(window.IBPASS && window.IBPASS.on());
   const ks3Done = () => { if (ibPass()) return true; try { const A = JSON.parse(localStorage.getItem('cellgame.answers') || '{}'); return CHECKS.every(q => A[q] && A[q].ok); } catch (e) { return false; } };
-  const LV = Object.assign({ igcse: false, ib: false }, store.get('plantLv', {})), lvEl = $('.plv__lv');
-  if (ibPass() && !store.get('ibpassPlantLv', false)) { LV.ib = true; store.set('plantLv', LV); store.set('ibpassPlantLv', true); }
+  /* (16 Nov 2026; Daniel: "when you toggle IB anywhere, it toggles IB everywhere") the switches are the game's own, one
+     choice with the places and the films (js/game/iblevel.js, store 'courseLv'); until today the side quest kept its
+     own ('plantLv'), so IB could be on here and off in the cell. A pupil who had only this one keeps it the first time. */
+  if (store.get('courseLv', null) == null && store.get('plantLv', null)) store.set('courseLv', Object.assign({ igcse: false, ib: false }, store.get('plantLv', {})));
+  const LV = course(), lvEl = $('.plv__lv');
+  if (ibPass() && !store.get('ibpassLv', false)) { LV.ib = true; setCourse('ib', true); store.set('ibpassLv', true); }
   let xStep = null, xLabs = {};
   const lvOn = c => ks3Done() && !!LV[c];
   function paintX() { curLabs = xStep && lvOn('igcse') ? xStep.labsX : xLabs; }
   function paintLv() {
     const open = ks3Done(); lvEl.hidden = !open;
     ['igcse', 'ib'].forEach(c => { const on = open && !!LV[c]; root.classList.toggle('plv--' + c, on); lvEl.querySelector(`[data-lv="${c}"]`).setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    const lvl = lvEl.querySelector('.plv__lvl'); if (lvl) lvl.hidden = !(open && LV.ib);
   }
   lvEl.addEventListener('click', e => { const b = e.target.closest('.plv__lvb'); if (!b || !ks3Done()) return; const c = b.dataset.lv;
-    LV[c] = !LV[c]; store.set('plantLv', LV); paintLv(); paintX();
+    LV[c] = !LV[c]; setCourse(c, LV[c]); paintLv(); paintX();
     if (at.rest) { stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); }
     /* the box just opened, of the step the pupil is on, comes into view */
     const li = cur >= 0 && liOf(cur), box = LV[c] && li && li.querySelector(`.plv__lvbox[data-lv="${c}"]`);
     if (box) requestAnimationFrame(() => { const p = panel.getBoundingClientRect(), k = box.getBoundingClientRect(); if (k.top < p.top + 40 || k.bottom > p.bottom) panel.scrollTo({ top: Math.max(0, panel.scrollTop + k.top - p.top - 52), behavior: FAST ? 'auto' : 'smooth' }); }); });
   document.addEventListener('progress', paintLv);
+  /* a switch pressed in a place or a film (or another tab): the side quest follows */
+  const followLv = () => { if (!root.isConnected) { document.removeEventListener('courselv', followLv); return; } const n = course(); if (!!n.igcse === !!LV.igcse && !!n.ib === !!LV.ib) return; LV.igcse = !!n.igcse; LV.ib = !!n.ib; paintLv(); paintX(); if (at.rest) { stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); } };
+  document.addEventListener('courselv', followLv);
   paintLv();
 
   /* ---------------- the steps ---------------- */
@@ -317,7 +326,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
        the picture's IGCSE names where it has them; IB, each line marked SL or HL */
     const id = STEPS[i].id, X = XKEY[id], G = COURSE.igcse[id], B = COURSE.ib[id];
     const boxes = (G || X ? `<div class="y8 plv__lvbox" data-lv="igcse"><span class="y8__k">IGCSE</span>${X ? `<div class="plv__xkey"><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}${(G || []).map(t => `<p>${t}</p>`).join('')}</div>` : '')
-      + (B ? `<div class="y8 plv__lvbox" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}${VDOOR[id] ? `<button type="button" class="plv__vdoor" data-view="${VDOOR[id][0]}">${VDOOR[id][1]}</button>` : ''}</div>` : '');
+      + (B ? `<div class="y8 plv__lvbox${B.every(l => l[0] === 'HL') && !VDOOR[id] ? ' iblv-hlbox' : ''}" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p${lv === 'HL' ? ' class="ibln--hl"' : ''}>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}${VDOOR[id] ? `<button type="button" class="plv__vdoor" data-view="${VDOOR[id][0]}">${VDOOR[id][1]}</button>` : ''}</div>` : '');
     li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${boxes}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
     ol.appendChild(li); if (R) R.terms(li); return li;
   }

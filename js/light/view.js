@@ -14,8 +14,12 @@
    When the picture is small (a phone: the names would be under 13 px), each name becomes a numbered pin on its part,
    keyed under the picture. Words: text.js. For tools/light-check.mjs: window.LIGHTV.
    ============================================================ */
-import { STEPS, NAMES, PLACES, KEYS, AXIS, BOXES, LEVELS, SIMPLE, SOURCES, TITLE, EYEBROW, BY } from './text.js?v=202611161111';
-import { SCENES, W, H } from './scenes.js?v=202611161111';
+import { STEPS, NAMES, PLACES, KEYS, AXIS, BOXES, LEVELS, SIMPLE, SOURCES, TITLE, EYEBROW, BY } from './text.js?v=202611161858';
+import { SCENES, W, H } from './scenes.js?v=202611161858';
+import { levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+/* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
+   its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
+   and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const params = new URLSearchParams(location.search);
@@ -40,7 +44,7 @@ function paras(t) {
 
 function styles() {
   let l = document.querySelector('link[data-lightcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.lightcss = '1'; l.href = new URL('../../css/light.css?v=202611161111', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.lightcss = '1'; l.href = new URL('../../css/light.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads */
@@ -89,7 +93,7 @@ export function openLight({ mount = document.body, inGame = false, start = 0, on
       </div>
       <div class="lightv__key" hidden></div>
       <aside class="lightv__panel" aria-label="The steps">
-        <p class="lightv__count" aria-live="polite"></p>
+        <div class="iblv-cline"><p class="lightv__count" aria-live="polite"></p><div class="lightv__lvl">${levelSwitch()}</div></div>
         <nav class="lightv__steps" aria-label="The steps"></nav>
         <h2 class="lightv__st"></h2>
         <div class="lightv__text" aria-live="polite"></div>
@@ -98,6 +102,7 @@ export function openLight({ mount = document.body, inGame = false, start = 0, on
           <button type="button" class="lightv__back" aria-label="The step before">← Back</button>
           <button type="button" class="lightv__next">Next step →</button>
         </div>
+        <div class="iblv-foot">${levelSwitch()}</div>
         <section class="lightv__more">
           <h3>What the tags mean</h3>
           <div class="lightv__tags">
@@ -284,9 +289,9 @@ export function openLight({ mount = document.body, inGame = false, start = 0, on
     if (!again) {
       nextB.disabled = true; backB.disabled = true; nextB.classList.remove('pulse');
       countEl.textContent = `Step ${s + 1} of ${STEPS.length}`; titleEl.textContent = st.title;
-      if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((x, n) => `<button type="button" data-s="${n}" aria-label="Step ${n + 1}: ${esc(x.title)}">${n + 1}</button>`).join('');
+      if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((x, n) => `<button type="button" data-s="${n}"${hlOnly(x) ? ' data-hlo=""' : ''} aria-label="Step ${n + 1}: ${esc(x.title)}">${n + 1}</button>`).join('');
       Array.from(stepsEl.children).forEach((b, n) => { if (n === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
-      textEl.innerHTML = paras(st.t); panel.scrollTop = 0;
+      textEl.innerHTML = hlNote(st) + paras(st.t); panel.scrollTop = 0;
       ctlEl.innerHTML = ''; ctlState = 'both';
       /* the picture changes under the veil, never in one frame */
       veil.classList.add('is-on');
@@ -304,14 +309,17 @@ export function openLight({ mount = document.body, inGame = false, start = 0, on
     if (my !== token || closed) return;
     drawLabels(sc, true);
     rest = true;
-    backB.disabled = s === 0; nextB.disabled = false; nextB.classList.add('pulse');
-    nextB.textContent = s < STEPS.length - 1 ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →');
+    backB.disabled = skip(STEPS, s, -1) < 0; nextB.disabled = false; nextB.classList.add('pulse');
+    nextB.textContent = skip(STEPS, s, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →');
     replayB.hidden = FAST || !sc.dur;
     if (!inGame) history.replaceState(null, '', location.pathname + location.search + '#s' + (s + 1));
     window.LIGHTV.at = { step: s, rest: true };
   }
-  nextB.addEventListener('click', () => { if (nextB.disabled) return; if (si < STEPS.length - 1) show(si + 1); else if (inGame) close(); else show(0); });
-  backB.addEventListener('click', () => { if (!backB.disabled && si > 0) show(si - 1); });
+  nextB.addEventListener('click', () => { if (nextB.disabled) return; const j = skip(STEPS, si, 1); if (j < STEPS.length) show(j); else if (inGame) close(); else show(Math.max(0, skip(STEPS, -1, 1))); });
+  backB.addEventListener('click', () => { if (backB.disabled) return; const j = skip(STEPS, si, -1); if (j >= 0) show(j); });
+  /* the level changed on this step: Next and Back say where they now go */
+  const relevel = () => { if (closed) { document.removeEventListener('iblevel', relevel); return; } if (!rest) return; backB.disabled = skip(STEPS, si, -1) < 0; nextB.textContent = skip(STEPS, si, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →'); };
+  document.addEventListener('iblevel', relevel);
   stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || +b.dataset.s === si) return; show(+b.dataset.s); });
   replayB.addEventListener('click', () => { if (rest) show(si, true); });
   ctlEl.addEventListener('click', e => {

@@ -79,12 +79,27 @@ finds it (Daniel, 15 Nov 2026: "as a teacher, it'd be nice to have it as a toggl
 open from the start (the nucleolus still after the nucleus, since it is inside it), the first place has its way to the
 map at once, going into a place gives the bag what that place uses (a short message says so), the energy bar is filled
 again when a job needs more, and each place's course switch shows at once, on IB the first time. **🧬 IB map** at the top
-of the page (and a box at the top of the map's list) opens a list of the IB topics this game shows, in the guide's order
-(B2.1 Membranes, B2.2 Organelles and compartmentalization, C1.2 Cell respiration, D2.3 Water potential and others), each
-with doors straight to a place, a chapter of "From glucose to ATP", the membrane view or the side quest, and the
-statement numbers each one shows (SL or HL). Each door has its own address, for a slide or Google Classroom:
-`…/ks3-y7-cell-organelles/#ib-rer`, `#ib-atp-c3`, `#ib-membrane`, `#ib-plant`, and `#ib` for the map; a teacher has
-a Copy link beside each door. For everyone else nothing changes, and such an address only says that the map is for
+of the page (and a box at the top of the map's list) opens the IB guide's own roadmap (16 Nov 2026; Daniel, the first
+time he opened the long list it had been: "it's overwhelming … As a student, I would be overwhelmed … It could be just a
+pop-up window with different buttons"): the four themes across (A Unity and diversity, B Form and function, C Interaction
+and interdependence, D Continuity and change), the four levels of organisation down (molecules, cells, organisms,
+ecosystems), and a button for each topic the game teaches, with how many of its statements it shows. A topic's button
+opens a small window: the places, IB views, films and side quest that teach it, each a door with its statement numbers
+(SL or HL). It fits a laptop's window; on a phone the topics stand two to a row. Each door has its own address, for a
+slide or Google Classroom: `…/ks3-y7-cell-organelles/#ib-rer`, `#ib-atp-c3`, `#ib-membrane`, `#ib-plant`, a topic's
+`#ib-b2.2` (the map, open at that topic), and `#ib` for the map; a teacher has a Copy link beside each door and each
+topic.
+**SL or HL, one choice for the whole game** (16 Nov 2026; Daniel: "there is no SL HL toggle … my SL students … are
+struggling … when you toggle IB anywhere, it toggles IB everywhere"). "IB level: SL · HL" stands in the IB map, in each
+place's course bar once IB is on, in the two films, in the side quest and in every IB view beside its step count (on a
+phone under Back and Next, where there is room; and on the views' own pages). Pressed anywhere, it changes everywhere, and the browser keeps it; until a pupil chooses, everything
+shows and the switch asks once. At SL every line the guide puts under "Additional higher level" is hidden, a box of HL
+lines only goes with them, and in the views a step or chapter of HL lines only is marked HL on its button and Next goes
+past it (water potential's steps 9 to 12, from light to glucose's steps 8 to 18, the link reaction and the Krebs cycle
+of "From glucose to ATP"); its button still opens it, with a line that says it is HL only. The IB map at SL counts and
+shows only the SL statements. The course switches, "Your course: IGCSE · IB", are one choice too: the side quest had its
+own until 16 Nov 2026, so IB could be on there and off in the cell. (`js/game/iblevel.js`, `js/game/ibmap.js`; proof
+`node tools/ib-level.mjs`.) For everyone else nothing changes, and such an address only says that the map is for
 Year 12 and 13. The class comes from the sign-in's own reply (nothing more is asked or kept); the pass is kept for that
 account only, so another pupil on the same computer never gets it, and signing out ends it. (`js/ibpass.js`,
 `js/game/ibmap.js`; proof `node tools/ib-pass.mjs`, and `node tools/playthrough.mjs --year 12` and `--year 7`.)

@@ -69,6 +69,8 @@ html.plv-open .tip{z-index:1100}
    with a violet edge; on a phone each is a numbered pin (.is-pin) and the box's key shows the same numbers. In an IB
    box each line says SL or HL (the colours of the game's IB view). */
 .plv__lv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 8px}
+.plv__lvl{display:inline-flex;margin-left:4px;color:inherit}
+.plv__lvl[hidden]{display:none}
 .plv__lv[hidden]{display:none}
 .plv__lvk{font:800 14.5px/1 var(--sans,'Nunito',sans-serif);color:#5A2FA8;margin-right:2px}
 .plv__lvb{display:inline-flex;align-items:center;gap:8px;min-height:40px;font:800 15px/1 var(--sans,'Nunito',sans-serif);color:#5A2FA8;background:#EDE8FA;border:1.5px solid #C9BAEE;border-radius:999px;padding:5px 13px 5px 6px;cursor:pointer}

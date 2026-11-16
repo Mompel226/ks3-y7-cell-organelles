@@ -11,8 +11,12 @@
    or ?still=1 in the address for the tests): each step shows its end state at once, with every name.
    For tools/water-check.mjs: window.WATER (the step, at rest or not, the names' and captions' boxes).
    ============================================================ */
-import { STEPS, LEVELS, SOURCES } from './text.js?v=202611161111';
-import { SCENES } from './scenes.js?v=202611161111';
+import { STEPS, LEVELS, SOURCES } from './text.js?v=202611161858';
+import { levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+/* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
+   its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
+   and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
+import { SCENES } from './scenes.js?v=202611161858';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = new URLSearchParams(location.search).has('still') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -39,7 +43,7 @@ function paras(t) {
 
 function styles() {
   let l = document.querySelector('link[data-watercss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.watercss = '1'; l.href = new URL('../../css/water.css?v=202611161111', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.watercss = '1'; l.href = new URL('../../css/water.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */
@@ -69,7 +73,7 @@ export function openWater({ mount = document.body, inGame = false, onClose = nul
         <button type="button" class="watv__again" hidden>↻ Watch again</button>
       </div>
       <aside class="watv__panel" aria-label="The steps">
-        <p class="watv__count" aria-live="polite"></p>
+        <div class="iblv-cline"><p class="watv__count" aria-live="polite"></p><div class="watv__lvl">${levelSwitch()}</div></div>
         <nav class="watv__steps" aria-label="The steps"></nav>
         <h2 class="watv__st"></h2>
         <div class="watv__text" aria-live="polite"></div>
@@ -77,6 +81,7 @@ export function openWater({ mount = document.body, inGame = false, onClose = nul
           <button type="button" class="watv__back" aria-label="The step before">← Back</button>
           <button type="button" class="watv__next">Next step →</button>
         </div>
+        <div class="iblv-foot">${levelSwitch()}</div>
         <section class="watv__more">
           <h3>What the tags mean</h3>
           <div class="watv__tags">
@@ -197,7 +202,7 @@ export function openWater({ mount = document.body, inGame = false, onClose = nul
     rest = true; prog = 1;
     capsEl.querySelectorAll('.is-end').forEach(e => e.classList.add('is-on'));
     names();
-    backB.disabled = si === 0; nextB.disabled = false; nextB.classList.add('pulse');
+    backB.disabled = skip(STEPS, si, -1) < 0; nextB.disabled = false; nextB.classList.add('pulse');
     againB.hidden = FAST;
     window.WATER.at = { step: si, rest: true };
   }
@@ -220,16 +225,19 @@ export function openWater({ mount = document.body, inGame = false, onClose = nul
     window.WATER.at = { step: s, rest: false };
     const st = STEPS[s];
     countEl.textContent = `Step ${s + 1} of ${STEPS.length}${st.hl ? ' · HL only' : ''}`; titleEl.textContent = st.title;
-    if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((q, k) => `<button type="button" data-s="${k}"${q.hl ? ' class="is-hl"' : ''} aria-label="Step ${k + 1}${q.hl ? ', HL only' : ''}">${k + 1}</button>`).join('');
+    if (stepsEl.children.length !== STEPS.length) stepsEl.innerHTML = STEPS.map((q, k) => `<button type="button" data-s="${k}"${q.hl ? ' class="is-hl"' : ''}${hlOnly(q) ? ' data-hlo=""' : ''} aria-label="Step ${k + 1}${q.hl ? ', HL only' : ''}">${k + 1}</button>`).join('');
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
-    textEl.innerHTML = paras(st.t); panelEl.scrollTop = 0;
+    textEl.innerHTML = hlNote(st) + paras(st.t); panelEl.scrollTop = 0;
     nextB.disabled = backB.disabled = true; nextB.classList.remove('pulse'); againB.hidden = true;
-    nextB.textContent = s < STEPS.length - 1 ? 'Next step →' : (inGame ? 'Back to the plant cell →' : 'Start again →');
+    nextB.textContent = skip(STEPS, s, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the plant cell →' : 'Start again →');
     if (!inGame) history.replaceState(null, '', '#s' + (s + 1));
     build(); play(my);
   }
-  nextB.addEventListener('click', () => { if (nextB.disabled) return; if (si < STEPS.length - 1) show(si + 1); else if (inGame) close(); else show(0); });
-  backB.addEventListener('click', () => { if (backB.disabled || si === 0) return; show(si - 1); });
+  nextB.addEventListener('click', () => { if (nextB.disabled) return; const j = skip(STEPS, si, 1); if (j < STEPS.length) show(j); else if (inGame) close(); else show(Math.max(0, skip(STEPS, -1, 1))); });
+  backB.addEventListener('click', () => { if (backB.disabled) return; const j = skip(STEPS, si, -1); if (j >= 0) show(j); });
+  /* the level changed on this step: Next and Back say where they now go */
+  const relevel = () => { if (closed) { document.removeEventListener('iblevel', relevel); return; } if (!rest) return; backB.disabled = skip(STEPS, si, -1) < 0; nextB.textContent = skip(STEPS, si, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the plant cell →' : 'Start again →'); };
+  document.addEventListener('iblevel', relevel);
   stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || +b.dataset.s === si) return; show(+b.dataset.s); });
   againB.addEventListener('click', () => { if (!rest) return; show(si); });
 

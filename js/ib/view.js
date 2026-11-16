@@ -20,8 +20,13 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611161111';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611161111';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611161858';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611161858';
+import { level, levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+/* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"): its
+   switch in the header; at SL the HL lines are hidden, a chapter or step of HL lines only is marked HL on its button, and
+   Next and Back go past it (the link reaction and the Krebs cycle are HL only); it opens when its button is pressed */
+const slSkips = C => level() === 'sl' && hlOnly(C);
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -111,7 +116,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611161111', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611161858', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -120,7 +125,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611161111' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611161858' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
@@ -133,7 +138,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   root.className = 'ibv' + (inGame ? ' ibv--game' : '');
   root.setAttribute('role', inGame ? 'dialog' : 'main'); if (inGame) root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'ibv-h');
-  const chBtns = CHAPTERS.map((C, i) => `<button type="button" class="ibv__tab${C.soon ? ' is-soon' : ''}" data-ch="${i}"${C.soon ? ' aria-disabled="true"' : ''}><b>${esc(C.n)}</b><span>${esc(C.short)}</span></button>`).join('');
+  const chBtns = CHAPTERS.map((C, i) => `<button type="button" class="ibv__tab${C.soon ? ' is-soon' : ''}" data-ch="${i}"${C.soon ? ' aria-disabled="true"' : ''}${hlOnly(C) ? ' data-hlo=""' : ''}><b>${esc(C.n)}</b><span>${esc(C.short)}</span></button>`).join('');
   root.innerHTML = `
     <header class="ibv__top">
       <div class="ibv__id"><p class="ibv__eyebrow">IB Biology · C1.2 Cell respiration</p><h1 id="ibv-h">From glucose to ATP</h1>
@@ -156,7 +161,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       <aside class="ibv__panel" aria-label="The steps">
         <div class="ibv__where"><div class="ibv__mmwrap"></div><div><p class="ibv__chn"></p><h2 class="ibv__cht"></h2></div></div>
         <button type="button" class="ibv__up" hidden></button>
-        <p class="ibv__count" aria-live="polite"></p>
+        <div class="iblv-cline"><p class="ibv__count" aria-live="polite"></p><div class="ibv__lvl">${levelSwitch()}</div></div>
         <nav class="ibv__steps" aria-label="The steps of this part"></nav>
         <div class="ibv__text" aria-live="polite"></div>
         <div class="ibv__xs"></div>
@@ -165,6 +170,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
           <button type="button" class="ibv__replay" aria-label="Show this step again">↺ Again</button>
           <button type="button" class="ibv__next">Next step →</button>
         </div>
+        <div class="iblv-foot">${levelSwitch()}</div>
         <details class="ibv__legend"><summary>What the coloured tags mean</summary>
           <p><span class="lv lv--sl">SL and HL</span> ${esc(LEVELS.sl.long)}.</p>
           <p><span class="lv lv--hl">HL only</span> ${esc(LEVELS.hl.long)}.</p>
@@ -365,11 +371,11 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
        way I can go back to the ATP IB extension, and there's no way for me to go back to the key stage 3 with buttons").
        Before: Back and Next only, one step at a time; an Explore path led back to its chapter only from its last step;
        the way to the game was a small × */
-    if (stepsEl.children.length !== steps.length || stepsEl.dataset.of !== String(ci)) stepsEl.dataset.of = String(ci), stepsEl.innerHTML = steps.map((x, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}${x.h ? ': ' + esc(x.h) : ''}">${k + 1}</button>`).join('');
+    if (stepsEl.children.length !== steps.length || stepsEl.dataset.of !== String(ci)) stepsEl.dataset.of = String(ci), stepsEl.innerHTML = steps.map((x, k) => `<button type="button" data-s="${k}"${hlOnly(x) ? ' data-hlo=""' : ''} aria-label="Step ${k + 1}${x.h ? ': ' + esc(x.h) : ''}">${k + 1}</button>`).join('');
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     upB.hidden = !xRet;
     if (xRet) { const P = CHAPTERS[xRet.ci]; upB.textContent = '← Back to ' + (/^\d+$/.test(P.n) ? `chapter ${P.n}: ${P.short}` : P.short); }
-    textEl.innerHTML = (st.h ? `<h3 class="ibv__sth">${esc(st.h)}</h3>` : '') + paras(st.t); termsIn(textEl);
+    textEl.innerHTML = (st.h ? `<h3 class="ibv__sth">${esc(st.h)}</h3>` : '') + hlNote(st) + paras(st.t); termsIn(textEl);
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
     picEl.hidden = !picEl.textContent;
     /* a step with a board: its hint stands at the left from the start, clear of the board (top right on a wide screen) */
@@ -390,8 +396,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       const go = () => chapterModule(EXPLORE[id]).then(m => m.prefetch && m.prefetch()).catch(() => fetchedX.delete(id));
       if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 2500 }); else setTimeout(go, 400);
     });
-    backB.disabled = s === 0 && !xRet && ci === 0; againB.disabled = true; nextB.disabled = true; nextB.classList.remove('pulse');
-    const last = s === steps.length - 1;
+    backB.disabled = skip(steps, s, -1) < 0 && !xRet && ci === 0; againB.disabled = true; nextB.disabled = true; nextB.classList.remove('pulse');
+    const last = skip(steps, s, 1) >= steps.length;
     nextB.textContent = last ? (xRet ? 'Back to the chapter →' : nextChapterLabel()) : 'Next step →';
     drag.home = true;
     Object.assign(K, knobsAfter(s - 1)); stage.showLabels({}); stage.setRest(false);
@@ -421,19 +427,28 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     ahead();
   }
   function nextChapterLabel() { const n = nextOpen(ci); return n != null ? (/^\d+$/.test(CHAPTERS[n].n) ? `Chapter ${CHAPTERS[n].n}: ${CHAPTERS[n].short} →` : `${CHAPTERS[n].short} →`) : (inGame ? 'Back to the game →' : 'The end'); }
-  function nextOpen(i) { if (typeof i !== 'number') return null; for (let j = i + 1; j < CHAPTERS.length; j++) if (!CHAPTERS[j].soon) return j; return null; }
+  function nextOpen(i) { if (typeof i !== 'number') return null; for (let j = i + 1; j < CHAPTERS.length; j++) if (!CHAPTERS[j].soon && !slSkips(CHAPTERS[j])) return j; return null; }
+  /* a chapter opened by Next or Back starts at its first (or last) step shown at this level */
+  const firstAt = n => Math.max(0, skip(CHAPTERS[n].steps, -1, 1)), lastAt = n => { const k = skip(CHAPTERS[n].steps, CHAPTERS[n].steps.length, -1); return k < 0 ? CHAPTERS[n].steps.length - 1 : k; };
   nextB.addEventListener('click', () => {
     if (nextB.disabled) return;
-    if (si < steps.length - 1) { show(si + 1); return; }
+    const j = skip(steps, si, 1); if (j < steps.length) { show(j); return; }
     if (xRet) { const r = xRet; openChapter(r.ci, r.si, {}).then(() => {}); return; }
-    const n = nextOpen(ci); if (n != null) openChapter(n, 0); else if (inGame) close();
+    const n = nextOpen(ci); if (n != null) openChapter(n, firstAt(n)); else if (inGame) close();
   });
   backB.addEventListener('click', () => {
-    if (si > 0) { show(si - 1); return; }
+    const k = skip(steps, si, -1); if (k >= 0) { show(k); return; }
     if (xRet) { const r = xRet; openChapter(r.ci, r.si); return; }
-    if (typeof ci === 'number') { for (let j = ci - 1; j >= 0; j--) if (!CHAPTERS[j].soon) { openChapter(j, CHAPTERS[j].steps.length - 1); return; } }
+    if (typeof ci === 'number') { for (let j = ci - 1; j >= 0; j--) if (!CHAPTERS[j].soon && !slSkips(CHAPTERS[j])) { openChapter(j, lastAt(j)); return; } }
   });
   againB.addEventListener('click', () => show(si));
+  const relevel = () => {
+    if (closed) { document.removeEventListener('iblevel', relevel); return; }
+    if (!steps.length || loading || nextB.disabled) return;
+    backB.disabled = skip(steps, si, -1) < 0 && !xRet && ci === 0;
+    nextB.textContent = skip(steps, si, 1) >= steps.length ? (xRet ? 'Back to the chapter →' : nextChapterLabel()) : 'Next step →';
+  };
+  document.addEventListener('iblevel', relevel);
   stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || loading) return; show(+b.dataset.s); });
   upB.addEventListener('click', () => { if (loading || !xRet) return; const r = xRet; openChapter(r.ci, r.si); });
   $('.ibv__tabs').addEventListener('click', e => { const b = e.target.closest('.ibv__tab'); if (!b || b.classList.contains('is-soon')) return; openChapter(+b.dataset.ch, 0); });

@@ -35,6 +35,7 @@
    reverse, and nothing ever jumps. With Reduce motion each step is one still, which holds every name of the step.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
+import { levelSwitch } from './iblevel.js?v=202611161858';
 
 const R = window.REV, { $ } = R;
 const CODONS = ['AUG', 'AAG', 'CUC', 'UUU', 'UGG', 'UUG', 'CUU', 'UUC', 'ACC'];   /* NM_004038.4, codons 1 to 9 */
@@ -293,8 +294,10 @@ const paras = t => t.split('\n').map(x => `<p>${x}</p>`).join('');
 const LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
 /* the lines of the courses that are on, as the place's own boxes draw them (quest.js courseSwitch) */
 export function courseLines(step, LV) {
-  return ['igcse', 'ib'].filter(c => LV[c] && step[c]).map(c => `<div class="step__ib step__lv cf__lv" data-lv="${c}"><p class="step__lvk">${c === 'ib' ? 'IB' : 'IGCSE'}</p>`
-    + step[c].map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('') + '</div>').join('');
+  /* (16 Nov 2026) the IB box has the IB level beside its name (js/game/iblevel.js): at SL its HL lines are hidden, and a
+     box of HL lines only goes with them */
+  return ['igcse', 'ib'].filter(c => LV[c] && step[c]).map(c => `<div class="step__ib step__lv cf__lv${c === 'ib' && step[c].every(l => l[0] === 'hl') ? ' iblv-hlbox' : ''}" data-lv="${c}"><p class="step__lvk">${c === 'ib' ? 'IB' : 'IGCSE'}</p>`
+    + step[c].map(([lv, code, t]) => `<p${c === 'ib' && lv === 'hl' ? ' class="ibln--hl"' : ''}><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('') + '</div>').join('');
 }
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */
@@ -309,7 +312,7 @@ export function openRiboFilm({ last = 'Back to the ribosomes' } = {}) {
       <p class="cf__x">${LV.igcse && LV.ib ? 'IGCSE and IB' : LV.ib ? 'IB' : LV.igcse ? 'IGCSE' : 'Explorer'}: beyond the Year 7 list</p>
       <p class="cf__n" aria-live="polite"></p><nav class="cf__steps" aria-label="The steps of the film"></nav><div class="cf__t" aria-live="polite"></div>
       <div class="cf__do"><button type="button" class="btn next pulse">Next step →</button><button type="button" class="btn ghost back" disabled>← Back</button></div>
-      <div class="cf__lvs"></div>
+      <div class="cf__lvs"></div>${LV.ib ? `<div class="cf__lvl">${levelSwitch()}</div>` : ''}
     </div></div></div>`;
     box.hidden = false;
     const F = film($('.cf__3d', box), !!LV.ib); box.peek = F.peek;

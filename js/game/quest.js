@@ -7,15 +7,16 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611161111';
-import { state, COST } from './state.js?v=202611161111';
-import { sound } from './sound.js?v=202611161111';
-import { finalLine } from './final.js?v=202611161111';
+import { ICON } from './icons.js?v=202611161858';
+import { state, COST } from './state.js?v=202611161858';
+import { sound } from './sound.js?v=202611161858';
+import { finalLine } from './final.js?v=202611161858';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611161111').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611161111';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611161858').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611161858';
+import { course, setCourse, levelSwitch } from './iblevel.js?v=202611161858';
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -305,19 +306,25 @@ export class Quest {
     if (ibPass() && !R.store.get('ibpassLv', false)) { LV.ib = true; R.store.set('courseLv', LV); R.store.set('ibpassLv', true); }
     /* its doors into "From glucose to ATP" now show: the view's code may come (main.js warms it, never before a door shows) */
     if (C.ib.some(b => b && (b.ch != null || b.mem))) document.dispatchEvent(new CustomEvent('ib-door'));
+    /* with IB on, the IB level beside the switches, "IB level: SL · HL" (js/game/iblevel.js; Daniel, 16 Nov 2026: "there
+       is no SL HL toggle … my SL students … are struggling"): at SL the HL lines are hidden, here and everywhere */
     const bar = h('div', { class: 'qp__lv' }, '<span class="qp__lvk">Your course</span>' + ['igcse', 'ib'].map(c =>
-      `<button type="button" class="qp__lvb" data-lv="${c}" aria-pressed="false"><span class="qp__ibt" aria-hidden="true"><i></i></span>${NAME[c]}</button>`).join(''));
+      `<button type="button" class="qp__lvb" data-lv="${c}" aria-pressed="false"><span class="qp__ibt" aria-hidden="true"><i></i></span>${NAME[c]}</button>`).join('')
+      + `<span class="qp__lvl" hidden>${levelSwitch()}</span>`);
     top.insertAdjacentElement('afterend', bar);
     let mode = null;
     const draw = () => {
       $$('.step__lv', ol).forEach(x => x.parentNode.removeChild(x));
       ol.classList.toggle('steps--lv', !!(LV.igcse || LV.ib));
+      $('.qp__lvl', bar).hidden = !LV.ib;
       ['igcse', 'ib'].forEach(c => {
         $(`[data-lv="${c}"]`, bar).setAttribute('aria-pressed', String(!!LV[c]));
         if (LV[c]) C[c].forEach((b, i) => {
           const li = ol.children[i]; if (!li || !b) return;
-          li.appendChild(h('div', { class: 'step__ib step__lv', 'data-lv': c }, `<p class="step__lvk">${NAME[c]}</p>`
-            + b.p.map(([lv, code, t]) => `<p><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
+          /* an HL line is marked (hidden at SL); a box of HL lines only goes at SL with them */
+          const hlBox = c === 'ib' && b.p.length && b.p.every(l => l[0] === 'hl');
+          li.appendChild(h('div', { class: 'step__ib step__lv' + (hlBox ? ' iblv-hlbox' : ''), 'data-lv': c }, `<p class="step__lvk">${NAME[c]}</p>`
+            + b.p.map(([lv, code, t]) => `<p${c === 'ib' && lv === 'hl' ? ' class="ibln--hl"' : ''}><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('')
             + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm" data-film="${b.film}">${FILM[b.film]}</button>` : '')
             + (b.mem ? '<button type="button" class="step__ibdoor step__lvmem">🧬 The cell membrane: fluid and mosaic →</button>' : '')
             + (b.bench ? '<button type="button" class="step__ibdoor step__lvbench">🧪 IB investigation: heat and time →</button>' : '')
@@ -333,7 +340,7 @@ export class Quest {
     };
     bar.addEventListener('click', e => {
       const b = e.target.closest('.qp__lvb'); if (!b) return;
-      const c = b.dataset.lv; LV[c] = !LV[c]; R.store.set('courseLv', LV); draw();
+      const c = b.dataset.lv; LV[c] = !LV[c]; setCourse(c, LV[c]); draw();
       /* the first box just opened comes into view */
       const first = LV[c] && $(`.step__lv[data-lv="${c}"]`, ol);
       if (first && first.scrollIntoView) first.scrollIntoView({ block: 'nearest', behavior: R.FAST ? 'auto' : 'smooth' });
@@ -346,6 +353,14 @@ export class Quest {
       else if (d) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +d.dataset.ch } }));
       else if (m) document.dispatchEvent(new CustomEvent('memview'));
     });
+    /* a switch pressed anywhere else (the plant cell, another tab): this place follows (Daniel, 16 Nov 2026: "when you
+       toggle IB anywhere, it toggles IB everywhere") */
+    const follow = () => {
+      if (!bar.isConnected) { document.removeEventListener('courselv', follow); return; }
+      const n = course(); if (!!n.igcse === !!LV.igcse && !!n.ib === !!LV.ib) return;
+      LV.igcse = !!n.igcse; LV.ib = !!n.ib; draw();
+    };
+    document.addEventListener('courselv', follow);
     draw();
   }
   /* the course's own questions (js/questions.js: `place`, `lv`; parts 15 and 16), drawn at the end of their place under
