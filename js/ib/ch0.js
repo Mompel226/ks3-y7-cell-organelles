@@ -13,8 +13,8 @@
    sarcomere about 2.5 µm (OpenStax A&P 10.2); the mitochondrion as in the game (mitoparts.js heroSpec).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611152200';
-import { disposeGroup } from './stage.js?v=202611152200';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611161111';
+import { disposeGroup } from './stage.js?v=202611161111';
 
 export async function build(stage, { V, glow, smooth }) {
   const g = new THREE.Group(); g.name = 'ch0-map';

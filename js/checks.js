@@ -273,9 +273,19 @@
   }
 
   /* ---------- multiple choice ---------- */
+  /* a picture with numbered pins, above the options (16 Nov 2026, the IB audit's addition 14: find a structure in a real
+     electron micrograph, A2.2.10): q.img = { src, alt, pins: [[number, x %, y %] …], credit }. Each pin is a ring ON its
+     part, numbered; the options name structures, so their letters never clash with the pins. */
+  function figure(f) {
+    const fig = h('figure', { class: 'q__fig' }, `<span class="q__figw"><img src="${esc(f.src)}" alt="${esc(f.alt || '')}" width="640" height="480" loading="lazy">` +
+      (f.pins || []).map(([n, x, y]) => `<span class="q__pin" style="left:${x}%;top:${y}%" aria-hidden="true">${esc(String(n))}</span>`).join('') +
+      `</span>${f.credit ? `<figcaption>${esc(f.credit)}</figcaption>` : ''}`);
+    return fig;
+  }
   function drawMcq(box, id, q) {
     const ui = shell(box, q), A = ans.get(id) || {}, out = new Set(A.out || []);
     box.appendChild(h('p', { class: 'q__stem' }, q.stem));
+    if (q.img) box.appendChild(figure(q.img));
     const ol = h('ol', { class: 'opts' }); box.appendChild(ol);
     const row = h('div', { class: 'q__row' }, '<span class="say"></span>'); box.appendChild(row);
     const order = shuffle(q.a.map((_, i) => i));

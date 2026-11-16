@@ -5,16 +5,17 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611152200';
-import { Names } from './names.js?v=202611152200';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611152200';
-import { makePlay } from './play.js?v=202611152200';
-import { setStill, wait } from './actors.js?v=202611152200';
-import { state, RESPIRE } from './state.js?v=202611152200';
-import { ICON } from './icons.js?v=202611152200';
-import { intro } from './intro.js?v=202611152200';
-import { sound } from './sound.js?v=202611152200';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611152200';
+import { World, MAP_VIEW } from '../world/world.js?v=202611161111';
+import { Names } from './names.js?v=202611161111';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611161111';
+import { makePlay } from './play.js?v=202611161111';
+import { setStill, wait } from './actors.js?v=202611161111';
+import { state, RESPIRE } from './state.js?v=202611161111';
+import { ICON } from './icons.js?v=202611161111';
+import { intro } from './intro.js?v=202611161111';
+import { sound } from './sound.js?v=202611161111';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611161111';
+import { fromRecord } from './restore.js?v=202611161111';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -287,7 +288,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611152200').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611161111').then(m => m.openLens(e.detail)));
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -297,7 +298,7 @@ let opening = false;
 const openIB = start => {
   if (opening || memOpening || document.documentElement.classList.contains('ibv-open') || document.documentElement.classList.contains('memv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611152200').then(m => {
+  import('../ib/view.js?v=202611161111').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -307,11 +308,11 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611152200').then(m => m.warm()).catch(() => { warmed = false; });
-  import('../membrane/view.js?v=202611152200').then(m => m.warm()).catch(() => {});
+  import('../ib/view.js?v=202611161111').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../membrane/view.js?v=202611161111').then(m => m.warm()).catch(() => {});
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611152200').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611161111').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
@@ -323,7 +324,7 @@ const openMem = () => {
   const root = document.documentElement;
   if (memOpening || opening || root.classList.contains('memv-open') || root.classList.contains('ibv-open') || root.classList.contains('plv-open')) return;
   memOpening = true;
-  import('../membrane/view.js?v=202611152200').then(m => {
+  import('../membrane/view.js?v=202611161111').then(m => {
     world.hold = true;
     m.openMembrane({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); winNext(); } });
   }).catch(e => { memOpening = false; world.hold = false; world.kick(); console.error(e); });
@@ -404,7 +405,7 @@ document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || memOpening || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611152200').then(m => {
+  import('../plant/view.js?v=202611161111').then(m => {
     world.hold = true;
     m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
@@ -417,22 +418,42 @@ document.addEventListener('plant', e => {
    the page's own, so a reload does not open it again. Without the pass the address changes nothing, but a line says
    who the map is for (a pupil who is signed in waits for the records' answer first). */
 let mapOpening = false;
-const viewOpen = () => ['ibv-open', 'memv-open', 'plv-open'].some(c => document.documentElement.classList.contains(c));
+const viewOpen = () => ['ibv-open', 'memv-open', 'plv-open', 'benchv-open', 'waterv-open', 'lightv-open', 'fractionationv-open'].some(c => document.documentElement.classList.contains(c));
+/* the three IB views of 16 Nov 2026 (the IB audit's additions 15-17, built on Daniel's "everything that you recommended,
+   build it"): water potential, from light to glucose, the cell fractionation lab. Each has its own address too
+   (water/, light/, fractionation/); its code is fetched when a door is pressed. One view at a time. Doors: the IB map,
+   the plant cell's vacuole and light steps (js/plant/view.js), the ribosomes' first IB box (story.js `frac`). */
+const VIEWS2 = { water: ['../water/view.js', 'openWater'], light: ['../light/view.js', 'openLight'], fractionation: ['../fractionation/view.js', 'openFractionation'] };
+let v2Opening = false;
+function openView2(name) {
+  const V = VIEWS2[name]; if (!V || v2Opening || viewOpen()) return;
+  v2Opening = true; nextOff();
+  import(V[0] + '?v=202611161111').then(m => { world.hold = true; m[V[1]]({ inGame: true, backLabel: '← Back to the game', onClose: () => { v2Opening = false; world.hold = false; world.kick(); winNext(); } }); })
+    .catch(e => { v2Opening = false; world.hold = false; world.kick(); console.error(e); });
+}
+document.addEventListener('ibview2', e => openView2(e.detail && e.detail.view));
 async function openIBMap() {
   if (!ibPass() || !gameOn || mapOpening || viewOpen() || ($('#ibmap') && !$('#ibmap').hidden)) return;
   mapOpening = true; nextOff();
   document.dispatchEvent(new CustomEvent('ib-door'));            /* the views' code comes while the map is read */
-  try { const m = await import('./ibmap.js?v=202611152200'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher' }); }
+  try { const m = await import('./ibmap.js?v=202611161111'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher' }); }
   catch (e) { console.error(e); }
   mapOpening = false;
 }
 document.addEventListener('ibmap', openIBMap);
+/* the starch test's IB investigation, heat and time (js/game/bench.js; 16 Nov 2026), from its IB box or the IB map */
+document.addEventListener('ibbench', () => { if (viewOpen()) return; import('./bench.js?v=202611161111').then(m => { world.hold = true; m.openBench({ onClose: () => { world.hold = false; world.kick(); } }); }).catch(e => console.error(e)); });
 function ibOpen(d) {
   if (!d || !ibPass()) return;
   if (d.kind === 'place') {
     R.store.set('courseLv', Object.assign({ igcse: false }, R.store.get('courseLv', {}) || {}, { ib: true })); R.store.set('ibpassLv', true);
+    /* the nucleolus is inside the nucleus: a pupil who has not been inside it goes there first (state.js awake) */
+    if (d.id === 'nucleolus' && !state.flag('in-nucleus')) { toast('The nucleolus is inside the nucleus: enter the nucleus first.', 5200); go('nucleus'); return; }
     go(d.id);
-  } else if (d.id === 'membrane') openMem();
+  } else if (d.kind === 'film') document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: d.film } }));
+  else if (d.kind === 'bench') document.dispatchEvent(new CustomEvent('ibbench'));
+  else if (d.kind === 'view2') openView2(d.view);
+  else if (d.id === 'membrane') openMem();
   else if (d.id === 'plant') document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'ibmap' } }));
   else if (d.ci != null) openIB({ ci: d.ci, si: 0 });
 }
@@ -459,7 +480,7 @@ async function hashDoor() {
   const want = hashWant; hashWant = null;
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   if (want === 'map') { openIBMap(); return; }
-  try { const m = await import('./ibmap.js?v=202611152200'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
+  try { const m = await import('./ibmap.js?v=202611161111'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
   catch (e) { console.error(e); }
 }
 addEventListener('hashchange', () => { hashWant = readHash(); hashDoor(); });
@@ -493,6 +514,21 @@ function ibChanged(e) {
   hashDoor();
 }
 document.addEventListener('ibpass', ibChanged);
+/* a signed-in pupil's progress back from their record (js/game/restore.js; 16 Nov 2026), each time the record arrives
+   (js/lesson.js 'lesson:who'): the answers and the finished places come back on a cleared or another computer. The
+   game in front of the pupil follows: How the game works gives way to the map when the first place was finished, and the
+   map shows what is done. */
+function restoreNow() {
+  const w = window.Lesson && window.Lesson.who && window.Lesson.who();
+  if (!w || !w.onList) return;
+  const r = fromRecord(state); if (!r.answers && !r.places.length) return;
+  world.setNucleus(state.flag('in-nucleus'));
+  if (window.HOWTO && !window.HOWTO.done && state.complete('arrive')) { const g = $('#howtoGo'); if (g) g.click(); }
+  else if (gameOn && !quest.cur && !busy && $('#quest .qp--map')) { quest.openMap(); looks(); mapNames(); }
+  document.dispatchEvent(new Event('progress'));
+  toast(r.places.length ? 'Welcome back: your finished places and answers are back, from your teacher\'s record.' : 'Welcome back: your answers are back, from your teacher\'s record.', 5200);
+}
+window.addEventListener('lesson:who', restoreNow);
 document.addEventListener('ibpass-known', hashDoor);
 function begun() { gameOn = true; paintIBBtn(); hashDoor(); }
 

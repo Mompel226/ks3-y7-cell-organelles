@@ -18,13 +18,18 @@
      about 5 nm across and 7 nm tall (a glucose transporter is about that size); a glycoprotein with one helix through
      the membrane and its larger part outside the cell; a peripheral protein 3.4 nm across on the cytoplasm side.
      Membrane proteins are typically 3–5 nm across (Phillips 2018, arXiv:1703.02066).
+   - step 9's aquaporin (16 Nov 2026) is NOT a bead model: aquaporin 1 in its measured shape (aqp1.js, from PDB 1FQY:
+     Murata et al. 2000, Nature 407:599), four subunits each drawn as one smooth see-through surface, 7.3 nm across and
+     5.5 nm high, so that the water in its four pores is seen; a water molecule is an oxygen atom (light blue here: red,
+     the usual colour of oxygen, is cholesterol's hydrophilic end in this view) and two hydrogen atoms (white), about 0.3 nm across, the width of the pore at its narrowest (2.8 Å, "just large enough to
+     accommodate a single water molecule": Agre 2003, Nobel lecture); water.js moves them.
    MOTION drawn here on top of the model's sideways movement: each tail bends (in the vertex shader: no work for the
    page's script), a phospholipid's second tail keeps a bend if it is unsaturated, each lipid turns about its long axis
    and bobs a little. All of it is far slower than real (the page says so).
    Nothing is allocated while it runs: every molecule is an instance whose numbers are written in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { classOf } from './seen.js?v=202611152200';
+import { classOf } from './seen.js?v=202611161111';
 
 export const Y = { head: 2.0, headR: 0.4, tailTop: 1.66, tailL: 1.6, tailOff: 0.23, tailR: 0.21, chol: 1.78, top: 2.4 };
 const COL = {
@@ -125,7 +130,45 @@ function haloTexture() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
-export function makeScene(S) {
+/* step 9's aquaporin: each subunit's surface from aqp1.js (16-bit numbers over its own box, as js/ib/prot.js reads its
+   proteins), see-through (it writes no depth, so the water inside shows), the subunits in two shades of blue */
+const b64 = str => { const b = atob(str), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; };
+export const AQP_COL = [0x3b7fe0, 0x52c2e8];
+function makeAquaporin(A) {
+  const g = new THREE.Group(); g.name = 'aquaporin';
+  const tops = [], mats = [];
+  A.parts.forEach((pt, k) => {
+    const q = new Int16Array(b64(pt.pos)), idx = new Uint16Array(b64(pt.idx)), pos = new Float32Array(q.length);
+    for (let i = 0; i < q.length; i++) pos[i] = pt.off[i % 3] + q[i] * pt.sc[i % 3];
+    /* each triangle wound so that its face looks out of the subunit (the culled side is then the inner one) */
+    let cx = 0, cy = 0, cz = 0; const nv = pos.length / 3; for (let i = 0; i < nv; i++) { cx += pos[3 * i]; cy += pos[3 * i + 1]; cz += pos[3 * i + 2]; } cx /= nv; cy /= nv; cz /= nv;
+    let out = 0;
+    for (let f = 0; f < idx.length; f += 3) {
+      const a = idx[f] * 3, b = idx[f + 1] * 3, c = idx[f + 2] * 3;
+      const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2], vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];
+      out += (uy * vz - uz * vy) * (pos[a] - cx) + (uz * vx - ux * vz) * (pos[a + 1] - cy) + (ux * vy - uy * vx) * (pos[a + 2] - cz);
+    }
+    if (out < 0) for (let f = 0; f < idx.length; f += 3) { const t = idx[f + 1]; idx[f + 1] = idx[f + 2]; idx[f + 2] = t; }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1)); geo.computeVertexNormals();
+    const m = new THREE.MeshStandardMaterial({ color: AQP_COL[k % 2], emissive: AQP_COL[k % 2], emissiveIntensity: 0.12, roughness: 0.4, transparent: true, opacity: 0.5, depthWrite: false });
+    const mesh = new THREE.Mesh(geo, m); mesh.renderOrder = 6; mesh.name = 'subunit' + k; g.add(mesh); mats.push(m);
+    /* where a name's line ends: 0.55 nm under the highest point of its surface, inside the subunit, so that the line
+       ends on the protein (the very top of a see-through surface showed the dark behind it, now and then) */
+    let t = 1; for (let i = 0; i < nv; i++) if (pos[3 * i + 1] > pos[3 * t + 1]) t = i;
+    tops.push(new THREE.Vector3(pos[3 * t], pos[3 * t + 1] - 0.55, pos[3 * t + 2]));
+  });
+  return { g, mats, tops, sh: { top: A.box[1][1], bottom: A.box[0][1] } };
+}
+/* one water molecule: its oxygen at the middle, its two hydrogens 0.096 nm from it, 104.5° apart, on its +y side */
+function waterGeometry() {
+  const half = 104.5 / 2 * Math.PI / 180, d = 0.096;
+  const o = new THREE.SphereGeometry(0.13, 12, 9), h1 = new THREE.SphereGeometry(0.075, 10, 7), h2 = new THREE.SphereGeometry(0.075, 10, 7);
+  h1.translate(d * Math.sin(half), d * Math.cos(half), 0); h2.translate(-d * Math.sin(half), d * Math.cos(half), 0);
+  return merge([[o, 0x5fe3ff], [h1, 0xffffff], [h2, 0xffffff]]);
+}
+
+/* opt (step 9's piece): aqp, the measured aquaporin (aqp1.js); water, draw the water of water.js */
+export function makeScene(S, opt = {}) {
   const P = S.P, R = rng(11), group = new THREE.Group(); group.name = 'membrane';
   const uT = { value: 0 };
   const pl = [], ch = [], gl = [];
@@ -177,7 +220,9 @@ export function makeScene(S) {
 
   /* ---- proteins ---- */
   const shapes = buildProteins(R), prots = [];
+  let aqp = null;
   S.prot.forEach((p, k) => {
+    if (p.id === 'aquaporin') { aqp = makeAquaporin(opt.aqp); group.add(aqp.g); prots.push({ g: aqp.g, mat: aqp.mats[0], sh: aqp.sh, p, lit: 0 }); return; }
     const sh = shapes[p.id], g = new THREE.Group(); g.name = p.id;
     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.55 });
     g.add(beadMesh(sh.beads, mat));
@@ -211,6 +256,22 @@ export function makeScene(S) {
     return T;
   };
   const trailL = mkTrail(0xffd24a, false), trailP = mkTrail(0x8fe8ff, true);
+  /* ---- step 9's water molecules (water.js): one instance each, written in place every frame ---- */
+  const WMAX = 120, waterMesh = opt.water ? new THREE.InstancedMesh(waterGeometry(), new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x0f4a5a, emissiveIntensity: 0.6, roughness: 0.35 }), WMAX) : null;
+  if (waterMesh) { waterMesh.count = 0; waterMesh.frustumCulled = false; waterMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); waterMesh.name = 'water'; group.add(waterMesh); }
+  const wq = new THREE.Quaternion(), wr = new THREE.Quaternion(), wb = new THREE.Vector3(), wp = new THREE.Vector3(), ws = new THREE.Vector3(), wm = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
+  function setWater(W) {
+    if (!waterMesh) return;
+    let n = 0;
+    W.each((x, y, z, s, bx, by, bz, roll) => {
+      if (n >= WMAX) return;
+      wb.set(bx, by, bz).normalize(); wq.setFromUnitVectors(UP, wb); wr.setFromAxisAngle(wb, roll); wq.premultiply(wr);
+      wm.compose(wp.set(x, y, z), wq, ws.set(s, s, s)); waterMesh.setMatrixAt(n++, wm);
+    });
+    waterMesh.count = n; waterMesh.instanceMatrix.needsUpdate = true;
+  }
+  /* the top of the aquaporin's subunit k, where a name's line ends (in the piece's frame: the aquaporin's turn and place) */
+  function aqpTop(k, out) { const q = prots.find(x => x.p.id === 'aquaporin'); if (!q) return false; out.copy(aqp.tops[k]).applyAxisAngle(UP, q.p.ang); out.x += q.p.x; out.z += q.p.z; return out; }
   let litLipid = -1, litProt = -1;
 
   const bobOf = (i, t) => 0.09 * Math.sin(t * 1.9 + S.phase[i]), toCam = new THREE.Vector3();
@@ -317,7 +378,7 @@ export function makeScene(S) {
     group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(m => m.dispose()); });
     haloTex.dispose();
   }
-  return { group, draw, setGhost, lightLipid, lightProtein, dimFollow, lipidPoint, nearest, protLow, dispose, pl, ch, gl, prots, heads, tails, chol, trailL, trailP,
+  return { group, draw, setGhost, lightLipid, lightProtein, dimFollow, lipidPoint, nearest, protLow, dispose, pl, ch, gl, prots, heads, tails, chol, trailL, trailP, setWater, aqpTop, waterMesh, aqp,
     get ghost() { return ghost; }, get litLipid() { return litLipid; }, get litProt() { return litProt; } };
 }
 

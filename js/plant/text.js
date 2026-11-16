@@ -38,7 +38,7 @@ export const STEPS = [
   { id: 'cell', scene: 'leaf', where: 'leaf',
     text: 'The other cells are faint now, so that you see one palisade cell alone.\nIt is tall and narrow: about 72 <dfn data-w="micrometre">micrometres</dfn> (µm) long and 16 µm wide.\nYour salivary gland cell is about 16 µm across. It is drawn beside the palisade cell only to compare their sizes: it is not in the leaf.' },
   { id: 'open', scene: 'leaf', where: 'leaf',
-    text: 'The front of the cell is cut away, so that you can see inside.\nLike your salivary gland cell, it has a <dfn data-w="cell-membrane">cell membrane</dfn>, <dfn data-w="cytoplasm">cytoplasm</dfn>, a <dfn data-w="nucleus">nucleus</dfn> and <dfn data-w="mitochondria">mitochondria</dfn>.\nIt also has <dfn data-w="ribosome">ribosomes</dfn>, ER and a <dfn data-w="golgi">Golgi apparatus</dfn>, as your cell has. From here the ribosomes and the ER are too small to see; the small gold stacks are its Golgi apparatus.' },
+    text: 'The front of the cell is cut away, so that you can see inside.\nLike your salivary gland cell, it has a <dfn data-w="cell-membrane">cell membrane</dfn>, <dfn data-w="cytoplasm">cytoplasm</dfn>, a <dfn data-w="nucleus">nucleus</dfn> and <dfn data-w="mitochondria">mitochondria</dfn>.\nIt also has <dfn data-w="ribosome">ribosomes</dfn>, ER (endoplasmic reticulum) and a <dfn data-w="golgi">Golgi apparatus</dfn>, as your cell has. From here the ribosomes and the ER are too small to see; the small gold stacks are its Golgi apparatus.' },
   { id: 'three', scene: 'leaf', where: 'leaf',
     text: 'A plant cell has three structures that your salivary gland cell does not have.\n<mark class="do">Press each <b>What is this?</b> to find the three.</mark>',
     say: {
@@ -227,7 +227,7 @@ export const COURSE = {
     /* A2.2.2 (SL) */
     cell: [['SL', 'Microscopy skills: you calculate actual size and magnification, and you produce a scale bar, as on this picture.']],
     /* A2.2.6, B2.2.1 (SL); B2.2.7, B2.2.8 (AHL) */
-    open: [['SL', 'The IB name of the cell membrane is the <b>plasma membrane</b>. A eukaryotic cell has a plasma membrane round a compartmentalized cytoplasm with 80S ribosomes, a nucleus inside a double membrane with pores, and organelles with membranes: mitochondria, endoplasmic reticulum, Golgi apparatus, vesicles and vacuoles.'],
+    open: [['SL', 'The IB name of the cell membrane is the <b>plasma membrane</b>. A eukaryotic cell has a plasma membrane round a cytoplasm divided into compartments (compartmentalized), with 80S ribosomes (S is a measure of size), a nucleus inside a double membrane with pores, and organelles with membranes: mitochondria, endoplasmic reticulum, Golgi apparatus, vesicles and vacuoles.'],
       ['SL', 'The cell wall, the cytoskeleton and the cytoplasm are not considered organelles.'],
       ['HL', 'The structure and function of free ribosomes, of the rough endoplasmic reticulum and of the Golgi apparatus (processing and secretion of protein).']],
     /* A2.2.8, A2.2.10, A2.2.11 (SL) */
@@ -235,32 +235,34 @@ export const COURSE = {
       ['SL', 'The IB name of this vacuole is the <b>sap vacuole</b>. You identify the chloroplast, the sap vacuole and the cell wall in electron micrographs, and you draw and annotate them with their functions.']],
     /* C1.3.5 (SL); B2.2.5, C1.3.14 (AHL) */
     chloroplast: [['SL', 'Photosynthetic pigments absorb specific wavelengths of light. An electron in the pigment molecule is excited: light energy is transformed to chemical energy. An absorption spectrum shows which wavelengths a pigment absorbs.'],
-      ['HL', 'The flat membranes are <b>thylakoids</b> and the liquid is the <b>stroma</b>. Adaptations of the chloroplast: the large surface area of thylakoid membranes with photosystems, the small volume of fluid inside thylakoids, and the enzymes and substrates of the Calvin cycle kept together in the stroma.']],
+      ['HL', 'The flat membranes are <b>thylakoids</b> and the liquid is the <b>stroma</b>. Adaptations of the chloroplast: the large surface area of thylakoid membranes with photosystems (groups of pigment molecules), the small volume of fluid inside thylakoids, and the enzymes and substrates of the Calvin cycle (the reactions that fix carbon dioxide) kept together in the stroma.']],
     /* C1.3.1 to C1.3.3 (SL); C1.3.11 to C1.3.16 (AHL) */
     light: [['SL', 'Light energy is transformed to chemical energy when carbon compounds are produced. Carbon dioxide is converted to glucose, using hydrogen obtained by splitting water. Oxygen is a by-product: it comes from the water.'],
-      ['HL', 'On the membrane (the light-dependent reactions): photolysis of water in photosystem II, ATP production by chemiosmosis, and reduction of NADP by photosystem I. In the liquid (the Calvin cycle): Rubisco fixes carbon, and reduced NADP and ATP are used to make triose phosphate.']],
+      ['HL', 'On the thylakoid membrane (the light-dependent reactions), photosystem II uses light energy to split water: photolysis.'],
+      ['HL', 'ATP is made by chemiosmosis, and photosystem I reduces NADP (NADP gains hydrogen).'],
+      ['HL', 'In the stroma (the Calvin cycle), the enzyme Rubisco fixes carbon dioxide, and reduced NADP and ATP are used to make triose phosphate, a sugar with three carbon atoms.']],
     /* B1.1.2, B1.1.5 (SL); C1.1.3 (SL) */
-    starch: [['SL', 'Starch is a polysaccharide: a polymer of alpha-glucose monomers, linked by condensation reactions. Making it is an anabolic reaction.'],
+    starch: [['SL', 'Starch is a polysaccharide: a polymer (a long chain) of alpha-glucose monomers (the small units), linked by condensation reactions. Making it is an anabolic reaction (it builds a large molecule from small ones).'],
       ['SL', 'Starch stores energy well: coiling and branching make it compact, its large molecules are relatively insoluble, and glucose is added or removed easily by condensation and hydrolysis.']],
     /* B1.1.3, B1.1.5 (SL) */
-    grain: [['SL', 'At night the store is mobilized: alpha-glucose monomers are removed from starch by hydrolysis reactions.']],
+    grain: [['SL', 'At night the store is mobilized: alpha-glucose monomers are removed from starch by hydrolysis reactions (a water molecule is used to split each bond).']],
     /* B1.1.6 (SL) */
     wall: [['SL', 'Cellulose is a structural polysaccharide. Its beta-glucose monomers alternate in orientation, which gives straight chains; the chains are grouped in bundles and cross-linked with hydrogen bonds.']],
     /* B2.1.1, B2.1.2, B2.1.4, B2.1.8, B2.1.10 (SL) */
     membrane: [['SL', 'The plasma membrane is a bilayer of phospholipids. Its hydrophobic core has a low permeability to large molecules and to hydrophilic particles, such as ions and polar molecules.'],
       ['SL', 'Integral proteins are embedded in the bilayer; peripheral proteins are attached to one of its surfaces. This is the fluid mosaic model. Facilitated diffusion and active transport make the membrane selectively permeable.']],
     /* D2.3.2, D2.3.3, D2.3.6 (SL); D2.3.8 to D2.3.10 (AHL) */
-    vacuole: [['SL', 'Water moves by osmosis from a less concentrated solution to a more concentrated solution. In a hypotonic medium, water enters a cell with a wall and <b>turgor pressure</b> develops. In a hypertonic medium, the cell is plasmolysed.'],
-      ['HL', 'Water moves from a higher to a lower water potential. In a cell with a wall, the water potential is the sum of the solute potential and the pressure potential.']],
+    vacuole: [['SL', 'Water moves by osmosis from a less concentrated solution to a more concentrated solution. In a hypotonic medium (less concentrated than the cell), water enters a cell with a wall and <b>turgor pressure</b> develops. In a hypertonic medium (more concentrated than the cell), the cell is plasmolysed: its plasma membrane separates from the wall.'],
+      ['HL', 'Water moves from a higher to a lower water potential. In a cell with a wall, the water potential is the sum of the solute potential (the effect of the dissolved substances) and the pressure potential (the effect of the wall pressing on the cell).']],
     /* B1.1.5, A2.2.8 (SL); B3.2.18 (AHL) */
     potato: [['SL', 'Plant cells have chloroplasts and other plastids.'],
       ['', 'In a potato cell each starch grain is inside a plastid that has no pigments. The guide says "other plastids" and does not name them.'],
       ['HL', 'Translocation of sap in the phloem: carbon compounds are loaded into the sieve tubes at sources and unloaded at sinks, with the help of companion cells.']],
     /* B1.1.3, C1.1.3, C1.1.4, C1.1.5 (SL); C1.1.11 (AHL) */
-    mouth: [['SL', 'Digestion of a polymer into monomers is a <b>hydrolysis</b> reaction: a water molecule is split for each bond that is broken. It is a catabolic reaction. In this step the product is maltose: two glucose monomers still joined. Maltase makes the monomers, in the small intestine.'],
+    mouth: [['SL', 'Digestion of a polymer into monomers is <b>hydrolysis</b>: a water molecule is split for each bond broken. It is catabolic (it breaks a large molecule down). Here the product is maltose: two glucose units still joined.'],
       ['SL', 'An enzyme is a globular protein with an active site. In induced-fit binding, the substrate and the enzyme both change shape.'],
       ['HL', 'Chemical digestion in the gut is an extracellular enzyme-catalysed reaction.'],
-      ['', 'The IB guide has no topic on the human digestive system: it does not name amylase, maltose or maltase.']],
+      ['', 'The IB guide does not name amylase, maltose or maltase.']],
     /* B4.2.4 (SL) */
     folds: [['SL', 'Animals have holozoic nutrition: food is ingested, digested internally, absorbed and assimilated.'],
       ['', 'The guide names no part of the wall of the small intestine: no fold and no villus.']],
@@ -274,7 +276,7 @@ export const COURSE = {
     /* B2.1.7 (SL); B2.1.16 (AHL) */
     blood: [['SL', 'Active transport moves specific particles across a membrane against a concentration gradient. Pump proteins do this with energy from ATP.'],
       ['', 'No SL statement says how glucose is absorbed. A pump protein does not move the glucose itself: the HL line names the protein that does.'],
-      ['HL', 'Cells of the small intestine absorb glucose with sodium-dependent glucose cotransporters: an example of indirect active transport.']],
+      ['HL', 'Cells of the small intestine absorb glucose with sodium-dependent glucose cotransporters: each one carries glucose together with sodium ions, which move down a gradient that a pump made. This is indirect active transport.']],
     /* C1.2.1, C1.2.2, C1.2.4, C1.2.5 (SL); D3.3.3 (SL) */
     loop: [['SL', 'Cell respiration produces ATP, using energy released from carbon compounds such as glucose. ATP distributes energy within the cell, for example for the synthesis of macromolecules: here, amylase. Aerobic respiration needs mitochondria.'],
       ['SL', 'The concentration of glucose in the blood is regulated by the hormones insulin and glucagon.']]

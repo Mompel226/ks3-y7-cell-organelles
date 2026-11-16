@@ -630,6 +630,42 @@ html.is-final{overflow:hidden}
 .fc-res li.ok .fc-res__m{color:var(--good)}
 .fc-res li.no .fc-res__m,.fc-res li.part .fc-res__m{color:var(--amber)}
 .fc-res__s{display:block;font-size:15px;color:var(--ink2)}
+/* the right answers, once the teacher shows them (16 Nov 2026): each question again, the pupil's answer beside the right one */
+.fc__later{color:var(--ink2)}
+.fc__teach{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--accent);background:var(--accent-tint)}
+.fr__teach{font-size:14.5px;color:var(--ink2)}
+.fc__mk.is-ok{color:var(--good)} .fc__mk.is-no{color:var(--amber)}
+.fc--review .fc__dots button.is-ok{background:var(--good-tint);border-color:var(--good);color:var(--ink)}
+.fc--review .fc__dots button.is-no{background:var(--amber-tint);border-color:var(--amber);color:var(--ink)}
+.fc--review .fc__dots button.is-partok{background:linear-gradient(135deg,var(--good-tint) 50%,var(--amber-tint) 50%);border-color:var(--amber);color:var(--ink)}
+.fr-opts,.fr-lab,.fr-ord{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.fr-opts li,.fr-ord li,.fr-lab li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--rule);background:var(--surface);font-size:16px;line-height:1.4}
+.fr-opts li.is-right,.fr-ord li.is-right,.fr-lab li.is-right{border-color:var(--good);background:var(--good-tint)}
+.fr-opts li.is-wrong,.fr-ord li.is-wrong,.fr-lab li.is-wrong{border-color:var(--amber);background:var(--amber-tint)}
+.fr__m{flex:none;width:1.2em;font:900 18px/1 var(--sans)}
+.is-right>.fr__m{color:var(--good)} .is-wrong>.fr__m{color:var(--amber)}
+.fr__t{flex:1 1 220px}
+.fr__you{flex:none;font:700 13px/1.2 var(--sans);padding:4px 8px;border-radius:999px;background:var(--sheet);border:1px solid var(--rule2);color:var(--ink2)}
+.fr__you--r{border-color:var(--good);color:var(--good)}
+.fr__note{font-size:14.5px;color:var(--ink2)}
+.fr-lab .n{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2.5px solid var(--ink);background:var(--sheet);font:900 15px/1 var(--sans)}
+.fr-lab .fr__t{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.fr-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.fr__h{margin:0 0 6px;font:800 15px/1.3 var(--sans);color:var(--ink2)}
+.fr-ord{counter-reset:fr}
+.fr-ord li::before{counter-increment:fr;content:counter(fr);flex:none;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--sheet);border:1.5px solid var(--rule2);font:800 13px/1 var(--sans)}
+.fr-sort{border-collapse:collapse;width:100%;font-size:15.5px}
+.fr-sort th,.fr-sort td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}
+.fr-sort tr.is-right td{background:var(--good-tint)} .fr-sort tr.is-wrong td{background:var(--amber-tint)}
+.fr__why{padding:12px 14px;border-radius:12px;background:var(--sheet);border:1px solid var(--rule);font-size:16px;line-height:1.5}
+.fr__where{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:15px}
+.fr__gos{display:flex;flex-wrap:wrap;gap:8px}
+.fc .btn.fr__go{min-height:40px;padding:8px 14px}
+.fc--review .fc__nav{align-items:center}
+/* the way back from a place of the game to the answers */
+.fc-back{position:fixed;left:14px;bottom:14px;z-index:9999;min-height:44px;padding:10px 16px;border-radius:999px;border:2px solid var(--accent);background:var(--sheet);color:var(--ink);font:800 15px/1.2 var(--sans);box-shadow:0 6px 22px rgba(0,0,0,.28);cursor:pointer}
+.step.is-pointed{outline:3px solid var(--accent);outline-offset:4px;border-radius:10px}
+@media (max-width:560px){ .fc--review .fc__nav{flex-wrap:wrap} .fr-two{grid-template-columns:1fr} }
 /* the list of places: the final check last, apart from the places of the cell */
 .pl--final{margin-top:6px}
 .pl--final button{border-width:2px;border-color:#7A5BE0;background:color-mix(in srgb,#7A5BE0 10%,transparent)}
@@ -824,3 +860,28 @@ footer .credits p{margin:.5em 0 0}
   .ibmap__t{font-size:22px}
   .ibmap__door{min-width:100%}
 }
+
+/* a question's picture with numbered pins (js/checks.js figure; 16 Nov 2026): each ring stands ON its part */
+.q__fig{margin:8px 0 10px}
+.q__figw{position:relative;display:block}
+.q__fig img{display:block;width:100%;height:auto;border-radius:8px}
+.q__pin{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border:3px solid #FFC800;border-radius:50%;background:rgba(0,0,0,.6);color:#FFE45C;font:800 14px/22px var(--sans);text-align:center;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
+.q__fig figcaption{font-size:12.5px;color:var(--ink3);margin-top:4px}
+
+/* the starch test's IB investigation (js/game/bench.js; 16 Nov 2026): a card over the stage, as the IB map */
+.bench{position:absolute;inset:0;z-index:44;display:flex;overflow:auto;padding:52px 16px 16px;background:rgba(10,12,30,.55)}
+.bench[hidden]{display:none}
+.bench__card{position:relative;margin:0 auto auto;width:min(760px,100%);background:var(--sheet);color:var(--ink);border:1px solid var(--ext-rule);border-radius:16px;padding:18px 20px 16px;box-shadow:var(--shadow)}
+.bench__x{position:absolute;top:12px;right:12px}
+.bench__steps{display:flex;gap:6px;margin:4px 0 10px}
+.bench__steps button{font:700 14px/1 var(--sans);color:var(--ink2);background:var(--surface);border:1px solid var(--rule2);border-radius:999px;padding:7px 12px;cursor:pointer}
+.bench__steps button[aria-pressed="true"]{background:var(--ext);color:var(--sheet);border-color:var(--ext)}
+.bench__pic svg{display:block;width:100%;height:auto;max-height:240px}
+.bench__k{font:900 22px var(--sans);fill:#1B2433}
+.bench__n{font:700 14px var(--sans);fill:#384254}
+.bench__q{font:800 16px var(--sans);fill:#8A94A6}
+.bench__words p{margin:8px 0;font-size:16px;line-height:1.45}
+.bench__for{font-weight:800;color:var(--ink)}
+.bench__acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+@media (max-width:560px){ .bench{padding:46px 8px 8px} .bench__card{padding:14px 12px} }
+

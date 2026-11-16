@@ -8,7 +8,8 @@
      B2.1.8 selectivity (the game's way in tags its carrier proteins with it) · B2.1.9 glycoproteins and glycolipids ·
      B2.1.10 the fluid mosaic model (phospholipids, cholesterol, proteins, hydrophobic and hydrophilic regions): all SL
      and HL; B2.1.11 fatty acids and fluidity · B2.1.12 cholesterol's position and its effect on fluidity: HL only;
-     B1.1.12 "amphipathic": SL and HL.
+     B1.1.12 "amphipathic": SL and HL; B2.1.5 osmosis and aquaporins and D2.3.2 water's movement towards the more
+     concentrated solution (step 9, 16 Nov 2026): SL and HL. [!] is a step's plain first line: what the step is for.
    Words (memory eal-korean-students): short sentences to "you"; a new word is explained first, then named; no idiom,
    no phrasal verb, the estate's never-amount rule; nothing about what an examination asks. {slow}, {wide}, {real} and {ratio} are
    filled from the model's own numbers (sim.js), so the page cannot say a number the model does not have.
@@ -23,7 +24,8 @@ export const NAMES = {
   head: 'hydrophilic head', tails: 'hydrophobic tails', bilayer: 'phospholipid bilayer',
   sat: 'saturated tail (straight)', unsat: 'unsaturated tail (bent)', chol: 'cholesterol',
   channel: 'channel protein', carrier: 'carrier protein', glyco: 'glycoprotein', peri: 'peripheral protein',
-  glycolipid: 'glycolipid', lipidTag: 'this phospholipid', protTag: 'this carrier protein'
+  glycolipid: 'glycolipid', lipidTag: 'this phospholipid', protTag: 'this carrier protein',
+  aquaporin: 'aquaporin', subunit: 'one subunit', file: 'water in a pore', crossing: 'water crossing the bilayer'
 };
 export const PLACES = { out: 'Outside the cell', cyt: 'Cytoplasm (inside the cell)' };
 
@@ -42,7 +44,7 @@ export const STEPS = [
   { title: 'The tails: straight or bent', view: 'close', labels: ['unsat', 'sat'],
     t: `[x] The camera is now close to the cut edge. The tails are not stiff: they swing all the time.
 [x+] Each phospholipid also turns around its own length. In a living cell these two movements are even faster than the sideways movement. Here they are slowed much more, so that you can see them.
-[hl B2.1.11] Each tail is a fatty acid chain. A saturated fatty acid gives a straight tail. An unsaturated fatty acid has a double bond, which gives its tail a fixed bend.
+[sl B1.1.10] Each tail is a fatty acid chain. A saturated fatty acid has no C=C double bond and gives a straight tail. An unsaturated fatty acid has a C=C double bond, which gives its tail a fixed bend: a monounsaturated one has one, a polyunsaturated one has more.
 [hl B2.1.11] Bent tails cannot pack closely. So unsaturated fatty acids have lower melting points. The membrane is fluid and flexible at the temperature of the cell.
 [hl B2.1.11] Straight tails pack closely. Saturated fatty acids have higher melting points and make a membrane stronger at higher temperatures.
 [hl B2.1.11] An example of adaptation to habitat: fish of cold seas have more unsaturated fatty acids in their membranes than fish of warm seas. So their membranes stay fluid in the cold.
@@ -55,6 +57,7 @@ export const STEPS = [
   { title: 'Mosaic: proteins in the membrane', view: 'whole', ghost: true, labels: ['channel', 'carrier', 'glyco', 'peri'],
     t: `[sl B2.1.4] The lipids are faded now, so that you see each protein whole. A protein that is embedded in one or both layers of the bilayer is an integral protein. The three integral proteins here cross both layers. A protein that is attached to one surface of the bilayer is a peripheral protein: this one is on the cytoplasm side.
 [sl B2.1.4] Membrane proteins differ in structure, location and function.
+[sl A2.2.3] Freeze fracture splits a frozen membrane between its two layers. Electron micrographs of the split faces show bumps: the integral proteins.
 [sl B2.1.6] A channel protein has a narrow opening through it: a pore. When the channel is open, specific ions diffuse through the pore. When it is closed, they cannot. This is facilitated diffusion.
 [sl B2.1.8] Proteins like these let only specific particles cross. So the membrane is selectively permeable.
 [x+] The carrier protein here is a model of the glucose transporter of the game. It binds glucose and changes its shape to move the glucose across.
@@ -66,7 +69,7 @@ export const STEPS = [
 [x+] So in the same time a phospholipid moves about 2.4 times as far as a protein, on average (the distance depends on the square root of the diffusion coefficient, and the square root of {ratio} is about 2.4).
 [x+] Why are proteins slower? A protein is much larger than a phospholipid. In a living cell, other proteins and the cytoskeleton (the cell's frame of protein fibres) also limit its movement.
 [x+] Each path is random. Follow again and the path is different, so compare the averages too.
-[x+] The evidence that membrane proteins move: in 1970, Frye and Edidin joined a mouse cell and a human cell into one cell. They marked the membrane proteins of each cell with a different colour. After 40 minutes the two colours were mixed over the whole surface of almost every joined cell.` },
+[sl A2.2.3] The evidence that membrane proteins move: in 1970, Frye and Edidin joined a mouse cell and a human cell into one cell. They marked the membrane proteins of each cell with fluorescent antibodies of a different colour (immunofluorescence). After 40 minutes the two colours were mixed over the whole surface of almost every joined cell.` },
   { title: 'Carbohydrate faces outside', view: 'whole', labels: ['glyco', 'glycolipid'],
     t: `[sl B2.1.9] Some proteins and some lipids of the membrane carry a short chain of sugar units: a carbohydrate chain. A protein with carbohydrate is a glycoprotein. A lipid with carbohydrate is a glycolipid.
 [sl B2.1.9] The carbohydrate is always on the side of the membrane that faces outside the cell (the extracellular side). Cells use it to recognise each other (cell recognition) and to bind to each other (cell adhesion).
@@ -74,7 +77,18 @@ export const STEPS = [
   { title: 'The fluid mosaic model', view: 'side', labels: ['channel', 'carrier', 'glyco', 'peri', 'head2', 'tails', 'chol'],
     t: `[sl B2.1.10] Now you see the membrane from the side, like a drawing in two dimensions. This is the fluid mosaic model: a fluid bilayer of phospholipids and cholesterol, with a mosaic of integral proteins, peripheral proteins and glycoproteins.
 [sl B2.1.10] Draw the model in two dimensions. Include peripheral and integral proteins, glycoproteins, phospholipids and cholesterol, and indicate the hydrophobic and the hydrophilic regions.
-[x+] It is a model: Singer and Nicolson proposed it in 1972. A real membrane is more crowded and more varied than this picture. The list under these steps says what the picture simplifies.` }
+[x+] It is a model: Singer and Nicolson proposed it in 1972. A real membrane is more crowded and more varied than this picture. The list under these steps says what the picture simplifies.` },
+  /* 16 Nov 2026: another piece of the same membrane (view.js patch 'aqp'), with aquaporin 1 in its measured shape */
+  { title: 'Water crosses: osmosis and aquaporins', view: 'aqp', patch: 'aqp', labels: ['aquaporin', 'subunit', 'file', 'crossing'],
+    t: `[!] Here you see how water crosses the membrane.
+[sl B2.1.5, D2.3.2] Water molecules move at random, both ways. The membrane is partially permeable: water crosses it, most solutes (dissolved particles) do not. Osmosis is the net movement of water across the membrane, towards the higher solute concentration.
+[sl B2.1.5] A few water molecules cross slowly between the phospholipids. Many more cross, much faster, through aquaporins: channel proteins for water. An aquaporin has four subunits, each with its own narrow pore.
+[x] Your salivary gland cells have aquaporin 5 in the membrane next to the duct, so water follows the salts into saliva.
+[x+] In each pore the water molecules pass one behind another. In a cell, about 3 billion water molecules pass through one pore of aquaporin 1 every second. This picture is much slower.
+[x+] Scientists put small bags of membrane into a more concentrated solution. Bags with aquaporin 1 shrank, as water left them, in about 20 milliseconds (thousandths of a second). Bags without it took about half a second.
+[x+] The pore is about 2 nm long. At its narrowest it is about 0.3 nm wide: just wide enough for one water molecule. A positive charge there repels protons (hydrogen ions), so they do not cross with the water.
+[x+] Mice without aquaporin 5 make more than 60 % less saliva when their salivary glands are stimulated.
+[x+] This is aquaporin 1, drawn in its measured shape. It is held still here so that you can follow the water. In a cell it moves like the other proteins.` }
 ];
 
 /* what the picture simplifies: said once, here, under the steps (all beyond the guide) */
@@ -82,17 +96,18 @@ export const SIMPLE = [
   'Speed. The sideways movement is slowed about {slow} times: 1 second here is {real} millionths of a second in a cell. The swinging of the tails and the turning of each lipid are slowed much more.',
   'Edges. This piece is cut from a membrane that continues on every side. At an edge of the piece a molecule changes direction; in a cell it would continue.',
   'Lipids. You see one kind of phospholipid, cholesterol and one kind of glycolipid. A real cell membrane has hundreds of kinds of lipid, and its two layers differ in their lipids.',
-  'Proteins. They are models made of beads, true in size. Here they fill about 10 % of the area. In the membrane of a red blood cell they fill about one quarter.',
-  'The proteins do not work here: no ion passes through the channel, and the carrier does not change its shape.',
+  'Proteins. They are models made of beads, true in size. Here they fill about 10 % of the area. In the membrane of a red blood cell they fill about one quarter. The aquaporin of step 9 is not a model of beads: it is the measured shape of aquaporin 1.',
+  'In steps 1 to 8 the proteins do not work: no ion passes through the channel, and the carrier does not change its shape.',
   'Protein movement. All four proteins have the same diffusion coefficient here, {ratio} times smaller than the phospholipids\'. In cells it differs from protein to protein (about 5 to 50 times smaller than the lipids\'), and the cytoskeleton holds some proteins in one region.',
   'The paths come from a computer model: discs that move at random and push each other. The sizes and the ratio of the speeds come from measurements; each exact path is random.',
   'Crossing between the layers. No lipid crosses here. In a cell, cholesterol crosses much faster than a phospholipid (the measurements differ: from less than a second to minutes). At the speed of this picture, even one second is more than a month.',
-  'Not drawn: water molecules, ions and the cytoskeleton. A real membrane also bends; this one is flat.'
+  'Not drawn: ions, the cytoskeleton, and water (except in step 9). A real membrane also bends; this one is flat.',
+  'Step 9 shows another piece of the membrane, 16 nm × 13 nm. Only the water inside the aquaporin and two molecules that cross the bilayer are drawn: in a cell, water fills the space on both sides of the membrane. The aquaporin is held still. The water moves at random, both ways, and much more slowly than in a cell. No solutes are drawn, so here there is no net movement of water.'
 ];
 
 /* the sources, with what each one supports (the page ends with this list) */
 export const SOURCES = [
-  { c: 'International Baccalaureate Organization (2023). Biology guide, first assessment 2025. Topic B2.1, Membranes and membrane transport.', s: 'The statements and codes on the level tags.' },
+  { c: 'International Baccalaureate Organization (2023). Biology guide, first assessment 2025. Topics B2.1, Membranes and membrane transport, and D2.3, Water potential.', s: 'The statements and codes on the level tags.' },
   { c: 'Singer SJ, Nicolson GL (1972). The fluid mosaic model of the structure of cell membranes. Science 175: 720–731.', u: 'https://doi.org/10.1126/science.175.4023.720', s: 'The model itself.' },
   { c: 'Frye LD, Edidin M (1970). The rapid intermixing of cell surface antigens after formation of mouse-human heterokaryons. Journal of Cell Science 7: 319–335.', u: 'https://doi.org/10.1242/jcs.7.2.319', s: 'Membrane proteins move: mixed in over 90 % of fused cells after 40 minutes.' },
   { c: 'Alberts B, Johnson A, Lewis J, Raff M, Roberts K, Walter P (2002). Molecular Biology of the Cell, 4th edition, chapter 10: The lipid bilayer; Membrane proteins. Garland Science.', u: 'https://www.ncbi.nlm.nih.gov/books/NBK26871/', s: 'A lipid moves about 2 µm in a second (diffusion coefficient about 10⁻⁸ cm² s⁻¹), changes places with neighbours about 10⁷ times a second, spins and bends, and crosses to the other layer less than once a month.' },
@@ -104,5 +119,8 @@ export const SOURCES = [
   { c: 'Dupuy AD, Engelman DM (2008). Protein area occupancy at the center of the red blood cell membrane. PNAS 105: 2848–2852.', u: 'https://doi.org/10.1073/pnas.0712379105', s: 'Proteins fill at least 23 % of the area of a red blood cell membrane.' },
   { c: 'Mitra K, Ubarretxena-Belandia I, Taguchi T, Warren G, Engelman DM (2004). Modulation of the bilayer thickness of exocytic pathway membranes by membrane proteins rather than cholesterol. PNAS 101: 4083–4088.', u: 'https://doi.org/10.1073/pnas.0307332101', s: 'The thickness of the bilayer: about 4 nm from phosphate to phosphate.' },
   { c: 'Ingólfsson HI, Melo MN, van Eerden FJ, et al. (2014). Lipid organization of the plasma membrane. Journal of the American Chemical Society 136: 14554–14559.', u: 'https://doi.org/10.1021/ja507832e', s: 'A computer simulation of a cell membrane with 63 kinds of lipid and about 30 % cholesterol: the look of molecules as beads.' },
+  { c: 'Murata K, Mitsuoka K, Hirai T, Walz T, Agre P, Heymann JB, Engel A, Fujiyoshi Y (2000). Structural determinants of water permeation through aquaporin-1. Nature 407: 599–605. Its atomic model: PDB 1FQY (wwPDB, CC0), rcsb.org/structure/1FQY.', u: 'https://doi.org/10.1038/35036519', s: 'Step 9: the measured shape of aquaporin 1, its four subunits and their pores, drawn from PDB 1FQY; the pore narrows to about 0.3 nm.' },
+  { c: 'Agre P (2003). Aquaporin water channels. Nobel Lecture, 8 December 2003. The Nobel Foundation.', u: 'https://www.nobelprize.org/uploads/2018/06/agre-lecture.pdf', s: 'Step 9: about 3 billion water molecules per subunit per second; a pore in each of the four subunits, about 2 nm long, where water passes in single file, 2.8 Å at its narrowest, its arginine repelling protons; membranes with aquaporin 1 lost water in about 20 ms, without it in about 0.5 s; aquaporin 5 in the membrane of salivary gland cells next to the duct (the apical membrane), the last membrane that water crosses to make saliva.' },
+  { c: 'Ma T, Song Y, Gillespie A, Carlson EJ, Epstein CJ, Verkman AS (1999). Defective secretion of saliva in transgenic mice lacking aquaporin-5 water channels. Journal of Biological Chemistry 274: 20071–20074.', u: 'https://doi.org/10.1074/jbc.274.29.20071', s: 'Step 9: aquaporin 5 in salivary gland cells; mice without it made more than 60 % less saliva when stimulated, and their saliva was more concentrated.' },
   { c: 'Allender DW, Sodt AJ, Schick M (2019). Cholesterol-dependent bending energy is important in cholesterol distribution of the plasma membrane. Biophysical Journal 116: 2356–2366.', u: 'https://doi.org/10.1016/j.bpj.2019.03.028', s: 'Cholesterol: 4 of every 10 lipid molecules in their model of the cell membrane; its rings lie below the phospholipid heads.' }
 ];

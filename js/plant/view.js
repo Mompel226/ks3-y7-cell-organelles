@@ -18,9 +18,9 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611152200';
-import { gameLook } from './look.js?v=202611152200';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611152200';
+import { makeStage, smooth } from '../ib/stage.js?v=202611161111';
+import { gameLook } from './look.js?v=202611161111';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611161111';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -32,12 +32,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611152200'), potato: () => import('./potato.js?v=202611152200'), gut: () => import('./gut.js?v=202611152200'), ring: () => import('./ring.js?v=202611152200') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611161111'), potato: () => import('./potato.js?v=202611161111'), gut: () => import('./gut.js?v=202611161111'), ring: () => import('./ring.js?v=202611161111') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611152200', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611161111', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -58,6 +58,10 @@ export function loopMap(where, big) {
     ${LOOP.map((_, i) => arc(i)).join('')}${LOOP.map(node).join('')}</svg>`;
 }
 
+/* the IB views of 16 Nov 2026 that start from this branch's IB boxes: water potential (the vacuole) and from light to
+   glucose (the chloroplast, the light); in the game the branch closes and the view opens over the game (main.js
+   'ibview2'); at the branch's own address the door leads to the view's own address */
+const VDOOR = { vacuole: ['water', '💧 Water potential: the view →'], chloroplast: ['light', '🌞 From light to glucose: the view →'], light: ['light', '🌞 From light to glucose: the view →'] };
 export function openPlant({ mount = document.body, inGame = false, from = '', onClose = null } = {}) {
   const css = styles();
   const root = document.createElement('div');
@@ -313,7 +317,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
        the picture's IGCSE names where it has them; IB, each line marked SL or HL */
     const id = STEPS[i].id, X = XKEY[id], G = COURSE.igcse[id], B = COURSE.ib[id];
     const boxes = (G || X ? `<div class="y8 plv__lvbox" data-lv="igcse"><span class="y8__k">IGCSE</span>${X ? `<div class="plv__xkey"><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}${(G || []).map(t => `<p>${t}</p>`).join('')}</div>` : '')
-      + (B ? `<div class="y8 plv__lvbox" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}</div>` : '');
+      + (B ? `<div class="y8 plv__lvbox" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}${VDOOR[id] ? `<button type="button" class="plv__vdoor" data-view="${VDOOR[id][0]}">${VDOOR[id][1]}</button>` : ''}</div>` : '');
     li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${boxes}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
     ol.appendChild(li); if (R) R.terms(li); return li;
   }
@@ -538,6 +542,9 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     if ((e.key === '+' || e.key === '=' || e.key === '-') && !e.ctrlKey && !e.metaKey && !e.altKey && !(e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) && !zoomEl.hidden) { const r = stageEl.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, e.key === '-' ? 1 / 1.5 : 1.5); } };
   document.addEventListener('keydown', onKey);
   let closed = false;
+  root.addEventListener('click', e => { const d = e.target.closest('.plv__vdoor'); if (!d) return; const v = d.dataset.view;
+    if (!inGame) { location.href = '../' + v + '/'; return; }
+    close(); setTimeout(() => document.dispatchEvent(new CustomEvent('ibview2', { detail: { view: v } })), 0); });
   function close() {
     if (closed) return; closed = true; token++;
     document.removeEventListener('fullscreenchange', onFull); document.removeEventListener('keydown', onKey); document.removeEventListener('progress', paintLv);

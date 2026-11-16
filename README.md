@@ -16,11 +16,11 @@ use every structure in turn, in the order the cell uses them. At the end they te
 | Nucleus | the first time, the nucleus is closed: the pupil dives into one nuclear pore at its true size (about 120 nm across, with a scale bar): its three rings of proteins, its filaments, the protein net in its middle (soft protein threads, which bend aside like doors) and its basket. The camera stops above the pore (the pore and its protein net are named), then moves slowly round and down to the side of the pore while the near half of the pore fades away like a lid: the pore is seen cut in half, and the outer membrane, the space between the membranes and the inner membrane are named, the outer membrane from above, the inner from below and the space by words written inside it, so that no name hides a membrane or the space (the cut shows each membrane as two layers of lipids, the two joined round the pore). The half comes back first, so that the nucleus is whole again; then the camera goes over the pore and down through its middle, slowly through its protein net, whose threads part just in front of it like doors, then quickly through the basket (its small ring made of proteins too) into the dark inside of the nucleus. In the dark the camera turns to face the nucleus upright; then a light spreads from the pore and shows the chromosomes and the nucleolus while the camera moves straight back, without turning, until the whole nucleus shows, its front removed, and it stays open (later visits go in as before); finds chromosome 1 (each thread pressed lights up along its whole length, a light running from one end to the other while the other threads dim, so that pupils see that a chromosome is one long thread); then sees, in a picture of a cell that is going to divide, what the X of the books is: Second thread (a second, identical thread grows beside chromosome 1's thread: a cell makes one for every chromosome before it divides), Pack (the two each pack tightly, joined in the middle) and Loosen (the long thread again: this cell is not dividing, and never made a second thread); finds the amylase gene (the dive can be watched again: ↺ Watch the dive again, beside Next straight after it, and ↺ Dive through a nuclear pore again on the nucleus's last card at any later time); copies it (mRNA) with one press, or, as an Explorer, watches a film of how a cell copies a gene, step by step, forwards or back (one unbroken zoom from the whole thread of chromosome 1, the one found in the nucleus, to its packed fibre, through the histones to the double helix, with scale bars of 1 µm, 30, 11 and 2 nm; the DNA untwisted as a ladder of nucleotides, and only then A, T, C and G; the bases pair, A with T and C with G, joined by hydrogen bonds drawn as dashes; the strands separate inside the enzyme, where the hydrogen bonds break, RNA building blocks pair with one strand one at a time, the copy grows above the DNA and leaves; the word transcription is named, as an Explorer word, beyond the Year 7 list); chooses how the copy leaves, then sees it, from outside the nucleus, leave through a nuclear pore (the copy is drawn at its true thickness, about 2 nm, with a glow that shows where it is) | the copy of the gene |
 | Nucleolus | zooms to the edge of the nucleolus (a scale bar shows 50 nm) and builds the two ribosome parts there at their true size, from RNA made in the nucleolus and proteins from the cytoplasm: the small part about 25 nm across, the large part about 30 nm; sends each out, then, from far away where they are too small to see, a golden glow shows each one leaving through one of the pores nearest the rough ER and going round its layers (never through one, a fading trail behind it) to just beside it, where the rough ER is named | ribosome parts |
 | Ribosomes | beside the rough ER: on the rough ER's own line of sight, then close up in the cytosol just above its membrane, which lies across the foot of the picture (the rough ER's own close view), everything at its true size (a scale bar shows 20 nm; on the map ribosomes are drawn about four times larger, and what is far away fades): joins the two parts on the copy, a thread 2 nm thick, into a ribosome about 30 nm across; matches each amino acid (about 1 nm, on its carrier, transfer RNA, an L of two 7 nm arms) to the code (the word translation is named, as an Explorer word); chooses where this ribosome must work, then both paths: a free ribosome close by (its protein has no signal) stays in the cytosol, and yours rolls over (its large part to the membrane) and moves down to where Dock begins at the rough ER | the start of the chain |
-| Rough ER | close up, at true sizes, the membrane seen as a section (its cut face shows its two layers of lipids, about 6 nm): the ribosome (30 nm), still on its copy (mRNA), docks on a channel; makes the chain inside the rough ER, drawn whole: one bead for each of its 496 amino acids, growing out of the channel as a loop, because the channel holds its red start, the signal (15 amino acids), at its side; Go closer: the camera goes closer, the signal and a cutting enzyme in the membrane are named, and the picture waits; Cut: the enzyme cuts the signal from the chain, whose start comes free; the signal stays in the membrane and fades (other enzymes cut it into small pieces); Fold: the camera goes closer and the chain folds, bead by bead, into amylase's measured shape, then (Show its surface) the beads turn to amylase's colour and merge into its smooth surface, which is only the outside of the same amino acids: the lump the game draws for amylase, about 8 nm long and 5 nm wide, with its active site named; Bud: away from the channel the membrane itself bends, from a low swell to a ball on a narrow neck, amylase goes up through the open mouth, the neck closes, and a vesicle about 70 nm across, fourteen times as wide as amylase, has formed round it: amylase never crosses a membrane | amylase in a vesicle |
+| Rough ER | close up, at true sizes, the membrane seen as a section (its cut face shows its two layers of lipids, about 6 nm): the ribosome (30 nm), still on its copy (mRNA), with the signal hanging from it, named (its first 15 amino acids, red); the first step says why amylase is made here (it must leave the cell) and how a ribosome comes here: it does not choose; a small particle in the cytosol (not drawn; the IB box names it: the signal recognition particle) binds to the signal, then to the membrane (15 Nov 2026: Daniel and a pupil asked "how do they know that they need to go to the membrane of the rough endoplasmic reticulum?"); the ribosome docks on a channel, and the signal goes into it; makes the chain inside the rough ER, drawn whole: one bead for each of its 496 amino acids, growing out of the channel as a loop, because the channel holds its red start, the signal (15 amino acids), at its side; Go closer: the camera goes closer, the signal and a cutting enzyme in the membrane are named, and the picture waits; Cut: the enzyme cuts the signal from the chain, whose start comes free; the signal stays in the membrane and fades (other enzymes cut it into small pieces); Fold: the camera goes closer and the chain folds, bead by bead, into amylase's measured shape, then (Show its surface) the beads turn to amylase's colour and merge into its smooth surface, which is only the outside of the same amino acids: the lump the game draws for amylase, about 8 nm long and 5 nm wide, with its active site named; Bud: away from the channel the membrane itself bends, from a low swell to a ball on a narrow neck, amylase goes up through the open mouth, the neck closes, and a vesicle about 70 nm across, fourteen times as wide as amylase, has formed round it: amylase never crosses a membrane | amylase in a vesicle |
 | Smooth ER | a fine net of tubes at their true width (0.05 µm; this cell has little smooth ER); close up, at true sizes, one tube cut through, its wall two layers of lipids drawn one by one: a head and two tails join into a lipid about 3 nm long, and the three new lipids go into the layer that faces the cytosol; they spread through the ER | lipids |
 | Golgi apparatus | close up, at true sizes, the stack cut through (each sac's inside about 18 nm wide, the sacs about 42 nm apart): the vesicle from the rough ER (70 nm) joins the first sac; amylase (about 8 nm long and 5 nm wide) moves sac by sac, in small vesicles between rims; in the third sac, close up, sugars join a short chain on amylase; it sorts proteins by their labels (a vesicle to a lysosome about 80 nm); packages amylase into a vesicle about 0.9 µm across | a packed vesicle |
 | Microtubules | close up, everything at its true size (the microtubule 25 nm wide, the vesicle 900 nm across): the motor protein is probably dynein, its two heads rings 14 nm across, joined with dynactin (38 nm) and an adaptor protein on the vesicle (without them dynein is folded and almost never walks); Attach lands its heads on the microtubule, and it walks seven steps of different sizes (the vesicle moves most often 8 nm, once 16 nm, once back; one head steps round the microtubule and back); then, from far away, chooses the track to the top of the cell at each crossing | the vesicle at the top |
-| Cell membrane: the way out | a nerve message (tasting bread: the gland drawn is the parotid, which taste and chewing start); close up, at true sizes, the vesicle (about 1 µm) packed with amylase, each molecule about 8 nm long and 5 nm wide, under the cell membrane (6 nm, cut through): exocytosis, the amylase streaming out into the duct | amylase in saliva |
+| Cell membrane: the way out | a nerve message (tasting bread: the gland drawn is the parotid, which taste and chewing start); close up, at true sizes, the vesicle (about 1 µm) packed with amylase, each molecule about 8 nm long and 5 nm wide, under the cell membrane (6 nm, cut through): exocytosis, the amylase streaming out into the duct; then (16 Nov 2026) the membrane used again: close up beside another vesicle of amylase, two clathrin-coated pits on the membrane's inner face (the coat a cage of 12 pentagons and 30 hexagons of 7-nm strands), one closing into a coated vesicle about 100 nm across that moves into the cell (endocytosis), both named; with Reduce motion that end at once | amylase in saliva |
 | Does your amylase work? | starch and iodine solution: saliva in one well, water (the control) in the other | |
 | A branch, for those who wish: **Where glucose comes from** | follows glucose from a potato leaf (a palisade cell, its chloroplasts, cell wall and permanent vacuole) through starch, the potato, amylase and maltase to the blood (below) | |
 
@@ -104,7 +104,8 @@ The rule, for every step of the IB extension (`js/ib/text.js`) and of the membra
 - a tagged line that only repeated the first line was cut.
 Words on show, before and after, in all of `js/ib/text.js`: from 5,575 to 3,706; the beyond-the-guide words on
 show from 1,972 to 429. The chapters and the tally now have 27 to 49 words a step (before: 37 to 63); the insulin
-path 63 a step (before: 123). The membrane view's fifteen beyond-the-guide lines are all folded but one.
+path 63 a step (before: 123). The membrane view's fifteen beyond-the-guide lines are all folded but one (since its
+step 9, 16 Nov 2026: nineteen folded, two on show, the second step 9's salivary gland line).
 A teacher's read of the trimmed words then corrected the science where a short line had become wrong or too thin
 (for example why FADH₂ gives fewer ATP: its electrons do not pass through the first complex).
 **"More detail" is a button, and its contents are complete** (Daniel, the same day: "make sure that the more detail is
@@ -497,9 +498,35 @@ hydrophilic), with a line beyond the guide that many amino acid transporters are
 does not show which kind this one is; the glucose step's IGCSE note now says that the movement agrees with the
 description of diffusion; plainer words ("immediately", "shows all ten steps", "make oxaloacetate again"). Not changed:
 the IGCSE and the IB box share the one extension violet (the estate's rule), told apart by their headings.
+**IB in every place (16 Nov 2026; Daniel: "Yes, build 1 to 10", the first ten additions of the IB audit,
+`IB/MY LESSONS/Unit B/B2.2 Organelles and compartmentalization/B2.2 build/research/game_ib_audit.md`).** Every place but
+the first now has course layers: the nucleolus (rRNA genes, 80S ribosomes, the pores), the smooth ER (phospholipids:
+condensation, amphipathic), the Golgi apparatus (processing, glycoproteins, lysosomes and compartmentalization,
+clathrin, secretory vesicles in micrographs), the microtubules (the cytoskeleton, ATP, chromosomes in mitosis), the way
+out (the synapse, noradrenaline, the G protein and cAMP, hormones and neurotransmitters, exocytosis and endocytosis) and
+the starch test (catalyst and control, extracellular reaction, hydrolysis, gene expression); their IGCSE side names the
+0610 statement, or says that the syllabus does not name the structure. New IB lines in the way in (the red blood cell),
+the mitochondria (endosymbiosis, heat) and the nucleus (interphase, the transcriptome, 5′ and 3′, how long mRNA lasts);
+four new IB questions (way in, Golgi, way out, test); the IB map links everything taught (the plant cell's 56
+statements, both films, the insulin path). Every word a line needs is explained in that place or step: 44 words had
+been used before they were explained (the signal at the rough ER was the first found), each now explained in a few
+words or linked to its glossary meaning. Not built: the mitochondria's data question (no real data that may be
+published: no openly licensed respirometer data was found, and exam papers may not be copied). **The rest of the audit,
+16 Nov 2026** (Daniel, going away: "everything that you recommended, build it"): the starch test's **IB investigation,
+heat and time** (`js/game/bench.js`, from the test's IB box and the IB map: a third well of boiled saliva, which stays
+blue-black, and the method for timing the test, rate = 1 ÷ time, with no time given: the class measures it); **find the
+structure in a real electron micrograph** (two IB questions at the rough ER and the Golgi apparatus, a public-domain
+micrograph of pancreas cells with numbered rings on the nucleus, the rough ER and a secretory vesicle: `js/checks.js`
+`figure`, a question's `img`); the two heaviest IB boxes made shorter (the nucleus's copy step and the ribosomes'
+translation step keep the lines their questions need, and point to their film for the rest); three new IB views
+(water potential, from light to glucose, the cell fractionation lab: `js/water/`, `js/light/`, `js/fractionation/`, each
+with its own address and its own check, `tools/<view>-check.mjs`); aquaporins in the membrane view and clathrin drawn
+at the way out. Proof:
+`node tools/course-check.mjs` (eleven places), `node tools/questions-check.mjs`, `node tools/ib-pass.mjs`.
+
 **Course questions** (Daniel, 13 Nov 2026: "if you toggle IGCSE and you toggle IB, maybe you want to add questions to
 those levels … if you're key stage 3, you just do the key stage 3 questions. If you're IGCSE, you do key stage 3 and
-IGCSE, and if you're IB, you do all of them"). In each of the five places with course layers, a switch that is on also
+IGCSE, and if you're IB, you do all of them"). In each of the first five places with course layers, a switch that is on also
 shows that course's own two questions under the Year 7 checks, IGCSE above IB: 20 in all (`js/questions.js`: `place`,
 `lv`, `tier`, `code`; drawn by `quest.js` `courseQuestions`). Each place has one IGCSE Core and one Supplement
 question, and its IB questions say "SL and HL" or "HL only" in their titles. Every answer is in the words of the
@@ -527,19 +554,38 @@ first IB box of the way in has its door (`story.js` `mem: true`; `quest.js` `cou
 event `memview`); it closes with ×, Esc or its last step, back to the game. It shows one patch of an animal cell's
 plasma membrane, 26 nm × 18 nm, at true sizes: in each layer 552 phospholipids and 276 cholesterol molecules, 10
 glycolipids outside, a channel protein, a carrier protein, a glycoprotein and a peripheral protein. Every phospholipid
-moves sideways in its own layer and changes places with its neighbours; the proteins move six times more slowly. Eight
+moves sideways in its own layer and changes places with its neighbours; the proteins move six times more slowly. Nine
 steps, each waiting for Next, every paragraph tagged *SL and HL*, *HL only* or *Beyond the guide* with its statement
-of B2.1; "Follow" draws the path of one phospholipid and of the carrier protein.
+of B2.1 (or a plain first line, what the step is for); "Follow" draws the path of one phospholipid and of the carrier
+protein.
+**Step 9, water: osmosis and aquaporins** (16 Nov 2026; B2.1.5 and D2.3.2, SL and HL). Another piece of the same
+membrane, 16 nm × 13 nm (`sim.js` `AQP_PATCH`: the lipids as in the first, at the same density and speed), shown under
+the veil, with aquaporin 1 in its MEASURED shape at the middle of its cut face (`js/membrane/aqp1.js`, written from PDB
+1FQY, Murata et al. 2000, Nature 407:599, wwPDB CC0, by `~/Library/Caches/biology-hub/pdb-membrane/aqp1-shape.py`, kept
+beside the PDB files and run with `python3 -I`; it uses `tools/ib-proteins.py`'s reader: four subunits, each one
+smooth see-through surface, 7.3 nm across and 5.5 nm high, each with its pore traced through the measured atoms, at its
+narrowest 0.31 nm across). In each pore water molecules (about 0.3 nm, the pore's width: "just large enough to
+accommodate a single water molecule", Agre's Nobel lecture 2003) stand in single file and move together at random, both
+ways (`js/membrane/water.js`); two more cross the bilayer at the cut face's two ends, slowly. The aquaporin is held
+still and no solutes are drawn (so there is no net movement here); the page says so. The words: osmosis as the net
+movement of water through a partially permeable membrane towards the higher solute concentration; aquaporins as channel
+proteins for water, much faster than the bilayer (Agre: membranes with aquaporin 1 lost water in about 20 ms, without
+it in about 0.5 s; about 3 billion water molecules a second through one pore); beyond the guide, aquaporin 5 in the
+salivary gland cell's membrane next to the duct (Agre 2003; Ma et al. 1999, J Biol Chem 274:20071).
 What is true and what is a model is said on the page: the sideways movement is slowed about 4 million times (a
 phospholipid's diffusion coefficient is about 1 µm² s⁻¹; Alberts et al. 2002; Phillips 2018); the ratio of six is that
 of two measurements in the same rat kidney cells, 0.42 µm² s⁻¹ for a phospholipid and 0.070 µm² s⁻¹ for the
 transferrin receptor (Fujiwara et al. 2002, J Cell Biol 157:1071; both read at 33 ms a frame; the ratio is this page's
 arithmetic, not the paper's words); a phospholipid crosses to the other layer so rarely (hours to days; van Meer et
 al. 2008) that at this speed it would take thousands of years, so none is shown and the words say so; the proteins
-are bead models of the right size and do not work; the motion is a model of soft discs. Its 13 sources are listed at
-the end of the page. `node tools/membrane-check.mjs` proves what the page claims (no lipid leaves its layer in 240
-drawn frames; the stated speeds; every name on a molecule of the named kind, read back from the picture; each step a
-still with Reduce motion; a laptop and a phone) and exits 1 if the view is absent; `node tools/ib-switch.mjs` presses
+are bead models of the right size and do not work (but step 9's aquaporin); the motion is a model of soft discs. Its
+16 sources are listed at the end of the page. `node tools/membrane-check.mjs` proves what the page claims (no lipid
+leaves its layer in 240 drawn frames; the stated speeds; every name on a molecule of the named kind, read back from the
+picture; each step a still with Reduce motion; a laptop and a phone; since 16 Nov 2026, step 9: its own piece shown,
+the aquaporin's measured size, four subunits and four pores 0.26–0.36 nm at their narrowest, a water molecule about
+0.3 nm, single file in every pore, the files moving both ways with no jump and water passing the pores' middles, two
+molecules crossing the bilayer more slowly, each name of water ending on a water molecule, and every level code on
+every step checked against the guide at its level) and exits 1 if the view is absent; `node tools/ib-switch.mjs` presses
 the door in the game. An independent reviewer judged its pictures and words, and its faults were fixed. Not done: no
 Korean or Chinese tip and no 🔊 on its words (they are explained in their sentences); not seen on a real phone.
 **From glucose to ATP** is the IB extension that the doors and the place's end card open. It is a view of its own, over the whole page, with its own address for IB lessons:
@@ -677,7 +723,15 @@ works, because a code is made from who the pupil is, never from the questions). 
 run of six words with the game), and none gives another away. There is no help and nothing is marked until the pupil finishes; they have one go (a check started on one computer and not finished opens by itself on any other computer the pupil signs in on, and continues there with no code and no way back to the game: the start is in the teacher's record), and
 then see their score and which questions were not right, never the answers. The right answers are not in the page,
 only their scrambled fingerprints, so a pupil cannot read them out of it. A pupil must be signed in to start it; the
-teacher's board then has every answer, the score and the time it took.
+teacher's board then has every answer, the score and the time it took. If a question cannot be shown on a computer, it
+says so, and Back, Next and the numbers still work; a check begun before a question was added gets that question too
+(16 Nov 2026: pupils whose check was begun before 13 Nov were stuck on a question with no options).
+**The right answers come later, when the teacher chooses** (16 Nov 2026): on the teacher page's 🔬 Practicals, *Show the
+answers to* a class, or *Show* beside one pupil's score. Then each pupil who has finished presses *See the right answers
+and why* (or *Check again*, if the page was open) and goes through every question again: their own answer beside the right
+one, why, and a button to each place of the game that teaches it, with its step lit and a way back to the answers. A
+teacher signed in can open them from the first card of the check, to go through them with a class. The answers are in the
+page only locked; the labs script gives the key only to a teacher and to a released pupil who has finished.
 
 **Sound.** Off until the pupil presses 🔈 Sound (top left, from the first screen, with ⛶ Full screen; on a phone, as two
 small icons): a chime at once, then, from the moment they dive into the 3D cell and never before, music for the
@@ -715,7 +769,9 @@ early. With Reduce motion on it shows the step's stills.
 
 **For the teacher.** A pupil signed in with their school Google account has every check and every finished place saved for
 their teacher, live on the teacher page's 🔬 Practicals board. Signed out, the game works the same and nothing leaves the
-computer. Progress is kept in the browser, so a pupil can stop and carry on later.
+computer. Progress is kept in the browser, so a pupil can stop and carry on later. A signed-in pupil's progress also comes
+back from the teacher's record (16 Nov 2026): on a cleared browser or another computer, their finished places and right
+answers return when they sign in. After ↺ Start again nothing returns: starting again means starting again.
 
 **Made by** Dr Daniel Mompel Riera. Something wrong, or a suggestion? dmompelriera@nlcsjeju.kr
 
@@ -837,6 +893,15 @@ The `tools/` named here stay on Daniel's computer: they are not in this reposito
   `node tools/final-check.mjs` takes the check end to end in headless Chrome (a made-up pupil, a stand-in labs script:
   the code, nothing marked before Finish, a reload, all right, all wrong, a mix, one go, a check started on another computer, a phone and the keyboard; it counts
   the questions and the marks from the master, so a new question needs no change to it).
+  `node tools/restore-check.mjs` proves a signed-in pupil's progress comes back from the record on a cleared browser
+  (places, answers, the bag, the nucleus), never after ↺ Start again or for a teacher, and that a check begun before a
+  question was added opens on that question with its options, Back and Next (it fails on the game of before 16 Nov 2026).
+  The right answers: `tools/final.master.mjs` gives each question `say` (why, for the pupil) and `where` (the places that
+  teach it); `node tools/make-final.mjs` writes them, with each right answer, only into `js/final-review.js`, locked with the
+  key in `tools/final-review.key` (made once; keep it: the labs script holds the same key, typed once on the teacher page,
+  and a new one must be typed again). `node tools/make-final.mjs --review` rewrites only that file; `--check` proves it
+  opens and every right answer in it marks right. `node tools/review-check.mjs` takes the answers end to end (released,
+  not released, Check again, finished on another computer, a teacher, a place of the game and back, a wrong key).
   After changing a question: `make-final`, `final-overlap`, `make-questions`, then `stamp`.
   The sound: `python3 tools/music.py` makes the three pieces small and sets their loudness (`--check` measures it:
   −24 LUFS each), `python3 tools/sounds.py` makes the game's nine sounds from the VCSL recordings and tunes them; the

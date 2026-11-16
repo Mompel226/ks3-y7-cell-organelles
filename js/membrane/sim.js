@@ -55,10 +55,22 @@ export const PROTEINS = [
   { id: 'glyco', R: 0.9, x: 8.2, z: -2.8, integral: true, top: 1.9 },   /* top: its part outside the cell, as wide as this: glycolipids keep out */
   { id: 'peripheral', R: 0, x: 6.2, z: 6.3, integral: false, body: 1.7, zMin: 4.6 }
 ];
+/* step 9 (16 Nov 2026): another piece of the same membrane, 16 nm × 13 nm, with aquaporin 1 (its measured shape:
+   aqp1.js, PDB 1FQY; 7.3 nm across, so R 3.5: its atoms reach 3.4 nm from its middle in the bilayer's core, 98 % of
+   them) at the middle of its cut face. The lipids as in the first piece, at the same density (2.0 molecules per nm² of
+   each layer that the proteins leave free; 1 in 3 cholesterol), so they move as fast. The aquaporin is held still
+   (fixed) so that the pupil can follow the water through its four pores; the page says so (text.js SIMPLE). ang: its
+   turn, so that from the step's camera its four pores stand apart across the picture. D0: in this smaller piece the
+   edges and the still protein hold the lipids back more; fitted in node (3 seeds × 120 s) so that the phospholipids'
+   mean squared displacement over 20 s is again about 20 nm² (19 to 21; 0.90 gave 16). */
+export const AQP_PATCH = { W: 16, D: 13, N_PL: 218, N_CH: 109, N_GLYCO: 3, D0: 1.15,
+  proteins: [{ id: 'aquaporin', R: 3.5, x: 0, z: 2.6, ang: 0.42, integral: true, fixed: true }] };
 
 const mulberry = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
-export function makeSim(seed = 7) {
+/* o: another piece of membrane (AQP_PATCH): its size, its numbers of lipids and its proteins; the first piece without it */
+export function makeSim(seed = 7, o = null) {
+  const Q = o ? Object.assign({}, P, o) : P, PROTS = o && o.proteins ? o.proteins : PROTEINS;
   const R = mulberry(seed);
   let spare = null;
   const gauss = () => {
@@ -67,14 +79,14 @@ export function makeSim(seed = 7) {
     const m = Math.sqrt(-2 * Math.log(u)), a = 6.283185307179586 * R();
     spare = m * Math.sin(a); return m * Math.cos(a);
   };
-  const HW = P.W / 2, HD = P.D / 2, PER = P.N_PL + P.N_CH, N = PER * 2;
+  const HW = Q.W / 2, HD = Q.D / 2, PER = Q.N_PL + Q.N_CH, N = PER * 2;
   const x = new Float32Array(N), z = new Float32Array(N), vx = new Float32Array(N), vz = new Float32Array(N);
   const fx = new Float32Array(N), fz = new Float32Array(N), rad = new Float32Array(N);
   const layer = new Uint8Array(N);      /* 0: the outer layer (up, outside the cell); 1: the inner layer (down, cytoplasm). NEVER changed. */
   const kind = new Uint8Array(N);       /* 0 phospholipid, 1 cholesterol, 2 glycolipid */
   const phase = new Float32Array(N), spin = new Float32Array(N), turn0 = new Float32Array(N);
   const kink = new Uint8Array(N);       /* a phospholipid's second tail: 1 = unsaturated (bent), 0 = saturated (straight) */
-  const prot = PROTEINS.map(p => Object.assign({ vx: 0, vz: 0, ang: R() * 6.283, w: 0 }, p));
+  const prot = PROTS.map(p => Object.assign({ vx: 0, vz: 0, ang: R() * 6.283, w: 0 }, p));
 
   /* ---- where each lipid starts: a hexagonal lattice with the proteins' places left out, kinds at random ---- */
   for (let L = 0; L < 2; L++) {
@@ -90,29 +102,30 @@ export function makeSim(seed = 7) {
     for (let k = 0; k < PER; k++) {
       const i = L * PER + k;
       x[i] = sites[k][0]; z[i] = sites[k][1]; layer[i] = L;
-      kind[i] = k < P.N_CH ? 1 : 0; rad[i] = kind[i] === 1 ? P.CH_R : P.PL_R;
+      kind[i] = k < Q.N_CH ? 1 : 0; rad[i] = kind[i] === 1 ? P.CH_R : P.PL_R;
       phase[i] = R() * 6.283; spin[i] = (R() < 0.5 ? -1 : 1) * (0.25 + R() * 0.5); turn0[i] = R() * 6.283;
       kink[i] = R() < 0.72 ? 1 : 0;
     }
   }
   /* glycolipids: outer layer only (the carbohydrate is always on the side outside the cell), away from the glycoprotein */
-  for (let made = 0, i = P.N_CH; made < P.N_GLYCO && i < PER; i += 41) {
-    const g = prot[2]; if (Math.hypot(x[i] - g.x, z[i] - g.z) < g.top + 1) continue;
+  const g = prot.find(q => q.id === 'glyco');
+  for (let made = 0, i = Q.N_CH; made < Q.N_GLYCO && i < PER; i += 41) {
+    if (g && Math.hypot(x[i] - g.x, z[i] - g.z) < g.top + 1) continue;
     kind[i] = 2; made++;
   }
 
   /* ---- the grid that finds neighbours (one per layer; nothing is allocated while the model runs) ---- */
-  const CELL = 0.8, GX = Math.ceil(P.W / CELL), GZ = Math.ceil(P.D / CELL), cells = GX * GZ;
+  const CELL = 0.8, GX = Math.ceil(Q.W / CELL), GZ = Math.ceil(Q.D / CELL), cells = GX * GZ;
   const head = new Int32Array(cells * 2), next = new Int32Array(N);
-  const S = { P, N, PER, x, z, layer, kind, rad, phase, spin, turn0, kink, prot, t: 0, steps: 0 };
-  const sNoise = Math.sqrt(2 * P.D0 * P.DT) / P.TAU, kv = P.DT / P.TAU;
+  const S = { P: Q, N, PER, x, z, layer, kind, rad, phase, spin, turn0, kink, prot, t: 0, steps: 0 };
+  const sNoise = Math.sqrt(2 * Q.D0 * P.DT) / P.TAU, kv = P.DT / P.TAU;
   const sP = Math.sqrt(2 * P.PROT_D * P.DT) / P.TAU_P, kP = P.DT / P.TAU_P, sR = Math.sqrt(2 * P.D_ROT * P.DT) / P.TAU_R, kR = P.DT / P.TAU_R;
 
   function step() {
     const dt = P.DT, push = P.PUSH * dt * 0.5;
     /* the proteins first: a smooth random path, the patch's edges, and each other */
     for (let a = 0; a < prot.length; a++) {
-      const p = prot[a];
+      const p = prot[a]; if (p.fixed) continue;
       p.vx += -p.vx * kP + sP * gauss(); p.vz += -p.vz * kP + sP * gauss();
       p.w += -p.w * kR + sR * gauss();
       p.x += p.vx * dt; p.z += p.vz * dt; p.ang += p.w * dt;
@@ -122,10 +135,10 @@ export function makeSim(seed = 7) {
       /* two integral proteins keep a ring of lipids between them; the peripheral one keeps clear of their parts below the membrane */
       const d = (p.integral && q.integral) ? p.R + q.R + 0.9 : (p.R || p.body) + (q.R || q.body) + 0.2;
       const dx = q.x - p.x, dz = q.z - p.z, r = Math.hypot(dx, dz);
-      if (r < d && r > 1e-6) { const m = (d - r) * 0.5 * Math.min(1, P.PUSH * dt * 2) / r; p.x -= dx * m; p.z -= dz * m; q.x += dx * m; q.z += dz * m; }
+      if (r < d && r > 1e-6) { const m = (d - r) * 0.5 * Math.min(1, P.PUSH * dt * 2) / r; if (!p.fixed) { p.x -= dx * m; p.z -= dz * m; } if (!q.fixed) { q.x += dx * m; q.z += dz * m; } }
     }
     for (let a = 0; a < prot.length; a++) {
-      const p = prot[a], e = (p.R || p.body) + 0.35, z0 = p.zMin != null ? p.zMin : -HD + e;
+      const p = prot[a], e = (p.R || p.body) + 0.35, z0 = p.zMin != null ? p.zMin : -HD + e; if (p.fixed) continue;
       if (p.x < -HW + e) { p.x = -HW + e; if (p.vx < 0) p.vx = -p.vx; } else if (p.x > HW - e) { p.x = HW - e; if (p.vx > 0) p.vx = -p.vx; }
       if (p.z < z0) { p.z = z0; if (p.vz < 0) p.vz = -p.vz; } else if (p.z > HD - e) { p.z = HD - e; if (p.vz > 0) p.vz = -p.vz; }
     }

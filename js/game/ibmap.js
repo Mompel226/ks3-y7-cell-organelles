@@ -17,14 +17,26 @@ const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
 /* the IB guide's topic names (Biology guide, first assessment 2025) */
 const TOPIC = {
-  'A1.2': 'Nucleic acids', 'A2.2': 'Cell structure', 'B1.1': 'Carbohydrates and lipids', 'B1.2': 'Proteins',
-  'B2.1': 'Membranes and membrane transport', 'B2.2': 'Organelles and compartmentalization', 'C1.2': 'Cell respiration',
-  'C2.1': 'Chemical signalling', 'D1.2': 'Protein synthesis', 'D2.1': 'Cell and nuclear division', 'D2.3': 'Water potential'
+  'A1.1': 'Water', 'A1.2': 'Nucleic acids', 'A2.2': 'Cell structure', 'B1.1': 'Carbohydrates and lipids', 'B1.2': 'Proteins',
+  'B2.1': 'Membranes and membrane transport', 'B2.2': 'Organelles and compartmentalization', 'B2.3': 'Cell specialization',
+  'B3.1': 'Gas exchange', 'B3.2': 'Transport', 'B4.2': 'Ecological niches', 'C1.1': 'Enzymes and metabolism', 'C1.2': 'Cell respiration',
+  'C1.3': 'Photosynthesis', 'C2.1': 'Chemical signalling', 'C2.2': 'Neural signalling', 'D1.1': 'DNA replication',
+  'D1.2': 'Protein synthesis', 'D2.1': 'Cell and nuclear division', 'D2.2': 'Gene expression', 'D2.3': 'Water potential',
+  'D3.3': 'Homeostasis'
 };
-export const PLACES = ['wayin', 'mito', 'nucleus', 'ribosome', 'rer'];
+/* every place with an IB layer (story.js `course.ib`), in the order of the story (16 Nov 2026: eleven of the twelve) */
+export const PLACES = Object.keys(STORY).filter(id => STORY[id].course && STORY[id].course.ib);
 /* the plant cell's IB lines (js/plant/text.js COURSE: `chloroplast` B2.2.5 AHL; `vacuole` D2.3.2, D2.3.3, D2.3.6 SL and
    D2.3.8 to D2.3.10 AHL) */
-export const PLANT = { 'B2.2.5': 'hl', 'D2.3.2': 'sl', 'D2.3.3': 'sl', 'D2.3.6': 'sl', 'D2.3.8': 'hl', 'D2.3.9': 'hl', 'D2.3.10': 'hl' };
+/* (16 Nov 2026: every statement of the side quest's IB lines, from the comments of its COURSE, not only B2.2.5 and D2.3:
+   the audit found 51 taught statements with no door on the map) */
+export const PLANT = {'A1.1.3': 'sl', 'A2.2.10': 'sl', 'A2.2.11': 'sl', 'A2.2.2': 'sl', 'A2.2.6': 'sl', 'A2.2.8': 'sl', 'B1.1.2': 'sl', 'B1.1.3': 'sl', 'B1.1.5': 'sl', 'B1.1.6': 'sl', 'B2.1.1': 'sl', 'B2.1.10': 'sl', 'B2.1.16': 'hl', 'B2.1.2': 'sl', 'B2.1.4': 'sl', 'B2.1.7': 'sl', 'B2.1.8': 'sl', 'B2.2.1': 'sl', 'B2.2.5': 'hl', 'B2.2.7': 'hl', 'B2.2.8': 'hl', 'B2.3.6': 'sl', 'B2.3.7': 'hl', 'B3.1.7': 'sl', 'B3.1.8': 'sl', 'B3.1.9': 'sl', 'B3.2.1': 'sl', 'B3.2.18': 'hl', 'B3.2.7': 'sl', 'B4.2.4': 'sl', 'C1.1.11': 'hl', 'C1.1.3': 'sl', 'C1.1.4': 'sl', 'C1.1.5': 'sl', 'C1.1.6': 'sl', 'C1.2.1': 'sl', 'C1.2.2': 'sl', 'C1.2.4': 'sl', 'C1.2.5': 'sl', 'C1.3.1': 'sl', 'C1.3.11': 'hl', 'C1.3.12': 'hl', 'C1.3.13': 'hl', 'C1.3.14': 'hl', 'C1.3.15': 'hl', 'C1.3.16': 'hl', 'C1.3.2': 'sl', 'C1.3.3': 'sl', 'C1.3.5': 'sl', 'D2.3.10': 'hl', 'D2.3.2': 'sl', 'D2.3.3': 'sl', 'D2.3.6': 'sl', 'D2.3.8': 'hl', 'D2.3.9': 'hl', 'D3.3.3': 'sl'};
+/* the two films of the places' IB boxes (js/game/transcribe.js LINES, js/game/ribofilm.js STEPS: their lines, by level),
+   opened from the map as from their boxes ('coursefilm') */
+export const FILMS = {
+  copy: { title: 'Film: how a cell copies a gene (the nucleus)', codes: {'A1.2.1': 'sl', 'A1.2.12': 'hl', 'A1.2.13': 'hl', 'A1.2.2': 'sl', 'A1.2.3': 'sl', 'A1.2.4': 'sl', 'A1.2.5': 'sl', 'A1.2.6': 'sl', 'A1.2.7': 'sl', 'A2.2.6': 'sl', 'D1.2.1': 'sl', 'D1.2.12': 'hl', 'D1.2.13': 'hl', 'D1.2.15': 'hl', 'D1.2.2': 'sl', 'D1.2.3': 'sl', 'D1.2.4': 'sl'} },
+  ribo: { title: 'Film: how a ribosome reads the copy (the ribosomes)', codes: {'A1.2.7': 'sl', 'B1.2.2': 'sl', 'B1.2.4': 'sl', 'D1.2.10': 'sl', 'D1.2.12': 'hl', 'D1.2.17': 'hl', 'D1.2.18': 'hl', 'D1.2.5': 'sl', 'D1.2.6': 'sl', 'D1.2.7': 'sl', 'D1.2.8': 'sl', 'D1.2.9': 'sl'} }
+};
 const TAG = /\[(sl|hl)\s+([A-D]\d\.\d\.\d+(?:\s*,\s*[A-D]\d\.\d\.\d+)*)\]/g;
 const tagged = (o, into = {}) => { JSON.stringify(o).replace(TAG, (m, lv, cs) => { cs.split(/\s*,\s*/).forEach(c => { into[c] = into[c] === 'sl' ? 'sl' : lv; }); return m; }); return into; };
 const topicOf = c => c.split('.').slice(0, 2).join('.');
@@ -45,10 +57,21 @@ export async function doors() {
     C.ib.forEach(b => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') codes[c] = codes[c] === 'sl' ? 'sl' : lv; })));
     out.push({ id, kind: 'place', title: STORY[id].title, codes });
   });
-  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611152200'), import('../ib/text.js?v=202611152200')]);
+  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611161111'), import('../ib/text.js?v=202611161111')]);
   out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS) });
   T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes }); });
-  out.push({ id: 'plant', kind: 'side', title: 'Side quest: the plant cell (its chloroplasts and its vacuole)', codes: Object.assign({}, PLANT) });
+  /* the insulin path, an Explore of the view (text.js EXPLORE 'x-insulin'): opened at its start */
+  const X = T.EXPLORE && T.EXPLORE['x-insulin'];
+  if (X) out.push({ id: 'atp-x-insulin', ci: 'x-insulin', kind: 'view', title: 'From glucose to ATP: insulin and its receptor', codes: tagged(X) });
+  Object.entries(FILMS).forEach(([k, f]) => out.push({ id: 'film-' + k, film: k, kind: 'film', title: f.title, codes: Object.assign({}, f.codes) }));
+  /* the three views of 16 Nov 2026, each read from its own words (js/<view>/text.js STEPS, tagged as the others) */
+  for (const [v, title] of [['water', 'Water potential'], ['light', 'From light to glucose'], ['fractionation', 'Cell fractionation lab']]) {
+    try { const m = await import(`../${v}/text.js?v=202611160713`); const codes = tagged(m.STEPS || m); if (Object.keys(codes).length) out.push({ id: v, kind: 'view2', view: v, title, codes }); }
+    catch (e) { /* (a view not on this copy of the site) */ }
+  }
+  /* the starch test's investigation (js/game/bench.js: its tagged lines) */
+  out.push({ id: 'bench', kind: 'bench', title: 'IB investigation: heat and time (the starch test)', codes: { 'B1.2.5': 'sl', 'C1.1.7': 'sl', 'C1.1.8': 'sl', 'C1.1.9': 'sl' } });
+  out.push({ id: 'plant', kind: 'side', title: 'Side quest: the plant cell (from light to glucose, starch, water)', codes: Object.assign({}, PLANT) });
   return out;
 }
 
@@ -60,7 +83,7 @@ export async function openIBMap({ open, teacher }) {
   box.hidden = false; document.documentElement.classList.add('ibmap-open');
   const D = await doors(), topics = {};
   D.forEach(d => Object.keys(d.codes).forEach(c => { const t = topicOf(c); if (!TOPIC[t]) return; ((topics[t] = topics[t] || new Map()).get(d) || topics[t].set(d, []).get(d)).push(c); }));
-  const KIND = { place: 'Place in the cell', view: 'IB view', side: 'Side quest' };
+  const KIND = { place: 'Place in the cell', view: 'IB view', film: 'Film', bench: 'Investigation', side: 'Side quest' };
   const link = id => location.origin + location.pathname.replace(/index\.html$/, '') + '#ib-' + id;
   const row = (d, cs) => `<li class="ibmap__row"><button type="button" class="ibmap__door" data-door="${d.id}"><span class="ibmap__dt">${esc(d.title)}</span><span class="ibmap__dk">${KIND[d.kind]} →</span></button>
     <span class="ibmap__codes">${cs.sort(codeSort).map(c => `<span class="ibl ibl--${d.codes[c]}">${c}${d.codes[c] === 'hl' ? ' HL' : ''}</span>`).join(' ')}</span>${teacher ? `<button type="button" class="ibmap__copy" data-link="${esc(link(d.id))}">Copy link</button>` : ''}</li>`;

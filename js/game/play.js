@@ -5,21 +5,22 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611152200';
-import { state, COST, RESPIRE } from './state.js?v=202611152200';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611152200';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611152200';
-import { sound } from './sound.js?v=202611152200';
-import { magicStandard } from '../world/magic.js?v=202611152200';
-import { buildCrowd } from '../world/crowd.js?v=202611152200';
-import { Names } from './names.js?v=202611152200';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611161111';
+import { state, COST, RESPIRE } from './state.js?v=202611161111';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611161111';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611161111';
+import { sound } from './sound.js?v=202611161111';
+import { magicStandard } from '../world/magic.js?v=202611161111';
+import { buildCrowd } from '../world/crowd.js?v=202611161111';
+import { Names } from './names.js?v=202611161111';
+import { makePit } from './clathrin.js?v=202611161111';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611152200').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611161111').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611152200').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611161111').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
@@ -986,7 +987,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611152200').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611161111').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -2311,14 +2312,21 @@ export function makePlay(world, quest) {
     const f = rerFace();
     const r = calm(keep(token('ribosome', TSZ.rib))); r.quaternion.setFromUnitVectors(V(0, 1, 0), f.n.clone().negate()); r.position.copy(ep(-28, 46)); props.rib = r;
     const cp = rerCopy(r.position);
-    const sig = theSig(); sig.position.set(0, 0, 0); hairSet(null, sig, 0, r.position.clone().sub(seat()));   /* (the signal hangs from the ribosome: it moves with it) */
+    /* the signal hangs from the ribosome's exit (the large part's foot, 16.5 nm below its middle), out in the cytosol, where
+       the particle binds it: its 15 red amino acids in a short line toward the membrane (Daniel, 15 Nov 2026: "I didn't see
+       the signal anywhere"; before, it lay across the channel's mouth already, under the ribosome, where nothing showed it).
+       It moves with the ribosome as it docks, into the channel, and then takes its place there (hairSet below). */
+    const sig = theSig(); sig.position.set(0, 0, 0);
+    const down = f.n.clone().negate(), sigAt = m => r.position.clone().addScaledVector(down, (16.5 + 0.6 + m * 0.38) / 1000).addScaledVector(f.right, 0.45 * Math.sin(m * 0.9) / 1000);
+    for (let m = 0; m < SIG.n; m++) { const v = sigAt(m); sig.userData.put(m, v.x, v.y, v.z); } sig.userData.done(); world.kick();
     await rerClose();   /* (the ribosome is there before the dive: it comes into sight as the camera comes near) */
-    rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)]]);
+    /* the signal named, until the ribosome docks (step 1 says what it is and how the ribosome comes here) */
+    rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-sig', 'signal', [sigAt(9)]]]);
     await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
     await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
     sig.position.set(0, 0, 0); hairSet(null, sig, 0);
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(seat(), 0.0135)]]);
-    quest.say('The ribosome sits on a channel in the membrane of the rough ER. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
+    quest.say('The ribosome sits on a channel in the membrane of the rough ER, and the signal is now in the channel. The membrane is about 6 nm thick: two layers of lipids.', 'ok');
   }
   /* ---- the chain itself, drawn whole (12 Nov 2026) ----
      Daniel, of the film "From DNA to protein - 3D": "I really like when it shows at the end how the different proteins,
@@ -3525,7 +3533,80 @@ export function makePlay(world, quest) {
     await quest.gain('saliva', FUSE);
     state.use('top');
   }
-  async function flatten() { await quest.next('Back to the map'); }
+  /* ---------------- endocytosis: the membrane used again (16 Nov 2026) ----------------
+     The way out's last line (story.js exit, step 3): "Later, new vesicles form from this membrane and return inside the
+     cell, so the membrane is used again" (its IB box: endocytosis, and clathrin bending the membrane into a pit). Before,
+     the step showed nothing. Now the camera comes close again, at true sizes, beside another vesicle of amylase waiting
+     under the membrane (1 µm across, as at Release): on the inner face of the cell membrane two clathrin-coated pits
+     (clathrin.js: the coat a cage of 12 pentagons and 30 hexagons of 7-nm strands; a coated vesicle about 100 nm across,
+     the membrane vesicle in it about 60 nm; Heuser 1980, J Cell Biol 84:560; Paraan et al. 2020, Sci Adv 6:eaba8397).
+     One deepens, its neck closes and it leaves as a coated vesicle, 220 nm into the cell; the other is still a pit, so
+     both are named at the end. With Reduce motion that end shows at once, both named. The pits hang under the membrane
+     80 nm behind its cut face (seen past its edge, eye level with it); the vesicle of amylase stands in the cut face's
+     own plane, as at Release. All of it belongs to the close drawing (props.close), so it comes and goes with it.
+     Proof: tools/look.mjs --place exit, tools/true-size.mjs F */
+  const ENDO = { A: 430, B: 665, Z: -80, VX: -330, VY: -(GR * 1000 + 70), DX: 40 };   /* nm: the two pits, how far behind the cut face, the vesicle of amylase, how far sideways the coated vesicle goes */
+  /* the view: the right part of the vesicle of amylase, both pits, and where the coated vesicle goes (nm; a phone: taller) */
+  const endoView = () => (PHONE() ? { x: 390, y: 40, w: 800, h: 980 } : { x: 290, y: -120, w: 1000, h: 760 });   /* (the membrane under the corner boxes: a third of the way down on a laptop, lower on a phone, whose boxes are larger) */
+  function endoMake() {
+    const close = exitMembrane();
+    if (props.endo && props.endo.g.parent === close) return props.endo;
+    const g = new THREE.Group(); g.userData.kind = 'endocytosis';
+    const coat = magicStandard({ color: 0xf1eadb, roughness: 0.55, emissive: 0x3a3428, emissiveIntensity: 0.3 }, { rim: 0xffffff, rimK: 0.5 });
+    const mem = magicStandard({ color: 0xff9ac8, roughness: 0.5 }, { rim: 0xffd6ea, rimK: 0.4 });   /* (the membrane's own heads: exitMembrane) */
+    const A = makePit({ mem, coat }), B = makePit({ mem, coat });
+    A.g.position.set(ENDO.A / 1000, 0, ENDO.Z / 1000); B.g.position.set(ENDO.B / 1000, 0, ENDO.Z / 1000);
+    A.g.userData.kind = 'coated-vesicle';
+    const ves = token('vesicle', GR); ves.add(amyCloud(GR - 0.03, 7000)); ves.position.set(ENDO.VX / 1000, ENDO.VY / 1000, 0);
+    g.add(A.g, B.g, ves); close.add(g);
+    return (props.endo = { g, A, B, ves });
+  }
+  const endoClose = () => { exitMembrane(); const F = exitFrame(), v = endoView(), dist = fitDist(v.w, v.h), a = Math.asin(-v.y / 1000 / dist), dir = F.along.clone().multiplyScalar(Math.cos(a)).addScaledVector(F.n, Math.sin(a)).normalize();
+    return nanoIn({ at: xp(v.x, v.y), dir, up: F.n.clone(), dist }, NEAR_HIDE().concat(groupsOf(['membrane', 'apex', 'granules', 'centrosome', 'beam', 'acinus']))); };
+  /* the names: the membrane between the pits and beside them, the two sides, the vesicle of amylase by its right edge, the
+     pit that stays (on its coat, below and to each side), and the coated vesicle by its edge (the cut face's plane of a
+     pit is 80 nm nearer the camera than its middle: the points stand on its near side) */
+  function endoNames(E, end) {
+    const F = exitFrame(), at = (P, X, a, r) => fp(F, X + P.st.x + Math.cos(a) * r, P.st.yc + Math.sin(a) * r, ENDO.Z + 40), deg = Math.PI / 180, C = exitMembrane();
+    const vesAt = C.localToWorld(E.ves.position.clone()), cv = C.localToWorld(E.A.centre().add(E.A.g.position));
+    const list = [
+      ['x-mem', 'cell membrane', [xp(160, 0), xp(548, 0), xp(780, 0), xp(260, 0)], { up: -1, len: 30 }],
+      ['x-out', 'outside the cell', [xp(560, 120), xp(300, 130), xp(720, 110), xp(420, 90), xp(790, 70)], { aside: false, small: '<span class="nm__t">outside<br>the cell</span>' }],
+      ['x-in', 'inside the cell', [xp(760, -440), xp(700, -520), xp(520, -420), xp(480, -400), xp(640, -470), xp(330, -440)], { aside: false, small: '<span class="nm__t">inside<br>the cell</span>' }],
+      ['x-ves2', 'a vesicle with amylase', [0, -30, 30, -55, 45, 60].map(d => vesAt.clone().addScaledVector(F.right, Math.cos(d * deg) * GR).addScaledVector(F.n, Math.sin(d * deg) * GR)), { sides: [1, 1, 1, 1, 1, 1], small: '<span class="nm__t">vesicle with<br>amylase</span>' }],
+      ['x-pit', 'clathrin-coated pit', [at(E.B, ENDO.B, -90 * deg, 46), at(E.B, ENDO.B, -40 * deg, 46), at(E.B, ENDO.B, -140 * deg, 46)], { sides: [1, 1, -1], small: '<span class="nm__t">clathrin-<br>coated pit</span>' }]
+    ];
+    /* (its two places, at its sides: the name with the fewest places is placed first, and a small part needs its room) */
+    if (end) { const [P, o] = rimSpots(F, cv.addScaledVector(F.along, 0.04), 0.049); list.push(['x-cv', 'coated vesicle', [P[0], P[3]], { sides: [o.sides[0], o.sides[3]], small: '<span class="nm__t">coated<br>vesicle</span>' }]); }
+    else list.push(['x-pit2', 'clathrin-coated pit', [at(E.A, ENDO.A, -90 * deg, 46), at(E.A, ENDO.A, -140 * deg, 46)], { sides: [-1, -1], small: '<span class="nm__t">clathrin-<br>coated pit</span>' }]);
+    /* (as closeNames, with the scale bar and Hide text kept clear too: on a phone "inside the cell" had stood on Hide text,
+       and the vesicle's line had run over the scale bar) */
+    const c = xp(endoView().x, endoView().y);
+    quest.names.set((end ? list : list.filter(n => n[0] !== 'x-pit')).map(([key, html, spots, o]) => Object.assign({ key, free: true, aside: true, html: `<span class="nm__t">${html}</span>`, spots }, o || {})), HUDN(),
+      Object.assign(lr(c.clone().addScaledVector(F.right, -0.5), c.clone().addScaledVector(F.right, 0.5)), { on: true }), [E.ves, E.A.hull, E.B.hull, E.A.parts.mem, E.B.parts.mem]);
+  }
+  async function flatten() {
+    const E = endoMake();
+    E.A.set({ depth: 0 }); E.B.set({ depth: 0 });
+    await endoClose();
+    /* first the pit that will close, named; then, without names (nothing named moves), it deepens and closes, the
+       coated vesicle goes into the cell, and the other pit deepens */
+    endoNames(E, false);
+    await wait(R.FAST || R.TEST ? 0 : 2000);
+    quest.names.set([], HUD());
+    const D = 3400, N = 900, G = 1900, MS = D + N + G;
+    await play(MS, k => {
+      const t = k * MS;
+      E.A.set({ depth: Math.min(1, t / D), neck: 1 - Math.max(0, Math.min(1, (t - D) / N)), drop: Math.max(0, Math.min(1, (t - D - N) / G)), dx: ENDO.DX });
+      E.B.set({ depth: 0.5 * Math.max(0, Math.min(1, (t - 600) / 4000)) });
+    });
+    endoNames(E, true);
+    quest.say('<p>Part of this membrane bends inwards into a pit, coated with a protein called clathrin. The pit closes into a coated vesicle, which moves into the cell: this is <dfn data-w="endocytosis">endocytosis</dfn> (endo = in). So the membrane is used again.</p><p>The coated vesicle is about 100 nm across. The vesicle with amylase is about ten times as wide.</p>', 'ok');
+    await quest.next('Back to the map');
+    /* the place ends as the way out ended before: from far away, the world as it is (tools/true-size.mjs F "after") */
+    quest.names.set([], HUD());
+    await nanoOut(world.P.exit.view);
+  }
 
   /* ---------------- the start (simple, full, the mission) ---------------- */
   /* the names in the first place are laid out as the map's are (names.js): each on ONE level line that ends on its part,

@@ -16,6 +16,9 @@
    to Year 12 and 13): Lesson.who() is { email, onList, cls, teacher } once the records have answered, else null, and
    the window hears 'lesson:who' (detail: the same) each time that changes, null at sign-out. It is only what the
    reply to lesson.mine already holds (the class from the teacher's Students tab); nothing more is asked or kept.
+   Lesson.review() (16 Nov 2026, the cell game's final check) is the key of a test's answers when the reply carries one
+   (the labs script gives it to a pupil who has finished once their teacher has released the answers, and to a
+   teacher), else ''; Lesson.ask() asks the records again (a pupil's "Check again"), and 'lesson:who' follows.
    Each question keeps its rounds (round 1 is the first go), each with its checks, how it went (f right at the first
    check, 1 right after more checks, t tried and not right yet, d written) and its wrong answers. The rules are the labs
    script's own (§practicals: _prRound_, _prMergeQ_, _prFold_): round 1 and the newest five kept, older ones only add
@@ -274,6 +277,8 @@
   });
 
   global.Lesson = { check: check, done: done, restart: restart, restartAll: restartAll, who: whoNow,
+                    review: function () { return me && server && server.review ? String(server.review) : ''; },
+                    ask: function () { fetchMine(); },
                     /* for tests and the page's own checks */
                     record: function () { return JSON.parse(JSON.stringify(REC)); }, mergeQ: mergeQ };
   function start() {

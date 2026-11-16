@@ -1257,6 +1257,84 @@
     "clathrin",
     "Golgi apparatus"
    ]
+  },
+  {
+   "id": "cw-ib-rbc",
+   "part": 16,
+   "title": "Cell membrane: the way in · IB (SL and HL) A2.2.9: a cell with no nucleus",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "It has more space for haemoglobin, to carry oxygen.",
+    "It can divide more often, to make new red blood cells.",
+    "It can make new haemoglobin molecules more quickly.",
+    "It can make more of the enzymes it needs to respire."
+   ]
+  },
+  {
+   "id": "cg-ib-golgi",
+   "part": 16,
+   "title": "Golgi apparatus · IB (HL only) B2.2.8: processing and secretion",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "Sugar chains are added, and amylase is packed into vesicles.",
+    "Amino acids are linked, one by one, into the amylase chain.",
+    "Faulty amylase molecules are digested into amino acids.",
+    "The gene for amylase is copied into a molecule of mRNA."
+   ]
+  },
+  {
+   "id": "cx-ib-camp",
+   "part": 16,
+   "title": "Cell membrane: the way out · IB (HL only) C2.1.10: the second messenger",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "cAMP, made by an enzyme that a G protein activates.",
+    "Noradrenaline itself, after it crosses the plasma membrane.",
+    "Sodium ions, which flow into the cell through the receptor.",
+    "ATP, which the receptor makes from ADP and phosphate."
+   ]
+  },
+  {
+   "id": "ct-ib-control",
+   "part": 16,
+   "title": "Does your amylase work? · IB (SL and HL) C1.1.1: the control",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "It shows that amylase, not the water, changed the starch in well A.",
+    "It gives the amylase a second well to work in, so the test is faster.",
+    "It makes the iodine solution react faster with the starch in well A.",
+    "It shows the volume of starch solution that the saliva can digest."
+   ]
+  },
+  {
+   "id": "ce-ib-micrograph",
+   "part": 16,
+   "title": "Rough ER · IB (SL and HL) A2.2.10: rough ER in a micrograph",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "Rough endoplasmic reticulum",
+    "Smooth endoplasmic reticulum",
+    "Stacked sacs of the Golgi",
+    "Folds of the nuclear envelope"
+   ]
+  },
+  {
+   "id": "cg-ib-micrograph",
+   "part": 16,
+   "title": "Golgi apparatus · IB (SL and HL) A2.2.10: a secretory vesicle in a micrograph",
+   "short": "IB q",
+   "kind": "mcq",
+   "opts": [
+    "A secretory vesicle",
+    "A mitochondrion",
+    "A lipid droplet",
+    "A large lysosome"
+   ]
   }
  ]
 }

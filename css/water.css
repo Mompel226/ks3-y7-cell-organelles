@@ -1,0 +1,265 @@
+/* ============================================================
+   water.css — the water-potential view (16 Nov 2026), js/water/view.js: a view that fills the window (over the game, or
+   at its own address water/), the 2D picture on the left, the steps on a sheet on the right (under the picture on a
+   phone). Its frame follows the membrane view (css/membrane.css): the same top bar, the same sheet, the same level
+   tags (SL and HL in the IB blue, HL only in rose); beyond the guide is the estate's ONE extension violet (css/app.css
+   --ext), on the tags and on the picture. Bright and dark by the computer's setting until the reader chooses
+   (biology.theme). Every colour is a token below, each with its dark twin. Text a pupil reads is 16 px or more on a
+   laptop (17 px in the sheet).
+   ============================================================ */
+.watv{
+  --wv-sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --wv-serif:'Fraunces',Georgia,serif;
+  --wv-sheet:#FFFFFF; --wv-ink:#141A24; --wv-ink2:#3D4657; --wv-rule:#D9DEE7; --wv-accent:#2E3A8C;
+  --wv-ext:#6B3FD1; --wv-ext-ink:#5A32B8; --wv-ext-tint:#F2EDFF;
+  --lv-sl:#2E3A8C; --lv-sl-bg:#E7E9F7; --lv-hl:#9B1C4A; --lv-hl-bg:#FCE6EE; --lv-x:#5A32B8; --lv-x-bg:#F2EDFF;
+  /* the picture */
+  --wv-stage:#F5F7FA; --wv-sol:#DCEBF8; --wv-w:#7FB3DE; --wv-wx:#1D5FA3; --wv-s:#E8892B; --wv-sline:#9A520F;
+  --wv-box:#5E7A96; --wv-mem:#B07A2A; --wv-arrow:#1F6FB2; --wv-step:#6B7686; --wv-axis:#384254;
+  --wv-o:#D8433B; --wv-h:#FFFFFF; --wv-hline:#7C8796; --wv-c:#5A6472; --wv-bond:#5A6472; --wv-hb:#1F6FB2;
+  --wv-na:#F4B04A; --wv-cl:#5DBB63;
+  --wv-rbc:#A3222A; --wv-rbcin:#D9454B; --wv-rbcpale:#F2A3A6;
+  --wv-wall:#6E9C3A; --wv-pm:#B07A2A; --wv-cyto:#EEF6E2; --wv-vac:#E2F0FB; --wv-ton:#8FB4D4; --wv-nuc:#9C6B4A; --wv-chl:#3E8E3E; --wv-press:#C2501B;
+  --wv-para:#EAF3E6; --wv-paraline:#5C7A4E; --wv-cilia:#7C9A6E; --wv-cv:#BFE0F7; --wv-cvline:#2F7DC4; --wv-food:#E8D9A8;
+  --wv-glass:#5E7A96; --wv-liq:#DCEBF8; --wv-pot:#F1DC9A; --wv-potline:#A88A35; --wv-bal:#C9D1DC; --wv-baldisp:#2B3442;
+  --wv-fit:#1F6FB2; --wv-cross:#C2501B;
+  --wv-bag:#E4F1FB; --wv-bagline:#5E7A96; --wv-skin:#F0C9A8; --wv-skinline:#B9875F; --wv-vein:#3C5DAA; --wv-pole:#8A94A3;
+  --wv-cool:#F2F5F8; --wv-coolline:#7C8796; --wv-ice:#FFFFFF; --wv-iceline:#A9C3DA; --wv-kid:#8E2B2B; --wv-bag2:#D3E8F7;
+  --wv-psis:#2F7DC4; --wv-psip:#E07B22; --wv-psiw:#1E8C7A; --wv-xylem:#E7EEF5; --wv-solline:#C2501B;
+  position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--wv-stage);color:var(--wv-ink);
+  font-family:var(--wv-sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .watv{
+  --wv-sheet:#151a2b; --wv-ink:#ECEFF7; --wv-ink2:#BCC3D3; --wv-rule:#2c3348; --wv-accent:#9EA9F0;
+  --wv-ext:#A98BFA; --wv-ext-ink:#C4B0FF; --wv-ext-tint:#211A3A;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#C4B0FF; --lv-x-bg:#251C42;
+  --wv-stage:#0F141D; --wv-sol:#16314A; --wv-w:#3F7FB5; --wv-wx:#BFE3FF; --wv-s:#F2A14B; --wv-sline:#FFD29A;
+  --wv-box:#7F9BB8; --wv-mem:#D9A75A; --wv-arrow:#6CB6F5; --wv-step:#9AA5B6; --wv-axis:#B5BFCD;
+  --wv-o:#F0675F; --wv-h:#F4F6FA; --wv-hline:#9AA5B6; --wv-c:#A3ADBB; --wv-bond:#A3ADBB; --wv-hb:#7CC0FF;
+  --wv-na:#F4B04A; --wv-cl:#6CCB72;
+  --wv-rbc:#FF8A8F; --wv-rbcin:#C23A41; --wv-rbcpale:#E58A8E;
+  --wv-wall:#93C95A; --wv-pm:#D9A75A; --wv-cyto:#203320; --wv-vac:#14283C; --wv-ton:#5E8DB8; --wv-nuc:#C08A66; --wv-chl:#5DBB63; --wv-press:#FF8A50;
+  --wv-para:#1C2E1C; --wv-paraline:#8DB57C; --wv-cilia:#7FA070; --wv-cv:#1E4A70; --wv-cvline:#7CC0FF; --wv-food:#5C5232;
+  --wv-glass:#9DB4CC; --wv-liq:#16314A; --wv-pot:#D9C27A; --wv-potline:#F1DC9A; --wv-bal:#4A5566; --wv-baldisp:#0B0F16;
+  --wv-fit:#6CB6F5; --wv-cross:#FF8A50;
+  --wv-bag:#1E3448; --wv-bagline:#9DB4CC; --wv-skin:#C99A78; --wv-skinline:#E3BC9C; --wv-vein:#6F8FE0; --wv-pole:#8A94A3;
+  --wv-cool:#1A2230; --wv-coolline:#9AA5B6; --wv-ice:#9FB6CC; --wv-iceline:#6E8CA8; --wv-kid:#B5454A; --wv-bag2:#24425E;
+  --wv-psis:#5AA6EE; --wv-psip:#F29A4A; --wv-psiw:#3FC2A8; --wv-xylem:#1B2738; --wv-solline:#FF8A50 } }
+:root[data-theme="dark"] .watv{
+  --wv-sheet:#151a2b; --wv-ink:#ECEFF7; --wv-ink2:#BCC3D3; --wv-rule:#2c3348; --wv-accent:#9EA9F0;
+  --wv-ext:#A98BFA; --wv-ext-ink:#C4B0FF; --wv-ext-tint:#211A3A;
+  --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240; --lv-hl:#F59AB8; --lv-hl-bg:#3B1426; --lv-x:#C4B0FF; --lv-x-bg:#251C42;
+  --wv-stage:#0F141D; --wv-sol:#16314A; --wv-w:#3F7FB5; --wv-wx:#BFE3FF; --wv-s:#F2A14B; --wv-sline:#FFD29A;
+  --wv-box:#7F9BB8; --wv-mem:#D9A75A; --wv-arrow:#6CB6F5; --wv-step:#9AA5B6; --wv-axis:#B5BFCD;
+  --wv-o:#F0675F; --wv-h:#F4F6FA; --wv-hline:#9AA5B6; --wv-c:#A3ADBB; --wv-bond:#A3ADBB; --wv-hb:#7CC0FF;
+  --wv-na:#F4B04A; --wv-cl:#6CCB72;
+  --wv-rbc:#FF8A8F; --wv-rbcin:#C23A41; --wv-rbcpale:#E58A8E;
+  --wv-wall:#93C95A; --wv-pm:#D9A75A; --wv-cyto:#203320; --wv-vac:#14283C; --wv-ton:#5E8DB8; --wv-nuc:#C08A66; --wv-chl:#5DBB63; --wv-press:#FF8A50;
+  --wv-para:#1C2E1C; --wv-paraline:#8DB57C; --wv-cilia:#7FA070; --wv-cv:#1E4A70; --wv-cvline:#7CC0FF; --wv-food:#5C5232;
+  --wv-glass:#9DB4CC; --wv-liq:#16314A; --wv-pot:#D9C27A; --wv-potline:#F1DC9A; --wv-bal:#4A5566; --wv-baldisp:#0B0F16;
+  --wv-fit:#6CB6F5; --wv-cross:#FF8A50;
+  --wv-bag:#1E3448; --wv-bagline:#9DB4CC; --wv-skin:#C99A78; --wv-skinline:#E3BC9C; --wv-vein:#6F8FE0; --wv-pole:#8A94A3;
+  --wv-cool:#1A2230; --wv-coolline:#9AA5B6; --wv-ice:#9FB6CC; --wv-iceline:#6E8CA8; --wv-kid:#B5454A; --wv-bag2:#24425E;
+  --wv-psis:#5AA6EE; --wv-psip:#F29A4A; --wv-psiw:#3FC2A8; --wv-xylem:#1B2738; --wv-solline:#FF8A50 }
+html.waterv-open,html.waterv-open body{overflow:hidden}
+.watv *{box-sizing:border-box}
+.watv button{font-family:inherit}
+.watv :focus-visible{outline:2.5px solid #FFD27A;outline-offset:2px}
+.watv sub{font-size:.72em;line-height:0}
+
+/* ---------- the top: what it is, who made it, the way back ---------- */
+.watv__top{display:flex;align-items:center;gap:8px 16px;padding:8px 14px;background:linear-gradient(180deg,#121741,#0b0f2a);color:#fff;border-bottom:1px solid rgba(255,226,154,.28)}
+.watv__id{min-width:0;flex:1;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px}
+.watv__eyebrow{flex-basis:100%;margin:0;font:800 11.5px/1.2 var(--wv-sans);letter-spacing:.08em;text-transform:uppercase;color:#FFD27A}
+.watv__id h1{margin:1px 0 0;font:800 22px/1.15 var(--wv-serif);color:#fff}
+.watv__by{margin:2px 0 0;font:700 12px/1.2 var(--wv-sans);color:#C9CBEF}
+.watv__home{flex:none;border-radius:999px;border:1.5px solid rgba(255,210,122,.75);background:rgba(255,255,255,.06);color:#FFE7A8;font:800 14px/1 var(--wv-sans);padding:9px 13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.watv__home:hover{border-color:#FFD27A;color:#fff}
+
+/* ---------- the picture, the line under it, and the steps ---------- */
+.watv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(440px,34vw));grid-template-rows:minmax(0,1fr) auto;grid-template-areas:'stage panel' 'under panel';min-height:0}
+.watv__stage{grid-area:stage;position:relative;overflow:hidden;min-height:0;background:var(--wv-stage)}
+.watv__svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.watv__caps,.watv__names{position:absolute;inset:0;pointer-events:none}
+.watv__names{z-index:2}
+
+/* the words on the picture: headings, captions, the key of symbols */
+.watv__cap{position:absolute;margin:0;font:700 16px/1.28 var(--wv-sans);color:var(--wv-ink)}
+.watv__cap>span{display:inline}
+.watv__cap--c{text-align:center}.watv__cap--r{text-align:right}.watv__cap--l{text-align:left}
+.watv__cap--vb{transform:translateY(-100%)}.watv__cap--vm{transform:translateY(-50%)}
+.watv__cap--h{font-weight:900}
+.watv__cap--b{font-weight:800}
+.watv__cap--s{font-weight:700;color:var(--wv-ink)}
+.watv__cap--f{font-weight:800;font-family:var(--wv-sans);letter-spacing:.005em}
+.watv__cap--ax{font-weight:800}
+.watv__cap--eq{font:900 24px/1.2 var(--wv-sans)}
+.watv__cap--ext{font-weight:800;color:var(--wv-ext-ink)}
+.watv__cap--sol{font-weight:800;color:var(--wv-ink)}
+.watv__cap.is-end{opacity:0;transition:opacity .35s ease}
+.watv__cap.is-end.is-on{opacity:1}
+.watv__kg{display:inline-block;margin:0 9px;white-space:nowrap}
+.watv__ki{display:inline-block;vertical-align:middle;margin:0 7px 0 0;position:relative;top:-1px}
+.watv__ki--w{width:11px;height:11px;border-radius:50%;background:var(--wv-w)}
+.watv__ki--s{width:15px;height:15px;border-radius:50%;background:var(--wv-s);box-shadow:inset 0 0 0 1px var(--wv-sline)}
+.watv__ki--hb{width:30px;height:0;border-top:2.5px dashed var(--wv-hb)}
+.watv__ki--mem{width:9px;height:20px;border-radius:2px;background:var(--wv-mem)}
+.watv__stage.is-narrow .watv__cap{font-size:13.5px;line-height:1.28}
+.watv__stage.is-narrow .watv__cap--eq{font-size:19px}
+.watv__stage.is-narrow .watv__kg{margin:0 6px}
+.watv__stage.is-narrow .watv__ki{margin-right:5px}
+
+/* the names: a pill on a level line (or an upright one) that ends on its part; on a phone a numbered pin, keyed below */
+.watv__nm{position:absolute;left:0;top:0;display:block;max-width:180px;background:var(--wv-sheet);color:var(--wv-ink);font:800 16px/1.25 var(--wv-sans);padding:4px 10px;border-radius:9px;border:1.5px solid var(--wv-ink2);box-shadow:0 2px 8px rgba(20,26,36,.12);opacity:0;transition:opacity .32s ease}
+.watv__nm--L,.watv__nm--R{max-width:150px}
+.watv__nm--T,.watv__nm--B{max-width:240px;white-space:nowrap}
+.watv__ln{position:absolute;left:0;top:0;display:block;background:var(--wv-ink);opacity:0;transition:opacity .32s ease}
+.watv__pin{position:absolute;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 13.5px/1 var(--wv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.3);opacity:0;transition:opacity .32s ease}
+.watv__nm.is-on,.watv__ln.is-on,.watv__pin.is-on{opacity:1}
+@media (prefers-reduced-motion:reduce){.watv__nm,.watv__ln,.watv__pin,.watv__cap.is-end{transition:none}}
+.watv--still .watv__nm,.watv--still .watv__ln,.watv--still .watv__pin,.watv--still .watv__cap.is-end{transition:none}
+
+.watv__under{grid-area:under;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:7px 14px;background:var(--wv-sheet);border-top:1px solid var(--wv-rule);color:var(--wv-ink2)}
+.watv__note{margin:0;flex:1 1 260px;font:700 15px/1.35 var(--wv-sans);color:var(--wv-ink2)}
+.watv__key{display:flex;flex-wrap:wrap;gap:4px 12px;flex-basis:100%;order:-1;font:800 14px/1.3 var(--wv-sans);color:var(--wv-ink)}
+.watv__key[hidden]{display:none}
+.watv__k{display:inline-flex;align-items:center;gap:6px}
+.watv__k b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 12px/1 var(--wv-sans);box-shadow:0 0 0 1px #1b1640}
+.watv__again{flex:none;margin-left:auto;border-radius:999px;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink);font:800 14.5px/1 var(--wv-sans);padding:8px 13px;cursor:pointer}
+.watv__again:hover{border-color:var(--wv-accent)}
+.watv__again[hidden]{display:none}
+
+/* ---------- the sheet: the step, its words; then what the tags mean, and the sources ---------- */
+.watv__panel{grid-area:panel;overflow-y:auto;min-height:0;background:var(--wv-sheet);color:var(--wv-ink);padding:16px 20px 20px;border-left:1px solid var(--wv-rule)}
+.watv__count{margin:0 0 4px;font:900 12.5px/1 var(--wv-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--wv-accent)}
+.watv__steps{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 8px}
+.watv__steps button{min-width:30px;height:30px;padding:0 7px;border-radius:15px;border:1.5px solid var(--wv-rule);background:none;color:var(--wv-ink);font:800 13.5px/1 var(--wv-sans);cursor:pointer}
+.watv__steps button.is-hl{border-color:color-mix(in srgb,var(--lv-hl) 55%,transparent);color:var(--lv-hl)}
+.watv__steps button:hover,.watv__steps button:focus-visible{border-color:var(--wv-accent);outline:none}
+.watv__steps button[aria-current]{background:#FFD27A;border-color:#FFD27A;color:#1b1640}
+@media (max-width:860px){
+  .watv__count{float:left;margin:7px 10px 0 0}
+  .watv__steps{margin:0 0 5px;gap:4px}
+  .watv__steps button{min-width:26px;height:26px;padding:0 5px;border-radius:13px;font-size:12.5px}
+  .watv__st{clear:both}
+}
+.watv__st{margin:0 0 10px;font:800 23px/1.15 var(--wv-serif)}
+.watv__text p{margin:0 0 .6em}
+.watv__text p:last-child{margin-bottom:0}
+.watv__text .lvp--lead{font-size:1.04em;font-weight:700;color:var(--wv-ink);padding:9px 12px;margin:0 0 .8em;border-left:4px solid #FFD27A;border-radius:0 10px 10px 0;background:color-mix(in srgb,#FFD27A 12%,transparent)}
+/* "More detail": a button a reader cannot miss, in the extension violet (it holds what is beyond the guide) */
+.watv__fold{margin:.6em 0 0;border-top:1px solid var(--wv-rule);padding-top:.75em}
+.watv__fold summary{display:inline-flex;align-items:center;gap:8px;list-style:none;cursor:pointer;min-height:38px;padding:7px 15px 7px 9px;border-radius:999px;border:1.5px solid var(--wv-ext);background:color-mix(in srgb,var(--wv-ext) 12%,transparent);font:800 15px/1.2 var(--wv-sans);color:var(--wv-ink);margin-bottom:.2em}
+.watv__fold summary::-webkit-details-marker{display:none}
+.watv__fold summary::before{content:'+';flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--wv-ext);color:var(--wv-sheet);font:900 17px/1 var(--wv-sans)}
+.watv__fold[open] summary::before{content:'−'}
+.watv__fold summary:hover,.watv__fold summary:focus-visible{background:color-mix(in srgb,var(--wv-ext) 24%,transparent);outline:none}
+.watv__fold[open] summary{margin-bottom:.7em}
+.watv .lv{display:inline-flex;align-items:baseline;gap:5px;vertical-align:1px;margin-right:4px;padding:2px 8px;border-radius:999px;font:900 11.5px/1.4 var(--wv-sans);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.watv .lv i{font-style:normal;font-weight:800;letter-spacing:0;text-transform:none;opacity:.9}
+.watv .lv--sl{color:var(--lv-sl);background:var(--lv-sl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-sl) 35%,transparent)}
+.watv .lv--hl{color:var(--lv-hl);background:var(--lv-hl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-hl) 35%,transparent)}
+.watv .lv--x{color:var(--lv-x);background:var(--lv-x-bg);font-style:italic;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-x) 35%,transparent)}
+.watv .lvp--x{color:var(--wv-ink2)}
+.watv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--wv-sheet) 0%,transparent),var(--wv-sheet) 28%)}
+.watv__do button{border-radius:999px;font:800 16px/1 var(--wv-sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink)}
+.watv__do button:disabled{opacity:.42;cursor:default}
+.watv__next{margin-left:auto;background:#FFD27A!important;border-color:#F0B43A!important;color:#1b1640!important}
+.watv__next.pulse{animation:watvPulse 2.4s ease-in-out infinite}
+@keyframes watvPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,180,58,.55)}50%{box-shadow:0 0 0 8px rgba(240,180,58,0)}}
+@media (prefers-reduced-motion:reduce){.watv__next.pulse{animation:none}}
+.watv__more{margin-top:18px;padding-top:14px;border-top:1px solid var(--wv-rule)}
+.watv__more h3{margin:0 0 8px;font:800 19px/1.2 var(--wv-serif)}
+.watv__more h3:not(:first-child){margin-top:18px}
+.watv__more ol{margin:0;padding-left:1.2em}
+.watv__more li{margin:0 0 .5em;font-size:16px;line-height:1.5}
+.watv__more li>span.src{display:block;color:var(--wv-ink2)}
+.watv__more a{color:var(--wv-accent);overflow-wrap:anywhere}
+.watv__tags p{margin:.35em 0 0;font-size:16px}
+
+/* ---------- the art: every colour a token (both themes) ---------- */
+.watv .wa-t{fill:var(--wv-ink);font-family:var(--wv-sans);font-weight:800}
+.watv .wa-tb{font-weight:900}
+.watv .wa-tion{fill:#1b1640}
+.watv .wa-o{fill:var(--wv-o)}
+.watv .wa-h{fill:var(--wv-h);stroke:var(--wv-hline);stroke-width:1}
+.watv .wa-c{fill:var(--wv-c)}
+.watv .wa-na{fill:var(--wv-na)}
+.watv .wa-cl{fill:var(--wv-cl)}
+.watv .wa-bond{stroke:var(--wv-bond);stroke-linecap:round}
+.watv .wa-hb{stroke:var(--wv-hb);stroke-width:2.4;stroke-dasharray:3 4;stroke-linecap:round}
+.watv .wa-solbg{fill:var(--wv-sol)}
+.watv .wa-w{fill:var(--wv-w)}
+.watv .wa-wx{fill:var(--wv-wx);stroke:var(--wv-stage);stroke-width:1}
+.watv .wa-s{fill:var(--wv-s);stroke:var(--wv-sline);stroke-width:1}
+.watv .wa-box{fill:none;stroke:var(--wv-box);stroke-width:1.5}
+.watv .wa-mem{fill:var(--wv-mem)}
+.watv .wa-arrow{fill:var(--wv-arrow);stroke:var(--wv-stage);stroke-width:1.5;paint-order:stroke;stroke-linejoin:round}
+.watv .wa-step{fill:var(--wv-step)}
+.watv .wa-press{fill:var(--wv-press)}
+.watv .wa-rbcin{fill:var(--wv-rbcin)}
+.watv .wa-rbcpale{fill:var(--wv-rbcpale)}
+.watv .wa-rbc{fill:none;stroke:var(--wv-rbc);stroke-width:2.2;stroke-linejoin:round}
+.watv .wa-ghost{stroke-dasharray:none;opacity:.75}
+.watv .wa-leak{fill:var(--wv-rbcin)}
+.watv .wa-wall{fill:var(--wv-sol);stroke:var(--wv-wall);stroke-linejoin:round}
+.watv .wa-pm{fill:var(--wv-cyto);stroke:var(--wv-pm);stroke-width:2;stroke-linejoin:round}
+.watv .wa-vac{fill:var(--wv-vac);stroke:var(--wv-ton);stroke-width:1.2}
+.watv .wa-nuc{fill:var(--wv-nuc)}
+.watv .wa-chl{fill:var(--wv-chl)}
+.watv .wa-para{fill:var(--wv-para);stroke:var(--wv-paraline);stroke-width:2}
+.watv .wa-cilia{fill:none;stroke:var(--wv-cilia);stroke-width:1.4;stroke-linecap:round}
+.watv .wa-cv{fill:var(--wv-cv);stroke:var(--wv-cvline);stroke-width:2}
+.watv .wa-cvc{stroke:var(--wv-cvline);stroke-linecap:round;opacity:.8}
+.watv .wa-food{fill:var(--wv-food)}
+.watv .wa-glass{fill:none;stroke:var(--wv-glass);stroke-width:2.2;stroke-linejoin:round}
+.watv .wa-liq{fill:var(--wv-liq)}
+.watv .wa-pot{fill:var(--wv-pot);stroke:var(--wv-potline);stroke-width:1.2}
+.watv .wa-bal{fill:var(--wv-bal)}
+.watv .wa-baldisp{fill:var(--wv-baldisp)}
+.watv .wa-axis{fill:none;stroke:var(--wv-axis);stroke-width:2}
+.watv .wa-dash{fill:none;stroke:var(--wv-axis);stroke-width:1.5;stroke-dasharray:6 5}
+.watv .wa-dash2{fill:none;stroke:var(--wv-cross);stroke-width:2;stroke-dasharray:5 4}
+.watv .wa-fit{fill:none;stroke:var(--wv-fit);stroke-width:3.2;stroke-linecap:round}
+.watv .wa-cross{fill:var(--wv-cross)}
+.watv .wa-mark{fill:var(--wv-axis)}
+.watv .wa-markdot{fill:var(--wv-arrow);stroke:var(--wv-stage);stroke-width:2}
+.watv .wa-pole{fill:none;stroke:var(--wv-pole);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.watv .wa-bag{fill:var(--wv-bag);stroke:var(--wv-bagline);stroke-width:2}
+.watv .wa-drop{fill:var(--wv-arrow)}
+.watv .wa-tube{fill:none;stroke:var(--wv-bagline);stroke-width:3;stroke-linecap:round}
+.watv .wa-skin{fill:var(--wv-skin);stroke:var(--wv-skinline);stroke-width:1.5}
+.watv .wa-vein{fill:none;stroke:var(--wv-vein);stroke-width:4;stroke-linecap:round}
+.watv .wa-cannula{fill:var(--wv-bagline)}
+.watv .wa-thin{stroke:var(--wv-axis);stroke-width:1.5}
+.watv .wa-lens{fill:var(--wv-sol);stroke:var(--wv-axis);stroke-width:2.5}
+.watv .wa-cool{fill:var(--wv-cool);stroke:var(--wv-coolline)}
+.watv .wa-ice{fill:var(--wv-ice);stroke:var(--wv-iceline);stroke-width:1}
+.watv .wa-bag2{fill:var(--wv-bag2);stroke:var(--wv-bagline);stroke-width:1.5;opacity:.95}
+.watv .wa-kid{fill:var(--wv-kid)}
+.watv .wa-psis{fill:var(--wv-psis)}
+.watv .wa-psip{fill:var(--wv-psip)}
+.watv .wa-psiw{fill:var(--wv-psiw)}
+.watv .wa-sol{stroke:var(--wv-solline);stroke-width:2.5;stroke-dasharray:7 5}
+.watv .wa-xylem{fill:var(--wv-xylem);stroke:var(--wv-glass);stroke-width:2}
+.watv .wa-ring{stroke:var(--wv-glass);stroke-width:2}
+.watv .wa-ext{fill:var(--wv-ext)}
+.watv .wa-extfill{fill:var(--wv-ext-tint);stroke:var(--wv-ext);stroke-width:2;stroke-linejoin:round}
+
+/* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
+@media (max-width:860px),(max-aspect-ratio:4/5){
+  .watv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,52fr) auto minmax(0,48fr);grid-template-areas:'stage' 'under' 'panel'}
+  .watv__panel{border-left:0;border-top:1px solid var(--wv-rule);padding:12px 16px 16px}
+  .watv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
+  .watv__under{padding:5px 10px}
+  .watv__note{font-size:13px}
+  .watv__key{font-size:13px}
+  .watv__again{font-size:13px;padding:6px 11px}
+}
+@media (max-width:860px){
+  .watv{font-size:16px}
+  .watv__top{position:relative;padding:7px 10px}
+  .watv__home{position:absolute;right:10px;bottom:4px;font-size:12px;padding:3px 9px}
+  .watv__id h1{font-size:17px}
+  .watv__eyebrow{font-size:10.5px}
+  .watv__st{font-size:20px}
+}

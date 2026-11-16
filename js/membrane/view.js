@@ -13,13 +13,17 @@
    their speeds can be compared; at the end what the picture simplifies, and its sources (text.js).
    Reduce motion (the computer's setting): the picture is a still at every step, with every name; the camera changes
    under a veil; "Follow" shows 30 seconds of movement as one still picture with the whole path. Nothing is hidden.
+   Step 9 (16 Nov 2026): how water crosses the membrane. Another piece of the same membrane (sim.js AQP_PATCH), with
+   aquaporin 1 in its measured shape (aqp1.js) and its water (water.js): the piece shown changes under the veil, as
+   every change of picture does with Reduce motion; each piece's model runs only while it is shown.
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P } from './sim.js?v=202611152200';
-import { makeScene, makeStage } from './scene.js?v=202611152200';
-import { makeNames } from './names.js?v=202611152200';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611152200';
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611161111';
+import { makeScene, makeStage } from './scene.js?v=202611161111';
+import { makeWater, WATER } from './water.js?v=202611161111';
+import { makeNames } from './names.js?v=202611161111';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611161111';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -32,14 +36,15 @@ const FILL = { slow: million(P.SLOW), wide: String(P.W), ratio: String(P.RATIO),
 const fill = t => t.replace(/\{(\w+)\}/g, (m, k) => FILL[k] != null ? FILL[k] : m);
 function paras(t) {
   /* [x+]: a line beyond the guide that the step can be followed without, folded under "More detail" at the step's end
-     (text.js; as in the IB view, js/ib/view.js paras) */
+     (text.js; as in the IB view, js/ib/view.js paras); [!] the step's plain first line, what the step is for (no chip:
+     the IB view's lead line, 16 Nov 2026) */
   const one = p => {
     const m = /^\[(sl|hl|x)(?:\s+([A-Z][0-9.]+(?:,\s*[A-Z][0-9.]+)*))?\]\s*/.exec(p);
     if (!m) return `<p>${p}</p>`;
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}">${esc(LEVELS[m[1]].name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
   };
   const main = [], more = [];
-  fill(t).split('\n').forEach(p => { if (p.startsWith('[x+] ')) more.push(one('[x] ' + p.slice(5))); else main.push(one(p)); });
+  fill(t).split('\n').forEach(p => { if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`); else if (p.startsWith('[x+] ')) more.push(one('[x] ' + p.slice(5))); else main.push(one(p)); });
   return main.join('') + (more.length ? `<details class="memv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
 }
 const tagX = `<span class="lv lv--x">${esc(LEVELS.x.name)}</span> `;
@@ -52,7 +57,11 @@ const VIEWS = {
   whole: { at: [-3.2, 0.9, 0.5], atN: [0, -1.6, 0.5], az: 7, el: 21, w: 38.5, h: 21, wN: 32, hN: 19 },
   top: { at: [0, 1.6, 0], atN: [0, -0.4, 2.6], az: 8, el: 50, w: 33, h: 25, wN: 31.5, hN: 23 },
   close: { at: [-9.1, 0.1, 9], az: 5, el: 8, w: 15.5, h: 9.5, wN: 10, hN: 9.5 },
-  side: { at: [-0.6, 1.5, 0], atN: [0, -1.2, 0], az: 0, el: 3.5, w: 46.5, h: 19, wN: 31.5, hN: 18 }
+  side: { at: [-0.6, 1.5, 0], atN: [0, -1.2, 0], az: 0, el: 3.5, w: 46.5, h: 19, wN: 31.5, hN: 18 },
+  /* step 9: the other piece (16 × 13 nm), the aquaporin at the middle of its cut face, seen a little from above (its
+     four pores then stand apart across the picture); 1.5 nm to the right, so that the right margin has room for the
+     name of the water molecule crossing the bilayer at the cut face's right end (a level line that runs over nothing) */
+  aqp: { at: [1.65, 0.4, 2.6], atN: [0.4, 0.3, 2.6], az: 9, el: 13, w: 21.5, h: 11, wN: 17.6, hN: 12 }
 };
 const RAD = Math.PI / 180;
 
@@ -60,7 +69,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611152200', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611161111', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -135,6 +144,27 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   stage.scene.add(scene.group);
   stage.renderer.domElement.setAttribute('aria-label', 'A piece of cell membrane in 3D: two layers of phospholipids with cholesterol and proteins. ' + (FAST ? 'A still picture.' : 'The molecules move.'));
   const names = makeNames(stageEl, stage, keyEl);
+  /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
+     fetched then), or when step 9 is asked for first */
+  let A = null, aqpMaking = null, patch = 'main';
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611161111').then(async m => {
+    if (closed) return null;
+    const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1);
+    sc2.draw(0); sc2.setWater(w2);
+    /* (its colour programs are made now, with the lights of the stage, before it is part of the picture: the first frame
+       of step 9 does not stop, and nothing of it is ever drawn over the first piece) */
+    try { if (stage.renderer.compileAsync) await stage.renderer.compileAsync(sc2.group, stage.cam, stage.scene); } catch (e) { console.error(e); }
+    if (closed) { sc2.dispose(); return null; }
+    sc2.group.visible = patch === 'aqp'; stage.scene.add(sc2.group);
+    A = { S: S2, scene: sc2, water: w2, data: m.AQP1 };
+    return A;
+  }));
+  /* which piece is shown: only its model runs */
+  function setPatch(p) {
+    patch = p; scene.group.visible = p === 'main'; if (A) A.scene.group.visible = p === 'aqp';
+    keepsStale = true;
+  }
+  const cur3 = () => patch === 'aqp' && A ? A : { S, scene };
   const cur = { at: new THREE.Vector3(), az: 0, el: 0.3, dist: 60 };      /* where the camera is now */
   let viewName = 'whole', tw = null, dragAz = 0, dragEl = 0, closed = false, raf = 0;
   const narrow = () => stage.W < 560;
@@ -163,6 +193,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     { k: 0, id: 'channel', y0: -2.4, y1: -3.6, w: 2.5 }, { k: 1, id: 'carrier', y0: -2.4, y1: -4.5, w: 1.8 }, { k: 2, id: 'glyco', y0: -2.4, y1: -4.1, w: 0.8 }];
   const obst = OB.map(o => ({ id: o.id, l: 0, r: 0, t: 0, b: 0, x: 0 })), v3 = new THREE.Vector3(), s2 = { x: 0, y: 0, z: 0 };
   names.setObstacles(() => {
+    if (patch === 'aqp') return [];      /* (step 9: one protein, the aquaporin, which its own names may cross) */
     const ppn = stage.pxPerNm();
     for (let n = 0; n < OB.length; n++) {
       const p = S.prot[OB[n].k], o = obst[n];
@@ -270,12 +301,32 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     /* a glycolipid: its line ends on the third sugar unit of its chain, which stands clear above the heads (a line to
        its head was tried: the head is half hidden by the heads in front of it and by its own chain) */
     glycolipid: () => ({ mode: 'T', anchor: pick({ layer: 0, want: isGly, x: -3, z: 5, part: 'sugar', cls: 'sugar', dir: 1, keep: 14, id: 'glycolipid', clear: 100 }) }),
+    /* step 9: the aquaporin and one of its subunits, from above, each line ending on the top of a subunit (the leftmost
+       and the rightmost in the picture, so that their names stand apart); the water in single file, from below, on a
+       molecule in the pore nearest the camera (seen through one wall of the protein); the water molecule that crosses
+       the bilayer at the cut face's right end, by a level line from the right margin (beyond that end there is nothing) */
+    aquaporin: () => ({ mode: 'T', own: 'aquaporin', anchor: out => A.scene.aqpTop(aqpOrder()[0], out) }),
+    subunit: () => ({ mode: 'T', own: 'aquaporin', anchor: out => A.scene.aqpTop(aqpOrder()[3], out) }),
+    file: () => ({ mode: 'B', own: 'aquaporin', anchor: out => A.water.porePoint(frontPore(), out) }),
+    crossing: () => ({ mode: narrow() ? 'T' : 'R', anchor: out => A.water.crossPoint(0, out) }),      /* (a phone: its pin above it; under the membrane the corner holds "Cytoplasm") */
     lipidTag: () => ({ mode: 'tag', tag: true, pri: 5, anchor: out => scene.litLipid >= 0 ? scene.lipidPoint(scene.litLipid, 'crown', S.t, out) : false }),
     protTag: () => ({ mode: 'tag', tag: true, mark: '◆', pri: 4, own: 'carrier', anchor: (f => out => scene.litProt >= 0 ? f(out) : false)(localOf(1, 2.0, 3.0, 0)) })
   };
   let bent = null;      /* the lipid that another name of the step must keep clear of */
+  /* the aquaporin's subunits from left to right on the screen (their tops), and its pore nearest the camera: chosen once
+     for the step's own camera (the aquaporin does not move) */
+  let aqpSeen = null;
+  const aqpOrder = () => aqpSeen.order, frontPore = () => aqpSeen.front;
+  function aqpChoose() {
+    const t = new THREE.Vector3(), q = { x: 0, y: 0, z: 0 }, p = A.S.prot[0], c = Math.cos(p.ang), s = Math.sin(p.ang);
+    const order = [0, 1, 2, 3].map(k => { A.scene.aqpTop(k, t); stage.project(t, q); return [k, q.x]; }).sort((a, b) => a[1] - b[1]).map(a => a[0]);
+    const camZ = stage.cam.position.clone();
+    const front = A.water.pores.map((P0, i) => { const m = P0.pts[Math.floor(P0.pts.length / 2)]; t.set(p.x + m[0] * c + m[2] * s, 0, p.z - m[0] * s + m[2] * c); return [i, t.distanceTo(camZ)]; }).sort((a, b) => a[1] - b[1])[0][0];
+    aqpSeen = { order, front };
+  }
   function defineNames() {
     const ids = STEPS[si].labels.slice();
+    if (patch === 'aqp') aqpChoose();
     if (follow.lipid) ids.push('lipidTag'); if (follow.protein) ids.push('protTag');
     bent = null;
     /* (the bent tail is defined before the straight one, which must take another lipid) */
@@ -409,9 +460,10 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     }
     /* the model: one step for each 60th of a second, never more than 3 in a frame (a slow frame slows the molecules, it
        never makes them jump) */
-    if (running && !loading) { acc += dt; let n = 0; while (acc >= 1000 * P.DT && n < 3) { S.step(); acc -= 1000 * P.DT; n++; } if (acc > 100) acc = 0; }
+    const on = cur3();
+    if (running && !loading) { acc += dt; let n = 0; while (acc >= 1000 * P.DT && n < 3) { on.S.step(); if (on.water) on.water.step(P.DT); acc -= 1000 * P.DT; n++; } if (acc > 100) acc = 0; }
     applyCam(); setBar();
-    scene.draw(S.t, stage.cam.position);
+    on.scene.draw(on.S.t, stage.cam.position); if (on.water) on.scene.setWater(on.water);
     stage.render();
     names.frame(now, namesOn);
     if (now - lastRead > 250) { lastRead = now; readouts(); }
@@ -446,6 +498,14 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     const cut = st.ctl ? st.t.indexOf('\n') : -1;
     textEl.innerHTML = paras(cut < 0 ? st.t : st.t.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(st.t.slice(cut + 1));
     drawControls(); panelEl.scrollTop = 0;
+    /* the other piece of membrane (step 9, and back): it changes under the veil, with or without Reduce motion */
+    const want = st.patch || 'main';
+    if (want !== patch) {
+      if (want === 'aqp' && !A) { waitEl.hidden = false; await aqpMake(); waitEl.hidden = true; if (my !== token || !A) return; }
+      if (!veilEl.classList.contains('is-on')) veilEl.classList.add('is-on');
+      await sleep(340); if (my !== token) return;
+      setPatch(want); await camTo(st.view, 0); ghostTw = null; scene.setGhost(g); await sleep(60); if (my !== token) return;
+    }
     const moves = !sameView(st.view) || scene.ghost !== g;
     /* (the names of the step before fade from the next frame on: namesOn is off) */
     if (FAST) {
@@ -490,7 +550,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   function close() {
     if (closed) return; closed = true; token++;
     cancelAnimationFrame(raf); document.removeEventListener('keydown', onKey);
-    names.remove(); stage.scene.remove(scene.group); scene.dispose(); stage.stop(); root.remove();
+    names.remove(); stage.scene.remove(scene.group); scene.dispose(); if (A) { stage.scene.remove(A.scene.group); A.scene.dispose(); } stage.stop(); root.remove();
     document.documentElement.classList.remove('memv-open');
     if (window.MEMBRANE && window.MEMBRANE.root === root) window.MEMBRANE = null;
     if (onClose) onClose();
@@ -510,6 +570,16 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     /* what is DRAWN at this point of the picture: its red, green, blue and opacity (the picture is drawn again and read
        back at once) */
     pixel: (x, y) => { stage.render(); return stage.probe(x, y, true); },
+    /* step 9: which piece is shown, its model's steps, its water (every molecule, each file's place and speed), the
+       aquaporin's measured numbers, and where each drawn molecule is on the screen (px in the stage) */
+    aqp: () => {
+      if (!A) return null;
+      const w = A.water.state(), v = new THREE.Vector3(), q = { x: 0, y: 0, z: 0 }, ppn = stage.pxPerNm();
+      w.mol.forEach(m => { stage.project(v.set(m.x, m.y, m.z), q); m.sx = q.x; m.sy = q.y; });
+      return { patch, steps: A.S.steps, lipids: A.S.N, prot: A.S.prot.map(p => ({ id: p.id, x: p.x, z: p.z, ang: p.ang })), water: w, box: A.data.box, rCore: A.data.rCore, room: A.data.room, pores: A.data.pores.length,
+        parts: A.data.parts.length, drawnWater: A.scene.waterMesh.count, visible: A.scene.group.visible, mainVisible: scene.group.visible, ppn, WATER,
+        waterSize: (g => { g.computeBoundingBox(); const b = g.boundingBox; return Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z); })(A.scene.waterMesh.geometry) };
+    },
     makeSim
   };
 
@@ -528,6 +598,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     viewName = STEPS[first].view; await camTo(viewName, 0);
     if (STEPS[first].ghost) scene.setGhost(0.13);
     show(first);
+    setTimeout(() => { if (!closed) aqpMake(); }, 1200);
   })();
   return { close, root };
 }

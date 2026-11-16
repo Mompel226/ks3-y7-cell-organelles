@@ -87,14 +87,18 @@ html.memv-open,html.memv-open body{overflow:hidden}
 .memv__steps button[aria-current]{background:#FFD27A;border-color:#FFD27A;color:#1b1640}
 /* a phone: the buttons stand beside "Step n of m", smaller, so that they take no height of their own (with a row of
    their own, step 6's Next and its two Follow buttons were under the screen's edge: tools/membrane-check.mjs) */
+/* (nine steps since 16 Nov 2026: the buttons 24 px and the count a little smaller, so that all nine still stand on the
+   count's line at 375 px) */
 @media (max-width:860px){
-  .memv__count{float:left;margin:7px 10px 0 0}
-  .memv__steps{margin:0 0 5px;gap:4px}
-  .memv__steps button{min-width:26px;height:26px;padding:0 5px;border-radius:13px;font-size:12.5px}
+  .memv__count{float:left;margin:6px 8px 0 0;font-size:11px;letter-spacing:.08em}
+  .memv__steps{margin:0 0 5px;gap:3px}
+  .memv__steps button{min-width:24px;height:24px;padding:0 4px;border-radius:12px;font-size:12px}
   .memv__st{clear:both}
 }
 .memv__st{margin:0 0 10px;font:800 23px/1.15 var(--mv-serif)}
 .memv__text p{margin:0 0 .6em}
+/* [!] a step's plain first line: what the step is for (view.js paras; as the IB view's, css/ib.css .lvp--lead) */
+.memv__text .lvp--lead{font-weight:700;color:var(--mv-ink);padding:8px 12px;margin:0 0 .75em;border-left:4px solid #FFD27A;border-radius:0 10px 10px 0;background:color-mix(in srgb,#FFD27A 10%,transparent)}
 .memv__text p:last-child{margin-bottom:0}
 /* the folded detail of a step (view.js paras: [x+]) */
 /* "More detail": a button that a reader cannot miss (Daniel, 15 Nov 2026: "a bit more visible … it's easy to miss").
