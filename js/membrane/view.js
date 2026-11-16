@@ -19,12 +19,12 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P, AQP_PATCH } from './sim.js?v=202611161858';
-import { makeScene, makeStage } from './scene.js?v=202611161858';
-import { makeWater, WATER } from './water.js?v=202611161858';
-import { makeNames } from './names.js?v=202611161858';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611161858';
-import { levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611162123';
+import { makeScene, makeStage } from './scene.js?v=202611162123';
+import { makeWater, WATER } from './water.js?v=202611162123';
+import { makeNames } from './names.js?v=202611162123';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611162123';
+import { levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611162123';
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
@@ -48,7 +48,8 @@ function paras(t) {
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}">${esc(LEVELS[m[1]].name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
   };
   const main = [], more = [];
-  fill(t).split('\n').forEach(p => { if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`); else if (p.startsWith('[x+] ')) more.push(one('[x] ' + p.slice(5))); else main.push(one(p)); });
+  /* (a folded guide line keeps its own tag: [x+] [sl …]) */
+  fill(t).split('\n').forEach(p => { if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`); else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|hl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); } else main.push(one(p)); });
   return main.join('') + (more.length ? `<details class="memv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
 }
 const tagX = `<span class="lv lv--x">${esc(LEVELS.x.name)}</span> `;
@@ -73,7 +74,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611161858', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611162123', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -152,7 +153,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
      fetched then), or when step 9 is asked for first */
   let A = null, aqpMaking = null, patch = 'main';
-  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611161858').then(async m => {
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611162123').then(async m => {
     if (closed) return null;
     const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1);
     sc2.draw(0); sc2.setWater(w2);
@@ -500,8 +501,8 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     /* a step with buttons: its first paragraph (what to do), the buttons, then the rest, so that the buttons are in
        view beside the picture without scrolling */
-    const cut = st.ctl ? st.t.indexOf('\n') : -1;
-    textEl.innerHTML = hlNote(st) + paras(cut < 0 ? st.t : st.t.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(st.t.slice(cut + 1));
+    const T = fit(st.t), cut = st.ctl ? T.indexOf('\n') : -1;
+    textEl.innerHTML = hlNote(st) + paras(cut < 0 ? T : T.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(T.slice(cut + 1));
     drawControls(); panelEl.scrollTop = 0;
     /* the other piece of membrane (step 9, and back): it changes under the veil, with or without Reduce motion */
     const want = st.patch || 'main';

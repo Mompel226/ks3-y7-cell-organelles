@@ -14,7 +14,7 @@
    address of its own, #ib-<door> (main.js), which a teacher can copy from the map for a slide or Google Classroom.
    ============================================================ */
 const R = window.REV, { $, $$, h, esc } = R;
-import { level, levelSwitch } from './iblevel.js?v=202611161858';
+import { level, levelSwitch } from './iblevel.js?v=202611162123';
 const STORY = window.STORY;
 /* the IB guide's topic names (Biology guide, first assessment 2025) */
 const TOPIC = {
@@ -58,7 +58,7 @@ export async function doors() {
     C.ib.forEach(b => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') codes[c] = codes[c] === 'sl' ? 'sl' : lv; })));
     out.push({ id, kind: 'place', title: STORY[id].title, codes });
   });
-  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611161858'), import('../ib/text.js?v=202611161858')]);
+  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611162123'), import('../ib/text.js?v=202611162123')]);
   out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS) });
   T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes }); });
   /* the insulin path, an Explore of the view (text.js EXPLORE 'x-insulin'): opened at its start */

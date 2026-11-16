@@ -12,7 +12,7 @@
    always particles in EQUAL volumes; liquid water is molecules that touch; a movement arrow is one filled shape with a
    head of fixed size, its shaft's width showing the rate. Shapes are not to scale unless a value is cited (text.js).
    ============================================================ */
-import { PIC } from './text.js?v=202611161858';
+import { PIC } from './text.js?v=202611162123';
 
 const NS = 'http://www.w3.org/2000/svg';
 const D = Math.PI / 180;

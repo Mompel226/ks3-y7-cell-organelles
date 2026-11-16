@@ -99,7 +99,19 @@ past it (water potential's steps 9 to 12, from light to glucose's steps 8 to 18,
 of "From glucose to ATP"); its button still opens it, with a line that says it is HL only. The IB map at SL counts and
 shows only the SL statements. The course switches, "Your course: IGCSE · IB", are one choice too: the side quest had its
 own until 16 Nov 2026, so IB could be on there and off in the cell. (`js/game/iblevel.js`, `js/game/ibmap.js`; proof
-`node tools/ib-level.mjs`.) For everyone else nothing changes, and such an address only says that the map is for
+`node tools/ib-level.mjs`.)
+**The courses on the picture, not in paragraphs** (16 Nov 2026; Daniel, with a picture of the leaf's IGCSE box: "I am a
+student, I see this … I'm not going to read it"; the audit `docs/cell-game-audit/index.html`, his "Yes, start there").
+Only the step a student is on shows its course boxes; a finished step's boxes are small chips that open them. Each box
+shows one line, the rest one press away under More, what a syllabus does not name and what is beyond the guide among
+them. The IB views keep every guide line on show and fold only lines beyond the guide (folding guide lines to reach 49
+words a step made 25 steps lean on a folded line: the science read); their real cut comes from the picture, next. The
+leaf of the plant cell:
+its twelve names are buttons (a card says what each part is, a tick, "4 of 12 learned"), and **Watch carbon dioxide go
+in** and **Watch transpiration** move the gases and water between the leaf's own parts with the IGCSE sentence on the
+picture. The way in: each moving molecule's name carries the course's word ("oxygen · diffusion", IB "simple
+diffusion"; glucose "facilitated diffusion · no ATP" at IB) and a strip beside the picture shows where its
+concentration is higher and lower. The other places follow, one at a time, once Daniel has judged these two. For everyone else nothing changes, and such an address only says that the map is for
 Year 12 and 13. The class comes from the sign-in's own reply (nothing more is asked or kept); the pass is kept for that
 account only, so another pupil on the same computer never gets it, and signing out ends it. (`js/ibpass.js`,
 `js/game/ibmap.js`; proof `node tools/ib-pass.mjs`, and `node tools/playthrough.mjs --year 12` and `--year 7`.)

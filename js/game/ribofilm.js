@@ -35,7 +35,7 @@
    reverse, and nothing ever jumps. With Reduce motion each step is one still, which holds every name of the step.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { levelSwitch } from './iblevel.js?v=202611161858';
+import { levelSwitch, boxLines } from './iblevel.js?v=202611162123';
 
 const R = window.REV, { $ } = R;
 const CODONS = ['AUG', 'AAG', 'CUC', 'UUU', 'UGG', 'UUG', 'CUU', 'UUC', 'ACC'];   /* NM_004038.4, codons 1 to 9 */
@@ -297,7 +297,8 @@ export function courseLines(step, LV) {
   /* (16 Nov 2026) the IB box has the IB level beside its name (js/game/iblevel.js): at SL its HL lines are hidden, and a
      box of HL lines only goes with them */
   return ['igcse', 'ib'].filter(c => LV[c] && step[c]).map(c => `<div class="step__ib step__lv cf__lv${c === 'ib' && step[c].every(l => l[0] === 'hl') ? ' iblv-hlbox' : ''}" data-lv="${c}"><p class="step__lvk">${c === 'ib' ? 'IB' : 'IGCSE'}</p>`
-    + step[c].map(([lv, code, t]) => `<p${c === 'ib' && lv === 'hl' ? ' class="ibln--hl"' : ''}><span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}</p>`).join('') + '</div>').join('');
+    /* one line on show, the rest under More (iblevel.js boxLines, 16 Nov 2026) */
+    + boxLines(step[c].map(([lv, code, t]) => ({ lv, hl: c === 'ib' && lv === 'hl', html: `<span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}` })), { scope: l => l.lv === 'n' || l.lv === 'x' }) + '</div>').join('');
 }
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */

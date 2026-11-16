@@ -293,6 +293,16 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .qp__lvb[aria-pressed="true"] .qp__ibt i{transform:translateX(14px)}
 .step__lvk{font:900 12.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#7243C0;margin:0 0 6px!important}
 .step__lv p:last-child{margin-bottom:0}
+/* a course box is a details (16 Nov 2026): open for the step the pupil is on; a finished step's boxes are small chips in
+   a row, "IGCSE ▸", that open them (quest.js lvOpen); inside, one line on show and More (iblevel.js boxLines) */
+details.step__lv>summary{list-style:none;cursor:pointer}
+details.step__lv>summary::-webkit-details-marker{display:none}
+details.step__lv[open]>summary::after{content:" \25BE";font-size:.95em;opacity:.7}
+details.step__lv:not([open]){display:inline-block;vertical-align:top;margin:8px 6px 0 0;padding:5px 11px;border-radius:999px;border-left-width:4px}
+details.step__lv:not([open])>summary{margin:0!important}
+details.step__lv:not([open])>summary::after{content:" \25B8";opacity:.7}
+details.step__lv>p,details.step__lv .cbox-more>p{margin:0 0 8px}
+details.step__lv>.cbox-more:last-child{margin-bottom:0}
 .step__lv .step__lvfilm,.step__lv .step__lvdoor,.step__lv .step__lvmem{margin-top:8px}
 /* a course's own questions (quest.js courseQuestions), under the place's Year 7 checks: the extension violet, as the boxes */
 .qp__cq{margin:18px 0 0;padding:2px 12px 12px;border-radius:14px;background:rgba(114,67,192,.07);border-left:4px solid #7243C0}
@@ -839,6 +849,21 @@ footer .credits p{margin:.5em 0 0}
 .qp__ibpk{font-weight:900;color:var(--ext);font-size:12.5px !important;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px !important}
 .qp__ibmap{width:100%;justify-content:center}
 .toast--long{max-width:min(640px,92%);border-radius:16px;text-align:center;font-weight:700}
+/* the concentration strip at the way in (play.js concStrip, 16 Nov 2026): with a course on, beside the picture, where the
+   moving substance's concentration is higher (dark) and lower (light), and that it moves down its gradient; high on the
+   right, under Hide text, in the cell's cytoplasm, where the place has no names */
+.conc{position:absolute;top:62px;z-index:9;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 10px 9px;border-radius:14px;background:rgba(14,16,46,.86);color:#fff;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
+.conc p{margin:0;font:600 12.5px/1.25 var(--sans)}
+.conc__k{font-weight:900!important;font-size:14px!important}
+.conc__t b{display:block;font-weight:900;color:#BFF0D4}
+.conc__bar{position:relative;width:20px;height:80px;border-radius:999px;border:2px solid #fff}
+.conc.is-up .conc__bar{background:linear-gradient(#DDF2E6,#1E7A4E)}
+.conc.is-down .conc__bar{background:linear-gradient(#1E7A4E,#DDF2E6)}
+.conc__bar i{position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-50%);border-left:9px solid transparent;border-right:9px solid transparent}
+.conc.is-up .conc__bar i{border-bottom:14px solid #FFD27A}
+.conc.is-down .conc__bar i{border-top:14px solid #FFD27A}
+.conc__f{font-weight:800!important;color:#FFD27A}
+@media (max-width:560px){ .conc{top:12px;transform:none;width:128px;padding:7px} .conc__bar{height:64px} .conc p{font-size:11.5px} }
 /* the IB map (16 Nov 2026): the guide's roadmap, themes across and levels of organisation down, a button a topic; a
    topic opens its own small window over the roadmap (js/game/ibmap.js). On a phone, rows by level of organisation. */
 .ibmap{position:fixed;inset:0;z-index:60;display:flex;overflow:auto;padding:16px;background:rgba(10,12,30,.6)}

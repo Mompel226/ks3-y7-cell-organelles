@@ -82,6 +82,42 @@ html.plv-open .tip{z-index:1100}
 .plv__lvb[aria-pressed="true"] .plv__lvt{background:#7243C0}
 .plv__lvb[aria-pressed="true"] .plv__lvt i{transform:translateX(14px)}
 .plv__lvbox{display:none}
+/* the course boxes are details (16 Nov 2026): open for the step the pupil is on, a small chip for the steps before */
+details.plv__lvbox>summary{list-style:none;cursor:pointer}
+details.plv__lvbox>summary::-webkit-details-marker{display:none}
+details.plv__lvbox[open]>summary::after{content:" \25BE"}
+details.plv__lvbox:not([open])>summary::after{content:" \25B8"}
+.plv--igcse details.plv__lvbox[data-lv="igcse"]:not([open]),.plv--ib details.plv__lvbox[data-lv="ib"]:not([open]){display:inline-block;padding:4px 6px;margin-right:6px}
+.plv__xkey,.plv__xkey>span{display:block}
+.plv__xlist{display:grid!important;gap:5px;margin-top:6px}
+.plv__xlist>span{display:block;line-height:1.3}
+/* the leaf: its names to press, the card, the names learned; the two Watch films (view.js "the leaf") */
+.plv--igcse .plv-xlab>span,.plv--ib .plv-xlab>span{pointer-events:auto;cursor:pointer}
+.plv-xlab>span{position:relative}
+.plv--igcse .plv-xlab>span:hover,.plv--ib .plv-xlab>span:hover{outline:2px solid #FFD27A;outline-offset:1px}
+.plv-xlab.is-found>span::after{content:"\2713";position:absolute;top:-8px;left:-8px;width:17px;height:17px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 11px/17px var(--sans,'Nunito',sans-serif);text-align:center;box-shadow:0 0 0 2px #fff}
+.plv__card{position:absolute;z-index:5;background:#fff;color:#141A24;border-radius:12px;border-top:4px solid #2E8B5E;padding:10px 34px 11px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45);font:500 15px/1.4 var(--sans,'Nunito',sans-serif)}
+.plv__card[hidden]{display:none}
+.plv__card p{margin:0}
+.plv__cardk{font:900 11.5px/1.2 var(--sans,'Nunito',sans-serif);letter-spacing:.06em;text-transform:uppercase;color:#2E6B4E;margin:0 0 4px!important}
+.plv__cardx{position:absolute;top:4px;right:6px;border:0;background:none;font:900 20px/1 var(--sans,'Nunito',sans-serif);color:#5C6679;cursor:pointer;padding:4px 6px}
+.plv__found{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-weight:800}
+.plv__ft{flex-basis:100%}
+.plv__found b{white-space:nowrap;font-size:.92em}
+.plv__fbar{flex:1;min-width:60px;height:8px;border-radius:99px;background:rgba(114,67,192,.18);overflow:hidden}
+.plv__fbar i{display:block;height:100%;background:#2E8B5E}
+.plv--igcse .plv__lvbox[data-lv="ib"] .plv__found,.plv--igcse .plv__lvbox[data-lv="ib"] .plv__watch{display:none}
+.plv__watch{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.plv__wb{font:800 14px/1.2 var(--sans,'Nunito',sans-serif);color:#1B0E3A;background:#FFD27A;border:0;border-radius:999px;padding:8px 12px;cursor:pointer}
+.plv__wb.is-on{box-shadow:0 0 0 3px #7243C0}
+.plv__wb:focus-visible{outline:3px solid #7243C0;outline-offset:2px}
+.plv__wsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.plv__wn{font:800 13px var(--sans,'Nunito',sans-serif);fill:#fff;stroke:rgba(10,12,40,.85);stroke-width:3px;paint-order:stroke}
+.plv__wcap{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;width:max-content;max-width:min(620px,calc(100% - 24px));background:rgba(12,14,44,.9);color:#fff;border-radius:12px;padding:8px 12px;font:600 15px/1.4 var(--sans,'Nunito',sans-serif);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.plv__wcap[hidden]{display:none}
+.plv__wcap p{margin:0}
+.plv__wcap p+p{margin-top:6px}
+.plv__wk{display:inline-block;font:900 11px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.06em;background:#7EE2AC;color:#0F3F2B;border-radius:5px;padding:3px 6px;margin-right:4px;vertical-align:1px}
 .plv--igcse .plv__lvbox[data-lv="igcse"],.plv--ib .plv__lvbox[data-lv="ib"]{display:block}
 .plv__lvbox>p,.plv__lvnote>p{margin:7px 0 0}
 .plv__lvbox sub{font-size:.72em}

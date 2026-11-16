@@ -108,8 +108,8 @@ export const STEPS = [
 [x+] Some books say that centrifugation separates organelles "not by size but by density". That is not true of this method, differential centrifugation: size matters most. Another method, density-gradient centrifugation, separates particles by their density.` },
   { id: 'deduve', title: 'De Duve\'s test: a new organelle',
     t: `[!] This test shows how a new organelle, the lysosome, was discovered in the 1950s.
-[x] Acid phosphatase is an enzyme that removes phosphate groups; it works best in acid conditions. Christian de Duve measured its activity in the fraction of mitochondria (pellet 2).
-[x] Measure the activity with the membranes whole, then break the membranes and measure again:`,
+[=] [x] Acid phosphatase is an enzyme that removes phosphate groups; it works best in acid conditions. Christian de Duve measured its activity in the fraction of mitochondria (pellet 2).
+[=] [x] Measure the activity with the membranes whole, then break the membranes and measure again:`,
     done: `[sl B2.2.1] So the enzyme is inside particles with a membrane. These particles sink with the mitochondria, but they are not mitochondria. In 1955 de Duve named them lysosomes.
 [sl B2.2.3] A lysosome keeps its digestive enzymes apart from the rest of the cell, in a compartment (a space closed by a membrane).
 [x] Claude, de Duve and Palade shared the Nobel Prize in Physiology or Medicine in 1974 for their discoveries about the organization of the cell.

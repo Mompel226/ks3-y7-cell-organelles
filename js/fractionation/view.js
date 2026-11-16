@@ -19,7 +19,8 @@
    Reduce motion (the computer's setting, or ?still=1 for the tests): every motion jumps to its end, nothing is left out.
    For tools/fractionation-check.mjs: window.FRACTIONATION.
    ============================================================ */
-import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611161858';
+import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611162123';
+import { fit } from '../game/iblevel.js?v=202611162123';   /* (the words on show a step: about 49, the rest under More detail) */
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const params = new URLSearchParams(location.search);
@@ -424,9 +425,9 @@ const TAG = /^\[(sl|x)(?:\s+([A-Z][0-9.]+(?:,\s*[A-Z][0-9.]+)*))?\]\s*/;
 function one(p) { const m = TAG.exec(p); return m ? `<p class="lvp lvp--${m[1]}">${chip(m[1], m[2])} ${esc(p.slice(m[0].length))}</p>` : `<p>${esc(p)}</p>`; }
 function paras(t) {
   const main = [], more = [];
-  String(t || '').split('\n').filter(Boolean).forEach(p => {
+  fit(t).split('\n').filter(Boolean).forEach(p => {
     if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${esc(p.slice(4))}</p>`);
-    else if (p.startsWith('[x+] ')) more.push(one('[x] ' + p.slice(5)));
+    else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); }   /* (a folded guide line keeps its tag) */
     else main.push(one(p));
   });
   return main.join('') + (more.length ? `<details class="frv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
@@ -434,7 +435,7 @@ function paras(t) {
 
 function styles() {
   let l = document.querySelector('link[data-frcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611162123', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */

@@ -18,10 +18,10 @@
    14), drawn by the game's own js/checks.js.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth } from '../ib/stage.js?v=202611161858';
-import { gameLook } from './look.js?v=202611161858';
-import { course, setCourse, levelSwitch } from '../game/iblevel.js?v=202611161858';
-import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611161858';
+import { makeStage, smooth } from '../ib/stage.js?v=202611162123';
+import { gameLook } from './look.js?v=202611162123';
+import { course, setCourse, levelSwitch, boxLines } from '../game/iblevel.js?v=202611162123';
+import { STEPS, LOOP, TITLE, KIND, DONE, FACT, CHECKS, TASK, XKEY, COURSE, LVNOTE } from './text.js?v=202611162123';
 
 const R = window.REV;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -33,12 +33,12 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('cellgame.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem('cellgame.' + k, JSON.stringify(v)); } catch (e) { /* a private window: this visit only */ } }
 };
-const SCENES = { leaf: () => import('./leaf.js?v=202611161858'), potato: () => import('./potato.js?v=202611161858'), gut: () => import('./gut.js?v=202611161858'), ring: () => import('./ring.js?v=202611161858') };
+const SCENES = { leaf: () => import('./leaf.js?v=202611162123'), potato: () => import('./potato.js?v=202611162123'), gut: () => import('./gut.js?v=202611162123'), ring: () => import('./ring.js?v=202611162123') };
 
 /* its own styles: fetched with the view, never with the game's page */
 function styles() {
   let l = document.querySelector('link[data-plantcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.plantcss = '1'; l.href = new URL('../../css/plant.css?v=202611162123', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when a door first shows, never before: the view's code and styles and its first picture's code
@@ -138,6 +138,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     }
     if (look.day !== (K.day == null ? 1 : K.day)) look.setDay(K.day == null ? 1 : K.day);
     scene.draw(K, t, dt);
+    drawWatch(performance.now());
     if (at.rest && !tw && scene.group) lookForHidden();
     /* no name, and no name's line, over a molecule (the scene says where they are) */
     stage.setAvoid(scene.avoid ? scene.avoid() : []);
@@ -201,7 +202,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   });
   /* at rest: the step's names. m: the step's moves, when it has a second set of names (labsX, see "the course layers") */
   const rest = (labs, m) => { xStep = m && m.labsX ? m : null; xLabs = labs || {}; paintX(); stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); stage.setRest(true); at.rest = true; };
-  const moving = () => { xStep = null; paintX(); stage.showLabels({}); curLabs = {}; stage.setRest(false); at.rest = false; };
+  const moving = () => { watchStop(); hideCard(); xStep = null; paintX(); stage.showLabels({}); curLabs = {}; stage.setRest(false); at.rest = false; };
 
   /* ---------------- the course layers: IGCSE and IB ----------------
      Daniel, 12 Nov 2026: "just like for all the main quest, you can always add a toggle for IGCSE and then a toggle for
@@ -225,11 +226,14 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
   if (ibPass() && !store.get('ibpassLv', false)) { LV.ib = true; setCourse('ib', true); store.set('ibpassLv', true); }
   let xStep = null, xLabs = {};
   const lvOn = c => ks3Done() && !!LV[c];
-  function paintX() { curLabs = xStep && lvOn('igcse') ? xStep.labsX : xLabs; }
+  /* (16 Nov 2026) with either course: the IB line names the same parts (cuticle, epidermis, air spaces, spongy
+     mesophyll, guard cells, veins), and the names are the leaf's lesson */
+  function paintX() { curLabs = xStep && (lvOn('igcse') || lvOn('ib')) ? xStep.labsX : xLabs; }
   function paintLv() {
     const open = ks3Done(); lvEl.hidden = !open;
     ['igcse', 'ib'].forEach(c => { const on = open && !!LV[c]; root.classList.toggle('plv--' + c, on); lvEl.querySelector(`[data-lv="${c}"]`).setAttribute('aria-pressed', on ? 'true' : 'false'); });
     const lvl = lvEl.querySelector('.plv__lvl'); if (lvl) lvl.hidden = !(open && LV.ib);
+    if (!(open && (LV.igcse || LV.ib))) { watchStop(); hideCard(); }
   }
   lvEl.addEventListener('click', e => { const b = e.target.closest('.plv__lvb'); if (!b || !ks3Done()) return; const c = b.dataset.lv;
     LV[c] = !LV[c]; setCourse(c, LV[c]); paintLv(); paintX();
@@ -237,6 +241,105 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     /* the box just opened, of the step the pupil is on, comes into view */
     const li = cur >= 0 && liOf(cur), box = LV[c] && li && li.querySelector(`.plv__lvbox[data-lv="${c}"]`);
     if (box) requestAnimationFrame(() => { const p = panel.getBoundingClientRect(), k = box.getBoundingClientRect(); if (k.top < p.top + 40 || k.bottom > p.bottom) panel.scrollTo({ top: Math.max(0, panel.scrollTop + k.top - p.top - 52), behavior: FAST ? 'auto' : 'smooth' }); }); });
+
+  /* ---------------- the leaf: its names to press, and two short films (16 Nov 2026) ----------------
+     Daniel: "once you toggle the IGCSE, you see it … on the 3D representation instead of text … even with labels and as a
+     discovery way". With a course on, the leaf's twelve names (XKEY.leaf; the labsX of its step, class plv-xlab) are
+     buttons: pressed, a card under the name says what the part is (its row of XKEY: the words the box listed until today)
+     and the name is ticked; the names learned are kept (store 'leafNames') and counted in the box. Watch carbon dioxide go
+     in and Watch transpiration: dots move between the leaf's own parts (leaf.js flows), drawn each frame where those parts
+     are on the screen, the first dot named, and the IGCSE sentence of each part of the film is a caption on the picture
+     (the box's own lines: no new words). With Reduce motion, one still: the dots along the way, and every caption. */
+  const NAMES = XKEY.leaf ? XKEY.leaf.rows : [];
+  const found = () => new Set((store.get('leafNames', []) || []).filter(k => NAMES.some(r => r[0] === k)));
+  function foundLine() {
+    const n = found().size, N = NAMES.length || 1;
+    return `<p class="plv__found"><span class="plv__ft">Press each name on the leaf</span><span class="plv__fbar" aria-hidden="true"><i style="width:${Math.round(100 * n / N)}%"></i></span><b>${n} of ${NAMES.length} learned</b></p>`;
+  }
+  function paintFound() {
+    const F = found();
+    stageEl.querySelectorAll('.plv-xlab').forEach(el => el.classList.toggle('is-found', F.has(el.dataset.k)));
+    root.querySelectorAll('.plv__found').forEach(el => { el.outerHTML = foundLine(); });
+  }
+  let cardEl = null;
+  const hideCard = () => { if (cardEl) cardEl.hidden = true; };
+  function showCard(lab, row) {
+    if (!cardEl) { cardEl = document.createElement('div'); cardEl.className = 'plv__card'; cardEl.setAttribute('role', 'note'); stageEl.appendChild(cardEl); }
+    cardEl.innerHTML = `<button type="button" class="plv__cardx" aria-label="Close">×</button><p class="plv__cardk">Part of the leaf</p><p><b>${row[1]}</b>: ${row[2]}</p>`;
+    cardEl.querySelector('.plv__cardx').addEventListener('click', hideCard);
+    cardEl.hidden = false;
+    /* under the name, or above it when there is no room: never on the name pressed */
+    const s0 = stageEl.getBoundingClientRect(), b = (lab.querySelector('span') || lab).getBoundingClientRect(), w = Math.min(290, s0.width - 16);
+    cardEl.style.width = w + 'px';
+    const hh = cardEl.offsetHeight, x = Math.max(8, Math.min(s0.width - w - 8, b.left - s0.left)), below = b.bottom - s0.top + 8;
+    cardEl.style.left = x + 'px'; cardEl.style.top = (below + hh < s0.height - 8 ? below : Math.max(8, b.top - s0.top - hh - 8)) + 'px';
+  }
+  stageEl.addEventListener('click', e => {
+    const lab = e.target.closest && e.target.closest('.plv-xlab'); if (!lab) return;
+    const row = NAMES.find(r => r[0] === lab.dataset.k); if (!row || !(lvOn('igcse') || lvOn('ib'))) return;
+    e.stopPropagation(); showCard(lab, row);
+    const F = found(); if (!F.has(row[0])) { F.add(row[0]); store.set('leafNames', [...F]); }
+    paintFound();
+  });
+  const WATCH = { leaf: [['co2', 'Watch carbon dioxide go in'], ['h2o', 'Watch transpiration']] };
+  const CG = COURSE.igcse.leaf || [];
+  const FILMS = {
+    co2: [{ path: 'co2', ms: 7000, dot: 'co2', name: 'carbon dioxide', say: CG[1] }],
+    h2o: [{ path: 'vapour', ms: 6500, dot: 'vap', name: 'water vapour', say: CG[2] }, { path: 'water', ms: 6000, dot: 'wat', name: 'water', say: CG[3] }]
+  };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const wSvg = document.createElementNS(SVGNS, 'svg'); wSvg.setAttribute('class', 'plv__wsvg'); wSvg.setAttribute('aria-hidden', 'true');
+  const wCap = document.createElement('div'); wCap.className = 'plv__wcap'; wCap.setAttribute('aria-live', 'polite'); wCap.hidden = true;
+  stageEl.appendChild(wSvg); stageEl.appendChild(wCap);
+  let wplay = null;   /* the film on show: { k, F, P, i, t0, done } (not watch(i), the ↻ of a step) */
+  function watchStop() { wplay = null; wSvg.innerHTML = ''; wCap.hidden = true; root.querySelectorAll('.plv__wb.is-on').forEach(b => b.classList.remove('is-on')); }
+  function watchStart(k) {
+    const F = FILMS[k], P = scene && scene.flows ? scene.flows() : null; if (!F || !P) return;
+    hideCard(); wplay = { k, F, P, i: 0, t0: performance.now(), done: false };
+    root.querySelectorAll('.plv__wb').forEach(b => b.classList.toggle('is-on', b.dataset.watch === k));
+    sayCap();
+  }
+  function sayCap() {
+    const parts = FAST || wplay.done ? wplay.F : [wplay.F[wplay.i]];
+    wCap.innerHTML = parts.map(ph => `<p><span class="plv__wk">IGCSE</span> ${ph.say}</p>`).join(''); wCap.hidden = false; if (R) R.terms(wCap);
+  }
+  const DOT = { co2: ['#3B4252', '#FFFFFF'], vap: ['#9FD8FF', '#1D5F8C'], wat: ['#2F80ED', '#FFFFFF'] };
+  function drawWatch(now) {
+    if (!wplay) return;
+    const all = FAST || wplay.done, phs = all ? wplay.F : [wplay.F[wplay.i]];
+    let out = '';
+    /* the boxes of the names on the picture now: a dot's own name shows only where it covers none of them */
+    const s0 = stageEl.getBoundingClientRect(), taken = [];
+    stageEl.querySelectorAll('.ibv__lab').forEach(el => { if (el.style.visibility !== 'visible') return; const b = el.firstElementChild.getBoundingClientRect(); taken.push({ l: b.left - s0.left - 4, r: b.right - s0.left + 4, t: b.top - s0.top - 4, b: b.bottom - s0.top + 4 }); });
+    /* (and the zoom buttons, the caption, the picture's edge: a phone had the name under the − button) */
+    stageEl.querySelectorAll('.plv__zoom:not([hidden]) .plv__zb, .plv__wcap:not([hidden])').forEach(el => { const b = el.getBoundingClientRect(); if (b.width) taken.push({ l: b.left - s0.left - 4, r: b.right - s0.left + 4, t: b.top - s0.top - 4, b: b.bottom - s0.top + 4 }); });
+    const free = (x, y, w) => x + w < s0.width - 6 && !taken.some(o => x < o.r && x + w > o.l && y - 10 < o.b && y + 6 > o.t);
+    for (const ph of phs) {
+      const Q = (wplay.P[ph.path] || []).map(p => stage.project(p));
+      if (Q.length < 2) continue;
+      const seg = []; let L = 0;
+      for (let j = 1; j < Q.length; j++) { const d = Math.hypot(Q[j][0] - Q[j - 1][0], Q[j][1] - Q[j - 1][1]); seg.push(d); L += d; }
+      const at = f => { let d = f * L; for (let j = 0; j < seg.length; j++) { if (d <= seg[j] || j === seg.length - 1) { const u = seg[j] ? Math.min(1, d / seg[j]) : 0; return [Q[j][0] + (Q[j + 1][0] - Q[j][0]) * u, Q[j][1] + (Q[j + 1][1] - Q[j][1]) * u]; } d -= seg[j]; } return Q[Q.length - 1]; };
+      const [fill, line] = DOT[ph.dot], el = all ? 1 : Math.min(1, (now - wplay.t0) / ph.ms), N = 6;
+      out += `<polyline points="${Q.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ')}" fill="none" stroke="${fill}" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="6 6" marker-end="url(#plvArr-${ph.dot})"/>`;
+      let named = false; const tw = ph.name.length * 7.4;
+      for (let j = 0; j < N; j++) {
+        const f = all ? (j + 0.5) / N : (el * 1.5 + j / N) % 1, [x, y] = at(f);
+        out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="${fill}" stroke="${line}" stroke-width="2"/>`;
+        if (!named && free(x + 11, y, tw)) { out += `<text x="${(x + 11).toFixed(1)}" y="${(y + 4).toFixed(1)}" class="plv__wn">${ph.name}</text>`; named = true; }
+      }
+    }
+    wSvg.innerHTML = `<defs>${Object.entries(DOT).map(([k, c]) => `<marker id="plvArr-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${c[0]}"/></marker>`).join('')}</defs>` + out;
+    if (!all && now - wplay.t0 >= wplay.F[wplay.i].ms) {
+      if (wplay.i < wplay.F.length - 1) { wplay.i++; wplay.t0 = now; sayCap(); }
+      else { wplay.done = true; sayCap(); }
+    }
+  }
+  panel.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('.plv__wb'); if (!b) return;
+    if (wplay && wplay.k === b.dataset.watch && !wplay.done && !FAST) { watchStop(); return; }
+    watchStart(b.dataset.watch);
+  });
   document.addEventListener('progress', paintLv);
   /* a switch pressed in a place or a film (or another tab): the side quest follows */
   const followLv = () => { if (!root.isConnected) { document.removeEventListener('courselv', followLv); return; } const n = course(); if (!!n.igcse === !!LV.igcse && !!n.ib === !!LV.ib) return; LV.igcse = !!n.igcse; LV.ib = !!n.ib; paintLv(); paintX(); if (at.rest) { stage.showLabels(curLabs); seenSig = ''; if (scene && scene.group) lookForHidden(); } };
@@ -296,7 +399,7 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
       labs[k] = e; });
     Object.keys(seen).forEach(k => delete seen[k]); Object.keys(pts3).forEach(k => delete pts3[k]); seenSig = '';
     root.classList.toggle('plv--pins', narrow);
-    stage.defineLabels(labs);
+    stage.defineLabels(labs); watchStop(); hideCard(); paintFound();
     paper.hidden = !sc.paper; zoomEl.hidden = !!sc.paper; Z.k = 1; Z.r = Z.u = 0; Z.home = false; stage.setPaused(!!sc.paper); if (sc.paper) paper.innerHTML = sc.paper(); else paper.innerHTML = '';
     building = false; stage.setBusy(false);
     veil.classList.add('is-first'); await frames(2);
@@ -324,12 +427,33 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     const li = document.createElement('li'); li.className = 'step is-later'; li.dataset.id = STEPS[i].id;
     /* the course boxes of the step (shown by the panel's switches, see "the course layers"): IGCSE, with the key of
        the picture's IGCSE names where it has them; IB, each line marked SL or HL */
-    const id = STEPS[i].id, X = XKEY[id], G = COURSE.igcse[id], B = COURSE.ib[id];
-    const boxes = (G || X ? `<div class="y8 plv__lvbox" data-lv="igcse"><span class="y8__k">IGCSE</span>${X ? `<div class="plv__xkey"><p>${X.intro}</p><ul class="plv__xlist">${X.rows.map((r, n) => `<li><b class="plv__xn">${n + 1}</b><span><b>${r[1]}</b>: ${r[2]}</span></li>`).join('')}</ul></div>` : ''}${(G || []).map(t => `<p>${t}</p>`).join('')}</div>` : '')
-      + (B ? `<div class="y8 plv__lvbox${B.every(l => l[0] === 'HL') && !VDOOR[id] ? ' iblv-hlbox' : ''}" data-lv="ib"><span class="y8__k">IB</span>${B.map(([lv, t]) => `<p${lv === 'HL' ? ' class="ibln--hl"' : ''}>${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}</p>`).join('')}${VDOOR[id] ? `<button type="button" class="plv__vdoor" data-view="${VDOOR[id][0]}">${VDOOR[id][1]}</button>` : ''}</div>` : '');
-    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${boxes}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
+    li.innerHTML = `<div class="step__t">${paras(STEPS[i].text)}</div>${boxesHTML(i)}<div class="step__do"></div><div class="step__say" aria-live="polite"></div>`;
     ol.appendChild(li); if (R) R.terms(li); return li;
   }
+  /* the course boxes of step i (16 Nov 2026; Daniel, with a picture of this leaf's IGCSE box: "I am a student, I see this
+     … I'm not going to read it"): a details each, open for the step the pupil is on (show), a small chip for the steps
+     before; in it one line on show and the rest under More (iblevel.js boxLines), what a syllabus does not name among
+     them. The leaf's IGCSE names are on the picture, each a button (pressName); its box counts the names learned and
+     has its Watch buttons (watchStart), and its list of names is under More. */
+  const SCOPE = /does not name|not in the list|names no part|not named|no SL statement|does not show/i;
+  function boxesHTML(i, open) {
+    const id = STEPS[i].id, X = XKEY[id], G = COURSE.igcse[id], B = COURSE.ib[id], o = open ? ' open' : '';
+    const gl = (G || []).map(t => ({ html: t, scope: SCOPE.test(t) }));
+    if (X) gl.push({ scope: true, html: `<span class="plv__xkey"><span>${X.intro}</span><span class="plv__xlist">${X.rows.map((r, n) => `<span><b class="plv__xn">${n + 1}</b> <b>${r[1]}</b>: ${r[2]}</span>`).join('')}</span></span>` });
+    const bl = (B || []).map(([lv, t]) => ({ hl: lv === 'HL', scope: !lv || SCOPE.test(t), html: `${lv ? `<b class="plv__sl plv__sl--${lv.toLowerCase()}">${lv}</b> ` : ''}${t}` }));
+    const W = WATCH[id] ? `<div class="plv__watch">${WATCH[id].map(([k, t]) => `<button type="button" class="plv__wb" data-watch="${k}">▶ ${t}</button>`).join('')}</div>` : '';
+    return (G || X ? `<details class="y8 plv__lvbox" data-lv="igcse"${o}><summary class="y8__k">IGCSE</summary>${X ? foundLine() : ''}${boxLines(gl, { scope: l => l.scope, mid: W })}</details>` : '')
+      + (B ? `<details class="y8 plv__lvbox${B.every(l => l[0] === 'HL') && !VDOOR[id] ? ' iblv-hlbox' : ''}" data-lv="ib"${o}><summary class="y8__k">IB</summary>${X ? foundLine() : ''}${boxLines(bl, { scope: l => l.scope, mid: W })}${VDOOR[id] ? `<button type="button" class="plv__vdoor" data-view="${VDOOR[id][0]}">${VDOOR[id][1]}</button>` : ''}</details>` : '');
+  }
+  /* the level changed: each step's boxes drawn again, open as they were */
+  document.addEventListener('iblevel', function relevel() {
+    if (!root.isConnected) { document.removeEventListener('iblevel', relevel); return; }
+    Array.from(ol.children).forEach((li, i) => {
+      const was = li.querySelector('details.plv__lvbox'), open = !!(was && was.open);
+      li.querySelectorAll('.plv__lvbox').forEach(b => b.remove());
+      li.querySelector('.step__t').insertAdjacentHTML('afterend', boxesHTML(i, open)); if (R) R.terms(li);
+    });
+  });
   function again(i) {
     const li = liOf(i), m = scene && STEPS[i].scene === sceneKey ? motion(STEPS[i].id) : null;
     if (!li || li.querySelector('.step__again') || STEPS[i].scene === 'ring') return;
@@ -419,6 +543,8 @@ export function openPlant({ mount = document.body, inGame = false, from = '', on
     const st = STEPS[i];
     for (let j = 0; j <= i; j++) { const li = addStep(j); li.hidden = false; li.className = 'step ' + (j < i ? 'is-done' : 'is-now'); if (j < i) { li.querySelector('.step__do').innerHTML = ''; } }
     for (let j = i + 1; j < ol.children.length; j++) ol.children[j].hidden = true;
+    /* one step's course boxes open at a time: this one */
+    ol.querySelectorAll('details.plv__lvbox').forEach(d => { d.open = d.closest('li') === liOf(i); });
     loopEl.innerHTML = loopMap(st.where); countEl.textContent = `Step ${i + 1} of ${STEPS.length}`;
     const li = liOf(i); li.querySelector('.step__say').innerHTML = ''; li.querySelector('.step__do').innerHTML = '';
     panel.scrollTo({ top: Math.max(0, li.offsetTop - 12), behavior: FAST || i === 0 ? 'auto' : 'smooth' });

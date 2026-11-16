@@ -20,9 +20,9 @@
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611161858';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611161858';
-import { level, levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611162123';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611162123';
+import { level, levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611162123';
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"): its
    switch in the header; at SL the HL lines are hidden, a chapter or step of HL lines only is marked HL on its button, and
    Next and Back go past it (the link reaction and the Krebs cycle are HL only); it opens when its button is pressed */
@@ -53,7 +53,7 @@ function paras(t) {
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}" title="">${esc(L.name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
   };
   const main = [], more = [];
-  t.split('\n').forEach(p => {
+  fit(t).split('\n').forEach(p => {
     if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`);
     else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|hl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); }
     else main.push(one(p));
@@ -116,7 +116,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611161858', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611162123', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -125,7 +125,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611161858' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611162123' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive

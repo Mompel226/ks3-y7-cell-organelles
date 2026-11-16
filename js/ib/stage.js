@@ -130,7 +130,7 @@ export function makeStage(wrap, { onFrame, render } = {}) {
     Object.keys(defs).forEach(k => {
       const d = defs[k], el = document.createElement('div');
       el.className = 'ibv__lab' + (d.lv === 'x' ? ' ibv__lab--x' : '') + (d.cls ? ' ' + d.cls : '');
-      el.innerHTML = `<span>${d.html}</span><i></i>`; el.style.opacity = 0; el.style.visibility = 'hidden'; labs.appendChild(el);
+      el.innerHTML = `<span>${d.html}</span><i></i>`; el.dataset.k = k; el.style.opacity = 0; el.style.visibility = 'hidden'; labs.appendChild(el);
       L[k] = Object.assign({ el, f: 0 }, d);
     });
   }

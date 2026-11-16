@@ -40,6 +40,8 @@ function tell(name, detail) { try { document.dispatchEvent(new CustomEvent(name,
 
 const TAGS = /\[(sl|hl)\b/g;
 export function hlOnly(x) {
+  /* (a step may say it is HL only, hl: true: its words have no tag of their own, as a plain line about the HL steps) */
+  if (x && typeof x === 'object' && x.hl === true) return true;
   const s = typeof x === 'string' ? x : JSON.stringify(x || ''); let hl = false;
   for (const m of s.matchAll(TAGS)) { if (m[1] === 'sl') return false; hl = true; }
   return hl;
@@ -102,6 +104,15 @@ if (!document.getElementById('iblv-css')) {
    the switch stands under Back and Next instead, beside the key to the tags (iblv-foot) */
 .iblv-foot{display:none}
 @media (max-width:860px){ .iblv-cline{display:contents} .iblv-cline>div{display:none} .iblv-foot{display:block;margin:14px 0 2px} }
+.cbox-more{margin:2px 0 0}
+.cbox-more>summary{display:inline-flex;align-items:center;gap:5px;font:800 13.5px/1 var(--sans,inherit);color:#5A2FA8;background:rgba(114,67,192,.08);border:1.5px solid #7243C0;border-radius:999px;padding:5px 11px;cursor:pointer;list-style:none}
+.cbox-more>summary::-webkit-details-marker{display:none}
+.cbox-more>summary::before{content:"+";font-weight:900;font-size:1.15em;line-height:.8}
+.cbox-more[open]>summary::before{content:"−"}
+.cbox-more[open]>summary{margin-bottom:8px}
+.cbox-more__n{font-weight:700}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .cbox-more>summary{color:#D9C8FF;border-color:#B388FF;background:rgba(179,136,255,.12)} }
+:root[data-theme="dark"] .cbox-more>summary{color:#D9C8FF;border-color:#B388FF;background:rgba(179,136,255,.12)}
 .iblv-note{display:none}
 .iblv-sl .iblv-note{display:block;margin:0 0 8px;padding:7px 10px;border-radius:8px;border:1px dashed currentColor;font-weight:700;opacity:.85}
 @media (prefers-color-scheme:dark){.iblvs button[aria-pressed="true"]{background:#B388FF;border-color:#B388FF;color:#1b1430}}
@@ -110,6 +121,36 @@ if (!document.getElementById('iblv-css')) {
   document.head.appendChild(st);
 }
 paint();
+/* a course box's lines, few on show (16 Nov 2026; Daniel, with a picture of the leaf's IGCSE box: "I am a student, I see
+   this … I'm not going to read it. It's going to overwhelm me"): one line on show, the first that the pupil's level shows
+   and that is not a scope line (what a syllabus does not name, `scope`) or beyond the guide; the others one press away
+   under "More (n)", n counting only what the level shows. A box of scope lines only shows its first. Each line:
+   { html, hl } (hl: an HL line, hidden at SL); `mid`, on show after the first line (buttons). The page draws the box
+   again when the level changes ('iblevel'). */
+export function boxLines(lines, { scope = () => false, mid = '' } = {}) {
+  const sl = level() === 'sl', vis = l => !(sl && l.hl);
+  const lead = lines.find(l => !scope(l) && vis(l)) || lines.find(vis) || null;
+  const rest = lines.filter(l => l !== lead), n = rest.filter(vis).length;
+  const p = l => `<p${l.hl ? ' class="ibln--hl"' : ''}>${l.html}</p>`;
+  return (lead ? p(lead) : '') + mid + (rest.length ? `<details class="cbox-more"${n ? '' : ' hidden'}><summary>More <span class="cbox-more__n">(${n})</span></summary>${rest.map(p).join('')}</details>` : '');
+}
+/* the words on show in a step of an IB view (16 Nov 2026; Daniel, 15 Nov: about 49 words a step; 16 Nov: "I'm not going
+   to read it"). Every line the guide asks ([sl …], [hl …]) and every line with no tag stay on show: a first version also
+   folded guide lines to keep to 49 words, and the science read found 25 steps where a line on show then leaned on a
+   folded one (water's step 8 lost its answer, the link reaction its acetyl CoA). So only the lines beyond the guide ([x])
+   fold, in order, once the words on show pass `max`, under the step's More detail; a line marked [=] stays on show
+   whatever its words (a beyond-the-guide line a later line needs: "about 30–32 ATP"). A line the level hides (HL at SL)
+   is not counted. Nothing is removed. */
+export function fit(t, max = 49) {
+  const sl = level() === 'sl', words = p => p.replace(/^(\[[^\]]*\]\s*)+/, '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  const L = String(t || '').split('\n').map(p => ({ p: p.replace(/^\[=\]\s*/, ''), keep: /^\[=\]/.test(p) }));
+  let used = L.reduce((a, l) => { const tag = /^\[(sl|hl|x)\b/.exec(l.p); return a + (!l.p || l.p.startsWith('[x+] ') || (tag && tag[1] === 'x' && !l.keep) || (sl && tag && tag[1] === 'hl') ? 0 : words(l.p)); }, 0);
+  return L.map(({ p, keep }) => {
+    if (!p || p.startsWith('[x+] ') || keep || !/^\[x\b/.test(p)) return p;
+    const w = words(p); if (used + w <= max) { used += w; return p; }
+    return '[x+] ' + p;
+  }).join('\n');
+}
 /* a step that holds only HL lines, opened at SL (its button, or its chapter chosen): what the pupil sees above its words */
 /* (a box, not a paragraph: the views' checks count a step's paragraphs, each with its level) */
 export const hlNote = x => hlOnly(x) ? '<div class="iblv-note" role="note">HL only. Your level is SL: you can go past this step. To read its HL lines, choose HL.</div>' : '';

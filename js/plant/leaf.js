@@ -36,10 +36,10 @@
    dispose }. Every step can be shown from its start: the picture depends only on the knobs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611161858';
-import { token, riboPart } from '../game/actors.js?v=202611161858';
-import { bilayer } from '../ib/membrane.js?v=202611161858';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611161858';
+import { magicStandard, sparkles, setLook, PAL } from '../world/magic.js?v=202611162123';
+import { token, riboPart } from '../game/actors.js?v=202611162123';
+import { bilayer } from '../ib/membrane.js?v=202611162123';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611162123';
 
 /* every size in nm */
 export const S = {
@@ -799,7 +799,27 @@ export async function build(stage, kit) {
     };
     [site.visible, ws.visible, hcWhole.visible] = was; return out;
   }
-  return { group: g, knobs, views, steps, labels, hots, draw, measure, avoid, narrowZoom: 1, turn: true,
+  /* the paths of the leaf's gases and water (16 Nov 2026; the course layer's Watch films, js/plant/view.js watchStart),
+     between this piece's own parts, so that each goes where the part is drawn: carbon dioxide from the air below the leaf,
+     through the stoma's hole (HOLE), the air space above it (CAVE) and on through the air spaces (AIR) to a palisade cell
+     (most photosynthesis), never through a cell (the science read, 16 Nov 2026); water vapour the other way, from the spongy cell's surface out through the
+     stoma; water from the xylem of the vein to the mesophyll. The vein is cut across in this piece (it runs into the
+     picture), so the water leaves the xylem beside it: it is never drawn going up the vein. */
+  const flows = () => {
+    /* (the points far enough apart to be seen: the air below the leaf well under it; carbon dioxide on to a spongy cell
+       higher up and a palisade cell to one side; the water vapour from a spongy cell beside the air space) */
+    const below = HOLE.clone().add(V(0, -40000, 0));
+    const near = (L, q, ok) => L.filter(ok).reduce((b, o) => (!b || o.p.distanceTo(q) < b.p.distanceTo(q) ? o : b), null);
+    const face = o => o.p.clone().add(V(0, 0, o.r * 0.9));
+    const sUp = near(spo, CAVE.clone().add(V(-0.6 * PX, 26000, 0)), o => o.p.z > 0), sPt = sUp ? face(sUp) : CAVE.clone();
+    const pc = near(palChl, V(HOLE.x - 1.4 * PX, -HL + 30000, 9000), o => o.p.z > 4000), pPt = pc ? pc.p.clone() : sPt.clone();
+    const sSide = near(spo, CAVE.clone().add(V(1.1 * PX, 9000, 0)), o => o.p.z > 0), ePt = sSide ? face(sSide) : CAVE.clone();
+    const xo = (VEIN.xylem || []).slice().sort((u, w) => w[0] - u[0])[0], xPt = xo ? V(VEIN.x + xo[0], VEIN.y + xo[1], VEIN.z0) : ePt.clone();
+    const sv = near(spo, xPt, o => o.p.z > 0 && o.p.x > xPt.x), vPt = sv ? face(sv) : ePt.clone();
+    const mid = CAVE.clone().lerp(pPt, 0.5), aPt = AIR.reduce((b, q) => (!b || q.distanceTo(mid) < b.distanceTo(mid) ? q : b), null);
+    return { co2: [below, HOLE.clone(), CAVE.clone(), (aPt || sPt).clone(), pPt], vapour: [ePt, CAVE.clone(), HOLE.clone(), below], water: [xPt, vPt, ePt] };
+  };
+  return { group: g, knobs, views, steps, labels, hots, draw, measure, avoid, flows, narrowZoom: 1, turn: true,
     sizes: { cell: [S.cellLen, S.cellW], chloroplast: [S.chl, S.chlThick], wall: S.wall, fibre: S.fibre, chloroplasts: allSpots.length + 1, grana: grana.length, vacuoleBase: S.vacBase },
     dispose() { disposeGroup(g); } };
 }

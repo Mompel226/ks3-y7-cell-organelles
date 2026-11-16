@@ -5,22 +5,22 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611161858';
-import { state, COST, RESPIRE } from './state.js?v=202611161858';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611161858';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611161858';
-import { sound } from './sound.js?v=202611161858';
-import { magicStandard } from '../world/magic.js?v=202611161858';
-import { buildCrowd } from '../world/crowd.js?v=202611161858';
-import { Names } from './names.js?v=202611161858';
-import { makePit } from './clathrin.js?v=202611161858';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611162123';
+import { state, COST, RESPIRE } from './state.js?v=202611162123';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite } from '../world/mitoparts.js?v=202611162123';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611162123';
+import { sound } from './sound.js?v=202611162123';
+import { magicStandard } from '../world/magic.js?v=202611162123';
+import { buildCrowd } from '../world/crowd.js?v=202611162123';
+import { Names } from './names.js?v=202611162123';
+import { makePit } from './clathrin.js?v=202611162123';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611161858').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611162123').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611161858').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611162123').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
@@ -46,8 +46,39 @@ const IB_NAMES = { 'nm-om': ['outer membrane:<br>phospholipid bilayer'], 'nm-ch'
   'nm-p4': ['complex IV, the last<br>protein of the chain'], 'nm-lum': ['intermembrane space<br>(inside a crista)', 'intermembrane space'],
   'nm-hi': ['many protons<br>(hydrogen ions)', 'protons'], 'nm-hi2': ['many protons:<br>a high concentration', 'many protons'], 'nm-few': ['few protons', 'few protons'] };
 
+/* the course on the picture (16 Nov 2026; Daniel: "once you toggle the IGCSE, you see it … on the 3D representation
+   instead of text … teach the content as much as possible using the animations"): with a course switched on in the
+   place (its bar, quest.js courseSwitch), a moving molecule's own name carries that course's word for how it crosses
+   (IB's when IB is on, else IGCSE's), and a strip beside the picture shows where its concentration is higher and lower
+   and which way it moves. The words are those of the place's own course lines (story.js wayin `course`): IGCSE names no
+   carrier for diffusion, so for glucose it says only "down its concentration gradient", and for the amino acid it names
+   the protein carrier and claims no process (the picture does not show whether energy is used). */
+const lvHere = c => !!document.querySelector(`#quest .qp__lv [data-lv="${c}"][aria-pressed="true"]`);
+const courseWord = (name, w) => () => (lvHere('ib') && w.ib ? `${name} · ${w.ib}` : lvHere('igcse') && w.igcse ? `${name} · ${w.igcse}` : name);
+
 export function makePlay(world, quest) {
   const W = world.W, scene = world.scene;
+  /* the concentration strip: higher where the substance comes from, lower where it goes; `up`: from the blood (below)
+     into the cell (above); shown only with a course on, gone when the step or the place changes */
+  let stripAt = -1;
+  function concStrip(name, up) {
+    const old = document.getElementById('conc'); if (old) old.remove();
+    if (!name || !(lvHere('igcse') || lvHere('ib'))) return;
+    const st = document.getElementById('stage'); if (!st) return;
+    const hi = 'higher concentration', lo = 'lower concentration';
+    const el = document.createElement('div'); el.id = 'conc'; el.className = 'conc' + (up ? ' is-up' : ' is-down');
+    el.setAttribute('role', 'img'); el.setAttribute('aria-label', `${name}: ${up ? lo : hi} in the cell, ${up ? hi : lo} in the blood; it moves down its concentration gradient`);
+    el.innerHTML = `<p class="conc__k">${name}</p><p class="conc__t"><b>${up ? lo : hi}</b> in the cell</p><div class="conc__bar" aria-hidden="true"><i></i></div><p class="conc__t"><b>${up ? hi : lo}</b> in the blood</p><p class="conc__f">down its concentration gradient</p>`;
+    st.appendChild(el);
+    /* beside the picture: left of the panel on a laptop, at the right of the picture above it on a phone */
+    const place = () => { const q = document.getElementById('quest'), sr = st.getBoundingClientRect(), qr = q && q.getBoundingClientRect();
+      const side = qr && qr.left > sr.left + sr.width * 0.5 && qr.top < sr.top + sr.height * 0.5;
+      el.style.right = (side ? Math.max(8, sr.right - qr.left + 14) : 10) + 'px'; };
+    place();
+    const s0 = stripAt = quest.session, f = () => { if (!el.isConnected) return; if (quest.session !== s0 || stripAt !== s0) { el.remove(); return; } place(); requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  }
+  const stripOff = () => { stripAt = -1; const old = document.getElementById('conc'); if (old) old.remove(); };
   let nanoAgain = null;   /* the last names on the magnified view, drawn again when the IB switch changes */
   /* a pupil may leave a place in the middle of a step (the map, another place): every wait of a step (a move, a pause, a
      flight) then stops the step, so it never puts a button, a token or an item into the place the pupil went to */
@@ -191,7 +222,8 @@ export function makePlay(world, quest) {
   const WGLOW = { oxygen: 0xff9aa2, co2: 0xc8d2e0, glucose: 0xffe08a, amino: 0xc8b8ff };
   const wayMol = (kind, s = WSZ[kind]) => { const t = keep(token(kind, s)); haloSprite(t, kind === 'oxygen' || kind === 'co2' ? 0.05 : 0.042, WGLOW[kind]); return t; };
   /* a small name that moves with a molecule (as at the mitochondrion's dam: play.js moveTag), until the molecule goes */
-  const molTag = (t, text) => { const sp = newTag(t); const s0 = quest.session, f = () => { if (!t.parent || quest.session !== s0) { sp.visible = false; return; } moveTag(sp, text, t, V(0, 0, 0), 6); requestAnimationFrame(f); }; f(); return sp; };
+  /* (text: the name, or a function that gives it each frame: courseWord, the course's word added while its switch is on) */
+  const molTag = (t, text) => { const sp = newTag(t); const s0 = quest.session, f = () => { if (!t.parent || quest.session !== s0) { sp.visible = false; return; } moveTag(sp, typeof text === 'function' ? text() : text, t, V(0, 0, 0), 6); requestAnimationFrame(f); }; f(); return sp; };
   const WVdir = () => V(...WV.pos).sub(V(...WV.at)).normalize();
   const wayNear = () => { const c = world.controls.target, d = world.camera.position.distanceTo(c); return quest.cur === 'wayin' && d < 0.6 * V(...WV.pos).distanceTo(V(...WV.at)) && Math.abs(c.y) < 1.2 && Math.abs(c.x) < 4; };
   const wayZoom = (x, y = -0.25, ms = 1700) => camGo({ at: V(x, y, 0.12), dir: WVdir(), up: V(0, 1, 0), dist: fitDist(3300, 2500) }, R.FAST ? 0 : ms);
@@ -205,7 +237,8 @@ export function makePlay(world, quest) {
        straight between the lipids into the cytoplasm, each by its own wandering way */
     const from = BLD.rbcAt(ri, BLD.t || 0).add(V(0, 0.6, 2.2)), xs = [-0.75, -0.05];
     const ox = xs.map((x, i) => { const t = wayMol('oxygen'); t.position.copy(from).add(V(i ? 0.35 : -0.35, 0, 0)); return t; });
-    molTag(ox[0], 'oxygen');
+    molTag(ox[0], courseWord('oxygen', { igcse: 'diffusion', ib: 'simple diffusion' }));
+    concStrip('Oxygen', true);
     burst(scene, from, { color: 0xff9aa2, n: 30, r: 0.55 });
     quest.say('The red blood cell releases oxygen.');
     const near = wait(R.TEST ? 0 : 1200).then(() => wayZoom(-0.4, -0.3, 2200));
@@ -271,10 +304,11 @@ export function makePlay(world, quest) {
     return ts;
   }
   async function carriers() {
+    stripOff();   /* (each strip stays while its step's words are read: gone when the next step starts) */
     await wayFly(true);
     const C = BL.carriers.glucose; await turnTo(C, -1, 0);
     const g = await fromBlood('glucose', 2, C.at.x, WSZ.glucose);
-    molTag(g[0], 'glucose');
+    molTag(g[0], courseWord('glucose', { igcse: 'down its concentration gradient', ib: 'facilitated diffusion · no ATP' }));
     await wayZoom(C.at.x + 0.2); wayNames(true, [...g, C.group]);   /* (and off the carrier, where the glucose goes through) */
     await press(() => g[0].position.clone().add(V(0, -0.1, 0)), 'glucose', { cls: 'tok', side: 'b' });
     await quest.choose(['Through a carrier protein', 'Straight through the two layers of lipids'], 0, async () => {
@@ -282,14 +316,16 @@ export function makePlay(world, quest) {
       await bump(g[0], C.at.x + 1.15);
     });
     quest.say(ib('A <dfn data-w="carrier-protein">carrier protein</dfn> lets glucose pass through the membrane.', 'A <dfn data-w="glucose-transporter">glucose transporter</dfn> lets glucose pass through the membrane: <dfn data-w="facilitated-diffusion">facilitated diffusion</dfn>, down its concentration gradient, with no ATP.'), 'ok');
+    concStrip('Glucose', true);
     for (const t of g) await viaCarrier(C, t);
     await quest.gain('glucose', g[0].position, 2); g.forEach(drop);
   }
   async function amino() {
+    stripOff();
     await wayFly(true);
     const C = BL.carriers.amino, G = BL.carriers.glucose; await Promise.all([turnTo(C, -1, 0), turnTo(G, -1, 0)]);
     const [a] = await fromBlood('amino', 1, C.at.x - 0.4, WSZ.amino, true);
-    molTag(a, 'amino acid');
+    molTag(a, courseWord('amino acid', { igcse: 'a protein carrier', ib: 'a selective carrier protein' }));
     await wayZoom(C.at.x - 0.5); wayNames(true, [a, C.group, G.group]);
     await press(() => a.position.clone().add(V(0, -0.1, 0)), 'amino acid', { cls: 'tok', side: 'b' });
     await quest.choose(['Through its own carrier protein', 'Through the carrier protein for glucose', 'Straight through the two layers of lipids'], 0, async (i) => {
@@ -312,12 +348,14 @@ export function makePlay(world, quest) {
     await quest.gain('amino', a.position); drop(a);
   }
   async function co2() {
+    stripOff();
     await wayFly();
     const t = wayMol('co2'); t.position.set(0.3, 0.7, 0.14); bob(t, 0.03);
-    molTag(t, 'carbon dioxide');
+    molTag(t, courseWord('carbon dioxide', { igcse: 'diffusion', ib: 'simple diffusion' }));
     await wayZoom(0.3, -0.1); wayNames(true, [t]);
     await press(() => t.position.clone().add(V(0, 0.1, 0)), 'carbon dioxide', { cls: 'tok', side: 't' });
     /* straight between the lipids, out through the tissue fluid and the capillary's thin wall */
+    concStrip('Carbon dioxide', false);
     await tween(t, { path: curve([t.position.clone(), V(0.25 + jit(0.1), 0.42, 0.13), V(0.3, 0, 0.14), V(0.25, -0.6, 0.12), V(0.4 + jit(), -1.3, 0.04)]), ms: R.FAST ? 0 : 2200 });
     wayNames(true, [t]);   /* the names laid again, off it, now that it is in the tissue fluid */
     await wayBack(1400);
@@ -987,7 +1025,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611161858').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611162123').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);

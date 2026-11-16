@@ -14,9 +14,9 @@
    When the picture is small (a phone: the names would be under 13 px), each name becomes a numbered pin on its part,
    keyed under the picture. Words: text.js. For tools/light-check.mjs: window.LIGHTV.
    ============================================================ */
-import { STEPS, NAMES, PLACES, KEYS, AXIS, BOXES, LEVELS, SIMPLE, SOURCES, TITLE, EYEBROW, BY } from './text.js?v=202611161858';
-import { SCENES, W, H } from './scenes.js?v=202611161858';
-import { levelSwitch, skip, hlOnly, hlNote } from '../game/iblevel.js?v=202611161858';
+import { STEPS, NAMES, PLACES, KEYS, AXIS, BOXES, LEVELS, SIMPLE, SOURCES, TITLE, EYEBROW, BY } from './text.js?v=202611162123';
+import { SCENES, W, H } from './scenes.js?v=202611162123';
+import { levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611162123';
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
@@ -34,7 +34,7 @@ function paras(t) {
     return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}">${esc(LEVELS[m[1]].name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
   };
   const main = [], more = [];
-  t.split('\n').forEach(p => {
+  fit(t).split('\n').forEach(p => {
     if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`);
     else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|hl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); }
     else main.push(one(p));
@@ -44,7 +44,7 @@ function paras(t) {
 
 function styles() {
   let l = document.querySelector('link[data-lightcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.lightcss = '1'; l.href = new URL('../../css/light.css?v=202611161858', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.lightcss = '1'; l.href = new URL('../../css/light.css?v=202611162123', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads */

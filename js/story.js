@@ -125,8 +125,8 @@ window.STORY = {
           ["n", "", "Here the glucose moves through its carrier protein from a higher concentration to a lower concentration (down a concentration gradient), and no energy from respiration is used: this agrees with the description of diffusion. The syllabus does not name a protein carrier for diffusion."]
         ] },
         { p: [
-          ["s", "3.3.3", "The syllabus names protein carriers in one process, active transport: they move molecules or ions across a membrane."],
-          ["c", "3.3.1", "Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy."]
+          ["c", "3.3.1", "Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy."],
+          ["s", "3.3.3", "The syllabus names protein carriers in one process, active transport: they move molecules or ions across a membrane."]
         ] },
         { p: [
           ["c", "3.1.3", "Carbon dioxide leaves the cell by diffusion through the cell membrane: its concentration is higher inside the cell, where respiration produces it."],
@@ -225,9 +225,9 @@ window.STORY = {
           ["n", "", "The syllabus does not name ATP or ATP synthase."]
         ] },
         { p: [
+          ["c", "12.1.1", "Uses of energy in living organisms: muscle contraction, protein synthesis, cell division, active transport, growth, the passage of nerve impulses and the maintenance of a constant body temperature. To join amino acids is protein synthesis."],
           ["c", "12.2.2", "The word equation above is the one that the syllabus asks you to state."],
-          ["s", "12.2.3", "The balanced chemical equation: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O."],
-          ["c", "12.1.1", "Uses of energy in living organisms: muscle contraction, protein synthesis, cell division, active transport, growth, the passage of nerve impulses and the maintenance of a constant body temperature. To join amino acids is protein synthesis."]
+          ["s", "12.2.3", "The balanced chemical equation: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O."]
         ] }
       ],
       ib: [
@@ -338,8 +338,8 @@ window.STORY = {
           ["hl", "D2.2.5, A2.2.13", "Every cell of your body has the same genome (all the genes), but this cell transcribes only some of them: its transcriptome. This pattern of gene expression makes it a gland cell: the cell is differentiated."]
         ] },
         { p: [
-          ["hl", "A1.2.11", "The carbon atoms of each nucleotide’s sugar are numbered 1′ to 5′, so each strand has a 5′ end (a phosphate group) and a 3′ end (an –OH group)."],
           ["sl", "D1.2.1", "Transcription is the synthesis of RNA using a DNA template. RNA polymerase separates the two DNA strands and joins the RNA nucleotides into one strand."],
+          ["hl", "A1.2.11", "The carbon atoms of each nucleotide’s sugar are numbered 1′ to 5′, so each strand has a 5′ end (a phosphate group) and a 3′ end (an –OH group)."],
           ["sl", "D1.2.2", "Each RNA nucleotide pairs with the complementary base of the DNA template strand, held by hydrogen bonds: adenine (A) on the DNA pairs with uracil (U) on the RNA."],
           ["x", "", "The film shows the next lines of the guide step by step: the template strand does not change, RNA grows 5′ to 3′, and transcription starts at the promoter."]
         ], film: "copy" },
@@ -415,8 +415,8 @@ window.STORY = {
       ],
       ib: [
         { p: [
-          ["sl", "B2.2.1", "In the IB guide, ribosomes and vesicles are organelles. The Year 7 list calls a structure an organelle only if it has a membrane of its own."],
-          ["sl", "D1.2.6", "mRNA binds to the small subunit (the small part) of the ribosome. Two tRNAs (transfer RNA: the carriers that bring the amino acids, step 2) can bind at the same time to the large subunit."]
+          ["sl", "D1.2.6", "mRNA binds to the small subunit (the small part) of the ribosome. Two tRNAs (transfer RNA: the carriers that bring the amino acids, step 2) can bind at the same time to the large subunit."],
+          ["sl", "B2.2.1", "In the IB guide, ribosomes and vesicles are organelles. The Year 7 list calls a structure an organelle only if it has a membrane of its own."]
         ], frac: true },
         { p: [
           ["sl", "D1.2.5", "Translation is the synthesis of polypeptides (chains of amino acids) from mRNA: the base sequence of the mRNA is translated into the amino acid sequence of a polypeptide."],
@@ -484,8 +484,8 @@ window.STORY = {
           ["hl", "B1.2.12", "Amylase is a globular protein: its rounded shape, with an active site, suits its function as an enzyme."]
         ] },
         { p: [
-          ["sl", "B2.2.1", "In the IB guide, a vesicle is an organelle."],
           ["hl", "B2.2.9", "Vesicles transport materials within the cell. Clathrin is a coat protein: it helps a piece of membrane bend and form a vesicle."],
+          ["sl", "B2.2.1", "In the IB guide, a vesicle is an organelle."],
           ["x", "", "The vesicles that leave the rough ER have another coat protein (COPII). Clathrin coats vesicles that form at the cell membrane and at the Golgi apparatus."],
           ["hl", "B2.2.8", "The Golgi apparatus processes proteins and prepares them for secretion: the next place of your mission."]
         ] }
