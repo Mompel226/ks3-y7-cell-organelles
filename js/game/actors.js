@@ -10,9 +10,9 @@
    tween(obj, { to, path, ms }) moves a token and resolves when it arrives; burst(pos) is a short shower of sparkles.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, sparkles } from '../world/magic.js?v=202611162123';
+import { magicStandard, sparkles } from '../world/magic.js?v=202611170912';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { AMYLASE } from './amylase-data.js?v=202611162123';
+import { AMYLASE } from './amylase-data.js?v=202611170912';
 
 const glowMat = (color, k = 1) => magicStandard({ color, emissive: color, emissiveIntensity: 0.32 * k, roughness: 0.35 }, { rim: 0xffffff, rimK: 0.5 });
 const M = {};
@@ -54,7 +54,7 @@ export function amylase() {
   /* shaded by how shut in each point is, so that its grooves look deep (the active site above all): a drawing's shading */
   const sh = atob(AMYLASE.surf.shut), col = new Float32Array(sh.length * 3); for (let i = 0; i < sh.length; i++) { const o = Math.pow(Math.min(1, sh.charCodeAt(i) / 255 / 0.15), 0.7);   /* (most of the surface is under 0.05; a groove 0.1 to 0.4) */ col[3 * i] = 1 - 0.62 * o; col[3 * i + 1] = 1 - 0.8 * o; col[3 * i + 2] = 1 - 0.92 * o; }   /* (towards a deep orange-brown) */
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeBoundingBox(); geo.computeBoundingSphere();
-  return (AMY = { n: AMYLASE.n, geo, ca: unq(AMYLASE.ca), way: unq(AMYLASE.way), kinds: AMYLASE.kinds, site: AMYLASE.site, pin: AMYLASE.pin, ext: AMYLASE.ext, foldAt: AMYLASE.foldAt });
+  return (AMY = { n: AMYLASE.n, geo, ca: unq(AMYLASE.ca), way: unq(AMYLASE.way), kinds: AMYLASE.kinds, ss: AMYLASE.ss, site: AMYLASE.site, pin: AMYLASE.pin, ext: AMYLASE.ext, foldAt: AMYLASE.foldAt });
 }
 /* a chain of amino acids drawn whole, one bead for each amino acid (n beads of radius r, µm), each in the colour of its
    kind: put(i, x, y, z, k) places bead i (k 0: not shown), done() sends the places to the picture */

@@ -10,10 +10,10 @@
 :root{
   --serif:'Fraunces',Georgia,'Times New Roman',serif;
   --gold:#FFD27A; --gold2:#F0B43A; --night:#0B0F2A; --night2:#151a46; --pane:rgba(14,16,46,.78); --glass-rule:rgba(255,226,154,.38);
-  --qp-bg:rgba(255,253,247,.97); --qp-ink:#1B1B33; --qp-ink2:#45476A; --qp-rule:#E4DDCB; --qp-accent:#6B3FD1; --qp-accent2:#4E2BB0; --qp-on-accent:#fff;
+  --qp-bg:rgba(255,253,247,.97); --qp-solid:#FFFDF7; --qp-ink:#1B1B33; --qp-ink2:#45476A; --qp-rule:#E4DDCB; --qp-accent:#6B3FD1; --qp-accent2:#4E2BB0; --qp-on-accent:#fff;
 }
-:root[data-theme="dark"]{ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A }
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --qp-bg:rgba(22,20,52,.96); --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A } }
+:root[data-theme="dark"]{ --qp-bg:rgba(22,20,52,.96); --qp-solid:#161434; --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --qp-bg:rgba(22,20,52,.96); --qp-solid:#161434; --qp-ink:#EEF0FF; --qp-ink2:#C2C6E8; --qp-rule:#3A3A70; --qp-accent:#B79BFF; --qp-accent2:#D3C2FF; --qp-on-accent:#1B0E3A } }
 
 body{background:var(--page)}
 .top{padding-bottom:8px}
@@ -46,6 +46,7 @@ body{background:var(--page)}
 .nml.is-done{stroke:rgba(140,240,200,.85)}
 .nm{position:absolute;left:0;top:0;will-change:transform;transition:opacity .18s;display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 7px;max-width:205px;padding:7px 13px;border-radius:18px;font:800 16px/1.15 var(--sans);color:#FFF8E6;background:var(--pane);border:1.5px solid var(--glass-rule);box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 0 14px rgba(255,210,122,.12);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 button.nm{pointer-events:auto;cursor:pointer}
+.nm.nm--wide{max-width:290px}   /* (a name with a long line of a course: the Golgi's "vesicle to a lysosome: …", 18 Nov 2026) */
 .nm.nm--away{opacity:0;pointer-events:none}
 .nm--L{flex-direction:row-reverse}
 .nm.is-open{border-color:var(--gold);box-shadow:0 0 0 0 rgba(255,210,122,.6),0 4px 18px rgba(0,0,0,.35);animation:awake 2.2s ease-out infinite}
@@ -66,8 +67,10 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .hots{position:absolute;inset:0;pointer-events:none;z-index:8}
 .hot3{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
 .hot3__b{position:absolute;pointer-events:auto;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font:900 17px/1.1 var(--sans);color:#2B1A00;background:linear-gradient(180deg,#FFE7A8,#FFC95E);border:2px solid #FFF6D6;border-radius:999px;padding:9px 16px;cursor:pointer;box-shadow:0 0 0 0 rgba(255,214,110,.7),0 6px 18px rgba(0,0,0,.4);animation:hotPulse 1.8s ease-out infinite}
-.hot3--c .hot3__b{transform:translate(-50%,-50%)} .hot3--t .hot3__b{transform:translate(-50%,-100%)} .hot3--b .hot3__b{transform:translate(-50%,0)}
-.hot3--r .hot3__b{transform:translate(8px,-50%)} .hot3--l .hot3__b{transform:translate(calc(-100% - 8px),-50%)}
+.hot3--c .hot3__b{transform:translate(-50%,-50%)} .hot3--t .hot3__b{transform:translate(-50%,calc(-100% - 18px))} .hot3--b .hot3__b{transform:translate(-50%,18px)}
+.hot3--r .hot3__b{transform:translate(26px,-50%)} .hot3--l .hot3__b{transform:translate(calc(-100% - 26px),-50%)}
+/* the line from a button's part to the button (quest.js paint; 16 Nov 2026) */
+.hot3__ln{position:absolute;display:block;height:2px;margin-top:-1px;transform-origin:0 50%;background:#FFE7A8;box-shadow:0 0 0 1px rgba(10,12,40,.65);pointer-events:none}
 .hot3__b:hover,.hot3__b:focus-visible{background:linear-gradient(180deg,#FFF1C8,#FFD27A);outline:3px solid #fff;outline-offset:2px}
 .hot3__b .ico{width:22px;height:22px}
 @keyframes hotPulse{0%{box-shadow:0 0 0 0 rgba(255,214,110,.7),0 6px 18px rgba(0,0,0,.4)}75%,100%{box-shadow:0 0 0 14px rgba(255,214,110,0),0 6px 18px rgba(0,0,0,.4)}}
@@ -79,6 +82,7 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .hot3 .hot3__b.no,.hot3__b:disabled{animation:none}
 .hot3.big .hot3__b{font-size:19px;padding:12px 22px}
 .hot3.edge .hot3__b{outline:2px dashed #fff;outline-offset:3px}
+.hot3.count.edge .hot3__b,.hot3.code.edge .hot3__b{outline:none}   /* (a count is no button: held at the picture's edge it keeps its plain edge; the dashed one made it look like one, 18 Nov 2026) */
 .sym{font-size:20px;line-height:1}
 .sym.s0{color:#2E9F84} .sym.s1{color:#3F6FD8} .sym.s2{color:#C9741E} .sym.s3{color:#B8458A}
 .hot3.code .sym.s0,.hot3.count .sym.s0{color:#5BC8A8} .hot3.code .sym.s1{color:#7FA8FF} .hot3.code .sym.s2{color:#F2A65A} .hot3.code .sym.s3{color:#E36FB0}
@@ -165,6 +169,9 @@ button.nm:hover,button.nm:focus-visible{background:rgba(40,36,110,.92);outline:2
 .step__watch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 0;font-weight:800;color:var(--qp-accent)}
 .step__watch .step__stop{padding:4px 12px;font-size:14px}
 .step__watch .step__cont{padding:8px 16px;font-size:15.5px}   /* at a replay's end: the picture and the line stay until it is pressed (play.js watch) */
+/* a step that plays from the IB map (18 Nov 2026): the panel stands at the marked sentence, and the step is often longer
+   than the panel, so its bar (Stop, then "↩ Back to my own step") stays at the panel's bottom edge until the step's end is in view */
+.step__watch--map{position:sticky;bottom:6px;z-index:3;margin:10px -4px 0;padding:8px 10px;border-radius:12px;background:var(--qp-solid);box-shadow:0 0 0 1.5px var(--qp-accent),0 -8px 16px rgba(0,0,0,.2)}   /* (--qp-solid: the panel's colour with nothing showing through; the yellow mark behind showed through --qp-bg) */
 .step__do .step__wnext{opacity:.92}
 .hot3__b.is-auto{transform:scale(.94);filter:brightness(1.12)}
 .step__t p{margin:0}
@@ -362,7 +369,20 @@ details.step__lv>.cbox-more:last-child{margin-bottom:0}
 .testbox>:first-child{margin-top:auto}.testbox>:last-child{margin-bottom:auto}
 .tile{margin:0;width:min(560px,100%);text-align:center;color:#E8EDF4}
 .tile svg{width:100%;height:auto}
+/* (18 Nov 2026) with the close views under the wells the tile is taller than the box on a laptop, and its caption's
+   last line was cut: on a wide screen the drawing gives way (it is drawn smaller, whole), down to 430 px; a phone
+   scrolls, as before, with its larger words */
+@media (min-width:700px){.tile{max-height:100%;display:flex;flex-direction:column;align-items:center}.tile>svg{flex:0 1 auto;min-height:430px}.tile figcaption,.tile__ge{flex:none}}   /* (.tile>svg: the drawing only; ".tile svg" also made each icon of the gene expression row 430 px high) */
 .tile figcaption{font-size:16px;margin-top:8px}
+/* the close views with their lines beside them, on a wide box (digestview.js `wide`) */
+.tile.tile--wide{width:min(940px,100%)}
+/* the test, IB at HL: gene expression as one row under the result (main.js test, 18 Nov 2026) */
+.tile__ge{margin:8px 0 0;font-size:15.5px;line-height:1.5}
+.tile__ge span{white-space:nowrap}
+/* each arrow of the row carries the name of its step (the second science read: three arrows with three meanings) */
+.tile__ge .ge__a{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 5px;line-height:1}
+.tile__ge .ge__a i{font:italic 700 11.5px/1.1 var(--sans);color:#CDD0EA}
+.tile__ge svg{width:18px;height:18px;vertical-align:-4px;margin-right:3px}
 .win{display:flex;flex-direction:column;align-items:center;gap:6px;color:#FFF8E6;font-size:17.5px;text-align:center;animation:winIn .8s ease-out}
 .win p{margin:0;max-width:520px}
 .win__t{font:800 30px/1.1 var(--serif);color:#FFE39A;text-shadow:0 0 18px rgba(255,210,122,.7)}
@@ -851,19 +871,124 @@ footer .credits p{margin:.5em 0 0}
 .toast--long{max-width:min(640px,92%);border-radius:16px;text-align:center;font-weight:700}
 /* the concentration strip at the way in (play.js concStrip, 16 Nov 2026): with a course on, beside the picture, where the
    moving substance's concentration is higher (dark) and lower (light), and that it moves down its gradient; high on the
-   right, under Hide text, in the cell's cytoplasm, where the place has no names */
-.conc{position:absolute;top:62px;z-index:9;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 10px 9px;border-radius:14px;background:rgba(14,16,46,.86);color:#fff;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
-.conc p{margin:0;font:600 12.5px/1.25 var(--sans)}
+   right, under Hide text, in the cell's cytoplasm, where the place has no names. Since 17 Nov 2026 it counts the step's
+   many molecules (wayflow.js) as they cross, both ways (.conc__n), and the net movement; calmer (13 px, the leaf's
+   captions); on a phone under the corner's buttons (play.js place), and no button or moving name goes under it */
+.conc{position:absolute;top:62px;z-index:9;width:236px;display:flex;flex-direction:column;gap:7px;padding:10px 12px;border-radius:12px;background:rgba(14,16,46,.84);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none}
+.conc p{margin:0;font:600 13px/1.3 var(--sans)}
 .conc__k{font-weight:900!important;font-size:14px!important}
-.conc__t b{display:block;font-weight:900;color:#BFF0D4}
-.conc__bar{position:relative;width:20px;height:80px;border-radius:999px;border:2px solid #fff}
+.conc__row{display:flex;gap:10px;align-items:stretch}
+.conc__side{display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-width:0}
+.conc__t b{display:block;font-weight:800;color:#BFF0D4}
+.conc__n{color:#E9ECFF}
+.conc__n b{display:inline-block;min-width:1.7em;font-weight:900;font-variant-numeric:tabular-nums;color:#FFD27A}
+.conc__a{display:inline-block;width:1.05em;font-weight:900;color:#FFD27A}
+.conc__bar{position:relative;flex:0 0 14px;min-height:92px;border-radius:999px;border:2px solid #fff}
 .conc.is-up .conc__bar{background:linear-gradient(#DDF2E6,#1E7A4E)}
 .conc.is-down .conc__bar{background:linear-gradient(#1E7A4E,#DDF2E6)}
-.conc__bar i{position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-50%);border-left:9px solid transparent;border-right:9px solid transparent}
-.conc.is-up .conc__bar i{border-bottom:14px solid #FFD27A}
-.conc.is-down .conc__bar i{border-top:14px solid #FFD27A}
-.conc__f{font-weight:800!important;color:#FFD27A}
-@media (max-width:560px){ .conc{top:12px;transform:none;width:128px;padding:7px} .conc__bar{height:64px} .conc p{font-size:11.5px} }
+.conc__bar i{position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-50%);border-left:7px solid transparent;border-right:7px solid transparent}
+.conc.is-up .conc__bar i{border-bottom:12px solid #FFD27A}
+.conc.is-down .conc__bar i{border-top:12px solid #FFD27A}
+.conc__f{font-weight:700!important;color:#FFD27A}
+.conc__mol{display:inline-flex;vertical-align:-1px;margin-right:6px}
+.conc__mol svg{height:12px;width:auto}
+/* a phone: one short block at the foot of the picture (play.js place: is-foot), no bar; the two ends, then the counts */
+.conc.is-foot{width:auto;padding:6px 9px;gap:2px}
+.conc.is-foot p{font-size:11.5px;line-height:1.25}
+.conc.is-foot .conc__k{font-size:12.5px!important}
+.conc.is-foot .conc__bar{display:none}
+.conc.is-foot .conc__side{flex-direction:row;flex-wrap:wrap;column-gap:8px;row-gap:1px}
+.conc.is-foot .conc__t b{display:inline}
+.conc.is-foot .conc__t--in{order:1}
+.conc.is-foot .conc__t--out{order:2}
+.conc.is-foot .conc__n{order:3}
+.conc.is-foot .conc__f br{display:none}
+/* the mitochondria's strips (17 Nov 2026, play.js eqStrip, ionStrip): the equation of aerobic respiration, each term
+   plain until the picture shows it, then in its molecule's colour, the one lit last ringed; the protons' strip uses the
+   way in's rows. And the mark on a name that 0610 does not use (play.js no0610) */
+.conc--eq{width:252px}
+.eqs__l{font-weight:700!important;font-size:13.5px!important;line-height:1.5!important;color:#8086AE}
+.eqs__l--b{font-size:13px!important}
+.eqs__t{border-radius:5px;padding:0 2px;transition:color .5s,box-shadow .5s}
+.eqs__t.is-on{font-weight:900}
+.eqs__t[data-t="g"].is-on{color:#FFD56A}
+.eqs__t[data-t="o"].is-on{color:#FF8E8E}
+.eqs__t[data-t="c"].is-on{color:#FFFFFF}
+.eqs__t[data-t="w"].is-on{color:#8CCBFF}
+.eqs__t[data-t="e"].is-on{color:#FFD27A}
+.eqs__t.is-now{box-shadow:0 0 0 1.5px currentColor}
+.conc.is-foot .eqs__l{font-size:11.5px!important;line-height:1.3!important}
+.eqs__h{display:block;font-size:11.5px;font-weight:700;color:#B9BDDA}
+.eqs__w{display:none;font-size:12px!important;font-weight:700!important;color:#BFE3FF}
+.eqs__w.is-on{display:block}
+/* the nucleus's strips (17 Nov 2026, play.js nucStrip). The pairs: 23 columns of two marks, a column a pair and a row a
+   set; a mark is lit, with its number under it, for each thread pressed (chromosome 1 in its gold). The cell cycle:
+   interphase with its three parts, then mitosis, lit where the picture is. The gene in two cells: a switch */
+/* a word that rides on a moving part (play.js rideTag): the look of a name, a short line under it down to the part */
+.rtag{position:absolute;left:0;top:0;z-index:8;padding:4px 10px;border-radius:999px;background:rgba(28,20,44,.92);border:1.5px solid rgba(255,255,255,.55);color:#fff;font:800 13.5px/1.2 var(--sans);white-space:nowrap;pointer-events:none}
+.rtag[hidden]{display:none}
+.rtag::after{content:"";position:absolute;left:var(--stem,50%);top:100%;width:1.5px;height:16px;background:rgba(255,255,255,.9)}
+.rtag--below::after{top:auto;bottom:100%;height:8px}
+.rtag--off::after{display:none}
+/* a door on the picture (the Golgi's "In a micrograph"): a button, the game's yellow */
+.rtag--door{pointer-events:auto;cursor:pointer;background:#FFD166;color:#1C142C;border-color:#fff;padding:7px 14px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.rtag--door::after{display:none}
+.rtag--door:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.rtag__no{display:block;font:italic 700 10.5px/1.2 var(--sans);color:#CDD0EA}
+.hot3.code .code__n,.hot3.count .code__n{display:block;margin-top:2px;font:700 11.5px/1.2 var(--sans);color:#CDD0EA}   /* (the ribosome's count, under its code: play.js translate) */
+.conc--pair{width:262px}
+.prs{display:grid;grid-template-columns:repeat(23,1fr);margin:2px 0 13px}
+.prs__c{position:relative;display:grid;gap:3px;justify-items:center}
+.prs__c i{width:8px;height:8px;border-radius:50%;background:#565B8A}
+.prs__c.is-on i:first-child{background:#49CFFF;box-shadow:0 0 6px #49CFFF}
+.prs__c.is-on.is-1 i:first-child{background:#FFC04A;box-shadow:0 0 6px #FFC04A}
+.prs__c.is-on::after{content:attr(data-k);position:absolute;top:100%;left:50%;transform:translateX(-50%);padding-top:2px;font:800 10px/1 var(--sans);color:#EEF0FF}
+.prs__s b,.conc--pair .conc__f b{font-weight:900}
+.conc--pair .eqs__h{line-height:1.35}
+.conc--cyc{width:292px}
+.cyc{display:flex;align-items:center;gap:6px;font-weight:800!important;color:#8086AE;white-space:nowrap}
+.cyc__b{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:8px;border:1.5px solid #5A5F8E;transition:color .5s,border-color .5s,background .5s}
+.cyc__b.is-on{color:#fff;border-color:#C9B2FF;background:rgba(201,178,255,.16)}
+.cyc__p{padding:1px 4px;border-radius:5px;font-weight:800;color:#8086AE;transition:color .5s,background .5s}
+.cyc__p.is-on{color:#1B1838;background:#FFD27A}
+.cyc__a{color:#B9BDDA}
+.conc--expr{width:252px;pointer-events:auto}
+.exprsw{display:flex;flex-direction:column;gap:4px}
+.exprsw__b{font:800 13.5px/1.2 var(--sans);color:#FFF8E6;background:transparent;border:1.5px solid rgba(255,255,255,.35);border-radius:999px;padding:7px 11px;cursor:pointer;text-align:left}
+.exprsw__b[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1B1B33}
+.exprsw__b[aria-pressed="false"]:hover,.exprsw__b:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.exprsw__n{color:#E9ECFF}
+.conc--expr.is-foot .exprsw{flex-direction:row;flex-wrap:wrap}
+.conc--ss.is-foot .exprsw__n,.conc--ss.is-foot .eqs__h{display:none}   /* (a phone, the rough ER's fold: three buttons in two rows at the picture's foot; with its line the strip stood on the folded chain, 18 Nov 2026) */
+.conc--expr.is-foot .exprsw__b{font-size:12.5px;padding:6px 9px}
+.conc--pair{gap:4px}
+.conc--pair.is-foot .prs{max-width:300px;margin-bottom:12px}
+.conc--pair.is-foot .prs__key{display:none}   /* (a phone: the marks, the two numbers and the two sets; the key is on a laptop) */
+.conc--pair.is-foot .conc__f,.conc--pair.is-foot .prs__s{display:inline}
+.conc--expr.is-foot .conc__k{display:none}
+/* a phone: one short block (the picture is small): the word equation, its key on the title's line; the balanced equation
+   and the water note stay in the step's IGCSE lines (steps 4 and 8 give the balanced equation) */
+.conc--eq.is-foot{padding:5px 10px;gap:1px}
+.conc--eq.is-foot .eqs__h{display:inline;margin-left:5px;font-size:10.5px}
+.conc--eq.is-foot .eqs__l--b,.conc--eq.is-foot .eqs__w.is-on{display:none}
+.nm__no{flex-basis:100%;font:italic 700 11.5px/1.15 var(--sans);color:#CDD0EA}
+.nm.nm--in .nm__no{color:#3A2F78;text-shadow:none}   /* (a name written in a space, dark on the picture: its mark dark too) */
+/* a name to press (play.js pressOf, nameCard): a small "i" in a ring, a tick once its card was read; the card under it */
+.nm__p{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--gold);color:var(--gold);font:900 11px/1 var(--sans);font-style:normal}
+.nm.is-found .nm__p{background:#8CF0C8;border-color:#8CF0C8;color:#123}
+.ncard{position:absolute;z-index:12;display:flex;flex-direction:column;gap:6px;padding:10px 30px 11px 12px;border-radius:12px;background:#FFFDF6;color:#1B1838;border-top:4px solid #7243C0;box-shadow:0 8px 26px rgba(0,0,0,.42);font:500 14px/1.4 var(--sans)}
+.ncard[hidden]{display:none}   /* (17 Nov 2026: without it the card's own display kept a closed card on the picture) */
+.ncard p{margin:0}
+.ncard__k{font-weight:900;font-size:15px}
+.ncard--ig{border-top-color:#2E8B5E}
+.ncard__art{width:250px;max-width:100%;height:auto;align-self:flex-start;color:#4A3A9A}   /* (a card's small drawing: what S measures, play.js TUBE) */
+:root[data-theme="dark"] .ncard__art{color:#D9CCFF}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ncard__art{color:#D9CCFF} }
+.ncard__x{position:absolute;top:4px;right:6px;width:26px;height:26px;border:0;border-radius:50%;background:none;color:#5A5F74;font:900 18px/1 var(--sans);cursor:pointer}
+.ncard__x:hover,.ncard__x:focus-visible{background:#ECE8FA;outline:2px solid #7243C0}
+:root[data-theme="dark"] .ncard{background:#1C1A3E;color:#F1EFFF}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .ncard{background:#1C1A3E;color:#F1EFFF} }
+:root[data-theme="dark"] .ncard__x{color:#C2C6E8} :root[data-theme="dark"] .ncard__x:hover{background:#2C2A5A}
 /* the IB map (16 Nov 2026): the guide's roadmap, themes across and levels of organisation down, a button a topic; a
    topic opens its own small window over the roadmap (js/game/ibmap.js). On a phone, rows by level of organisation. */
 .ibmap{position:fixed;inset:0;z-index:60;display:flex;overflow:auto;padding:16px;background:rgba(10,12,30,.6)}
@@ -902,12 +1027,33 @@ footer .credits p{margin:.5em 0 0}
 .ibmap__gk{margin:0 0 6px;font:900 12.5px/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
 .ibmap__doors{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
 .ibmap__row{display:flex;flex-direction:column;gap:4px;min-width:0}
-.ibmap__door{display:grid;grid-template-columns:1fr auto;align-items:start;align-content:start;gap:6px 10px;width:100%;height:100%;text-align:left;font:700 15.5px/1.3 var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule2);border-radius:10px;padding:8px 11px;cursor:pointer}
+/* (18 Nov 2026: a door's card holds the door and, under it, each statement's code as a button of its own) */
+.ibmap__dw{display:flex;flex-direction:column;gap:7px;height:100%;background:var(--surface);border:1px solid var(--rule2);border-radius:10px;padding:8px 11px}
+.ibmap__dw:hover,.ibmap__dw:focus-within{border-color:var(--ext)}
+.ibmap__door{display:grid;grid-template-columns:1fr auto;align-items:start;align-content:start;gap:6px 10px;width:100%;text-align:left;font:700 15.5px/1.3 var(--sans);color:var(--ink);background:none;border:0;border-radius:6px;padding:0;cursor:pointer}
+button.ibmap__code{border:0;cursor:pointer;font:900 11.5px/1 var(--sans);padding:6px 8px;box-shadow:inset 0 0 0 1.5px currentColor}   /* (a statement that can be pressed has a line round it; one that cannot, the plant cell's and the films', has none) */
+button.ibmap__code:hover,button.ibmap__code:focus-visible{outline:2px solid var(--ext);outline-offset:1px}
 .ibmap__dt{grid-column:1}
 .ibmap__go{grid-column:2;grid-row:1;font-size:19px;line-height:1;color:var(--ext)}
-.ibmap__door:hover,.ibmap__door:focus-visible{border-color:var(--ext);background:var(--ext-tint)}
+.ibmap__door:hover .ibmap__dt,.ibmap__door:focus-visible .ibmap__dt{color:var(--ext);text-decoration:underline}
+.ibmap__door:focus-visible{outline:2px solid var(--ext);outline-offset:3px}
 .ibmap__codes{grid-column:1/3;display:flex;flex-wrap:wrap;gap:4px}
 .ibmap__more{margin:10px 0 0;font-size:14.5px;color:var(--ink2)}
+/* landed from the IB map (quest.js ibLand, 18 Nov 2026): the bar under the course switches, the sentence marked in
+   yellow (it pulses twice on arrival, not with Reduce motion), a step shown before the student has reached it */
+.qp__from{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0 2px;padding:8px 10px;border-radius:10px;background:var(--ext-tint);border:1px solid var(--ext-rule);font:700 14px/1.3 var(--sans);color:var(--ink)}
+.qp__fromk b{color:var(--ext)}
+.qp__froms{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px}
+.qp__fromb,.qp__fromback{font:800 13.5px/1 var(--sans);color:var(--ext);background:var(--sheet);border:1.5px solid var(--ext);border-radius:999px;padding:6px 11px;cursor:pointer}
+.qp__fromb[aria-pressed="true"]{background:var(--ext);color:var(--sheet)}
+.qp__fromback{margin-left:auto}
+.step__lv p.ib-hit{background:#FFE98A;color:#231A00;border-radius:6px;box-shadow:0 0 0 5px #FFE98A}
+.step__lv p.ib-hit--go{animation:ibhit .9s ease-in-out 2}
+@keyframes ibhit{0%,100%{background:#FFE98A;box-shadow:0 0 0 5px #FFE98A}50%{background:#FFC83D;box-shadow:0 0 0 9px #FFC83D}}
+@media (prefers-reduced-motion:reduce){ .step__lv p.ib-hit--go{animation:none} }
+.step.is-peek{border-style:dashed}
+.step.is-peek::before{content:attr(data-n)}
+.step__peek{margin:0 0 6px;font:800 13px/1.3 var(--sans);color:var(--ext)}
 .ibmap__copy{font:700 12.5px/1 var(--sans);color:var(--ink2);background:none;border:1px dashed var(--rule2);border-radius:8px;padding:6px 8px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
 .ibmap__wend{margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
 @media (max-width:760px){

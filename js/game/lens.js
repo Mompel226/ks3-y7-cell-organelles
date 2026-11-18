@@ -28,7 +28,7 @@ import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js?v
 import { OrbitControls } from '../vendor/three/examples/jsm/controls/OrbitControls.js?v=0.185.1';
 import { MeshoptDecoder } from '../vendor/three/examples/jsm/libs/meshopt_decoder.module.js?v=0.185.1';
 import { mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { REAL } from './real.js?v=202611162123';
+import { REAL } from './real.js?v=202611170912';
 const R = window.REV, { $, $$, h, esc } = R;
 
 const SIMPLE = { src: 'img/diagram/simple-animal-cell.svg', vb: [730.39, 560.42], credit: 'Diagram: domdomegg, Wikimedia Commons, CC BY 4.0 (ribosomes added by the Cells Lab)' };
@@ -110,7 +110,7 @@ function bigPieces(geo) {
 function loadModel() {
   if (model) return model;
   const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
-  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611162123'));
+  return (model = loader.loadAsync('assets/real/hela-cell.glb?v=202611170912'));
 }
 function viewer(pane, id) {
   const R3 = REAL3D[id], wrap = pane.querySelector('.lens__3d');
@@ -214,6 +214,22 @@ function sizeHTML(P) {
     + '<p class="lens__units"><span>1 millimetre (mm) = 1000 micrometres (µm)</span><span>1 µm = 1000 nanometres (nm)</span></p>';
 }
 
+/* one of the real pictures by itself (18 Nov 2026: the Golgi's door "In a micrograph", play.js packageIt): REAL[pic].em[n] */
+export function openPicture(title, pic, n = 0) {
+  const e = ((REAL[pic] || {}).em || [])[n]; if (!e) return;
+  const box = $('#lens');
+  box.innerHTML = `<div class="lens__card" role="dialog" aria-modal="true" aria-labelledby="lens-h">
+    <div class="lens__top"><h2 id="lens-h">${esc(title)}</h2><button type="button" class="close-x" aria-label="Close">×</button></div>
+    <div class="lens__pane" data-p="em"><figure class="lens__fig"><img src="${e.src}" alt="${esc(e.alt)}">${capHTML(e.cap, e.credit)}</figure></div>
+  </div>`;
+  box.hidden = false;
+  const close = () => { box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); };
+  const esc1 = ev => { if (ev.key === 'Escape') close(); };
+  document.addEventListener('keydown', esc1);
+  $('.close-x', box).addEventListener('click', close);
+  box.addEventListener('click', ev => { if (ev.target === box) close(); });
+  $('.close-x', box).focus();
+}
 export function openLens(id) {
   const P = PART[id]; if (!P) return;
   const real = REAL[id] || {};

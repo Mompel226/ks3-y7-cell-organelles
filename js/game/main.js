@@ -5,18 +5,19 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611162123';
-import { Names } from './names.js?v=202611162123';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611162123';
-import { makePlay } from './play.js?v=202611162123';
-import { setStill, wait } from './actors.js?v=202611162123';
-import { state, RESPIRE } from './state.js?v=202611162123';
-import { ICON } from './icons.js?v=202611162123';
-import { intro } from './intro.js?v=202611162123';
-import { sound } from './sound.js?v=202611162123';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611162123';
-import { fromRecord } from './restore.js?v=202611162123';
-import { setCourse } from './iblevel.js?v=202611162123';
+import { World, MAP_VIEW } from '../world/world.js?v=202611170912';
+import { Names } from './names.js?v=202611170912';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611170912';
+import { makePlay } from './play.js?v=202611170912';
+import { setStill, wait } from './actors.js?v=202611170912';
+import { state, RESPIRE } from './state.js?v=202611170912';
+import { ICON } from './icons.js?v=202611170912';
+import { intro } from './intro.js?v=202611170912';
+import { sound } from './sound.js?v=202611170912';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611170912';
+import { fromRecord } from './restore.js?v=202611170912';
+import { setCourse, level } from './iblevel.js?v=202611170912';
+import { closeViews } from './digestview.js?v=202611170912';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -34,7 +35,7 @@ setStill(R.FAST, R.CALM);
 const names = new Names(world, $('#names'));
 const quest = new Quest({ world, names, panel: $('#quest'), hots: $('#hots'), bag: $('#bag'), onPlace: go });
 const play = makePlay(world, quest);
-window.CELLGAME = { world, quest, state, go, sound, dive: () => play.dive() };
+window.CELLGAME = { world, quest, state, go, sound, dive: () => play.dive(), flow: () => play.flow(), flowCheck: () => play.flowCheck(), mito: () => play.mito(), nuc: () => play.nuc(), rib: () => play.rib(), ser: () => play.ser(), rer: () => play.rer(), gol: () => play.gol(), trk: () => play.trk(), exo: () => play.exo(), dig: () => (testZoom ? testZoom.state() : null), cardsBad: () => play.cardsBad() };
 /* the nucleus is closed until the pupil has first been inside it (play.js dive; a game saved before 8 Nov 2026 that has
    been inside opens as it did) */
 world.setNucleus(state.flag('in-nucleus'));
@@ -174,8 +175,13 @@ document.addEventListener('step-again', async e => {
   watchingNow = true;
   document.documentElement.classList.add('is-watching');
   let back = false;
-  try { back = await play.watch(id, i, li); } finally { watchingNow = false; document.documentElement.classList.remove('is-watching'); }
+  try { back = await play.watch(id, i, li, !!(e.detail && e.detail.map)); } finally { watchingNow = false; document.documentElement.classList.remove('is-watching'); }
+  /* (a step played from the IB map: the student is back at their own step; the bar keeps the way back to the map) */
+  if (e.detail && e.detail.map && quest.ibFrom && quest.ibFrom.id === id && quest.ibFrom.i === i) quest.ibFrom.own = true;
   if (back && quest.cur === id) go(id, true);
+  /* (another step of the topic was pressed on the bar while this one played: main.js 'ib-land') */
+  const next = ibNext; ibNext = null;
+  if (next && quest.cur === id) ibLandSoon(id, next);
 });
 /* Hide text / Show text: the panel goes, so that only the picture shows, in the middle (Daniel, 8 Nov 2026: "if the
    students want to have everything centered and no text on the right to see just basically the image and see the
@@ -216,50 +222,114 @@ document.addEventListener('place-complete', () => { looks(); if (!quest.cur) map
 document.addEventListener('final-closed', () => { if (!quest.cur && state.done('arrive')) quest.openMap(); });
 
 /* ---------- the test: amylase on starch, in a spotting tile ---------- */
+let testZoom = null;   /* the test's close views while they stand (digestview.js); for the checks: CELLGAME.dig */
 async function test() {
-  const box = $('#test'); box.hidden = false;
-  box.innerHTML = `<figure class="tile"><svg viewBox="0 0 600 300" role="img" aria-label="A white spotting tile with two wells. Each holds starch solution.">
+  const box = $('#test'); box.hidden = false; testZoom = null;
+  /* (18 Nov 2026, the places planner's plan-test, its parts for every pupil: each liquid is seen entering its well, as
+     drops from a pipette; each well has a name on a line, which says what is in it now; the iodine solution falls as a
+     drop, and the blue-black spreads from where it fell; a key says what each colour means, in the words of the test
+     (0610 4.1.3); the tile stays whole in view until the pupil presses on. Before: a pale ring round a well, both wells
+     changing colour at once, and the end card pushing the tile out of the box while its result was read) */
+  box.innerHTML = `<figure class="tile"><svg viewBox="0 0 600 348" role="img" aria-label="A white spotting tile with two wells. Each holds starch solution.">
+    <defs><clipPath id="cwA"><circle cx="190" cy="160" r="50"/></clipPath><clipPath id="cwB"><circle cx="410" cy="160" r="50"/></clipPath></defs>
     <rect x="30" y="60" width="540" height="200" rx="26" fill="#F4F6F8" stroke="#B8C2CC" stroke-width="3"/>
-    <g id="wA"><circle cx="190" cy="160" r="62" fill="#E2E8EE" stroke="#AEB8C2" stroke-width="3"/><circle class="liq" cx="190" cy="160" r="50" fill="#F3F1EA"/></g>
-    <g id="wB"><circle cx="410" cy="160" r="62" fill="#E2E8EE" stroke="#AEB8C2" stroke-width="3"/><circle class="liq" cx="410" cy="160" r="50" fill="#F3F1EA"/></g>
+    <g id="wA"><circle cx="190" cy="160" r="62" fill="#E2E8EE" stroke="#AEB8C2" stroke-width="3"/><circle class="liq" cx="190" cy="160" r="50" fill="#F3F1EA"/><circle class="spr" cx="190" cy="150" r="0" clip-path="url(#cwA)"/></g>
+    <g id="wB"><circle cx="410" cy="160" r="62" fill="#E2E8EE" stroke="#AEB8C2" stroke-width="3"/><circle class="liq" cx="410" cy="160" r="50" fill="#F3F1EA"/><circle class="spr" cx="410" cy="150" r="0" clip-path="url(#cwB)"/></g>
     <text x="190" y="44" text-anchor="middle" font-size="26" font-weight="800" fill="#E8EDF4">A: saliva</text><text x="410" y="44" text-anchor="middle" font-size="26" font-weight="800" fill="#E8EDF4">B: water (control)</text>
-    <text id="clock" x="300" y="292" text-anchor="middle" font-size="22" fill="#C9D4E0"></text></svg>
+    <g id="pip" visibility="hidden"><rect x="-6" y="-14" width="12" height="66" rx="3" fill="#DCE6F0" stroke="#8D99A6" stroke-width="2"/><path d="M-6 52 L0 70 L6 52 Z" fill="#DCE6F0" stroke="#8D99A6" stroke-width="2"/></g>
+    <circle id="drop" r="7" visibility="hidden" stroke="#5B6672" stroke-width="1.5"/>
+    <g class="tile__nm"><line x1="190" y1="224" x2="190" y2="276" stroke="#E8EDF4" stroke-width="2"/><text id="nmA" x="190" y="297" text-anchor="middle" font-size="20" font-weight="700" fill="#E8EDF4">starch solution</text></g>
+    <g class="tile__nm"><line x1="410" y1="224" x2="410" y2="276" stroke="#E8EDF4" stroke-width="2"/><text id="nmB" x="410" y="297" text-anchor="middle" font-size="20" font-weight="700" fill="#E8EDF4">starch solution</text></g>
+    <text id="clock" x="300" y="334" text-anchor="middle" font-size="22" fill="#C9D4E0"></text>
+    <g id="key" visibility="hidden" font-size="15.5" font-weight="700" fill="#E8EDF4"><circle cx="19" cy="328" r="8.5" fill="#C8701E" stroke="#F4F6F8" stroke-width="3"/><text x="35" y="333.5">stays orange-brown: no starch</text><circle cx="296" cy="328" r="8.5" fill="#1B1D3A" stroke="#F4F6F8" stroke-width="3"/><text x="312" y="333.5">turns blue-black: starch is present</text></g></svg>
     <figcaption>Starch solution in two wells of a spotting tile. Iodine solution turns blue-black when starch is present.</figcaption></figure>`;
-  const liq = id => $(`#${id} .liq`, box);
-  const fin = quest.openPlace('test', async (name) => {
-    if (name === 'wells') {
+  const liq = id => $(`#${id} .liq`, box), spr = id => $(`#${id} .spr`, box);
+  /* with a course on, a close view under each well (digestview.js): what happens in the well during its five minutes */
+  const lvOn = c => !!document.querySelector(`#quest .qp__lv [data-lv="${c}"][aria-pressed="true"]`);
+  const zoomOn = () => (lvOn('igcse') || lvOn('ib') ? (testZoom = closeViews($('svg', box), { igcse: lvOn('igcse'), ib: lvOn('ib'), hl: lvOn('ib') && level() === 'hl' })) : null);
+  const name = (id, t) => { $('#' + id, box).textContent = t; };
+  /* n drops from a pipette into the well at x, one after another, each seen falling (0.3 s) */
+  const drops = async (x, color, n, s0) => {
+    const pip = $('#pip', box), d = $('#drop', box); if (!pip || !d || R.FAST) return;
+    pip.setAttribute('transform', `translate(${x} 0)`); pip.setAttribute('visibility', 'visible'); d.setAttribute('fill', color); d.setAttribute('cx', x);
+    for (let i = 0; i < n && quest.session === s0; i++) {
+      const t0 = performance.now(); d.setAttribute('visibility', 'visible');
+      await new Promise(res => { const f = () => { const k = Math.min(1, (performance.now() - t0) / 300); d.setAttribute('cy', 76 + 74 * k * k); if (k < 1 && d.isConnected) requestAnimationFrame(f); else res(); }; f(); });
+      d.setAttribute('visibility', 'hidden'); await new Promise(res => setTimeout(res, 140));
+    }
+    pip.setAttribute('visibility', 'hidden');
+  };
+  /* a colour that spreads in a well from where the drop fell (ms), then the whole liquid has it */
+  const spread = (id, hex, ms) => new Promise(res => { const c = spr(id), t0 = performance.now(); c.setAttribute('fill', hex);
+    const f = () => { const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / ms); c.setAttribute('r', 104 * k); if (k < 1 && c.isConnected) requestAnimationFrame(f); else { liq(id).setAttribute('fill', hex); res(); } }; f(); });
+  /* ↻ a step of the test watched again (18 Nov 2026; the test had no ↻, and a pupil gets the course switches only after
+     its checks, so this is how they see the test with a course on): the tile as it stood before that step. play.js
+     watch plays the step (play.act gives it the test's three steps); nothing saved changes */
+  const rewind = step => {
+    box.scrollTo({ top: 0 }); const w = $('.win', box); if (w) w.style.display = 'none';
+    if (testZoom) { testZoom.off(); testZoom = null; }
+    const ge = $('.tile__ge', box); if (ge) ge.remove();
+    ['wA', 'wB'].forEach(id => { liq(id).setAttribute('fill', '#F3F1EA'); spr(id).setAttribute('r', 0);
+      if (step === 'wells') { liq(id).removeAttribute('stroke'); liq(id).removeAttribute('stroke-width'); } else { liq(id).setAttribute('stroke', '#BFF3FF'); liq(id).setAttribute('stroke-width', '6'); } });
+    name('nmA', step === 'wells' ? 'starch solution' : 'saliva added'); name('nmB', step === 'wells' ? 'starch solution' : 'water added: the control');
+    $('#key', box).setAttribute('visibility', 'hidden'); $('#clock', box).textContent = step === 'iodine' ? '5 minutes' : '';
+  };
+  const run = async (name0) => {
+    const s0 = quest.session;
+    if (quest.watchingNow()) rewind(name0);
+    if (name0 === 'wells') {
       const a = h('button', { type: 'button', class: 'btn' }, 'Add saliva to well A'), b = h('button', { type: 'button', class: 'btn' }, 'Add water to well B');
       quest.step.do.append(a, b);
-      await Promise.all([new Promise(r => a.addEventListener('click', () => { a.disabled = true; liq('wA').setAttribute('stroke', '#BFF3FF'); liq('wA').setAttribute('stroke-width', '6'); r(); })),
-                         new Promise(r => b.addEventListener('click', () => { b.disabled = true; liq('wB').setAttribute('stroke', '#BFF3FF'); liq('wB').setAttribute('stroke-width', '6'); r(); }))]);
+      /* (one pipette: the second liquid waits until the first is in) */
+      let busy1 = Promise.resolve();
+      const add = (btn, id, x, color, after) => new Promise(r => btn.addEventListener('click', () => { btn.disabled = true; busy1 = busy1.then(async () => { await drops(x, color, 3, s0); liq(id).setAttribute('stroke', '#BFF3FF'); liq(id).setAttribute('stroke-width', '6'); name(id === 'wA' ? 'nmA' : 'nmB', after); r(); }); }));
+      if (quest.watchingNow()) { setTimeout(() => a.click(), R.TEST ? 0 : 900); setTimeout(() => b.click(), R.TEST ? 0 : 1500); }   /* (watched again: its two buttons press themselves) */
+      await Promise.all([add(a, 'wA', 190, '#EAF4FF', 'saliva added'), add(b, 'wB', 410, '#CFEBFF', 'water added: the control')]);
       a.remove(); b.remove();
-    } else if (name === 'wait') {
+    } else if (name0 === 'wait') {
+      /* (opened at this step by a pupil who came back: the wells already hold their liquids) */
+      name('nmA', 'saliva added'); name('nmB', 'water added: the control');
+      const z = zoomOn();   /* (the close views stand at their start before the clock runs) */
+      /* (a phone: the box is shorter than the tile with its close views, so it scrolls to them, the clock at its top:
+         the count and the equation then show while the five minutes pass; the iodine step scrolls back to the wells) */
+      if (z) requestAnimationFrame(() => { const sv = $('svg', box), vb = sv && sv.viewBox.baseVal; if (!vb || box.scrollHeight <= box.clientHeight + 4) return;
+        const r = sv.getBoundingClientRect(), b0 = box.getBoundingClientRect();   /* (an svg element has no offsetTop) */
+        box.scrollTo({ top: Math.max(0, box.scrollTop + r.top - b0.top + r.height * 316 / vb.height - 6), behavior: R.FAST ? 'auto' : 'smooth' }); });
       await quest.next('Wait 5 minutes');
-      const clock = $('#clock', box), t0 = performance.now();
+      const clock = $('#clock', box);
+      /* (Reduce motion: two stills, not one: first the chain in the active site, just before its first cut, with its
+         water molecule (IB); then the end. The third science read: with the end alone no cut and no water was seen) */
+      if (R.FAST && z && z.still != null) { z.at(z.still); const m = Math.max(1, Math.round(z.still * 5)); clock.textContent = m + (m === 1 ? ' minute' : ' minutes'); await new Promise(res => setTimeout(res, 3500)); }   /* (3.5 s: time to read it) */
+      const t0 = performance.now();
       await new Promise(res => {
         const f = () => {
           const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 4000);
-          clock.textContent = Math.round(k * 5) + ' minutes';
+          { const m = Math.round(k * 5); clock.textContent = m + (m === 1 ? ' minute' : ' minutes'); } if (z) z.at(k);
           if (k < 1) requestAnimationFrame(f); else res();
         };
         f();
       });
-    } else if (name === 'iodine') {
-      /* a drop of iodine solution in each well: orange-brown where no starch is left (A), blue-black where it is (B) */
+    } else if (name0 === 'iodine') {
+      /* a drop of iodine solution in each well: it stays orange-brown where no starch is left (A), and turns blue-black
+         where starch is present (B), from where the drop fell */
+      name('nmA', 'saliva added'); name('nmB', 'water added: the control');
+      if (!testZoom) { const z = zoomOn(); if (z) z.at(1); }   /* (opened at this step: the close views as they are after the five minutes) */
       await quest.next('Add iodine solution');
-      const s0 = quest.session, A = liq('wA'), B = liq('wB'), t0 = performance.now(), cA = new THREE.Color(0xf3f1ea), cB = cA.clone();
-      await new Promise(res => {
-        const f = () => {
-          const k = R.FAST ? 1 : Math.min(1, (performance.now() - t0) / 1600);
-          A.setAttribute('fill', '#' + cA.clone().lerp(new THREE.Color(0xc8701e), k).getHexString());
-          B.setAttribute('fill', '#' + cB.clone().lerp(new THREE.Color(0x1b1d3a), k).getHexString());
-          if (k < 1) requestAnimationFrame(f); else res();
-        };
-        f();
-      });
+      $('#clock', box).textContent = ''; $('#key', box).setAttribute('visibility', 'visible'); box.scrollTo({ top: 0 });
+      box.querySelectorAll('.zoom__link').forEach(l => l.setAttribute('visibility', 'hidden'));   /* (the key stands in the row that the dotted lines cross) */
+      await drops(190, '#C8701E', 1, s0); await spread('wA', '#C8701E', 800);
+      await drops(410, '#C8701E', 1, s0); await spread('wB', '#1B1D3A', 800);
+      name('nmA', 'no starch left'); name('nmB', 'starch still present');
+      /* IB at HL (D2.2.1): the whole journey in one row, under the result: the gene, its copy, its protein, and what the protein did */
+      if (lvOn('ib') && level() === 'hl' && !$('.tile__ge', box)) $('figure.tile', box).insertBefore(h('p', { class: 'tile__ge', role: 'note' }, (a => `<b>gene expression:</b> <span>the amylase gene</span>${a('transcription')}<span>${ICON.mrna || ''}mRNA</span>${a('translation')}<span>${ICON.amylase || ''}amylase</span>${a('its effect')}<span>no starch left in well A</span>`)(w => `<span class="ge__a"><i>${w}</i><span aria-hidden="true">→</span></span>`)), $('figure.tile figcaption', box));   /* (right under the drawing: under the caption it stood below the box's edge) */
+      $('svg', box).setAttribute('aria-label', 'A white spotting tile with two wells. Well A, with saliva, is orange-brown: no starch is left. Well B, with water, is blue-black: starch is still present.');
+      /* (the tile stays whole in view while its result is read: the mission's end comes when the pupil presses on) */
+      await quest.next('Finish the test');
       if (quest.session === s0) state.use('saliva');      /* never used up by a test the pupil left */
     }
-  });
+  };
+  ['wells', 'wait', 'iodine'].forEach(k => play.act(k, () => run(k)));
+  const fin = quest.openPlace('test', run);
   await fin;
   /* the win, once every check of the test is right too: the mission is complete only then */
   if (!(await quest.whenComplete('test'))) return;
@@ -289,19 +359,20 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611162123').then(m => m.openLens(e.detail)));
+document.addEventListener('lens', e => import('./lens.js?v=202611170912').then(m => (typeof e.detail === 'string' ? m.openLens(e.detail) : m.openPicture(e.detail.title, e.detail.pic, e.detail.n))));   /* (an object: one real picture by itself, the Golgi's door) */
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
 /* one view at a time: a second press while the first one's code was still coming had opened a second view over it (the
    audit, 5 Nov 2026) */
 let opening = false;
-const openIB = start => {
+/* (after: what to do when the view closes; a view opened from the IB map goes back to the map: ibBack, below) */
+const openIB = (start, after) => {
   if (opening || memOpening || document.documentElement.classList.contains('ibv-open') || document.documentElement.classList.contains('memv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611162123').then(m => {
+  import('../ib/view.js?v=202611170912').then(m => {
     world.hold = true;
-    m.openIB({ inGame: true, start, onClose: () => { opening = false; world.hold = false; world.kick(); winNext(); } });
+    m.openIB({ inGame: true, start, mark: start && start.mark, backLabel: after ? '← Back to the IB map' : undefined, onClose: () => { opening = false; world.hold = false; world.kick(); if (after) after(); else winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
 };
 /* when a place's IB switch first shows (quest.js), the view's code, styles and map are fetched while the pupil reads, so
@@ -309,11 +380,11 @@ const openIB = start => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611162123').then(m => m.warm()).catch(() => { warmed = false; });
-  import('../membrane/view.js?v=202611162123').then(m => m.warm()).catch(() => {});
+  import('../ib/view.js?v=202611170912').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../membrane/view.js?v=202611170912').then(m => m.warm()).catch(() => {});
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611162123').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611170912').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
@@ -321,16 +392,17 @@ document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
    membrane at true sizes, whose phospholipids move in their own layer and whose proteins move more slowly, opened over
    the page by the door in the way in's first IB box (quest.js courseSwitch: 'memview'). One view at a time. */
 let memOpening = false;
-const openMem = () => {
+const openMem = (o = {}) => {
   const root = document.documentElement;
   if (memOpening || opening || root.classList.contains('memv-open') || root.classList.contains('ibv-open') || root.classList.contains('plv-open')) return;
   memOpening = true;
-  import('../membrane/view.js?v=202611162123').then(m => {
+  import('../membrane/view.js?v=202611170912').then(m => {
     world.hold = true;
-    m.openMembrane({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); winNext(); } });
+    m.openMembrane(Object.assign({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); if (o.after) o.after(); else winNext(); } },
+      o.start != null ? { start: o.start, mark: o.mark } : {}, o.after ? { backLabel: '← Back to the IB map' } : {}));
   }).catch(e => { memOpening = false; world.hold = false; world.kick(); console.error(e); });
 };
-document.addEventListener('memview', openMem);
+document.addEventListener('memview', () => openMem());
 /* ---------------- what next: the game asks the pupil to explore everything (12 Nov 2026) ----------------
    Daniel: "When the students complete the main quest, if they have not completed the side quest, it should pop up … A
    message should pop up, complete now the side quest. And when they have completed the side quest, if they have not
@@ -406,7 +478,7 @@ document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || memOpening || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611162123').then(m => {
+  import('../plant/view.js?v=202611170912').then(m => {
     world.hold = true;
     m.openPlant({ inGame: true, from: e.detail && e.detail.from, onClose: () => { plantOpening = false; world.hold = false; world.kick(); winNext(); setTimeout(() => nextUp('plant'), 500); } });
   }).catch(err => { plantOpening = false; world.hold = false; world.kick(); console.error(err); });
@@ -426,10 +498,10 @@ const viewOpen = () => ['ibv-open', 'memv-open', 'plv-open', 'benchv-open', 'wat
    the plant cell's vacuole and light steps (js/plant/view.js), the ribosomes' first IB box (story.js `frac`). */
 const VIEWS2 = { water: ['../water/view.js', 'openWater'], light: ['../light/view.js', 'openLight'], fractionation: ['../fractionation/view.js', 'openFractionation'] };
 let v2Opening = false;
-function openView2(name) {
+function openView2(name, o = {}) {
   const V = VIEWS2[name]; if (!V || v2Opening || viewOpen()) return;
   v2Opening = true; nextOff();
-  import(V[0] + '?v=202611162123').then(m => { world.hold = true; m[V[1]]({ inGame: true, backLabel: '← Back to the game', onClose: () => { v2Opening = false; world.hold = false; world.kick(); winNext(); } }); })
+  import(V[0] + '?v=202611170912').then(m => { world.hold = true; m[V[1]](Object.assign({ inGame: true, backLabel: o.after ? '← Back to the IB map' : '← Back to the game', onClose: () => { v2Opening = false; world.hold = false; world.kick(); if (o.after) o.after(); else winNext(); } }, o.start != null ? { start: o.start, mark: o.mark } : {})); })
     .catch(e => { v2Opening = false; world.hold = false; world.kick(); console.error(e); });
 }
 document.addEventListener('ibview2', e => openView2(e.detail && e.detail.view));
@@ -439,36 +511,107 @@ async function openIBMap(topic) {
   if (!ibPass() || !gameOn || mapOpening || viewOpen() || ($('#ibmap') && !$('#ibmap').hidden)) return;
   mapOpening = true; nextOff();
   document.dispatchEvent(new CustomEvent('ib-door'));            /* the views' code comes while the map is read */
-  try { const m = await import('./ibmap.js?v=202611162123'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher', topic }); }
+  try { const m = await import('./ibmap.js?v=202611170912'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher', topic }); }
   catch (e) { console.error(e); }
   mapOpening = false;
 }
 document.addEventListener('ibmap', () => openIBMap());
 /* the starch test's IB investigation, heat and time (js/game/bench.js; 16 Nov 2026), from its IB box or the IB map */
-document.addEventListener('ibbench', () => { if (viewOpen()) return; import('./bench.js?v=202611162123').then(m => { world.hold = true; m.openBench({ onClose: () => { world.hold = false; world.kick(); } }); }).catch(e => console.error(e)); });
-function ibOpen(d) {
+document.addEventListener('ibbench', () => { if (viewOpen()) return; import('./bench.js?v=202611170912').then(m => { world.hold = true; m.openBench({ onClose: () => { world.hold = false; world.kick(); } }); }).catch(e => console.error(e)); });
+/* ---------------- a door of the IB map lands on its statement (18 Nov 2026) ----------------
+   Daniel, after using the map: a door opened a place at its first step and a view at its chapter's start, with nothing
+   marked, and there was no way back to the map (quest.js "landed from the IB map" has his words). Now the map gives each
+   press a target, T = { topic, name, codes, code } (ibmap.js). A place: quest.ibLand shows the step that teaches it
+   and marks its sentences, and that step plays in watch mode (the ↻ of play.js: nothing of the saved game changes),
+   unless the student is on that step. A view: it opens at the step whose words carry the statement (the door's `at`),
+   is given the statement to mark (`mark`) and the label of its way back ("← Back to the IB map"), and when it closes
+   the map opens again at the topic. The map has a button in the picture's corner too (#hudIB, beside Full screen), so
+   that it is there in full screen, where the page's own top bar is covered. */
+const ibStep = (d, T) => { if (!T || !d.at) return 0; const list = T.code ? [T.code] : (T.codes || []); const all = list.flatMap(c => d.at[c] || []); return all.length ? Math.min(...all) : 0; };
+const ibBack = T => (T && T.topic ? () => openIBMap(T.topic) : null);
+let ibNext = null, ibCarry = 0;
+function ibLandPlace(id, T) {
+  if (quest.cur !== id) return;
+  const r = quest.ibLand(id, T); if (!r || !r.li) return;
+  /* the step the student is on plays as their own. Any other plays in watch mode, once the camera's flight to the
+     place has ended (2.5 s at most): the words and the mark are there at once, the picture follows */
+  if (r.li.classList.contains('is-now')) return;
+  const F = quest.ibFrom, t0 = performance.now();
+  const start = () => {
+    if (quest.ibFrom !== F || quest.cur !== id || F.own || F.i !== r.i) return;
+    if ((world.flying || busy || watchingNow) && performance.now() - t0 < 2500) { setTimeout(start, 120); return; }
+    const li = $('.steps', quest.panel) && $('.steps', quest.panel).children[r.i];
+    if (li) document.dispatchEvent(new CustomEvent('step-again', { detail: { id, i: r.i, li, map: true } }));
+  };
+  /* (never in the same task as go: the place's own step starts a moment after its panel is drawn (play.js run), and a
+     step that started after the watched one would count as part of it: both steps' buttons stood on the picture and
+     the watched step waited for ever. Found with ?still=1, where the camera's flight takes no time: the nucleus's step
+     5 with "Enter through a nuclear pore" beside "Copy") */
+  setTimeout(start, 150);
+}
+/* (the landing waits until the place's panel is drawn: go → quest.openPlace) */
+function ibLandSoon(id, T, n = 0) {
+  if (quest.cur === id && !busy && $('.steps > li', quest.panel)) ibLandPlace(id, T);
+  else if (n < 40) setTimeout(() => ibLandSoon(id, T, n + 1), 100);
+}
+/* a step button of the bar. While a step plays for the student, that step stops first (its own Stop, or its last
+   button), the place is set up again, and then the step pressed plays ('step-again' above) */
+document.addEventListener('ib-land', e => {
+  const F = quest.ibFrom, d = e.detail || {}; if (!F || F.id !== d.id || quest.cur !== d.id) return;
+  const T = { topic: F.topic, name: F.name, codes: F.codes, step: d.step };
+  if (!watchingNow) { ibLandPlace(d.id, T); return; }
+  const stop = $('.step__stop', quest.panel) || $('.step__cont', quest.panel);
+  if (stop) { ibNext = T; stop.click(); }
+});
+document.addEventListener('ibmap-topic', e => openIBMap(e.detail && e.detail.topic));
+function ibOpen(d, T) {
   if (!d || !ibPass()) return;
   /* a door of the IB map is an IB door: the course goes on IB, in every part of the game (js/game/iblevel.js) */
   if (d.kind === 'place' || d.kind === 'film' || d.kind === 'side') { setCourse('ib', true); R.store.set('ibpassLv', true); }
   if (d.kind === 'place') {
-    /* the nucleolus is inside the nucleus: a pupil who has not been inside it goes there first (state.js awake) */
-    if (d.id === 'nucleolus' && !state.flag('in-nucleus')) { toast('The nucleolus is inside the nucleus: enter the nucleus first.', 5200); go('nucleus'); return; }
-    go(d.id);
+    /* the nucleolus is inside the nucleus: a pupil who has not been inside it goes there first (state.js awake). From
+       a topic of the map, the game then carries them on: once the nucleus's first step, the dive, is finished, the
+       nucleolus opens at the statement (18 Nov 2026). Not if they leave the nucleus first, or press another door */
+    if (d.id === 'nucleolus' && !state.flag('in-nucleus')) {
+      const on = !!(T && T.topic), my = ++ibCarry;
+      toast('The nucleolus is inside the nucleus: enter the nucleus first.' + (on ? ' Then the game opens the nucleolus for you.' : ''), 6200);
+      quest.ibFrom = null; ibNext = null; go('nucleus');
+      const wait = () => {
+        if (my !== ibCarry || quest.cur !== 'nucleus') return;
+        if (viewOpen() || ($('#ibmap') && !$('#ibmap').hidden)) { setTimeout(wait, 400); return; }   /* (a view or the map is open over the nucleus: it waits) */
+        if (state.flag('in-nucleus') && (state.done('nucleus') || state.step('nucleus') >= 1) && !busy && !watchingNow) { ibOpen(d, T); return; }
+        setTimeout(wait, 400);
+      };
+      if (on) setTimeout(wait, 1200);
+      return;
+    }
+    ibCarry++;
+    /* (a press while the camera still flies to the list of places waits for it: go does nothing while it is busy) */
+    const enter = (n = 0) => {
+      if (busy && n < 40) { setTimeout(() => enter(n + 1), 100); return; }
+      quest.ibFrom = null; ibNext = null;
+      go(d.id);
+      if (T && T.topic) ibLandSoon(d.id, T);
+    };
+    enter();
   } else if (d.kind === 'film') document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: d.film } }));
   else if (d.kind === 'bench') document.dispatchEvent(new CustomEvent('ibbench'));
-  else if (d.kind === 'view2') openView2(d.view);
-  else if (d.id === 'membrane') openMem();
+  else if (d.kind === 'view2') openView2(d.view, { start: ibStep(d, T), mark: T && (T.code || T.codes), after: ibBack(T) });
+  else if (d.id === 'membrane') openMem({ start: ibStep(d, T), mark: T && (T.code || T.codes), after: ibBack(T) });
   else if (d.id === 'plant') document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'ibmap' } }));
-  else if (d.ci != null) openIB({ ci: d.ci, si: 0 });
+  else if (d.ci != null) openIB({ ci: d.ci, si: ibStep(d, T), mark: T && (T.code || T.codes) }, ibBack(T));
 }
-const ibBtn = $('#btnIB'), tView = $('#tView');
+const ibBtn = $('#btnIB'), tView = $('#tView'), hudIB = $('#hudIB');
 /* a teacher's "See it as: Year 7 · IB" (js/ibpass.js setView; Daniel, 15 Nov 2026): shown from the start, for a teacher only */
 const paintIBBtn = () => {
   if (ibBtn) ibBtn.hidden = !(ibPass() && gameOn);
+  if (hudIB) hudIB.hidden = !(ibPass() && gameOn);
   const T = !!(window.IBPASS && window.IBPASS.teacher());
   if (tView) { tView.hidden = !T; if (T) $$('button', tView).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === window.IBPASS.view()))); }
 };
 if (ibBtn) ibBtn.addEventListener('click', () => openIBMap());
+/* (in the picture's corner: at the topic the student came from, when they came from the map) */
+if (hudIB) hudIB.addEventListener('click', () => openIBMap(quest.ibFrom && quest.cur === quest.ibFrom.id ? quest.ibFrom.topic : null));
 if (tView) tView.addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b && window.IBPASS) { window.IBPASS.setView(b.dataset.v); paintIBBtn(); } });
 paintIBBtn();
 const readHash = () => { const m = /^#ib(?:-([a-z0-9.-]+))?$/i.exec(location.hash || ''); return m ? (m[1] || 'map').toLowerCase() : null; };
@@ -485,7 +628,7 @@ async function hashDoor() {
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   if (want === 'map') { openIBMap(); return; }
   if (/^[a-d]\d\.\d$/.test(want)) { openIBMap(want.toUpperCase()); return; }
-  try { const m = await import('./ibmap.js?v=202611162123'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
+  try { const m = await import('./ibmap.js?v=202611170912'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
   catch (e) { console.error(e); }
 }
 addEventListener('hashchange', () => { hashWant = readHash(); hashDoor(); });

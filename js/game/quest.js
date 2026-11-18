@@ -7,16 +7,17 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611162123';
-import { state, COST } from './state.js?v=202611162123';
-import { sound } from './sound.js?v=202611162123';
-import { finalLine } from './final.js?v=202611162123';
+import { ICON } from './icons.js?v=202611170912';
+import { state, COST } from './state.js?v=202611170912';
+import { sound } from './sound.js?v=202611170912';
+import { finalLine } from './final.js?v=202611170912';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611162123').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611162123';
-import { course, setCourse, levelSwitch, boxLines } from './iblevel.js?v=202611162123';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611170912').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611170912';
+import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611170912';
+const HOT_OFF = 26, HOT_UP = 18;     /* px: a button beside its part (r, l), above or below it (t, b): the length of its line */
 
 const R = window.REV, { $, $$, h, esc } = R;
 /* a text of the story: each line (\n in story.js) is a short paragraph of its own, one idea each (Daniel, 4 Nov 2026) */
@@ -86,8 +87,10 @@ export class Quest {
     const t = o.el.textContent;
     if (o.t !== t || !o.bw) { o.t = t; o.bw = o.el.offsetWidth; o.bh = o.el.offsetHeight; }
     const sd = o.side, bw = o.bw, bh = o.bh, G = 10;
-    const [l, r] = sd === 'r' ? [8, 8 + bw] : sd === 'l' ? [-bw - 8, -8] : [-bw / 2, bw / 2];
-    const [tp, bt] = sd === 't' ? [-bh, 0] : sd === 'b' ? [0, bh] : [-bh / 2, bh / 2];
+    /* (a button beside, above or below its part stands a line's length from it, and the line joins them: 16 Nov 2026,
+       Daniel: "you don't have a line, so you don't know actually what this is pointing at"; game.css hot3--r …) */
+    const [l, r] = sd === 'r' ? [HOT_OFF, HOT_OFF + bw] : sd === 'l' ? [-bw - HOT_OFF, -HOT_OFF] : [-bw / 2, bw / 2];
+    const [tp, bt] = sd === 't' ? [-bh - HOT_UP, -HOT_UP] : sd === 'b' ? [HOT_UP, bh + HOT_UP] : [-bh / 2, bh / 2];
     const sc = this.w.project(p), s = this.w.size;
     const R = s.w - (this.w.inset.right || 0) - G, B = s.h - (this.w.inset.bottom || 0) - G;
     let x = Math.max(G - l, Math.min(R - r, sc.x)), y = Math.max(G - tp, Math.min(B - bt, sc.y));
@@ -101,7 +104,7 @@ export class Quest {
         .sort((a, b) => Math.hypot(a[0] - x, a[1] - y) - Math.hypot(b[0] - x, b[1] - y))[0];
       if (near) { x = near[0]; y = near[1]; }
     }
-    o.x = x; o.y = y; o.box = { l: x + l, r: x + r, t: y + tp, b: y + bt };
+    o.x = x; o.y = y; o.px = sc.x; o.py = sc.y; o.box = { l: x + l, r: x + r, t: y + tp, b: y + bt };
     o.on = sc.inFront; o.isEdge = Math.abs(x - sc.x) > 0.5 || Math.abs(y - sc.y) > 0.5;
   }
   /* buttons and labels on the world never cover each other (Daniel's rule): of two that touch, one moves the smallest
@@ -135,13 +138,21 @@ export class Quest {
     o.wrap.style.transform = `translate(${o.x.toFixed(1)}px, ${o.y.toFixed(1)}px)`;
     o.wrap.style.visibility = o.on ? 'visible' : 'hidden';
     o.wrap.classList.toggle('edge', o.isEdge);
+    /* a line from the part to the nearest edge of its button, when the button does not stand on the part (beside it, or
+       moved off it to keep clear of something): what the button is about is never in doubt */
+    if (o.px == null || !o.box) return;
+    const ex = Math.max(o.box.l, Math.min(o.box.r, o.px)), ey = Math.max(o.box.t, Math.min(o.box.b, o.py)), L = Math.hypot(ex - o.px, ey - o.py);
+    if (!o.ln) { o.ln = document.createElement('i'); o.ln.className = 'hot3__ln'; o.wrap.insertBefore(o.ln, o.el); }
+    o.ln.style.display = L > 6 ? '' : 'none';
+    if (L > 6) o.ln.style.cssText = `left:${(o.px - o.x).toFixed(1)}px;top:${(o.py - o.y).toFixed(1)}px;width:${L.toFixed(1)}px;transform:rotate(${Math.atan2(ey - o.py, ex - o.px).toFixed(4)}rad)`;
   }
   loop() {
     if (this.hots.length) {
       const L = this.hotsEl.getBoundingClientRect(), box = el => { const r = el.getBoundingClientRect(); return r.width ? { l: r.left - L.left, r: r.right - L.left, t: r.top - L.top, b: r.bottom - L.top } : null; };
       /* what a button keeps off: the box at the top left, and the names on the world (the way in names its parts) */
-      /* (and the switch "Simple / As it really is" at the foot of the picture, when it shows: play.js REAL) */
-      this.keeps = [document.querySelector('.hud'), document.querySelector('.realsw:not([hidden])'), ...document.querySelectorAll('#names.on .nm')].filter(Boolean).map(box).filter(Boolean);
+      /* (and the switch "Simple / As it really is" at the foot of the picture, when it shows: play.js REAL; and the way
+         in's concentration strip, with a course on: play.js concStrip, 17 Nov 2026, which had covered a button on a phone) */
+      this.keeps = [document.querySelector('.hud'), document.querySelector('.realsw:not([hidden])'), document.getElementById('conc'), document.getElementById('qHide'), ...document.querySelectorAll('#names.on .nm')].filter(Boolean).map(box).filter(Boolean);   /* (and "Hide text": on a phone Attach stood under it, 18 Nov 2026) */
       this.w.camera.updateMatrixWorld(); this.hots.forEach(o => this.place1(o)); this.spread(); this.hots.forEach(o => { if (o.box) this.paint(o); });
     }
     requestAnimationFrame(this.loop);
@@ -181,7 +192,7 @@ export class Quest {
   setPanel(html) { this.panel.innerHTML = html; R.terms(this.panel); this.panel.scrollTop = 0; this.panel.classList.toggle('is-map', html.indexOf('qp--map') >= 0); }
   /* the map: the mission, the places (awake or asleep), and the bag */
   openMap() {
-    this.session++; this.clearHots(); this.cur = null;
+    this.session++; this.clearHots(); this.cur = null; this.ibFrom = null;
     this.inPlace = false; this.bagFold = null; this.paintBag();
     this.w.setPlaceLook && this.w.setPlaceLook();
     const list = MAPPED.concat(['test']).filter(id => STORY[id]);
@@ -218,6 +229,7 @@ export class Quest {
   /* a place: its definition, then its steps one at a time */
   async openPlace(id, run) {
     const my = ++this.session; this.clearHots(); this.cur = id;
+    if (this.ibFrom && this.ibFrom.id !== id) this.ibFrom = null;   /* (a visit from the IB map ends in another place too: ibLand) */
     this.inPlace = true; this.bagFold = null; this.paintBag();
     const P = STORY[id], G = window.KS3_GLOSSARY;
     const def = P.def && G && G.by[P.def] ? G.by[P.def] : null;
@@ -270,7 +282,7 @@ export class Quest {
      not for a step that only shows words (story.js watch: false), nor the starch test */
   againBtn(id, i, li) {
     const s = STORY[id].steps[i];
-    if (id === 'test' || !s || s.watch === false || $('.step__again', li)) return;
+    if (!s || s.watch === false || $('.step__again', li)) return;   /* (18 Nov 2026: the test has its ↻ too: main.js test, play.act) */
     const b = h('button', { type: 'button', class: 'step__again', 'aria-label': 'Watch this step again', 'data-tip': 'Watch this step again' }, '↻');
     const t = $('.step__t', li), last = t && t.lastElementChild;
     (last || t || li).appendChild(b);
@@ -345,6 +357,7 @@ export class Quest {
       const on = !!(C.names && LV.ib); root.classList.toggle('ib-on', on);
       if (C.names && on !== mode) { mode = on; document.dispatchEvent(new CustomEvent('ib-switch', { detail: { id, on } })); }
       this.courseQuestions(id);
+      this.ibPaint();
     };
     bar.addEventListener('click', e => {
       const b = e.target.closest('.qp__lvb'); if (!b) return;
@@ -375,7 +388,84 @@ export class Quest {
     draw();
   }
   /* one step's course boxes open at a time: the step the pupil is on (16 Nov 2026) */
-  lvOpen(li) { if (!li || !li.parentNode) return; $$('details.step__lv', li.parentNode).forEach(d => { d.open = d.parentNode === li; }); }
+  lvOpen(li) { if (!li || !li.parentNode) return; $$('details.step__lv', li.parentNode).forEach(d => { d.open = d.parentNode === li; }); this.ibPaint(); }
+  /* ---------------- landed from the IB map (18 Nov 2026) ----------------
+     Daniel, after using the map: "when I press on one thing … it doesn't necessarily take me to the step where you
+     actually have that information … I basically land the first step, and I have to go through all of the steps … I
+     have to find it in the text … It should be highlighted. It should blink in yellow or something when you are there,
+     at least when you access it from the map"; and "there is no easy way to go back to the map". His yes to the plan.
+     A door of the map gives a target, T = { topic, name, codes, code } (ibmap.js): the topic the student came from, its
+     statements that this place teaches at their level, and the one statement pressed, if any. ibLand finds the steps
+     whose IB box holds one of them (story.js `course.ib`: a block is a step), keeps the visit (this.ibFrom) and
+     paints it: a bar under the course switches ("From the IB map: B2.2 …", a chip for each of those steps, and
+     "← IB map: B2.2", which opens the map again at that topic); the step landed on shows even when the student has
+     not reached it (is-peek), with its IB box open; each sentence of the topic is marked in yellow, and the marks of
+     the step landed on pulse twice (not with Reduce motion). main.js then plays that step in watch mode (play.js
+     watch: nothing of the saved game changes), unless it is the step the student is on. The visit ends when the
+     student goes back to the list of places; "↩ Back to my own step" keeps the bar with its step buttons, so that
+     the next step of the topic is one press away, and takes the marks off (own). The marks are painted again each
+     time the boxes are drawn again (courseSwitch draw, lvOpen): a mark that stays is not taken off and put back, so
+     its two pulses are not cut short. */
+  ibLand(id, T) {
+    const P = STORY[id], ol = $('.steps', this.panel); if (!T || !P || !P.course || !P.course.ib || !ol || this.cur !== id) return null;
+    const want = T.code ? [T.code] : (T.codes || []), sl = level() === 'sl';
+    const has = (b, list) => !!b && b.p.some(l => !(sl && l[0] === 'hl') && String(l[1] || '').split(/\s*,\s*/).some(c => list.includes(c)));
+    const all = (T.codes && T.codes.length ? T.codes : want), hits = P.course.ib.map((b, i) => (has(b, all) ? i : -1)).filter(i => i >= 0);
+    const mine = P.course.ib.map((b, i) => (has(b, want) ? i : -1)).filter(i => i >= 0);
+    if (!hits.length || !mine.length) return null;
+    const i = T.step != null && hits.includes(T.step) ? T.step : mine[0];
+    this.ibFrom = { id, topic: T.topic, name: T.name || '', codes: all, want: T.step != null ? all : want, hits, i, own: false, fresh: true };
+    this.ibPaint();
+    return { i, hits, li: ol.children[i] || null };
+  }
+  ibPaint() {
+    const F = this.ibFrom, ol = $('.steps', this.panel), top = $('.qp__lv', this.panel) || $('.qp__top', this.panel);
+    $$('.qp__from', this.panel).forEach(x => x.parentNode.removeChild(x));
+    const on = !!F && !F.own && !!ol && !!top && F.id === this.cur, keep = new Set();
+    /* the sentences of the topic, in every step that holds one */
+    if (on) F.hits.forEach(i => {
+      const li = ol.children[i], box = li && $('details.step__lv[data-lv="ib"]', li); if (!box) return;
+      $$('p', box).forEach(p => { const c = $('.ibl i', p); if (c && c.textContent.split(/\s*,\s*/).some(x => F.want.includes(x.trim()))) keep.add(p); });
+    });
+    if (ol) {
+      $$('.ib-hit', ol).forEach(p => { if (!keep.has(p)) p.classList.remove('ib-hit', 'ib-hit--go'); });
+      $$(':scope > li.is-peek', ol).forEach(li => {
+        if (F && !F.own && F.id === this.cur && li === ol.children[F.i]) return;
+        li.classList.remove('is-peek'); if (li.classList.contains('is-later')) li.hidden = true;
+        const n = $('.step__peek', li); if (n) n.parentNode.removeChild(n);
+      });
+    }
+    if (!F || !ol || !top || F.id !== this.cur) return;
+    const bar = h('div', { class: 'qp__from', role: 'group', 'aria-label': 'From the IB map' },
+      `<span class="qp__fromk">From the IB map: <b>${esc(F.topic)}</b>${F.name ? ' ' + esc(F.name) : ''}</span>`
+      + `<span class="qp__froms">taught here in ${F.hits.map(i => `<button type="button" class="qp__fromb" data-i="${i}" aria-pressed="${!F.own && i === F.i}">step ${i + 1}</button>`).join('')}</span>`
+      + `<button type="button" class="qp__fromback">← IB map: ${esc(F.topic)}</button>`);
+    top.insertAdjacentElement('afterend', bar);
+    bar.addEventListener('click', e => {
+      const b = e.target.closest('.qp__fromb');
+      if (b) { document.dispatchEvent(new CustomEvent('ib-land', { detail: { id: F.id, step: +b.dataset.i } })); return; }
+      if (e.target.closest('.qp__fromback')) document.dispatchEvent(new CustomEvent('ibmap-topic', { detail: { topic: F.topic } }));
+    });
+    if (!on) return;
+    /* marked; the step landed on: shown, and on arrival its IB box open (a mark under More: More open) and its marks pulse */
+    const li = ol.children[F.i];
+    keep.forEach(p => {
+      p.classList.add('ib-hit');
+      if (li && li.contains(p)) { if (F.fresh) p.classList.add('ib-hit--go'); const more = p.closest('details.cbox-more'); if (more) more.open = true; }
+    });
+    if (li) {
+      if (li.hidden || li.classList.contains('is-later')) {
+        li.hidden = false; li.classList.add('is-peek'); li.dataset.n = F.i + 1;   /* (its own number on its badge: the steps between are hidden, and the list's count would say 2) */
+        if (!$('.step__peek', li)) li.insertBefore(h('p', { class: 'step__peek' }, `Step ${F.i + 1}, from the IB map: you have not played this step yet.`), li.firstChild);
+      }
+      if (F.fresh) {
+        F.fresh = false;
+        const box = $('details.step__lv[data-lv="ib"]', li); if (box) $$('details.step__lv', ol).forEach(d => { d.open = d === box; });
+        /* (the panel's own scroll, never the page's: the step's top, then further only if the mark is still out of sight) */
+        const hit = $('.ib-hit', li) || li; setTimeout(() => { if (hit.isConnected) { this.scrollTo(li, true); this.scrollTo(hit); } }, 60);
+      }
+    }
+  }
   /* the course's own questions (js/questions.js: `place`, `lv`; parts 15 and 16), drawn at the end of their place under
      its Year 7 checks while that course's switch is on, IGCSE above IB (Daniel, 13 Nov 2026: "if you toggle IGCSE and
      you toggle IB, maybe you want to add questions to those levels … if you're key stage 3, you just do the key stage 3

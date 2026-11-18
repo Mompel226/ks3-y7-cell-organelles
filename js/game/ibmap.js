@@ -12,9 +12,16 @@
      steps for B2.2 and D2.3, listed here (PLANT) and checked against those comments by tools/ib-pass.mjs.
    A door to a place opens it with the course on IB; a door to a view opens the view (at its chapter); every door has an
    address of its own, #ib-<door> (main.js), which a teacher can copy from the map for a slide or Google Classroom.
+   (18 Nov 2026; Daniel, after using the map: "it doesn't necessarily take me to the step where you actually have that
+   information … I have to go through all of the steps … and not only that, I have to find it in the text … It should
+   be highlighted".) Each door knows where each of its statements is taught (`at`: the steps of a place, by the blocks
+   of story.js `course.ib`; the steps of a view, by the tags of its words). A door pressed gives main.js a target
+   ({ topic, codes, code }): the door itself, the first step that teaches a statement of the topic; a statement's own
+   code, now a button of its own, the step that teaches that statement. main.js and quest.js land there and mark the
+   sentence.
    ============================================================ */
 const R = window.REV, { $, $$, h, esc } = R;
-import { level, levelSwitch } from './iblevel.js?v=202611162123';
+import { level, levelSwitch } from './iblevel.js?v=202611170912';
 const STORY = window.STORY;
 /* the IB guide's topic names (Biology guide, first assessment 2025) */
 const TOPIC = {
@@ -41,6 +48,8 @@ export const FILMS = {
 const TAG = /\[(sl|hl)\s+([A-D]\d\.\d\.\d+(?:\s*,\s*[A-D]\d\.\d\.\d+)*)\]/g;
 const tagged = (o, into = {}) => { JSON.stringify(o).replace(TAG, (m, lv, cs) => { cs.split(/\s*,\s*/).forEach(c => { into[c] = into[c] === 'sl' ? 'sl' : lv; }); return m; }); return into; };
 const topicOf = c => c.split('.').slice(0, 2).join('.');
+/* where each statement stands in a list of steps: { code: [the steps' numbers, from 0] } */
+const stepsAt = list => { const at = {}; (Array.isArray(list) ? list : []).forEach((s, i) => Object.keys(tagged(s)).forEach(c => { (at[c] = at[c] || []).push(i); })); return at; };
 /* the guide's order: the letter, then each number (A1.2 before A2.2; B2.2.7 before B2.2.10) */
 const codeSort = (a, b) => {
   if (a[0] !== b[0]) return a < b ? -1 : 1;
@@ -53,21 +62,22 @@ const codeSort = (a, b) => {
 export async function doors() {
   const out = [];
   PLACES.forEach(id => {
-    const C = STORY[id] && STORY[id].course, codes = {};
+    const C = STORY[id] && STORY[id].course, codes = {}, at = {};
     if (!C || !C.ib) return;
-    C.ib.forEach(b => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') codes[c] = codes[c] === 'sl' ? 'sl' : lv; })));
-    out.push({ id, kind: 'place', title: STORY[id].title, codes });
+    C.ib.forEach((b, i) => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') { codes[c] = codes[c] === 'sl' ? 'sl' : lv; if (!(at[c] = at[c] || []).includes(i)) at[c].push(i); } })));
+    out.push({ id, kind: 'place', title: STORY[id].title, codes, at });
   });
-  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611162123'), import('../ib/text.js?v=202611162123')]);
-  out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS) });
-  T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes }); });
+  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611170912'), import('../ib/text.js?v=202611170912')]);
+  out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS), at: stepsAt(M.STEPS) });
+  T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes, at: stepsAt(c.steps) }); });
   /* the insulin path, an Explore of the view (text.js EXPLORE 'x-insulin'): opened at its start */
   const X = T.EXPLORE && T.EXPLORE['x-insulin'];
-  if (X) out.push({ id: 'atp-x-insulin', ci: 'x-insulin', kind: 'view', title: 'From glucose to ATP: insulin and its receptor', codes: tagged(X) });
+  if (X) out.push({ id: 'atp-x-insulin', ci: 'x-insulin', kind: 'view', title: 'From glucose to ATP: insulin and its receptor', codes: tagged(X), at: stepsAt(X.steps) });
   Object.entries(FILMS).forEach(([k, f]) => out.push({ id: 'film-' + k, film: k, kind: 'film', title: f.title, codes: Object.assign({}, f.codes) }));
   /* the three views of 16 Nov 2026, each read from its own words (js/<view>/text.js STEPS, tagged as the others) */
   for (const [v, title] of [['water', 'Water potential'], ['light', 'From light to glucose'], ['fractionation', 'Cell fractionation lab']]) {
-    try { const m = await import(`../${v}/text.js?v=202611160713`); const codes = tagged(m.STEPS || m); if (Object.keys(codes).length) out.push({ id: v, kind: 'view2', view: v, title, codes }); }
+    try { const m = await import('../' + v + '/text.js?v=202611170912');   /* (18 Nov 2026: a quote after the stamp, as tools/stamp.mjs wants it: inside backticks the stamp had stayed at 16 Nov, so a browser could have kept that day's text and the map's steps with it) */
+      const codes = tagged(m.STEPS || m); if (Object.keys(codes).length) out.push({ id: v, kind: 'view2', view: v, title, codes, at: stepsAt(m.STEPS) }); }
     catch (e) { /* (a view not on this copy of the site) */ }
   }
   /* the starch test's investigation (js/game/bench.js: its tagged lines) */
@@ -108,7 +118,8 @@ export async function openIBMap({ open, teacher, topic = null }) {
     all[t].forEach((cs, d) => { const keep = cs.filter(c => !sl || d.codes[c] === 'sl').sort(codeSort); if (!keep.length) { hlDoors++; return; } rows.push([d, keep]); keep.forEach(c => codes.add(c)); });
     return { rows, n: codes.size, hlDoors };
   };
-  const chip = (d, c) => `<span class="ibl ibl--${d.codes[c]}">${c}${d.codes[c] === 'hl' ? ' HL' : ''}</span>`;
+  /* (a statement's code: a button that goes to the step that teaches it, when the door knows where: `at`) */
+  const chip = (d, c) => (d.at && d.at[c] ? `<button type="button" class="ibl ibl--${d.codes[c]} ibmap__code" data-door="${d.id}" data-code="${c}" aria-label="${c}${d.codes[c] === 'hl' ? ', HL only' : ''}: go to where ${esc(d.title)} teaches it">${c}${d.codes[c] === 'hl' ? ' HL' : ''}</button>` : `<span class="ibl ibl--${d.codes[c]}">${c}${d.codes[c] === 'hl' ? ' HL' : ''}</span>`);
   const copyB = (id, what) => teacher ? `<button type="button" class="ibmap__copy" data-link="${esc(link(id))}">Copy link${what ? ' ' + what : ''}</button>` : '';
   const topicBtn = t => {
     const a = at(t), hlo = !a.n;
@@ -128,8 +139,8 @@ export async function openIBMap({ open, teacher, topic = null }) {
       <button type="button" class="close-x ibmap__wx" aria-label="Back to the IB map">×</button>
       <p class="ibmap__k">${t[0]} · ${THEME[t[0]]} · ${ORG[t[1]]}</p>
       <h3 class="ibmap__wt" id="ibmapW"><span>${t}</span> ${esc(TOPIC[t])}</h3>
-      <p class="ibmap__p">${a.rows.length ? 'Where this game teaches it. Press one to go there.' : 'This topic is HL only. Your level is SL: you do not need it. To see where the game teaches it, choose HL.'}</p>
-      ${GROUPS.map(([k, name]) => { const rs = a.rows.filter(([d]) => kindOf(d) === k); return rs.length ? `<section class="ibmap__grp"><h4 class="ibmap__gk">${name}</h4><ul class="ibmap__doors">${rs.map(([d, cs]) => `<li class="ibmap__row"><button type="button" class="ibmap__door" data-door="${d.id}"><span class="ibmap__dt">${esc(d.title)}</span><span class="ibmap__go" aria-hidden="true">→</span><span class="ibmap__codes">${cs.map(c => chip(d, c)).join(' ')}</span></button>${copyB(d.id)}</li>`).join('')}</ul></section>` : ''; }).join('')}
+      <p class="ibmap__p">${a.rows.length ? 'Where this game teaches it. Press a place or a view to go to its first step on this topic, or press a statement\'s code to go straight to that statement: its sentence is marked in yellow.' : 'This topic is HL only. Your level is SL: you do not need it. To see where the game teaches it, choose HL.'}</p>
+      ${GROUPS.map(([k, name]) => { const rs = a.rows.filter(([d]) => kindOf(d) === k); return rs.length ? `<section class="ibmap__grp"><h4 class="ibmap__gk">${name}</h4><ul class="ibmap__doors">${rs.map(([d, cs]) => `<li class="ibmap__row"><div class="ibmap__dw"><button type="button" class="ibmap__door" data-door="${d.id}"><span class="ibmap__dt">${esc(d.title)}</span><span class="ibmap__go" aria-hidden="true">→</span></button><span class="ibmap__codes">${cs.map(c => chip(d, c)).join(' ')}</span></div>${copyB(d.id)}</li>`).join('')}</ul></section>` : ''; }).join('')}
       ${a.rows.length && a.hlDoors ? `<p class="ibmap__more">And ${a.hlDoors === 1 ? 'one more part of the game' : a.hlDoors + ' more parts of the game'} for HL only: choose HL to see ${a.hlDoors === 1 ? 'it' : 'them'}.</p>` : ''}
       <div class="ibmap__wend">${copyB(t.toLowerCase(), 'to this topic')}<button type="button" class="btn ghost ibmap__wback">← All topics</button></div>
     </div>`;
@@ -169,7 +180,10 @@ export async function openIBMap({ open, teacher, topic = null }) {
     if (el === box || el.closest('.ibmap__x, .ibmap__close')) { close(); return; }
     if (el.classList && el.classList.contains('ibmap__win') || el.closest('.ibmap__wx, .ibmap__wback')) { hideT(); return; }
     const tb = el.closest('.ibmap__topic'); if (tb) { showT(tb.dataset.topic); return; }
-    const db = el.closest('.ibmap__door'); if (db) { const d = D.find(x => x.id === db.dataset.door); close(); open(d); return; }
+    /* a statement's code, or the door itself: the target says which topic the pupil came from, which of its statements this door shows at the level now, and the one pressed */
+    const cb0 = el.closest('.ibmap__code'), db = cb0 || el.closest('.ibmap__door');
+    if (db) { const d = D.find(x => x.id === db.dataset.door), t = openT, row = t && at(t).rows.find(r => r[0] === d);
+      close(); open(d, t ? { topic: t, name: TOPIC[t], codes: row ? row[1] : [], code: cb0 ? cb0.dataset.code : null } : null); return; }
     const cb = el.closest('.ibmap__copy');
     if (cb) {
       const t = cb.dataset.link, was = cb.textContent, done = ok => { cb.textContent = ok ? 'Copied ✓' : t; setTimeout(() => { cb.textContent = was; }, ok ? 1800 : 8000); };

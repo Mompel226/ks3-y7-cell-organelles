@@ -20,7 +20,11 @@ import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 
 const GLIDE = 420;    /* ms: a name moving to its new row once the camera has stopped */
 const FADE = 180;     /* ms: a name stepping back or coming in (game.css: .nm and .nml, their transition) */
-const UP = 22;        /* px: the upright line of a name above or below its part (as long as a line beside a part) */
+const UP = 22;        /* px: the upright line of a name above or below its part */
+/* px: the level line of a name beside its part, where there is no room for the columns (a phone, a close view), and a
+   longer one when the short one has no room (16 Nov 2026; Daniel: "you don't have a line, so you don't know actually
+   what this is pointing at": a name stood ON its part, with no line, wherever there was room for it there) */
+const SIDE = [34, 64];
 const SETTLE = 10;    /* frames (about 1/6 s) in which its parts moved less than 0.3 px each: the camera has stopped (the
                          wheel's notches come about 0.1 s apart: a pause between two is not a stop) */
 const ease = k => 1 - Math.pow(1 - k, 3);
@@ -218,7 +222,12 @@ export class Names {
   /* the boxes no name may cover (the bag, the tools), on the names' layer, with a margin */
   keeps(pad = this.pad || 6) {
     const lr = this.layer.getBoundingClientRect(); this.pad = pad;
-    this.out = (this.keepOut || []).map(e => e && e.getBoundingClientRect()).filter(r => r && r.width).map(r => ({ l: r.left - lr.left - pad, r: r.right - lr.left + pad, t: r.top - lr.top - pad, b: r.bottom - lr.top + pad }));
+    /* (and the way in's concentration strip, play.js concStrip: since names stand beside their parts, 16 Nov 2026, one
+       could reach under it) */
+    this.out = (this.keepOut || []).concat([document.getElementById('conc')]).map(e => e && e.getBoundingClientRect()).filter(r => r && r.width).map(r => ({ l: r.left - lr.left - pad, r: r.right - lr.left + pad, t: r.top - lr.top - pad, b: r.bottom - lr.top + pad }));
+    /* (and a path on the world that no name may cover: `avoid`, points; the way in's arrow along the named molecule's way,
+       with Reduce motion: play.js wayArrow, 17 Nov 2026, after it ran through two names) */
+    (this.avoid || []).forEach(p => { const s = this.proj(p); if (s.front) this.out.push({ l: s.x - 9 - pad, r: s.x + 9 + pad, t: s.y - 9 - pad, b: s.y + 9 + pad }); });
   }
   /* the solid parts on the screen (px, the names' layer), each as the ellipse round its outline, with a margin: from the
      points of its drawn meshes, projected (a box from the corners of the part's 3D box would be far larger than a round
@@ -272,15 +281,19 @@ export class Names {
     const pl = this.proj(l), pr = this.proj(r), cx = (pl.x + pr.x) / 2;
     return { pl, pr, cx, colL: Math.max(8, Math.min(pl.x - 6, cx - 40)), colR: Math.min(right - 8, Math.max(pr.x + 6, cx + 40)) };
   }
+  /* a name above or below its part, near the picture's side: its middle moves in from the edge so that the whole name is
+     in the picture, as far as its upright line still leaves it at least 10 px from its end (17 Nov 2026: the amylase gene,
+     at the left edge of a phone's picture, had no name) */
+  upX(x, w) { const W = this.w, right = W.size.w - (W.inset.right || 0), k = Math.max(0, w / 2 - 10); return Math.max(x - k, Math.min(x + k, Math.max(w / 2 + 4, Math.min(right - w / 2 - 4, x)))); }
   /* where a placed name stands now: its middle (cx, cy), its size and its line (x1 at the name, x2 on the part) */
   target(r, c) {
     const a = r.at, sc = this.proj(a.spot);
     if (a.mode === 'col') { const x1 = a.side === 'L' ? c.colL : c.colR, w = r.wc; return { sc, w, h: r.hc, cx: a.side === 'L' ? x1 - w / 2 : x1 + w / 2, cy: sc.y, ln: { x1, x2: sc.x, y: sc.y } }; }
     const w = r.wo, h = r.ho;
     /* above or below its part: its line upright, from the name's edge to the part (y1 at the name, y on the part) */
-    if (a.up) { const L = (r.it && r.it.len) || UP, cy = a.up < 0 ? sc.y - L - h / 2 : sc.y + L + h / 2; return { sc, w, h, cx: sc.x, cy, ln: { x1: sc.x, x2: sc.x, y1: a.up < 0 ? cy + h / 2 : cy - h / 2, y: sc.y } }; }
+    if (a.up) { const L = (r.it && r.it.len) || UP, cy = a.up < 0 ? sc.y - L - h / 2 : sc.y + L + h / 2; return { sc, w, h, cx: this.upX(sc.x, w), cy, ln: { x1: sc.x, x2: sc.x, y1: a.up < 0 ? cy + h / 2 : cy - h / 2, y: sc.y } }; }
     if (!a.line) return { sc, w, h, cx: sc.x, cy: sc.y, ln: null };
-    const cx = a.line > 0 ? sc.x + 22 + w / 2 : sc.x - 22 - w / 2;
+    const g = SIDE[Math.abs(a.line) > 1 ? 1 : 0], cx = a.line > 0 ? sc.x + g + w / 2 : sc.x - g - w / 2;
     return { sc, w, h, cx, cy: sc.y, ln: { x1: a.line > 0 ? cx - w / 2 : cx + w / 2, x2: sc.x, y: sc.y } };
   }
 
@@ -300,7 +313,11 @@ export class Names {
     const was = new Map([...this.m.values()].map(r => [r, { at: r.at, shows: r.st.s !== 'hidden', swap: r.next ? r.swap : null }]));
     [...this.m.values()].forEach(r => { r.place = false; r.next = null; r.back = false; });
     /* no room beside the cell (a phone, a tablet held upright, the camera close): names stand on their parts instead */
-    if (s.w < 640 || (this.edges && this.edges.on) || this.items.some(it => it.up) || (c.colL < 140 && right - c.colR < 140)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
+    /* (no room: neither side has room for the widest name, at least 140 px. Until 17 Nov 2026 it was 140 px alone, and at
+       the mitochondrion's split, chain and ATP synthase, where the parts fill the picture's width, every name was left
+       out: 150 px on a side, names of 170) */
+    const widest = Math.max(140, ...this.items.map(it => { const r = this.m.get(it.key); return (r && r.wc) || 0; }));
+    if (s.w < 640 || (this.edges && this.edges.on) || this.items.some(it => it.up) || (c.colL - 4 < widest && right - 4 - c.colR < widest)) this.layOn(right, bottom); else this.layCol(c, right, bottom);
     /* the names that move go there smoothly: up or down to a new row, along to another point of their part; to the other
        side, from beside the cell onto their part (the camera came close), or past another name, out at the old place and
        in at the new, so that no name crosses the picture or another name; a name that was not showing comes in there */
@@ -404,21 +421,25 @@ export class Names {
        hides it (the mitochondrion on a phone's map: it lies small among other names) */
     const cand = this.items.map(it => ({ r: this.m.get(it.key), it,
       pts: it.spots.map((p, i) => ({ p, i, sc: this.proj(p) })).filter(o => seen(o.sc)).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, i: -1, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
-    /* on the part itself; else just beside it, with a short level line that ends on it. A name marked aside (a protein it
-       would hide) tries beside it first; a name marked up stands only above (or below) its part, never on it or beside it
-       (it would hide the part), and its upright line is kept free too */
+    /* beside its part, with a level line that ends on it (a short one, then a longer one); only where neither has room,
+       on the part itself (since 16 Nov 2026: until then a name stood on its part first, with no line, and the pupil could
+       not tell what it named; Daniel: "you don't have a line, so you don't know actually what this is pointing at"). A
+       name marked up stands only above (or below) its part, never on it or beside it (it would hide the part), and its
+       upright line is kept free too */
+    let besideFirst = true;
     const tries = cd => {
       const w = cd.r.wo, h = cd.r.ho, t = [];
       cd.pts.forEach(o => {
         const sc = o.sc, on = { o, line: 0, bx: { l: sc.x - w / 2, r: sc.x + w / 2, t: sc.y - h / 2, b: sc.y + h / 2 } };
         if (cd.it.up) {
-          const k = cd.it.up < 0 ? -1 : 1, L = cd.it.len || UP, top = k < 0 ? sc.y - L - h : sc.y + L;
-          t.push({ o, line: 0, up: k, bx: { l: sc.x - w / 2, r: sc.x + w / 2, t: top, b: top + h }, lx: { l: sc.x - 2, r: sc.x + 2, t: Math.min(sc.y, k < 0 ? top + h : top), b: Math.max(sc.y, k < 0 ? top + h : top) } });
+          const k = cd.it.up < 0 ? -1 : 1, L = cd.it.len || UP, top = k < 0 ? sc.y - L - h : sc.y + L, mx = this.upX(sc.x, w);
+          t.push({ o, line: 0, up: k, bx: { l: mx - w / 2, r: mx + w / 2, t: top, b: top + h }, lx: { l: sc.x - 2, r: sc.x + 2, t: Math.min(sc.y, k < 0 ? top + h : top), b: Math.max(sc.y, k < 0 ? top + h : top) } });
           return;
         }
         const k1 = cd.it.sides && o.i >= 0 ? cd.it.sides[o.i] : 0;
-        const by = (k1 ? [k1] : cd.it.prefer === -1 ? [-1, 1] : [1, -1]).map(k => { const l = k > 0 ? sc.x + 22 : sc.x - 22 - w; return { o, line: k, bx: { l, r: l + w, t: sc.y - h / 2, b: sc.y + h / 2 } }; });
-        if (k1) t.push(...by); else if (cd.it.aside) t.push(...by, on); else t.push(on, ...by);
+        const ks = k1 ? [k1] : cd.it.prefer === -1 ? [-1, 1] : [1, -1];
+        const by = [1, 2].flatMap(n => ks.map(k => { const g = SIDE[n - 1], l = k > 0 ? sc.x + g : sc.x - g - w; return { o, line: k * n, bx: { l, r: l + w, t: sc.y - h / 2, b: sc.y + h / 2 }, lx: k > 0 ? { l: sc.x, r: l, t: sc.y - 1, b: sc.y + 1 } : { l: l + w, r: sc.x, t: sc.y - 1, b: sc.y + 1 } }; }));
+        if (k1) t.push(...by); else if (besideFirst || cd.it.aside) t.push(...by, on); else t.push(on, ...by);
       });
       return t;
     };
@@ -428,19 +449,30 @@ export class Names {
       const boxes = [], got = new Map(), why = new Map();
       const hit = bx => bx.l < 2 || bx.r > right - 2 || bx.t < 2 || bx.b > bottom - 2 || this.out.concat(boxes).some(o => bx.l < o.r && bx.r > o.l && bx.t < o.b && bx.b > o.t) || solid.some(e => Names.onSolid(bx, e));
       const take = (cd, t) => { boxes.push({ l: t.bx.l - 3, r: t.bx.r + 3, t: t.bx.t - 3, b: t.bx.b + 3 }); if (t.lx) boxes.push(t.lx); got.set(cd, t); };
+      /* (nor may a name's line run under another name, or the bag) */
+      const lineHit = t => !!t.lx && this.out.concat(boxes).some(o => t.lx.l < o.r && t.lx.r > o.l && t.lx.t < o.b && t.lx.b > o.t);
       if (sticky) this.order.forEach(k => {
         const cd = cand.find(x => x.it.key === k), a = cd && cd.r.at; if (!a || a.mode !== 'on' || !only.has(cd)) return;
         const t = tries(cd).find(x => x.line === a.line && (x.up || 0) === (a.up || 0) && x.o.p.distanceToSquared(a.spot) < 1e-12);
-        if (t && !hit(t.bx)) take(cd, t);
+        if (t && !hit(t.bx) && !lineHit(t)) take(cd, t);
       });
       cand.filter(cd => !got.has(cd) && (!only || only.has(cd))).sort((a, b) => a.pts.length - b.pts.length).forEach(cd => {
-        const ts = tries(cd), t = ts.find(x => !hit(x.bx));
+        const ts = tries(cd), t = ts.find(x => !hit(x.bx) && !lineHit(x));
         if (!t) { why.set(cd, { edge: ts.filter(x => x.bx.l < 2 || x.bx.r > right - 2 || x.bx.t < 2 || x.bx.b > bottom - 2).length, box: ts.length }); return; }
         take(cd, t);
       });
       return { got, why };
     };
-    const { use, fresh } = this.choose(plan);
+    /* a line wherever it costs no name: the names beside their parts if as many fit so, else as before (on the phone's
+       map the smooth ER found no room once the others stood beside theirs) */
+    const lined = this.choose(plan); besideFirst = false; const onFirst = this.choose(plan);
+    const { use, fresh } = lined.use.got.size >= onFirst.use.got.size ? lined : onFirst;
+    /* (and then, each name still on its part moves beside it, on a line, where that is free of every other name) */
+    if (use === onFirst.use) { besideFirst = true; const meet = (a, o) => a.l < o.r && a.r > o.l && a.t < o.b && a.b > o.t;
+      for (const [cd, t] of [...use.got]) { if (t.line || t.up) continue;
+        const others = [...use.got].filter(([c]) => c !== cd).flatMap(([, u]) => [{ l: u.bx.l - 3, r: u.bx.r + 3, t: u.bx.t - 3, b: u.bx.b + 3 }].concat(u.lx ? [u.lx] : [])).concat(this.out);
+        const alt = tries(cd).find(x => x.line && x.bx.l >= 2 && x.bx.r <= right - 2 && x.bx.t >= 2 && x.bx.b <= bottom - 2 && !others.some(o => meet(x.bx, o) || (x.lx && meet(x.lx, o))) && !solid.some(e => Names.onSolid(x.bx, e)));
+        if (alt) use.got.set(cd, alt); } }
     use.got.forEach((t, cd) => { cd.r.place = true; cd.r.hid = false; cd.r.at = { mode: 'on', line: t.line, up: t.up || 0, spot: t.o.p }; });
     this.order = [...use.got.keys()].map(cd => cd.it.key);
     this.count = use.got.size; this.left = this.items.length - use.got.size;

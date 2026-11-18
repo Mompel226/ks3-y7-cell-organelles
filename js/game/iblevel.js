@@ -11,8 +11,10 @@
    - the IB level, "IB level: SL · HL" (store 'ibLevel'): at SL, every line the guide puts under "Additional higher level"
      is hidden (the views' `lvp--hl` paragraphs; the places', films' and plant cell's `ibln--hl` lines; a box that holds
      only HL lines, `iblv-hlbox`; words for HL only, `iblv-hlonly`, and their SL version, `iblv-slonly`), a step or chapter that holds only HL lines is marked HL on its button and Next goes
-     past it (skip below), and the IB map shows only the SL statements. Until a pupil chooses, everything shows, as
-     before (HL), and the switch asks them to choose once.
+     past it (skip below), and the IB map shows only the SL statements. Until a pupil chooses, everything shows (HL),
+     and the switch shows HL as selected and tells an SL student to press SL (18 Nov 2026; Daniel: "the SL level or
+     HL level is not automatically selected … you don't see any SL or HL selected until you select … it's better to
+     select HL". Before, neither button looked pressed, though the game showed HL).
    The page hears 'courselv' (detail: the course) and 'iblevel' (detail: { level }) each time a choice changes.
      course()  setCourse(c, on)  level()  chosen()  setLevel('sl' | 'hl')
      levelSwitch()      the switch, as HTML; any number on a page, each kept right by this file (one click listener)
@@ -52,19 +54,19 @@ export function skip(list, i, dir) {
   return dir > 0 ? list.length : -1;
 }
 
-/* the switch: "IB level SL HL"; while nobody has chosen, both are up and it asks once */
+/* the switch: "IB level SL HL"; while nobody has chosen, HL is the one selected (what the game shows) and a line tells an SL student what to press */
 export function levelSwitch() {
   const c = chosen(), v = level();
   return `<div class="iblvs${c ? '' : ' is-open'}" role="group" aria-label="Your IB level"><span class="iblvs__k">IB level</span>`
-    + ['sl', 'hl'].map(x => `<button type="button" data-iblv="${x}" aria-pressed="${c && v === x}">${x.toUpperCase()}</button>`).join('')
-    + `<span class="iblvs__ask"${c ? ' hidden' : ''}>Choose yours once: the whole game follows</span></div>`;
+    + ['sl', 'hl'].map(x => `<button type="button" data-iblv="${x}" aria-pressed="${(c ? v : 'hl') === x}">${x.toUpperCase()}</button>`).join('')
+    + `<span class="iblvs__ask"${c ? ' hidden' : ''}>HL is selected. SL student? Press SL: the whole game changes to SL</span></div>`;
 }
 function paint() {
   const c = chosen(), v = level(), root = document.documentElement;
   root.classList.toggle('iblv-sl', v === 'sl');
   document.querySelectorAll('.iblvs').forEach(g => {
     g.classList.toggle('is-open', !c);
-    g.querySelectorAll('[data-iblv]').forEach(b => b.setAttribute('aria-pressed', String(c && b.dataset.iblv === v)));
+    g.querySelectorAll('[data-iblv]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.iblv === (c ? v : 'hl'))));
     const a = g.querySelector('.iblvs__ask'); if (a) a.hidden = c;
   });
 }

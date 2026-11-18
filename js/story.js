@@ -106,7 +106,9 @@ window.STORY = {
        (js/membrane/view.js; Daniel, 13 Nov 2026: "show that the phospholipids move within their own layer, and so that
        actually proteins can migrate … how the cell membrane probably looks like and moves like in reality"). IGCSE and the carrier protein for glucose: the examiners'
        report of November 2016 says "Facilitated diffusion is beyond the scope of IGCSE", and the syllabus names
-       protein carriers only in active transport (3.3.3), so the lines say what the syllabus names and what it does not. */
+       protein carriers only in active transport (3.3.3), so the lines say what the syllabus names and what it does not.
+       The oxygen step's definition of diffusion is its first line (on show; 17 Nov 2026): the picture now shows it, with
+       many molecules moving at random and a count of their crossings (play.js flowOn, wayflow.js). */
     course: {
       names: true,
       igcse: [
@@ -116,8 +118,8 @@ window.STORY = {
           ["n", "", "The syllabus does not name the lipids of the membrane. Of its proteins, it names one kind: the protein carriers of active transport."]
         ] },
         { p: [
-          ["c", "9.4.3", "Red blood cells transport oxygen. Haemoglobin, inside the red blood cells, carries it."],
-          ["c", "3.1.1, 3.1.3", "Oxygen enters the cell by <dfn data-w=\"diffusion\">diffusion</dfn> through the cell membrane. Diffusion is the net movement of particles from a region of their higher concentration to a region of their lower concentration (down a <dfn data-w=\"concentration-gradient\">concentration gradient</dfn>), as a result of their random movement."]
+          ["c", "3.1.1, 3.1.3", "Oxygen enters the cell by <dfn data-w=\"diffusion\">diffusion</dfn> through the cell membrane. Diffusion is the net movement of particles from a region of their higher concentration to a region of their lower concentration (i.e. down a <dfn data-w=\"concentration-gradient\">concentration gradient</dfn>), as a result of their random movement."],
+          ["c", "9.4.3", "Red blood cells transport oxygen. Haemoglobin, inside the red blood cells, carries it."]
         ] },
         { p: [
           ["c", "9.4.3", "Plasma transports nutrients, such as glucose and amino acids."],
@@ -125,7 +127,7 @@ window.STORY = {
           ["n", "", "Here the glucose moves through its carrier protein from a higher concentration to a lower concentration (down a concentration gradient), and no energy from respiration is used: this agrees with the description of diffusion. The syllabus does not name a protein carrier for diffusion."]
         ] },
         { p: [
-          ["c", "3.3.1", "Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy."],
+          ["c", "3.3.1", "Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (i.e. against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy."],
           ["s", "3.3.3", "The syllabus names protein carriers in one process, active transport: they move molecules or ions across a membrane."]
         ] },
         { p: [
@@ -358,6 +360,9 @@ window.STORY = {
     fact2: { text: 'Some people have more copies of the amylase gene than others. People from groups that have eaten foods rich in starch for thousands of years have more copies, on average.', src: 'Perry et al. 2007, Nature Genetics 39:1256' }
   },
   nucleolus: {
+    /* (17 Nov 2026, after a science read's doubt and a look in the guide itself: A2.2.6 has "80S ribosomes" and no 40S or
+       60S; D1.2.14 has "genes for rRNAs" and no nucleolus. Each line's words beyond its statement are now a line of their
+       own, 'x', beyond the guide. The guide's own words for the two parts: "small subunit", "large subunit", D1.2.6) */
     course: {
       igcse: [
         { p: [
@@ -368,10 +373,12 @@ window.STORY = {
       ],
       ib: [
         { p: [
-          ["hl", "D1.2.14", "The nucleolus forms around the genes for ribosomal RNA (rRNA). These genes code for no polypeptide (no chain of amino acids): they are non-coding sequences."]
+          ["hl", "D1.2.14", "The genes for ribosomal RNA (rRNA) code for no polypeptide (no chain of amino acids): they are non-coding sequences."],
+          ["x", "", "The nucleolus forms around the genes for ribosomal RNA."]
         ] },
         { p: [
-          ["sl", "A2.2.6", "Eukaryote ribosomes are 80S: a small 40S subunit and a large 60S subunit. S is a unit of how fast a particle sinks in an ultracentrifuge: larger particles sink faster."]
+          ["sl", "A2.2.6", "Eukaryote ribosomes are 80S."],
+          ["x", "", "A ribosome has a small 40S subunit and a large 60S subunit. S is a unit of how fast a particle sinks in an ultracentrifuge: larger particles sink faster."]
         ] },
         { p: [
           ["hl", "B2.2.6", "The subunits are too large to cross a membrane, so they exit through the nuclear pores."]
@@ -448,7 +455,7 @@ window.STORY = {
     course: {
       igcse: [
         { p: [
-          ["n", "", "The IGCSE syllabus for 2026 to 2028 does not name the rough ER or the channel. It names vesicles only at a synapse (14.1.8). Its list of cell structures has ribosomes."]
+          ["n", "", "The IGCSE syllabus for 2026 to 2028 does not name the rough ER or the channel. It names vesicles only at a synapse (14.1.8, 14.1.9). Its list of cell structures has ribosomes."]
         ] },
         { p: [
           ["s", "17.1.8", "The ribosome assembles amino acids into protein molecules."]
@@ -484,9 +491,14 @@ window.STORY = {
           ["hl", "B1.2.12", "Amylase is a globular protein: its rounded shape, with an active site, suits its function as an enzyme."]
         ] },
         { p: [
-          ["hl", "B2.2.9", "Vesicles transport materials within the cell. Clathrin is a coat protein: it helps a piece of membrane bend and form a vesicle."],
+          /* (18 Nov 2026, a science read: B2.2.1 leads. With B2.2.9 first, the one line on show while the bare membrane
+             bends was "Clathrin … helps a piece of membrane bend and form a vesicle", and a pupil concluded that clathrin
+             makes THIS vesicle. The line on the rough ER's own coat stands right after B2.2.9 and reads by itself: at SL,
+             where B2.2.9 is hidden, "another coat protein" referred to nothing. The second read: it names no clathrin, an
+             HL word; where clathrin coats vesicles is shown at the Golgi apparatus and at the way out) */
           ["sl", "B2.2.1", "In the IB guide, a vesicle is an organelle."],
-          ["x", "", "The vesicles that leave the rough ER have another coat protein (COPII). Clathrin coats vesicles that form at the cell membrane and at the Golgi apparatus."],
+          ["hl", "B2.2.9", "Vesicles transport materials within the cell. Clathrin is a coat protein: it helps a piece of membrane bend and form a vesicle."],
+          ["x", "", "The vesicles that leave the rough ER have their own coat protein, called COPII."],
           ["hl", "B2.2.8", "The Golgi apparatus processes proteins and prepares them for secretion: the next place of your mission."]
         ] }
       ]
@@ -497,7 +509,11 @@ window.STORY = {
   ser: {
     course: {
       igcse: [
+        /* (18 Nov 2026; Daniel, 17 Nov: add it. 0610 4.1.2(c), the model is the ribosomes' 4.1.2 line. Never alone beside
+           the membrane lipid, which has two tails and a head 0610 does not name: the picture's switch "Membrane lipid ·
+           Fat" shows a fat beside it, play.js serStrip) */
         { p: [
+          ["c", "4.1.2", "Fats and oils are large molecules made from smaller molecules: fatty acids and glycerol."],
           ["n", "", "The IGCSE syllabus for 2026 to 2028 does not name the smooth ER. It names the cell membrane (2.1.1), but not the lipids of the membrane."]
         ] },
         null
@@ -525,7 +541,7 @@ window.STORY = {
     course: {
       igcse: [
         { p: [
-          ["n", "", "The IGCSE syllabus for 2026 to 2028 does not name the Golgi apparatus. It names vesicles only at a synapse (14.1.8)."]
+          ["n", "", "The IGCSE syllabus for 2026 to 2028 does not name the Golgi apparatus or lysosomes. It names vesicles only at a synapse (14.1.8, 14.1.9)."]
         ] },
         null,
         null,
