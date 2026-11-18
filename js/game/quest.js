@@ -7,16 +7,17 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611170912';
-import { state, COST } from './state.js?v=202611170912';
-import { sound } from './sound.js?v=202611170912';
-import { finalLine } from './final.js?v=202611170912';
+import { ICON } from './icons.js?v=202611190715';
+import { state, COST } from './state.js?v=202611190715';
+import { sound } from './sound.js?v=202611190715';
+import { finalLine } from './final.js?v=202611190715';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611170912').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611170912';
-import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611170912';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611190715').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611190715';
+import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611190715';
+import { WORDS, pick } from './coursewords.js?v=202611190715';
 const HOT_OFF = 26, HOT_UP = 18;     /* px: a button beside its part (r, l), above or below it (t, b): the length of its line */
 
 const R = window.REV, { $, $$, h, esc } = R;
@@ -54,12 +55,17 @@ export class Quest {
 
   /* ---------- buttons on the world, following their 3D point ---------- */
   /* right: of several buttons at once, the right one (a step watched again presses it by itself: watching below) */
-  hot(at, label, { cls = '', icon = '', side = 'c', aria, right = false } = {}) {
+  hot(at, label, { cls = '', icon = '', side = 'c', aria, right = false, w = '', tail = '' } = {}) {
+    /* w: the button's entry in js/game/coursewords.js (19 Nov 2026). With a course on it shows that course's own word
+       (wordNow) and keeps the Year 7 word given here as data-y7, the handle the checks press it by; tail: what follows
+       the word (" (1 of 3)"). wordsPaint changes it when the course or the IB level changes */
+    const y7 = label; if (w) label = this.wordNow(w) + tail;
     /* the wrapper follows the 3D point; the button inside stands on it (c), above it (t), below it (b) or beside it */
     const wrap = h('div', { class: 'hot3 ' + cls + ' hot3--' + side });
-    const el = h('button', { type: 'button', class: 'hot3__b', 'aria-label': aria || label.replace(/<[^>]+>/g, '') }, (icon ? ICON[icon] || '' : '') + `<span>${label}</span>`);
+    const el = h('button', { type: 'button', class: 'hot3__b', 'aria-label': aria || label.replace(/<[^>]+>/g, '') }, (icon ? ICON[icon] || '' : '') + `<span class="hot3__t">${label}</span>`);
+    if (w) { el.dataset.cw = w; el.dataset.y7 = y7; }
     wrap.appendChild(el); this.hotsEl.appendChild(wrap);
-    const o = { el, wrap, at, side, alive: true };
+    const o = { el, wrap, at, side, alive: true, w, tail };
     o.done = new Promise(res => { el.addEventListener('click', () => { if (o.alive) { sound.tap(); res(o); } }); });
     o.remove = () => { o.alive = false; wrap.remove(); this.hots = this.hots.filter(x => x !== o); };
     this.hots.push(o); this.place1(o); if (o.box) this.paint(o);
@@ -358,6 +364,7 @@ export class Quest {
       if (C.names && on !== mode) { mode = on; document.dispatchEvent(new CustomEvent('ib-switch', { detail: { id, on } })); }
       this.courseQuestions(id);
       this.ibPaint();
+      this.wordsPaint();
     };
     bar.addEventListener('click', e => {
       const b = e.target.closest('.qp__lvb'); if (!b) return;
@@ -386,6 +393,24 @@ export class Quest {
     const relevel = () => { if (!bar.isConnected) { document.removeEventListener('iblevel', relevel); return; } draw(); };
     document.addEventListener('iblevel', relevel);
     draw();
+  }
+  /* ---------------- the course's own word on every button (19 Nov 2026; js/game/coursewords.js has Daniel's words)
+     wordNow: a button's word for the course that is on at this place, IB's at the student's level. wordsPaint: every
+     sentence of the panel that names a button (story.js `data-cw`) and every button on the picture (hot `w`) say that
+     word; called when the course switches are drawn and each time a course or the IB level changes (courseSwitch
+     draw). A button word that is the course's, in a sentence, is bold (cw-on, data-b): several words long, it must
+     read as one name. Year 7's sentences are untouched. */
+  wordNow(k) {
+    const lv = c => !!$(`.qp__lv [data-lv="${c}"][aria-pressed="true"]`, this.panel);
+    return pick(k, { ib: lv('ib'), igcse: lv('igcse'), hl: level() === 'hl' });
+  }
+  wordsPaint() {
+    $$('[data-cw]', this.panel).forEach(e => { const k = e.dataset.cw, t = this.wordNow(k); if (e.textContent !== t) e.textContent = t; e.classList.toggle('cw-on', !!WORDS[k] && t !== WORDS[k].y7); });
+    this.hots.forEach(o => {
+      if (!o.w || !o.alive) return;
+      const t = this.wordNow(o.w) + (o.tail || ''), s = $('.hot3__t', o.el);
+      if (s && s.textContent !== t) { s.textContent = t; o.el.setAttribute('aria-label', t); this.place1(o); if (o.box) this.paint(o); }
+    });
   }
   /* one step's course boxes open at a time: the step the pupil is on (16 Nov 2026) */
   lvOpen(li) { if (!li || !li.parentNode) return; $$('details.step__lv', li.parentNode).forEach(d => { d.open = d.parentNode === li; }); this.ibPaint(); }

@@ -1051,6 +1051,9 @@ button.ibmap__code:hover,button.ibmap__code:focus-visible{outline:2px solid var(
 .step__lv p.ib-hit--go{animation:ibhit .9s ease-in-out 2}
 @keyframes ibhit{0%,100%{background:#FFE98A;box-shadow:0 0 0 5px #FFE98A}50%{background:#FFC83D;box-shadow:0 0 0 9px #FFC83D}}
 @media (prefers-reduced-motion:reduce){ .step__lv p.ib-hit--go{animation:none} }
+/* a button's word in its sentence, when it is a course's own word (quest.js wordsPaint): bold, so that a name of several words reads as one */
+.steps b[data-cw]{font-weight:inherit}   /* (a button's name is a <b>: with its Year 7 word it must read as the sentence around it; without this line Year 7's button names turned bold, the science read's second look, 19 Nov) */
+.steps [data-cw].cw-on{font-weight:900}   /* (a phrase too: the sentences stand under the heading "Year 7", so a course's word in them is marked; the science read, 19 Nov) */
 .step.is-peek{border-style:dashed}
 .step.is-peek::before{content:attr(data-n)}
 .step__peek{margin:0 0 6px;font:800 13px/1.3 var(--sans);color:var(--ext)}

@@ -5,24 +5,24 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611170912';
-import { state, COST, RESPIRE } from './state.js?v=202611170912';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611170912';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611170912';
-import { sound } from './sound.js?v=202611170912';
-import { magicStandard } from '../world/magic.js?v=202611170912';
-import { buildCrowd } from '../world/crowd.js?v=202611170912';
-import { Names } from './names.js?v=202611170912';
-import { makePit } from './clathrin.js?v=202611170912';
-import { makeFlow, flowCheck } from './wayflow.js?v=202611170912';
-import { level } from './iblevel.js?v=202611170912';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611190715';
+import { state, COST, RESPIRE } from './state.js?v=202611190715';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611190715';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611190715';
+import { sound } from './sound.js?v=202611190715';
+import { magicStandard } from '../world/magic.js?v=202611190715';
+import { buildCrowd } from '../world/crowd.js?v=202611190715';
+import { Names } from './names.js?v=202611190715';
+import { makePit } from './clathrin.js?v=202611190715';
+import { makeFlow, flowCheck } from './wayflow.js?v=202611190715';
+import { level } from './iblevel.js?v=202611190715';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611170912').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611190715').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611170912').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611190715').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
@@ -1586,7 +1586,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611170912').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611190715').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -2139,7 +2139,7 @@ export function makePlay(world, quest) {
        next, never changed by a timer; "a second thread", since "copy" is the game's word for mRNA; the camera never
        moves; Loosen never un-makes the second thread: it goes as a picture goes, and the words say why) */
     quest.names.set([{ key: 'p-chr', free: true, aside: true, html: '<span class="nm__t">chromosome 1:<br>one long thread</span>', small: '<span class="nm__t">chromosome 1</span>', spots: [0.3, 0.7, 0.15, 0.85, 0.5].map(t => inN(ch.curve.getPointAt(t))) }], HUD2());
-    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Second thread', { side: 't' });
+    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Second thread', { side: 't', w: 'thread2' });
     quest.names.set([], HUD2());
     const P = packParts();
     /* 1. chromosome 1 alone; a second, identical thread grows along it */
@@ -2149,7 +2149,7 @@ export function makePlay(world, quest) {
     /* (with a course on, the growing end of the second thread carries the course's word: 17.2.3; D2.1.5) */
     const tip = rideTag(() => P.side[Math.min(PACK.N, Math.round(P.grown * PACK.N))], lvWord('second thread', { igcse: 'exact replication', sl: 'DNA replication' }));
     await packRun(0, 0, 0, 1, 3000);
-    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Pack', { side: 't' });
+    await press(() => inN(ch.curve.getPointAt(0.5)).add(V(0, 0.3, 0)), 'Pack', { side: 't', w: 'pack' });
     tip.off();
     /* 2. each winds up tightly; they stay joined in the middle */
     quest.say('The two threads each pack tightly. They stay joined in the middle.');
@@ -2257,7 +2257,7 @@ export function makePlay(world, quest) {
     const g = gene();
     let film = false;
     for (;;) {
-      const b = quest.hot(() => g.curve.getPointAt(0.5).add(V(0, 0.3, 0)), 'Copy', { side: 'c' });
+      const b = quest.hot(() => g.curve.getPointAt(0.5).add(V(0, 0.3, 0)), 'Copy', { side: 'c', w: 'copy' });
       const ex = document.createElement('button'); ex.type = 'button'; ex.className = 'btn ghost explore'; ex.textContent = '🔬 Explorer: how a cell copies a gene';
       quest.step.do.appendChild(ex);
       const pick = await live(Promise.race([b.done.then(() => 'copy'), new Promise(r => ex.addEventListener('click', () => r('film'), { once: true }))]));
@@ -2489,7 +2489,7 @@ export function makePlay(world, quest) {
     const f = nolFrame();
     /* each part, pressed, drifts away from the nucleolus (out of the close view), its glow on */
     for (const p of parts) {
-      await press(() => p.position.clone().addScaledVector(f.dir, 0.03), p.userData.kind === 'small' ? 'small part' : 'large part', { cls: 'tok', side: 't' });
+      await press(() => p.position.clone().addScaledVector(f.dir, 0.03), p.userData.kind === 'small' ? 'small part' : 'large part', { cls: 'tok', side: 't', w: p.userData.kind === 'small' ? 'smallpart' : 'largepart' });
       haloSprite(p, 0.035, 0xfff1a8);
       quest.names.set(quest.names.items.filter(it => it.key !== 'nol-' + p.userData.kind), HUD(), lr(nolPt(0, -48, 20), nolPt(0, 48, 20)));
       await tween(p, { to: p.position.clone().addScaledVector(f.dir, 0.16).addScaledVector(f.up, p.userData.kind === 'small' ? -0.03 : 0.03), ms: 1400 });
@@ -2866,7 +2866,7 @@ export function makePlay(world, quest) {
     await ribClose();
     const copyName = ['r-copy', 'the copy (mRNA)', copySpots()];
     ribNames([copyName, ribMem(), ['r-s', 'small part', ...edge(s.position, 0.011)], ['r-l', 'large part', ...edge(l.position, 0.014)]], [s, l]);
-    await press(() => rp(-12, 18), 'Join', {});
+    await press(() => rp(-12, 18), 'Join', { w: 'ribjoin' });
     /* (while the two parts move, each keeps its name on a label that moves with it: their names had stayed where the
        parts had been, their lines ending on nothing, the frames of 17 Nov 2026. IB: once the small subunit is on the
        copy its label says what the guide says of it, D1.2.6: "binds the mRNA") */
@@ -3222,7 +3222,7 @@ export function makePlay(world, quest) {
     nucStep();
     /* the signal named, until the ribosome docks (step 1 says what it is and how the ribosome comes here) */
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-sig', 'signal', [sigAt(9)]]]);
-    await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', {});
+    await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', { w: 'dock' });
     await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
     sig.position.set(0, 0, 0); hairSet(null, sig, 0);
     /* (IB at HL, B2.2.7: on the channel it is a bound ribosome; its card is the line) */
@@ -3336,7 +3336,7 @@ export function makePlay(world, quest) {
      seen to join (the count ran from 61 to 150 in 2.5 s); `onJoin(n)`: at each of those) */
   /* (a phone: the second line is "peptide bonds" alone: with both, the count lay on the membrane's name and on the switch
      at the picture's foot; the water molecules are on the picture, named) */
-  const countWords = n => (lvHere('igcse') && !lvHere('ib') ? 'amino acids assembled: ' : 'amino acids joined: ') + n + (lvHere('ib') ? `<small class="code__n">peptide bonds made: ${n - 1}${PHONE() ? '' : ` · water molecules released: ${n - 1}`}</small>` : '');
+  const countWords = n => (lvHere('ib') ? 'amino acids linked: ' : lvHere('igcse') ? 'amino acids assembled: ' : 'amino acids joined: ') +   /* (IB: "linked", B1.2.2's word, as the button says; 19 Nov 2026) */ n + (lvHere('ib') ? `<small class="code__n">peptide bonds made: ${n - 1}${PHONE() ? '' : ` · water molecules released: ${n - 1}`}</small>` : '');
   async function count(r, from, to, ms, hair, slow = 0, onJoin = null) {
     /* (a phone: under the membrane, away from the channel and the chain; above the ribosome is the corner box, and it had
        stood on the channel: the second expert review, 13 Nov 2026) */
@@ -3378,7 +3378,7 @@ export function makePlay(world, quest) {
     /* (IB at HL: it is a bound ribosome while it sits on the channel, in this step too: B2.2.7) */
     const ribName = () => (([sp, o]) => ['e-rib', 'ribosome', sp, Object.assign({}, o, { w: { hl: BOUNDW(), card: 'e-bound' } })])(edge(r.position, 0.0135, 0.02));
     rerNames([memName(), ...sides(), ribName(), copyName()]);
-    await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow, key: 'grow' });
+    await press(() => r.position.clone().addScaledVector(rerFace().n, 0.03), 'Go', { cost: COST.grow, key: 'grow', w: 'go' });
     if (PHONE() && lvHere('ib')) rerNames([...sides(), ribName()]);   /* (a phone: the count, two lines with IB, stands under the membrane where the membrane's name was: under that name it stood on the scale bar's number) */
     await count(r, 60, 150, 2400, true, 5, n => { if (lvHere('ib')) rerWater(r, n - 61); });
     rerNames([...(PHONE() && lvHere('ib') ? [] : [memName()]), ...sides(), ribName(), ['e-chain', 'the chain', [loopSpot(90)]], copyName()]);   /* (a phone with IB: the count keeps its place under the membrane) */
@@ -3413,7 +3413,7 @@ export function makePlay(world, quest) {
     const near = chainAt => rerNear(rerFace(), [['e-sig', 'signal', [sigAt]], ['e-enz', 'cutting enzyme', ...enzSpot()], ribNear()].concat(chainAt ? [['e-chain', 'the chain', [chainAt]]] : []), [enz], 3, ep(1, -6));   /* (no name stands on the channel: 3 nm each way from its middle, a little to the far side of the signal) */
     near(loopSpot(90));
     quest.say('<p>Each bead is one amino acid. The 15 red beads are the signal: the start of the chain. The channel holds the signal at the side of the channel.</p><p>In the membrane beside the signal there is a cutting enzyme.</p>');
-    await press(() => ep(P ? -17 : -13.5, -9.5), 'Cut', { side: 'b' });   /* (beside the loop, under the enzyme's name) */
+    await press(() => ep(P ? -17 : -13.5, -9.5), 'Cut', { side: 'b', w: 'cut' });   /* (beside the loop, under the enzyme's name) */
     /* the enzyme goes to where the signal joins the chain, cuts the bond there and goes back (so that the join is seen
        when the chain leaves); then the start of the chain leaves: every amino acid goes from its place in the loop to
        its place in the loose chain (strandSet's, the way) */
@@ -3700,7 +3700,7 @@ export function makePlay(world, quest) {
       return false;
     }
     rerNames([memName(), ...sides(), ['e-amy', 'amylase', [a.position.clone()]]]);
-    await press(() => (PHONE() ? ep(-24, 13) : a.position.clone().addScaledVector(rerFace().n, -0.012)), 'Bud', { side: PHONE() ? 't' : 'b' });   /* (a phone: above the membrane; under amylase it stood on the scale bar's number) */
+    await press(() => (PHONE() ? ep(-24, 13) : a.position.clone().addScaledVector(rerFace().n, -0.012)), 'Bud', { side: PHONE() ? 't' : 'b', w: 'bud' });   /* (a phone: above the membrane; under amylase it stood on the scale bar's number) */
     state.use('lipids'); state.use('chain');
     /* no name stays on a part that moves away; the camera takes the place where the vesicle will be */
     FOLD.on = true; quest.names.set([], HUD());
@@ -4075,7 +4075,8 @@ export function makePlay(world, quest) {
           serNames([...(PHONE() && f ? [] : [mem]), ...(joined ? [lip] : []), ...(f ? [] : own), ...fat, ...wat], PHONE() ? 10 : 7, c); nucAgain = () => parts(joined); };
         parts(false);
         /* (a phone: under the parts; on their right it was pushed up over the phosphate group) */
-        await press(() => PHONE() ? inL(l, 0, -3700) : inL(l, 4300, 700), 'Join (1 of 3)', { cost: COST.lipid, key: 'lipid-0' });
+        await press(() => PHONE() ? inL(l, 0, -3700) : inL(l, lvHere('ib') ? 6100 : 4300, 700), 'Join (1 of 3)',   /* (with IB the button's words are longer, "Form a phospholipid (1 of 3)": it stands further right, clear of the name "glycerol") */
+          { cost: COST.lipid, key: 'lipid-0', w: 'serjoin', tail: ' (1 of 3)' });
         quest.names.set([], HUD()); nucAgain = null;
         if (lvHere('ib')) {
           /* three joins, each a condensation reaction: a fatty acid, the other fatty acid, then the phosphate group */
@@ -4096,7 +4097,7 @@ export function makePlay(world, quest) {
         ringNames();
         continue;
       }
-      await press(() => g.localToWorld(gapLocal(1, 43)), `Join (${i + 1} of 3)`, { cost: COST.lipid, key: 'lipid-' + i });
+      await press(() => g.localToWorld(gapLocal(1, 43)), `Join (${i + 1} of 3)`, { cost: COST.lipid, key: 'lipid-' + i, w: 'serjoin', tail: ` (${i + 1} of 3)` });
       /* a head and two tails, apart in the cytosol, come together into one lipid */
       const l = newLip(ORD[i]);
       l.children.forEach((c, j) => c.position.add(V(Math.cos(j * 1.17 + 0.4) * 0.0032, Math.sin(j * 1.17 + 0.4) * 0.0032, 0)));   /* (from its sides and above: under it is the membrane) */
@@ -4322,7 +4323,7 @@ export function makePlay(world, quest) {
     const v = calm(keep(token('vesicle', R0))), a = amySpeck(); v.quaternion.copy(frameQ()); v.add(a); v.position.copy(gp(sacW(0) + 40, -190));
     await golgiClose('stack'); lastSac();   /* (the vesicle is there before the dive: it comes into sight as the camera comes near) */
     gNames(() => [(([sp, o]) => ['g-ves', 'vesicle from the rough ER', sp, Object.assign({}, o, { small: '<span class="nm__t">vesicle from<br>the rough ER</span>' })])(edge(v.position, 0.034)), speckName(a), FIRSTN()], [v]);
-    await press(() => v.position.clone().addScaledVector(F.n, -0.055), 'Join', { side: 'b' });
+    await press(() => v.position.clone().addScaledVector(F.n, -0.055), 'Join', { side: 'b', w: 'goljoin' });
     /* (its name rides with it; while its membrane joins the sac's, IB at HL: the line's own word, "fuses") */
     let fusing = false;
     gNames(() => [FIRSTN()], [v]);
@@ -4639,7 +4640,7 @@ export function makePlay(world, quest) {
     const outName = (w = {}) => (([sp, o]) => ['g-out', 'vesicle: out of the cell', sp, Object.assign({}, o, OUTSM, { w })])(rimSpots(F, out.position, 0.45 * out.scale.x));
     const lastLeft = (right = false) => (right ? ['g-last', 'last sac', [gp(sacW(5) + 29, sacY(5, sacW(5)))], { sides: [1] }] : ['g-last', 'last sac', [gp(-(golgiStack().userData.o5.wl || 390) - 29, sacY(5, -(golgiStack().userData.o5.wl || 390)))], { sides: [-1] }]);
     golNames(F, () => [outName(), lastLeft()], [out], 300, gp(0, 560));
-    await press(() => out.position.clone().addScaledVector(F.n, 0.2), 'Package', { side: 'c' });
+    await press(() => out.position.clone().addScaledVector(F.n, 0.2), 'Package', { side: 'c', w: 'package' });
     quest.names.set([], HUD()); nucAgain = null; cardOff();
     /* the small vesicle leaves, towards a lysosome */
     if (props.lys) { const g = props.lys.g; props.lys = null; tween(g, { to: g.position.clone().addScaledVector(F.right, 0.5).addScaledVector(F.n, 0.12), ms: 1800 }).then(() => drop(g)).catch(() => {}); }
@@ -5114,7 +5115,7 @@ export function makePlay(world, quest) {
     await tween(ves, { to: xp(0, -(GR * 1000 + 4)), ms: 1400 });
     const someSpeck = (x, y) => { const M = new THREE.Matrix4(), v = V(), aim = xp(x, y); let best = null, bd = Infinity; for (let i = 0; i < cloud.count; i += 7) { cloud.getMatrixAt(i, M); v.setFromMatrixPosition(M); const w = cloud.localToWorld(v.clone()), d = w.distanceTo(aim); if (d < bd) { bd = d; best = w; } } return best; };
     xNames(F, [...xBase(), ['x-ves', 'vesicle', ...rimSpots(F, ves.position, GR)], ['x-amy', 'amylase', [someSpeck(-445, -560), someSpeck(445, -420), someSpeck(-420, -320)], { sides: [-1, 1, -1] }]], [ves], 700);
-    await press(() => xp(GR * 1000 + 30, -GR * 1000), 'Release', { side: 'r' });
+    await press(() => xp(GR * 1000 + 30, -GR * 1000), 'Release', { side: 'r', w: 'release' });
     /* the membranes join: an opening widens; the vesicle flattens into it; its amylase streams out into the lumen */
     quest.names.set([], HUD());
     /* (gap: half the opening when it has formed; GF: half the flat vesicle's width: as the vesicle flattens the opening

@@ -19,12 +19,12 @@
    For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P, AQP_PATCH } from './sim.js?v=202611170912';
-import { makeScene, makeStage } from './scene.js?v=202611170912';
-import { makeWater, WATER } from './water.js?v=202611170912';
-import { makeNames } from './names.js?v=202611170912';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611170912';
-import { levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611170912';
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611190715';
+import { makeScene, makeStage } from './scene.js?v=202611190715';
+import { makeWater, WATER } from './water.js?v=202611190715';
+import { makeNames } from './names.js?v=202611190715';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611190715';
+import { levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611190715';
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
@@ -74,7 +74,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611170912', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611190715', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -153,7 +153,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
      fetched then), or when step 9 is asked for first */
   let A = null, aqpMaking = null, patch = 'main';
-  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611170912').then(async m => {
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611190715').then(async m => {
     if (closed) return null;
     const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1);
     sc2.draw(0); sc2.setWater(w2);
