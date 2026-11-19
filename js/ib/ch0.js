@@ -13,8 +13,8 @@
    sarcomere about 2.5 µm (OpenStax A&P 10.2); the mitochondrion as in the game (mitoparts.js heroSpec).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611190715';
-import { disposeGroup } from './stage.js?v=202611190715';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611192340';
+import { disposeGroup } from './stage.js?v=202611192340';
 
 export async function build(stage, { V, glow, smooth }) {
   const g = new THREE.Group(); g.name = 'ch0-map';
@@ -142,14 +142,19 @@ export async function build(stage, { V, glow, smooth }) {
     plasma: { html: 'plasma', side: 'l', pts: () => [V(-5400, CAP.y - 2100, CAP.z - 800), V(-4600, CAP.y - 2400, CAP.z - 800), V(-3800, CAP.y - 2100, CAP.z - 800)] },
     tf: { html: 'tissue fluid', side: 'l', pts: () => [V(-7000, -1600, 1500), V(-6200, -1600, 1500)] },
     mem: { html: 'cell membrane', side: 'l', pts: () => [V(-7400, MEM_Y, 2000), V(-6600, MEM_Y, 2000), V(-5800, MEM_Y, 2000)] },
+    /* the whole cell, above its membrane: its name stands in it, on a short line (19 Nov 2026: its card says which cell this is) */
+    cell: { html: 'muscle cell', side: 'r', gaps: [10, 24, 52], pts: () => [V(5600, 1500, 900), V(6400, 1100, 900), V(5000, 2100, 900), V(6800, 2300, 900)] },
     /* clear of the chapter numbers' circles and lines (keep-outs) */
     cyt: { html: 'cytosol', side: 'l', pts: () => [V(-6600, 1500, 1000), V(-3600, 1300, 900), V(-2700, 1750, 900), V(-5800, 1100, 900), V(-3300, -300, 900)] },
     /* the line ends ON the glowing point (the review: it had ended 600 nm short) */
     gly: { html: 'glycolysis happens here', side: 'l', pts: () => [GLY.clone(), GLY.clone().add(V(-150, 0, 0))] },
     mito: { html: 'mitochondrion', side: 'r', pts: () => [hW(HS.total * 0.82, -(along(HS, HS.total * 0.82).r - 0.003)), hW(HS.total * 0.7, -(along(HS, HS.total * 0.7).r - 0.003))] },
+    /* (a phone: the inner membrane under a shorter name, the long one has no room there; before "matrix", so that it is placed first:
+       the matrix has room everywhere inside it) */
+    innerN: { html: 'inner membrane', side: 'l', pts: () => [0.3, 0.4, 0.47, 0.55, 0.62, 0.7, 0.78, 0.86].flatMap(f => [1, -1].map(sg => hW(HS.total * f, sg * (along(HS, HS.total * f).r - 0.0255)))) },
     matrix: { html: 'matrix', side: 'r', pts: () => [hW(HS.total * 0.62, 0), hW(HS.total * 0.7, 0.04)] },
     /* points ON the inner membrane (25.5 nm inside the outer surface), along the mitochondrion */
-    inner: { html: 'inner membrane (folded: cristae)', side: 'r', pts: () => [0.62, 0.7, 0.55, 0.78].map(f => hW(HS.total * f, along(HS, HS.total * f).r - 0.0255)) },
+    inner: { html: 'inner membrane (folded: cristae)', side: 'r', pts: () => [0.62, 0.7, 0.55, 0.78, 0.4, 0.86, 0.3, 0.47].map(f => hW(HS.total * f, along(HS, HS.total * f).r - 0.0255)) },
     fib: { html: 'myofibril: it contracts, using ATP', side: 'r', pts: () => [V(3200, 3500 + 500, -2400), V(4000, 3500 + 500, -2400), V(3200, 4400 + 500, -3800)] },
     glut: { html: 'a glucose transporter (5 nm across)', side: 'l', pts: () => [glutDots[1].position.clone()] },
     dots: { html: 'each glowing dot stands for one molecule', side: 'r', pts: () => paths.glucose.dots.filter(d => d.visible && d.position.y < CAP.y + CAP.r).map(d => d.position.clone()) },
@@ -161,12 +166,12 @@ export async function build(stage, { V, glow, smooth }) {
   };
   const knobs = { cam: 0, glu: 0, oxy: 0, pyr: 0, nad: 0, co2: 0, atp: 0 };
   const steps = [
-    { phases: [{ to: { cam: 0, glu: 0.35, oxy: 0.35, pyr: 0.35, nad: 0.3, co2: 0.35, atp: 0.35 }, ms: 1200 }], labs: { cap: 1, mem: 1, cyt: 1, mito: 1, fib: 2 }, pic: 'Map: not to scale for molecules. Press a number to open its chapter.' },
+    { phases: [{ to: { cam: 0, glu: 0.35, oxy: 0.35, pyr: 0.35, nad: 0.3, co2: 0.35, atp: 0.35 }, ms: 1200 }], labs: { cap: 1, mem: 1, cyt: 1, mito: 1, cell: 1, fib: 2 }, labsN: { cap: 1, mem: 1, cyt: 1, mito: 1 }, pic: 'Map: not to scale for molecules. Press a number to open its chapter.' },
     { phases: [{ to: { cam: 1, glu: 1, oxy: 1, pyr: 0.15, nad: 0.1, co2: 0.15, atp: 0.15 }, ms: 2200 }], labs: { rbc: 1, plasma: 1, cap: 2, dots: 2 }, pic: 'The sizes of the cells are true here; each dot stands for one molecule.' },
     { phases: [{ to: { cam: 2, glu: 1, oxy: 1, pyr: 0.15 }, ms: 2000 }], labs: { mem: 1, tf: 1, glut: 2, o2: 2 } },
     { phases: [{ to: { cam: 3, glu: 1, pyr: 1, oxy: 0.25, nad: 0.2 }, ms: 2000 }], labs: { gly: 1, cyt: 1, pyr: 2 } },
-    { phases: [{ to: { cam: 4, pyr: 1, oxy: 1, nad: 1, co2: 0.25, atp: 0.25 }, ms: 2000 }], labs: { mito: 1, matrix: 1, inner: 1, nadh: 2 } },
-    { phases: [{ to: { cam: 5, co2: 1, atp: 1, glu: 0.45, oxy: 0.45, pyr: 0.45, nad: 0.35 }, ms: 2400 }], labs: { co2: 1, atp: 1, fib: 1, cap: 2 }, pic: 'Press a number to open its chapter, or Next to begin chapter 1.' }
+    { phases: [{ to: { cam: 4, pyr: 1, oxy: 1, nad: 1, co2: 0.25, atp: 0.25 }, ms: 2000 }], labs: { mito: 1, matrix: 1, inner: 1, nadh: 2 }, labsN: { matrix: 1, innerN: 1 } },      /* (a phone: the two parts that the step's lines name; the mitochondrion itself was named in step 1) */
+    { phases: [{ to: { cam: 5, co2: 1, atp: 1, glu: 0.45, oxy: 0.45, pyr: 0.45, nad: 0.35 }, ms: 2400 }], labs: { co2: 1, atp: 1, fib: 1, cap: 2 }, labsN: { co2: 1, atp: 1 }, pic: 'Press a number to open its chapter, or Next to begin chapter 1.' }
   ];
   const vec = new THREE.Vector3();
   function draw(K, t) {

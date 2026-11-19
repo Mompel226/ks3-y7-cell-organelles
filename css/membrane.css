@@ -153,7 +153,9 @@ html.memv-open,html.memv-open body{overflow:hidden}
 
 /* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
 @media (max-width:860px),(max-aspect-ratio:4/5){
-  .memv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,46fr) auto auto minmax(0,54fr);grid-template-areas:'stage' 'tools' 'key' 'panel'}
+  /* (17 Nov 2026: the picture keeps its height, 39 % of the room under the top bar, whatever stands under it: when the
+     key grew, by the names that are buttons, a share of what was left made the picture shorter and its pins lost their room) */
+  .memv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,39%) auto auto minmax(0,1fr);grid-template-areas:'stage' 'tools' 'key' 'panel'}
   .memv__tools{grid-area:tools;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 10px;background:#0b0f2a;border-top:1px solid rgba(255,226,154,.2)}
   .memv__tools .memv__slow,.memv__tools .memv__pause{position:static;transform:none;max-width:none;margin:0}
   .memv__panel{border-left:0;border-top:1px solid var(--mv-rule);padding:12px 16px 16px}
@@ -177,4 +179,152 @@ html.memv-open,html.memv-open body{overflow:hidden}
   .memv__pause{flex:none;font-size:14px;min-height:38px;padding:7px 14px}
   .memv__wide{display:none}
   .memv__short{display:inline}
+}
+
+/* ============================================================
+   17 Nov 2026: the view on the picture (memory teach-on-the-picture). A name with a card is a button (violet edge; a
+   tick once its card was opened; gold while it is open); its card opens in the sheet, under the step's row of names.
+   Step 9's strip counts the water that crosses. The films: a caption box on the picture (freeze fracture), a small
+   drawing in the sheet (the two cells joined).
+   ============================================================ */
+.memv__nm.is-btn{appearance:none;-webkit-appearance:none;margin:0;text-align:left;border:1.5px solid #B388FF;background:rgba(34,22,62,.94);color:#F4EEFF;cursor:pointer}
+.memv__nm.is-btn.is-on,.memv__pin.is-btn.is-on{pointer-events:auto}
+.memv__nm.is-btn:hover,.memv__pin.is-btn:hover{outline:2px solid #FFD27A;outline-offset:1px}
+.memv__nm.is-found::after,.memv__chip.is-found::after,.memv__k.is-found::after{content:"\2713";position:absolute;top:-8px;left:-8px;width:17px;height:17px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 11px/17px var(--mv-sans);text-align:center;box-shadow:0 0 0 2px #fff}
+.memv__nm.is-open{border-color:#FFD27A;box-shadow:0 0 0 2px #FFD27A,0 4px 12px rgba(0,0,0,.35)}
+/* a name's small second word ("integral"): the kind of protein, said where the protein is */
+.memv__sub{font-style:normal;font-weight:700;color:#CDB3FF;margin-left:7px;padding-left:8px;border-left:1.5px solid rgba(255,255,255,.4)}
+.memv__pin.is-btn{appearance:none;-webkit-appearance:none;border:0;padding:0;cursor:pointer;background:#C9A7FF}
+.memv__pin.is-found{box-shadow:0 0 0 1.5px #1b1640,0 0 0 4px #2E8B5E,0 2px 6px rgba(0,0,0,.45)}
+.memv__pin.is-open{background:#FFD27A;box-shadow:0 0 0 1.5px #1b1640,0 0 0 4px #fff,0 2px 6px rgba(0,0,0,.45)}
+/* the phone's key: a name with a card is a button there too */
+.memv__k.is-btn{position:relative;appearance:none;-webkit-appearance:none;margin:0;border:1.5px solid #B388FF;border-radius:13px;background:rgba(34,22,62,.94);color:#F4EEFF;padding:1px 9px 1px 2px;font:inherit;font-size:13.5px;cursor:pointer}
+.memv__k.is-btn b{background:#C9A7FF}
+.memv__k.is-open{border-color:#FFD27A;box-shadow:0 0 0 1.5px #FFD27A}
+.memv__k .memv__sub{margin-left:4px;padding-left:6px}
+.memv__kcount{flex-basis:100%;color:#FFE9B8;font:800 12.5px/1.1 var(--mv-sans)}
+.memv__key:has(.memv__kcount){gap:4px 8px;padding:5px 12px 6px}
+
+/* the step's names in the sheet: how many were found, a chip a name, the open card */
+.memv__find{margin:.8em 0 .2em;padding:10px 12px 12px;border-radius:14px;background:var(--mv-box);border:1.5px solid var(--mv-rule)}
+.memv__findline{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 9px;font:800 16px/1.3 var(--mv-sans)}
+.memv__fbar{order:3;flex:1 1 100%;height:7px;margin-top:3px;border-radius:99px;background:color-mix(in srgb,var(--mv-accent) 20%,transparent);overflow:hidden}
+.memv__fbar i{display:block;height:100%;width:0;background:#2E8B5E;transition:width .3s ease}
+.memv__fn{white-space:nowrap;font-weight:800}
+.memv__chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.memv__chip{position:relative;appearance:none;-webkit-appearance:none;border:1.5px solid var(--mv-accent);background:var(--mv-sheet);color:var(--mv-accent-ink);border-radius:14px;padding:6px 11px;font:800 16px/1.15 var(--mv-sans);cursor:pointer}
+.memv__chip:hover{background:color-mix(in srgb,var(--mv-accent) 14%,var(--mv-sheet))}
+.memv__chip.is-open{background:var(--mv-accent);color:#fff}
+:root[data-theme="dark"] .memv__chip.is-open{color:#1B0E3A}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .memv__chip.is-open{color:#1B0E3A} }
+.memv__card{margin-top:11px;padding:10px 12px 11px;border-radius:12px;background:var(--mv-sheet);border:1.5px solid var(--mv-accent);border-top-width:4px;scroll-margin:12px 0 76px}
+.memv__card[hidden]{display:none}
+.memv__cardh{display:flex;align-items:baseline;gap:2px;margin:0 0 6px;font:800 18px/1.2 var(--mv-serif)}
+.memv__cardh .memv__sub{color:var(--mv-accent-ink);border-left-color:var(--mv-rule);font:700 15px/1.2 var(--mv-sans)}
+.memv__cardx{margin:-4px -6px -4px auto;appearance:none;border:0;background:none;color:var(--mv-ink2);font:900 22px/1 var(--mv-sans);padding:4px 8px;cursor:pointer;border-radius:8px}
+.memv__cardx:hover{color:var(--mv-ink)}
+.memv__card p{margin:0 0 .5em;font-size:16px;line-height:1.5}
+/* (a narrow picture: the names to press are the key under the picture, so the sheet keeps only the open card) */
+.memv.is-pins .memv__findline,.memv.is-pins .memv__chips{display:none}
+.memv.is-pins .memv__find{margin:0;padding:0;border:0;background:none}
+.memv.is-pins .memv__card{margin:.6em 0 .2em}
+
+/* the films' buttons, in the sheet */
+.memv__films{display:flex;flex-direction:column;align-items:flex-start;gap:9px;margin:.9em 0 .3em}
+.memv__filmb{display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:9px 17px 9px 13px;border-radius:999px;border:1.5px solid #F0B43A;background:#FFD27A;color:#1b1640;font:800 16px/1.15 var(--mv-sans);cursor:pointer;text-align:left}
+.memv__filmb i{font-style:normal;font-size:13px}
+.memv__filmb:hover{filter:brightness(1.05)}
+.memv__filmb[aria-pressed="true"]{background:#1b1640;color:#FFE7A8;border-color:#FFD27A}
+
+/* freeze fracture's caption: one small box in the picture's top left corner; the guide line's pieces, the one of this
+   shot lit, the one before dimmed */
+.memv__cap{position:absolute;z-index:4;left:12px;top:10px;width:min(49%,440px);padding:10px 12px 11px;border-radius:12px;background:rgba(10,13,40,.92);border:1px solid rgba(255,226,154,.5);color:#fff;font:700 16px/1.42 var(--mv-sans);box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:default}
+.memv__cap[hidden]{display:none}
+.memv__cap p{margin:0}
+.memv__cap .lv{color:#C9D0FF;background:rgba(120,135,255,.2);box-shadow:inset 0 0 0 1px rgba(160,172,255,.5)}
+.memv__cap .is-was{opacity:.6;font-weight:600}
+.memv__cap .is-now{color:#FFE9B8;font-weight:800}
+.memv__capnav,.memv__capg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.memv__cap button{appearance:none;border-radius:999px;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.06);color:#fff;font:800 15px/1 var(--mv-sans);padding:8px 12px;cursor:pointer;white-space:nowrap}
+.memv__cap button:hover{border-color:#FFD27A;color:#FFD27A}
+.memv__cap .memv__capnext{background:#FFD27A;border-color:#F0B43A;color:#1b1640}
+.memv__cap .memv__capnext:hover{color:#1b1640;filter:brightness(1.06)}
+.memv__capg button{border-radius:8px;padding:6px 10px;font-size:14.5px}
+.memv__capg button+button{margin-left:-8px;border-top-left-radius:0;border-bottom-left-radius:0}
+.memv__capg button:first-child{border-top-right-radius:0;border-bottom-right-radius:0}
+.memv__capg button[aria-pressed="true"]{background:#fff;color:#1b1640;border-color:#fff}
+.memv.is-film .memv__place,.memv.is-film .memv__slow,.memv.is-film .memv__pause{display:none}
+/* the split faces without colour (only the picture: the names keep theirs) */
+.memv__canvas.is-grey{filter:grayscale(1) contrast(1.22) brightness(1.1)}
+/* an arrow on a still (Reduce motion): a filled shape */
+.memv__arrow{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.memv__arrow polygon{fill:rgba(255,255,255,.94);stroke:#1b1640;stroke-width:1.5;stroke-linejoin:round}
+
+/* step 9: the water that crosses, counted both ways (as the game's way in counts its molecules: css/game.css .conc) */
+.memv__osmo{position:absolute;z-index:3;top:10px;right:12px;width:286px;padding:9px 12px 10px;border-radius:12px;background:rgba(10,13,40,.92);border:1px solid rgba(255,226,154,.45);color:#EEF0FF;font:700 16px/1.3 var(--mv-sans);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.memv__osmo[hidden]{display:none}
+.memv__osmo p{margin:0}
+.memv__ok{display:flex;align-items:center;gap:7px;font-weight:900;margin:0 0 5px!important}
+.memv__omol{display:inline-flex;vertical-align:-3px}
+.memv__omol svg{width:23px;height:18px}
+/* where the solute concentration is higher, said with each side's name on the picture */
+.memv__place{max-width:calc(100% - 330px)}
+.memv__conc{display:block;font-weight:800;color:#C9CEEA}
+.memv__conc.is-hi{color:#FFB07A}
+.memv__conc[hidden]{display:none}
+.memv__oc{display:none}
+.memv__place:has(.memv__conc:not([hidden])){border-radius:12px}
+.memv__on{display:flex;align-items:baseline;gap:6px;font-weight:700}
+.memv__on span{color:#8FE8FF;font-weight:900}
+.memv__on b{min-width:1.5em;color:#8FE8FF;font-weight:900;font-variant-numeric:tabular-nums}
+.memv__of{margin:7px 0 0!important;color:#FFE9B8;font-weight:800}
+.memv__osw{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.22);font-weight:800}
+.memv__osw>span{display:inline-flex;align-items:center;gap:5px;flex-basis:100%}
+.memv__osw .memv__omol svg{width:15px;height:15px}
+.memv__osw button{appearance:none;border-radius:999px;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.06);color:#fff;font:800 15px/1 var(--mv-sans);padding:7px 11px;cursor:pointer}
+.memv__osw button[aria-pressed="true"]{background:#ff8a3d;border-color:#ff8a3d;color:#1b1640}
+.memv__osw button:hover{border-color:#FFD27A}
+
+/* the two cells joined: a small drawing in the sheet, dark like a fluorescence micrograph */
+.memv__mix[hidden]{display:none}
+.memv__mix{align-self:stretch;width:100%}
+.memv__mixf{margin:2px 0 0;padding:10px;border-radius:14px;background:var(--mv-box);border:1.5px solid var(--mv-rule)}
+.memv__mixpic{position:relative;border-radius:10px;overflow:hidden;background:#05070f;line-height:0}
+.memv__mixpic canvas{display:block;width:100%;height:auto}
+.memv__mixlab,.memv__mixclock{position:absolute;transform:translate(-50%,-50%);color:#fff;font:800 16px/1.2 var(--mv-sans);text-shadow:0 1px 4px #000;white-space:nowrap;pointer-events:none}
+.memv__mixclock{padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.4);font-variant-numeric:tabular-nums}
+.memv__mixlab[hidden],.memv__mixclock[hidden],.memv__mixkey[hidden]{display:none}
+.memv__mixkey{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 0;font:700 16px/1.3 var(--mv-sans)}
+.memv__mixkey span{display:inline-flex;align-items:center;gap:6px}
+.memv__mixkey i{flex:none;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(20,26,36,.5)}
+.memv__mixcap{margin:8px 0 0;font-size:16px;line-height:1.5}
+.memv__mixcap .is-was{color:var(--mv-ink2)}
+.memv__mixcap .is-now{font-weight:800}
+.memv__mixnav{display:flex;gap:8px;margin-top:9px;scroll-margin:0 0 84px}
+.memv__mixnav button{appearance:none;border-radius:999px;border:1.5px solid var(--mv-rule);background:var(--mv-sheet);color:var(--mv-ink);font:800 16px/1 var(--mv-sans);padding:10px 15px;cursor:pointer}
+.memv__mixnav button:disabled{opacity:.42;cursor:default}
+.memv__mixnav .memv__mixnext{margin-left:auto;background:#FFD27A;border-color:#F0B43A;color:#1b1640}
+
+@media (max-width:860px),(max-aspect-ratio:4/5){
+  /* a phone: the strip stands in the strip under the picture, short (the picture's corners are needed for the pins) */
+  .memv__tools:has(.memv__osmo:not([hidden])),.memv__tools:has(.memv__cap:not([hidden])){flex-wrap:wrap}
+  .memv__conc{display:none!important}
+  .memv__osmo{position:static;width:auto;flex:1 1 100%;order:-1;padding:6px 10px 8px;font-size:13.5px;box-shadow:none;border-radius:10px}
+  .memv__ok{margin:0 0 1px!important;font-size:13.5px}
+  .memv__ok .memv__omol svg{width:17px;height:13px}
+  .memv__on{display:inline-flex;margin-right:12px!important}
+  .memv__oc{display:block;margin-top:2px!important;color:#C9CEEA;font-weight:600}
+  .memv__oc b{color:#C9CEEA;font-weight:800}
+  .memv__oc b.is-hi{color:#FFB07A}
+  .memv__place{max-width:none}
+  .memv__of{margin-top:2px!important}
+  .memv__osw{margin-top:6px;padding-top:6px}
+  .memv__osw>span{flex-basis:auto}
+  .memv__osw button{font-size:13px;padding:6px 9px}
+  .memv__tools:has(.memv__osmo:not([hidden])) .memv__slow{display:none}
+  /* (Pause stands in the strip's top right corner, beside its two short lines of numbers, over none of its words) */
+  .memv__tools:has(.memv__osmo:not([hidden])) .memv__pause{position:absolute;right:16px;top:11px;bottom:auto;min-height:30px;padding:5px 12px;font-size:13px}
+  .memv__cap{position:static;flex:1 1 100%;width:auto;font-size:13.5px;padding:7px 9px 8px;box-shadow:none}
+  .memv__cap button{font-size:13px;padding:6px 10px}
+  .memv__mixlab,.memv__mixclock{font-size:13.5px}
 }

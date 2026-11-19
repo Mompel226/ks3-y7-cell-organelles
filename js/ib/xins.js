@@ -39,11 +39,11 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeGeometries, mergeVertices } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData } from './mol.js?v=202611190715';
-import { MOL } from './mol-data.js?v=202611190715';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611190715';
-import { bilayer, MEM } from './membrane.js?v=202611190715';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611190715';
+import { ballStick, gather, Reaction, molData } from './mol.js?v=202611192340';
+import { MOL } from './mol-data.js?v=202611192340';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611192340';
+import { bilayer, MEM } from './membrane.js?v=202611192340';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611192340';
 
 const PROTS = ['ir', 'irk', 'glut4'];
 export const prefetch = () => loadProts(PROTS);
@@ -99,7 +99,7 @@ export async function build(stage, { V }) {
   /* the kinase's molecules (ATP, ADP, the IRS-1 tyrosine before and after), in the format of mol-data.js */
   for (const k in IRK.mols) if (!MOL[k]) MOL[k] = IRK.mols[k];
   const g = new THREE.Group(); g.name = 'xins';
-  const BS = ballStick(320, 380); g.add(BS.group);
+  const BS = ballStick(460, 520); g.add(BS.group);
 
   /* ================= the plasma membrane: a basal GLUT4 stands in a window at its left ================= */
   const GB = V3(-24, 0, -3.2);
@@ -505,7 +505,9 @@ export async function build(stage, { V }) {
   /* ================= glucose, entering through three of the new transporters ================= */
   const G0 = molData('glucose');
   const GOS = [0, 1, 2];                 /* the three transporters they enter through (9, 17 and 26 nm from the vesicle's top) */
-  const glcWait = [[-1.2, -7.0, 1.6], [1.0, -7.6, 1.2], [-0.4, -6.8, 2.0], [-14, -7.8, 0.6], [4.5, -8.4, -0.4], [19, -7.2, 1.2]].map(([x, y, z], k) => ({ d: V3(x, y, z), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(k * 0.9, k * 1.7, 0.4 + k)) }));
+  const glcWait = [[-1.2, -7.0, 1.6], [1.0, -7.6, 1.2], [-0.4, -6.8, 2.0], [-14, -7.8, 0.6], [4.5, -8.4, -0.4], [19, -7.2, 1.2],
+    /* (19 Nov 2026, the science read: more glucose in the tissue fluid than has entered, beside "down its concentration gradient") */
+    [-22, -8.8, 0.2], [-8, -9.4, 1.0], [11, -7.0, 0.8], [26, -8.9, 0.4], [-28, -7.3, 1.4], [-4.5, -10.2, 0.2]].map(([x, y, z], k) => ({ d: V3(x, y, z), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(k * 0.9, k * 1.7, 0.4 + k)) }));
   const glcOut = [V3(-1.6, 6.6, 1.8), V3(1.8, 7.2, 1.6), V3(-0.6, 6.4, 2.2)];
   const gGlow = [0, 1, 2].map(() => { const h = glow(2.2, 0xfff0c0, 0); h.visible = false; g.add(h); return h; });
   const wGlow = [0, 1, 2].map(() => { const h = glow(2.0, 0xfff0c0, 0.32); h.visible = false; g.add(h); return h; });
@@ -707,7 +709,7 @@ export async function build(stage, { V }) {
         gGlow[j].visible = K.glc > 0; gGlow[j].position.copy(pw); gGlow[j].material.opacity = 0.3 + 0.45 * Math.sin(Math.PI * u);
       });
       const base = VG[GOS[0]].o.localToWorld(V3());
-      glcWait.slice(3).forEach((w, k) => { const pw = base.clone().add(w.d).add(V3(Math.sin(t * 0.6 + k), Math.cos(t * 0.5 + k * 1.3), 0).multiplyScalar(0.25)); addInsts([{ key: 'glucose', id: 'gw' + (3 + k), P: { p: pw, q: w.q } }]); wGlow[k].visible = K.cam > 9.5 && K.cam < 10.5; wGlow[k].position.copy(pw); });
+      glcWait.slice(3).forEach((w, k) => { const pw = base.clone().add(w.d).add(V3(Math.sin(t * 0.6 + k), Math.cos(t * 0.5 + k * 1.3), 0).multiplyScalar(0.25)); addInsts([{ key: 'glucose', id: 'gw' + (3 + k), P: { p: pw, q: w.q } }]); if (wGlow[k]) { wGlow[k].visible = K.cam > 9.5 && K.cam < 10.5; wGlow[k].position.copy(pw); } });
     } else { VG.forEach(G => G.rock(1)); gGlow.forEach(h => { h.visible = false; }); wGlow.forEach(h => { h.visible = false; }); }
     BS.draw(atoms, bonds, stage.cam.position.clone().sub(stage.view.at).normalize());
     drawn = { atoms, bonds };
@@ -724,6 +726,8 @@ export async function build(stage, { V }) {
   const atomPts = (id, names) => () => drawn.atoms.filter(a => a.id === id && (!names || names.includes(a.name)) && a.el !== 'H' && (a.s == null || a.s > 0.5)).map(a => a.p.clone());
   const labels = {
     insulin: { html: 'insulin, a protein hormone', side: 'l', pts: () => INS.slice(0, 3).flatMap(I => surfacePoints(I.o, [I.o.position.clone().add(V3(-1.5, -0.5, 1.5))])) },
+    /* (another of the insulin molecules: the card of this name says what insulin is made of) */
+    chains: { html: 'insulin: two polypeptide chains', side: 'r', pts: () => INS.slice(1, 4).flatMap(I => surfacePoints(I.o, [I.o.position.clone().add(V3(1.5, -0.5, 1.5))])) },
     ligand: { html: 'insulin, the ligand', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
     one: { html: 'one insulin molecule is bound', side: 'l', pts: () => surfacePoints(INS[0].o, [INS[0].o.position.clone().add(V3(-1.6, -0.6, 1.6)), INS[0].o.position.clone().add(V3(0, -1.8, 1.2))]) },
     met: { html: 'the two ends inside the cell meet', side: 'r', pts: () => surfacePoints(kin.B, [kin.B.position.clone().add(V3(2.4, 1.2, 1.4)), kin.B.position.clone().add(V3(2.0, -1.5, 1.6))]) },
@@ -777,14 +781,14 @@ export async function build(stage, { V }) {
 
   /* ================= the steps (their words are in text.js) ================= */
   const steps = [
-    { phases: [{ to: { cam: 0 }, ms: 600 }], labs: { insulin: 1, receptor: 1, glB: 2, outside: 2, inside: 2 },
+    { phases: [{ to: { cam: 0 }, ms: 600 }], labs: { insulin: 1, receptor: 1, chains: 2, glB: 2, mem: 2, outside: 2, inside: 2 },
       pic: 'Every size is true. Measured: insulin, and the receptor outside and inside the cell. Drawn: its part in the membrane. Insulin is far more concentrated here than in the blood.' },
     { phases: [{ to: { cam: 1 }, ms: 2400 }], labs: { receptor: 1, sugars: 1, tm: 1, inpart: 1, outpart: 2, mem: 2 },
       pic: 'Drawn: the carbohydrate chains (they move too much to be measured). Each ball is one sugar.' },
     /* 3: one insulin binds, and in the same step the whole receptor changes shape: the V closes, the helices come together
        and the kinases meet, all in the picture (before 14 Nov 2026: three steps, the first a close-up) */
     { phases: [{ to: { cam: 2 }, ms: 2200 }, { to: { i1: 0.55 }, ms: 1800 }, { to: { i1: 1, morph: 0.14 }, ms: 2200 }, { hold: 1500, labs: { ligand: 1, site: 1 } }, { to: { morph: 1, kin: 1 }, ms: 5600 }],
-      labs: { one: 1, receptorT: 1, met: 1, tmNear: 2 },
+      labs: { one: 1, receptorT: 1, met: 1, tmNear: 2 },      /* (no arrow on its still: insulin's way to the receptor, then with the receptor as it changes shape, folds back on itself) */
       pic: 'Measured: the V (no insulin) and the T (four insulin molecules). Drawn: the movement between them.' },   /* (short: on a phone a longer line lay over the kinases) */
     /* 4: more insulin can bind (to four); the receptor is already in its new shape */
     { phases: [{ to: { cam: 3 }, ms: 2000 }, { to: { i2: 1 }, ms: 2200 }, { to: { i3: 1, i4: 1 }, ms: 2600 }], labs: { ins4: 1, receptorSame: 2 },
@@ -807,11 +811,13 @@ export async function build(stage, { V }) {
       pic: 'True sizes, simplified shapes: IRS-1 and PI3-kinase.' },
     { phases: [{ to: { cam: 7 }, ms: 2600 }, { to: { akt: 1 }, ms: 2400 }, { to: { aktP: 1 }, ms: 1600 }, { to: { aktGo: 1 }, ms: 3600 }, { hold: 1600, labs: { akt: 1, as160: 1 } }, { to: { as160: 1 }, ms: 2400 }, { to: { rab: 1 }, ms: 1400 }], labs: { akt: 1, rab: 1, vesicle: 1 },
       pic: 'True sizes, simplified shapes: Akt, AS160 and the Rab proteins.' },
-    { phases: [{ to: { cam: 8 }, ms: 2000 }, { to: { ves: 1 }, ms: 5200 }], labs: { vesicle: 1, glutV: 1 },
+    { phases: [{ to: { cam: 8 }, ms: 2000 }, { to: { ves: 1 }, ms: 5200 }], labs: { vesicle: 1, glutV: 1 }, arrow: 'auto',
       pic: 'The vesicle is drawn cut open, like the membrane.' },
     { phases: [{ to: { cam: 9 }, ms: 1800 }, { to: { dock: 1 }, ms: 2400 }, { hold: 1500, labs: { snare: 1 } }, { to: { fuse: 0.5 }, ms: 3600 }, { hold: 1500, labs: { fusing: 1 } }, { to: { fuse: 1, cam: 13 }, ms: 4600 }, { to: { cam: 12 }, ms: 2200 }], labs: { glutM: 1, mem: 2 } },
     { phases: [{ to: { cam: 10 }, ms: 2600 }, { to: { glc: 1 }, ms: 9000, lin: ['glc'] }], labs: { glucose: 1, glcIn: 1, glut1: 1 } },
+    /* the whole path as a list on the picture (19 Nov 2026: until then 46 words under it, with the guide's own statement folded) */
     { phases: [{ to: { cam: 11 }, ms: 2600 }], labs: { receptorT: 1, glutM: 1, inside: 2, outside: 2 },
+      board: '<b>The whole path</b><span>1 insulin binds to the receptor outside the cell</span><span>2 the receptor changes shape</span><span>3 inside the cell, tyrosines of the receptor are phosphorylated</span><span>4 a sequence of reactions carries the signal</span><span>5 vesicles bring glucose transporters to the plasma membrane</span><span class="b">6 more glucose enters the cell</span>',
       pic: 'Sizes are true, times are not: in a muscle cell, these steps take several minutes.' }
   ];
   /* no name stands on a molecule of the close-up */

@@ -11,10 +11,10 @@
    FAD of E3 (Patel and Roche 1990, FASEB J 4:3224); the picture shows where it starts and where it ends.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611190715';
-import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611190715';
-import { bilayer } from './membrane.js?v=202611190715';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611190715';
+import { ballStick, gather, Reaction, poseAt, moved, faceRing, molData } from './mol.js?v=202611192340';
+import { loadProts, protein, surfacePoints, fadeProt } from './prot.js?v=202611192340';
+import { bilayer } from './membrane.js?v=202611192340';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611192340';
 
 /* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
 const PROTS = ['pdh', 'mpc_mat'];
@@ -89,7 +89,7 @@ export async function build(stage, { V }) {
     acoa: { html: 'acetyl CoA: an acetyl group (2C) on coenzyme A', side: 'r', pts: atomPts('c', ['A1', 'A2', 'OA1', 'S']) }
   };
   const steps = [
-    { phases: [{ to: { cam: 0 }, ms: 600 }, { to: { p: 1 }, ms: 3000 }], labs: { pdh: 1, pyr: 1, im: 2, mx: 2, mpc: 2 }, pic: 'The see-through shape is the core of one enzyme complex, at its true size.' },
+    { phases: [{ to: { cam: 0 }, ms: 600 }, { to: { p: 1 }, ms: 3000 }], labs: { pdh: 1, pyr: 1, im: 2, mx: 2, mpc: 2 }, arrow: 'auto', pic: 'The see-through shape is the core of one enzyme complex, at its true size.' },
     { phases: [{ to: { cam: 1, cof: 1 }, ms: 2600 }, { to: { rx: 0.62 }, ms: 4200 }], labs: { co2: 1, acoa: 1, nad: 2 } },
     { phases: [{ to: { rx: 1 }, ms: 2800 }], labs: { nadh: 1, acoa: 2 } },
     { phases: [{ to: { cam: 2, out: 1 }, ms: 3200 }], labs: { acoa: 1, pdh: 2 }, board: '<b>Per glucose (×2)</b><span>2 carbon dioxide</span><span>2 NADH</span><span>2 acetyl CoA</span><span class="b">no ATP</span>' }

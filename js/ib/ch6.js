@@ -19,16 +19,16 @@
    IV (the Q cycle's net result); oxygen waits at complex IV until 4 electrons (two NADH) have arrived: 2 water.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611190715';
-import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611190715';
-import { bilayer, footprint } from './membrane.js?v=202611190715';
-import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611190715';
+import { ballStick, gather, Reaction, poseAt, moved, molData } from './mol.js?v=202611192340';
+import { loadProts, protein, protMat, surfacePoints, fadeProt } from './prot.js?v=202611192340';
+import { bilayer, footprint } from './membrane.js?v=202611192340';
+import { disposeGroup, glow, smooth, halo as haloTex } from './stage.js?v=202611192340';
 
 const H_COL = 0xff4f9a, E_COL = 0xfff07a;
 const along = (pts, f) => { const n = pts.length - 1; if (n < 1) return pts[0].clone(); const x = Math.max(0, Math.min(1, f)) * n, i = Math.min(n - 1, Math.floor(x)), k = x - i; return pts[i].clone().lerp(pts[i + 1], k); };
 
 /* its measured shapes and ATP synthase's: the view fetches them while the pupil reads the chapter before (view.js ahead) */
-const PROTS = ['resp', 'c2', 'cytc', 'ant'], synthase = () => import('../world/atp-synthase.js?v=202611190715');
+const PROTS = ['resp', 'c2', 'cytc', 'ant'], synthase = () => import('../world/atp-synthase.js?v=202611192340');
 export const prefetch = () => Promise.all([loadProts(PROTS), synthase()]);
 
 export async function build(stage, { V }) {
@@ -94,6 +94,9 @@ export async function build(stage, { V }) {
   const hGlow = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: haloTex(), color: 0xff8fc0, size: 1.3, sizeAttenuation: true, transparent: true, opacity: 0.7, depthWrite: false, blending: THREE.AdditiveBlending }));
   hGlow.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NH * 3), 3)); hGlow.frustumCulled = false; g.add(hGlow);
   const rnd = (k, m) => { const x = Math.sin(k * 12.9898 + m * 78.233) * 43758.5453; return x - Math.floor(x); };
+  /* a proton's wandering about its place: on each axis two swings whose paces and starts are its own (no two protons move alike) */
+  const wobV = V(), swing = (i, m, t) => 0.62 * Math.sin(t * (0.7 + 1.5 * rnd(i, m)) + 6.283 * rnd(i, m + 1)) + 0.38 * Math.sin(t * (1.9 + 2.2 * rnd(i, m + 2)) + 6.283 * rnd(i, m + 3));
+  const wob = (i, t, a) => wobV.set(a * swing(i, 11, t), a * 0.8 * swing(i, 21, t), a * 0.8 * swing(i, 31, t));
   const homes = Array.from({ length: NH }, (_, i) => V(-44 + rnd(i, 1) * 88, 3.6 + rnd(i, 2) * 6.5, -12 + rnd(i, 3) * 13.5));
   const mHomes = Array.from({ length: 10 }, (_, i) => V(-40 + rnd(i, 7) * 80, -4 - rnd(i, 8) * 5, -10 + rnd(i, 9) * 11));
   /* the pumped ones: their ways through each complex (matrix → intermembrane space) */
@@ -177,8 +180,10 @@ export async function build(stage, { V }) {
     const gp = hGlow.geometry.attributes.position; let n = 0;
     const put = p => { if (n >= NH) return; tm.compose(p, tq, ts); hs.setMatrixAt(n, tm); gp.setXYZ(n, p.x, p.y, p.z); n++; };
     const nPool = Math.round(K.pool * 110);
-    for (let i = 0; i < nPool; i++) put(homes[i].clone().add(V(Math.sin(t * 1.3 + i) * 0.5, Math.cos(t * 1.1 + i * 1.7) * 0.4, Math.sin(t * 0.9 + i * 2.3) * 0.4)));
-    mHomes.forEach((p, i) => put(p.clone().add(V(Math.sin(t + i) * 0.4, Math.cos(t * 1.2 + i) * 0.3, 0))));
+    /* each proton wanders about its place at its own pace (19 Nov 2026: until then all 110 swung at the same three paces,
+       and the pool was seen to breathe in step; random movement has no common pace) */
+    for (let i = 0; i < nPool; i++) put(homes[i].clone().add(wob(i, t, 0.75)));
+    mHomes.forEach((p, i) => put(p.clone().add(wob(i + 300, t, 0.55))));
     if (K.p1 > 0 && K.p1 < 1) wayI.forEach((w, i) => put(along(w, smooth(0, 1, K.p1 * 1.3 - i * 0.1))));
     if (K.p3 > 0 && K.p3 < 1) wayIII.forEach((w, i) => put(along(w, smooth(0, 1, K.p3 * 1.3 - i * 0.1))));
     if (K.p4 > 0 && K.p4 < 1) wayIV.forEach((w, i) => put(along(w, smooth(0, 1, K.p4 * 1.2 - i * 0.15))));
@@ -248,11 +253,11 @@ export async function build(stage, { V }) {
     { phases: [{ to: { p1: 1, pool: 0.3, n1: 3 }, ms: 3600 }], labs: { cI: 1, h: 1, ims: 2, mx: 2 } },
     { phases: [{ to: { cam: 2 }, ms: 2200 }, { to: { e2: 1 }, ms: 3200 }], labs: { cII: 1, q: 2 } },
     { phases: [{ to: { cam: 3 }, ms: 2000 }, { to: { q: 1 }, ms: 3000 }, { to: { e3: 1, p3: 1, pool: 0.45 }, ms: 3600 }], labs: { cIII: 1, cyt: 1, q: 2 } },
-    { phases: [{ to: { cam: 4 }, ms: 2000 }, { to: { c: 1 }, ms: 2800 }, { to: { e4: 1 }, ms: 4200 }], labs: { cIV: 1, o2: 1, cyt: 2 } },
-    { phases: [{ to: { cc2: 1 }, ms: 900 }, { to: { e5: 1 }, ms: 4200 }, { to: { w: 1, p4: 1, pool: 0.55 }, ms: 3200 }], labs: { water: 1, cIV: 1 } },
+    { phases: [{ to: { cam: 4 }, ms: 2000 }, { to: { c: 1 }, ms: 2800 }, { to: { e4: 1 }, ms: 4200 }], labs: { cIV: 1, o2: 1, cyt: 2 }, arrow: 'auto' },      /* (a still: an arrow along the way of what arrives or leaves; view.js stillArrow) */
+    { phases: [{ to: { cc2: 1 }, ms: 900 }, { to: { e5: 1 }, ms: 4200 }, { to: { w: 1, p4: 1, pool: 0.55 }, ms: 3200 }], labs: { water: 1, cIV: 1 }, arrow: 'auto' },
     { phases: [{ to: { cam: 0, pool: 1, see: 0, cc2: 0 }, ms: 4200 }], labs: { hpool: 1, hfew: 1, im: 1 }, board: '<b>Like water behind a dam</b><span>many H⁺ above, in the small intermembrane space</span><span>few H⁺ below, in the matrix</span><span>the phospholipid bilayer lets almost none back</span><span class="b">the only way back: ATP synthase</span>' },
     { phases: [{ to: { cam: 5 }, ms: 2400 }, { to: { turn: 8, mk: 3, pool: 0.94 }, ms: 9000, lin: ['turn', 'mk'] }], labs: { atps: 1, ring: 1, atpm: 2 } },
-    { phases: [{ to: { cam: 6 }, ms: 2000 }, { to: { ant: 1 }, ms: 3600 }], labs: { ant: 1, atpm: 1, adp: 1 } },
+    { phases: [{ to: { cam: 6 }, ms: 2000 }, { to: { ant: 1 }, ms: 3600 }], labs: { ant: 1, atpm: 1, adp: 1 }, arrow: 'auto' },
     { phases: [{ to: { cam: 0, turn: 16 }, ms: 3000, lin: ['turn'] }], labs: { atps: 1, ant: 2 }, board: '<b>ATP gives energy for</b><span>muscle contraction</span><span>active transport across membranes</span><span>making proteins and DNA</span><span class="b">ATP leaves the mitochondrion through porin</span>' },
     { phases: [{ to: { cam: 0, turn: 24 }, ms: 3000, lin: ['turn'] }], labs: { cI: 1, cIV: 1, atps: 1 }, board: '<b>Per glucose</b><span>8 NADH → complex I</span><span>2 NADH of glycolysis → by a shuttle, at FAD</span><span>2 FADH₂ → complex II</span><span>6 oxygen used → 12 water</span><span class="b">about 26 ATP made here</span>' }
   ];

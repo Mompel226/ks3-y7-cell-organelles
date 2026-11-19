@@ -6,6 +6,9 @@
    token: the page's own (css/app.css, copied here so that the view's own address needs no other sheet) and the
    picture's (--fr-…), each with its dark twin, by the computer's setting until the reader chooses (biology.theme).
    Text a pupil reads is 16 px or more on a laptop.
+   Since 18 Nov 2026 the view teaches on its picture: a name with a card is a button (a ring; a tick once found; filled
+   while its card is open), step 2's molecules are on a canvas under the picture, and what is counted stands on a
+   strip under the picture.
    ============================================================ */
 .frv{
   --sans:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --serif:'Fraunces',Georgia,serif;
@@ -19,15 +22,16 @@
   /* the picture */
   --fr-cyto:#FCEEE4; --fr-mem:#9C4A2E; --fr-nuc:#CFE0F5; --fr-nuc-line:#2F5D93; --fr-nucleolus:#6A8FC0;
   --fr-mito:#F6B26B; --fr-mito-line:#8F4A0E; --fr-lyso:#EE9BA8; --fr-lyso-line:#8E2236;
-  --fr-er:#4E9A5E; --fr-er-fill:#DDF1E0; --fr-ribo:#1F2A44; --fr-enz:#0B7A78;
+  --fr-er:#A8324E; --fr-er-fill:#F3CBD5; --fr-ribo:#3B1458; --fr-enz:#0B7A78;
   --fr-liq:#D3EAF8; --fr-liq-water:#E9F5FC; --fr-liq-conc:#A9D2EE; --fr-water:#1F5FBF; --fr-solute:#2A3446;
   --fr-win:#FFFFFF; --fr-win-line:#C3CCD8; --fr-sq:#F4F7FA;
-  --fr-bath:#E6ECF2; --fr-warm:#F9D2BC; --fr-cold:#DDF0FA; --fr-ice:#FFFFFF; --fr-ice-line:#8DB7D3;
+  --fr-bath:#E6ECF2; --fr-warm:#F9D2BC; --fr-cold:#DDF0FA; --fr-ice:#E3F3FB; --fr-ice-line:#7FB2D2;
   --fr-thermo:#FFFFFF; --fr-thermo-f:#C8302C; --fr-prot:#0B7A78; --fr-chain:#1F5FBF; --fr-bit:#8F4A0E;
   --fr-ph-a:#F7CFCB; --fr-ph-n:#D3EEDA; --fr-ph-b:#CFE0F5; --fr-marker:#141A24;
   --fr-icebath:#E6F3FB; --fr-liver:#8B3A2E; --fr-homog:#C9A58E; --fr-pestle:#B9C3CF; --fr-pestle-line:#5B6573;
   --fr-rotor:#C3CCD8; --fr-slot:#F4F7FA; --fr-hub:#5B6573; --fr-pellet:#B08A6C;
   --fr-sub:#5C6679; --fr-prod:#D99A00; --fr-ln:#384254; --fr-good:#167A3E; --fr-bad:#B42318;
+  --fr-sol:#DCEBF8; --fr-w:#7FB3DE; --fr-s:#E8892B; --fr-sline:#9A520F; --fr-memb:#B07A2A; --fr-ring:#1D5FA3; --fr-peg:#7A3FA0;
   position:fixed;inset:0;z-index:1000;display:grid;grid-template-rows:auto minmax(0,1fr);background:var(--top2);color:var(--ink);
   font-family:var(--sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow:hidden
 }
@@ -40,7 +44,7 @@
   --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240;
   --fr-cyto:#3A2A24; --fr-mem:#F0A47E; --fr-nuc:#24405F; --fr-nuc-line:#9CC3F2; --fr-nucleolus:#5D84B5;
   --fr-mito:#9A5E22; --fr-mito-line:#FFD3A0; --fr-lyso:#8C3446; --fr-lyso-line:#FFB3C0;
-  --fr-er:#7FD493; --fr-er-fill:#1F3A27; --fr-ribo:#E8EDF4; --fr-enz:#5FE0DA;
+  --fr-er:#E88CA2; --fr-er-fill:#4A1E2A; --fr-ribo:#E3D2F7; --fr-enz:#5FE0DA;
   --fr-liq:#1F3B55; --fr-liq-water:#18293A; --fr-liq-conc:#2C587D; --fr-water:#8AB4F8; --fr-solute:#E8EDF4;
   --fr-win:#1D242E; --fr-win-line:#3A4555; --fr-sq:#161C24;
   --fr-bath:#232B36; --fr-warm:#4A2A1E; --fr-cold:#1C3346; --fr-ice:#CFE6F5; --fr-ice-line:#6E97B3;
@@ -48,7 +52,8 @@
   --fr-ph-a:#5A2A26; --fr-ph-n:#1F3A27; --fr-ph-b:#22344F; --fr-marker:#E8EDF4;
   --fr-icebath:#1A2C3B; --fr-liver:#C0685A; --fr-homog:#7A5A48; --fr-pestle:#5F6977; --fr-pestle-line:#B5BFCD;
   --fr-rotor:#3A4555; --fr-slot:#1D242E; --fr-hub:#8E99A8; --fr-pellet:#9C7A5E;
-  --fr-sub:#B5BFCD; --fr-prod:#FFD24A; --fr-ln:#B5BFCD; --fr-good:#4CC27A; --fr-bad:#F2795F } }
+  --fr-sub:#B5BFCD; --fr-prod:#FFD24A; --fr-ln:#B5BFCD; --fr-good:#4CC27A; --fr-bad:#F2795F;
+  --fr-sol:#16314A; --fr-w:#3F7FB5; --fr-s:#F2A14B; --fr-sline:#FFD29A; --fr-memb:#D9A75A; --fr-ring:#BFE3FF; --fr-peg:#C9A2F0 } }
 :root[data-theme="dark"] .frv{
   --ink:#E8EDF4; --ink2:#B5BFCD; --ink3:#8F9AAB;
   --sheet:#161C24; --surface:#1D242E; --rule:#2C3542; --rule2:#3A4555;
@@ -58,7 +63,7 @@
   --lv-sl:#9EA9F0; --lv-sl-bg:#1D2240;
   --fr-cyto:#3A2A24; --fr-mem:#F0A47E; --fr-nuc:#24405F; --fr-nuc-line:#9CC3F2; --fr-nucleolus:#5D84B5;
   --fr-mito:#9A5E22; --fr-mito-line:#FFD3A0; --fr-lyso:#8C3446; --fr-lyso-line:#FFB3C0;
-  --fr-er:#7FD493; --fr-er-fill:#1F3A27; --fr-ribo:#E8EDF4; --fr-enz:#5FE0DA;
+  --fr-er:#E88CA2; --fr-er-fill:#4A1E2A; --fr-ribo:#E3D2F7; --fr-enz:#5FE0DA;
   --fr-liq:#1F3B55; --fr-liq-water:#18293A; --fr-liq-conc:#2C587D; --fr-water:#8AB4F8; --fr-solute:#E8EDF4;
   --fr-win:#1D242E; --fr-win-line:#3A4555; --fr-sq:#161C24;
   --fr-bath:#232B36; --fr-warm:#4A2A1E; --fr-cold:#1C3346; --fr-ice:#CFE6F5; --fr-ice-line:#6E97B3;
@@ -66,7 +71,8 @@
   --fr-ph-a:#5A2A26; --fr-ph-n:#1F3A27; --fr-ph-b:#22344F; --fr-marker:#E8EDF4;
   --fr-icebath:#1A2C3B; --fr-liver:#C0685A; --fr-homog:#7A5A48; --fr-pestle:#5F6977; --fr-pestle-line:#B5BFCD;
   --fr-rotor:#3A4555; --fr-slot:#1D242E; --fr-hub:#8E99A8; --fr-pellet:#9C7A5E;
-  --fr-sub:#B5BFCD; --fr-prod:#FFD24A; --fr-ln:#B5BFCD; --fr-good:#4CC27A; --fr-bad:#F2795F }
+  --fr-sub:#B5BFCD; --fr-prod:#FFD24A; --fr-ln:#B5BFCD; --fr-good:#4CC27A; --fr-bad:#F2795F;
+  --fr-sol:#16314A; --fr-w:#3F7FB5; --fr-s:#F2A14B; --fr-sline:#FFD29A; --fr-memb:#D9A75A; --fr-ring:#BFE3FF; --fr-peg:#C9A2F0 }
 html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .frv *{box-sizing:border-box}
 .frv button{font-family:inherit}
@@ -82,13 +88,29 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .frv__home:hover{border-color:var(--gold);color:var(--top-ink)}
 
 /* ---------- the picture and the steps ---------- */
-.frv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(440px,34vw));grid-template-rows:minmax(0,1fr) auto;grid-template-areas:'stage panel' 'key panel';min-height:0}
+.frv__main{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,min(440px,34vw));grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:'stage panel' 'strip panel' 'key panel';min-height:0}
 .frv__stage{grid-area:stage;position:relative;overflow:hidden;min-height:0;background:var(--stage)}
+.frv__cv{position:absolute;inset:0;width:100%;height:100%;display:block;transition:opacity .2s ease}
+.frv__cv[hidden]{display:none}
 .frv__svg{position:absolute;inset:0;width:100%;height:100%;display:block;transition:opacity .3s ease}
 .frv__svg.is-new{opacity:0;transition:none}
 .frv--still .frv__svg{transition:none}
 .frv__names{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .frv__legend{position:absolute;left:10px;right:10px;bottom:6px;margin:0;font:700 14px/1.35 var(--sans);color:var(--ink2);text-align:center}
+.frv__lgrow{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 14px}
+.frv__lg{display:inline-flex;align-items:center}
+.frv__lgb{position:relative;display:inline-flex;align-items:center;border:1.5px solid var(--accent);border-radius:999px;background:var(--label-bg);color:var(--ink);font:800 14px/1.2 var(--sans);padding:4px 11px 4px 9px;cursor:pointer}
+.frv__lgb.is-found{border-color:var(--good)}
+/* (its ring holds the tick: a button that grew when found made the row wrap and the picture smaller) */
+.frv__lgb .frv__ring{width:13px;height:13px;margin-right:6px}
+.frv__lgb.is-on{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.frv__dot{flex:none;display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+.frv__dot--w{background:var(--fr-w)}
+.frv__dot--s{width:13px;height:13px;background:var(--fr-s);box-shadow:inset 0 0 0 1px var(--fr-sline)}
+.frv__dot--m{width:8px;height:14px;border-radius:2px;background:var(--fr-memb)}
+.frv__dot--bump{width:11px;height:11px;background:none;border:1.6px solid var(--fr-prot)}
+.frv__dot--hit{border:2.4px solid var(--fr-bad)}
+.frv__dot--path{width:22px;height:0;border-radius:0;border-top:2.5px solid var(--fr-prot);opacity:.55}
 .frv__legend:empty{display:none}
 .frv__ic{display:inline-block;width:12px;height:12px;vertical-align:-1px}
 .frv__ic--w{width:24px}
@@ -101,7 +123,8 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .fr-t2{font-weight:700;fill:var(--ink2)}
 .fr-good{fill:var(--fr-good)}
 .fr-bad{fill:var(--fr-bad)}
-.fr-cell{fill:var(--fr-cyto);stroke:var(--fr-mem);stroke-width:3;stroke-linejoin:round}
+.fr-cyto{fill:var(--fr-cyto)}
+.fr-pm{fill:none;stroke:var(--fr-mem);stroke-width:3;stroke-linejoin:round}
 .fr-cell2{fill:var(--fr-cyto);stroke:var(--fr-mem);stroke-width:2}
 .fr-nuc{fill:var(--fr-nuc);stroke:var(--fr-nuc-line);stroke-width:2}
 .fr-nucleolus{fill:var(--fr-nucleolus)}
@@ -113,6 +136,7 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .fr-micro{fill:var(--fr-er-fill);stroke:var(--fr-er);stroke-width:1.4}
 .fr-ribo{fill:var(--fr-ribo)}
 .fr-glass{fill:none;stroke:var(--glass);stroke-width:2;stroke-linecap:round}
+.fr-field{fill:var(--fr-win);stroke:var(--fr-win-line);stroke-width:1.5}
 .fr-liq{fill:var(--fr-liq)}
 .fr-liq--water{fill:var(--fr-liq-water)}
 .fr-liq--conc{fill:var(--fr-liq-conc)}
@@ -126,7 +150,7 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .fr-bath{fill:var(--fr-bath);stroke:var(--fr-win-line);stroke-width:1.5}
 .fr-bath--warm{fill:var(--fr-warm)}
 .fr-bath--ice{fill:var(--fr-cold)}
-.fr-ice{fill:var(--fr-ice);stroke:var(--fr-ice-line);stroke-width:1.2}
+.fr-ice{fill:var(--fr-ice);fill-opacity:.82;stroke:var(--fr-ice-line);stroke-width:1.2}
 .fr-thermo{fill:var(--fr-thermo);stroke:var(--glass);stroke-width:1.5}
 .fr-thermo-b{fill:var(--fr-thermo-f);stroke:var(--glass);stroke-width:1.5}
 .fr-thermo-f{fill:var(--fr-thermo-f)}
@@ -141,7 +165,7 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .fr-icebath{fill:var(--fr-icebath)}
 .fr-liver{fill:var(--fr-liver)}
 .fr-homog{fill:var(--fr-homog)}
-.fr-pestle{fill:var(--fr-pestle);stroke:var(--glass);stroke-width:1.5}
+.fr-pestle{fill:var(--fr-pestle);stroke:var(--fr-pestle-line);stroke-width:1.2}
 .fr-pestle-line{fill:none;stroke:var(--fr-pestle-line);stroke-width:1.5}
 .fr-turn{fill:none;stroke:var(--fr-ln);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .fr-pm-piece{fill:none;stroke:var(--fr-mem);stroke-width:2.5;stroke-linecap:round}
@@ -150,6 +174,25 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .fr-hub{fill:var(--fr-hub)}
 .fr-pellet{fill:var(--fr-pellet)}
 .fr-sub{fill:var(--fr-sub)}
+.fr-pick{fill:none;stroke:var(--accent);stroke-width:2.5}
+.fr-zoom{fill:none;stroke:var(--fr-ln);stroke-width:1;stroke-dasharray:4 4;opacity:.7}
+.fr-empty{fill:none;stroke:var(--fr-win-line);stroke-width:1.5;stroke-dasharray:6 5}
+.fr-net{fill:none;stroke:var(--fr-water);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.fr-peg{fill:var(--fr-peg);stroke:var(--fr-mito-line);stroke-width:1.2}
+.fr-peg--cut rect{fill:var(--fr-peg);stroke:var(--fr-mito-line);stroke-width:1;opacity:.5}
+.fr-trail{fill:none;stroke:var(--fr-prot);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;opacity:.4}
+.fr-bump{fill:none;stroke:var(--fr-prot);stroke-width:1.6}
+.fr-bump--hit{stroke:var(--fr-bad);stroke-width:2.4}
+.fr-er-sac--s{stroke-width:3}
+.fr-mito-b{fill:none;stroke:#5E9A63;stroke-width:2}
+.fr-lyso-b{fill:none;stroke:#C2577B;stroke-width:1.8}
+.fr-liq--in{fill-opacity:.58}
+.fr-veil{fill:var(--stage);opacity:.78}
+.fr-spin{fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linecap:round;opacity:.9}
+.fr-ice-hi{fill:none;stroke:#FFFFFF;stroke-width:2;stroke-linecap:round;opacity:.9}
+.fr-move{fill:none;stroke:var(--fr-ln);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.fr-meter{fill:var(--fr-sq);stroke:var(--fr-win-line);stroke-width:1.2}
+.fr-meter-f{fill:var(--fr-prod)}
 .fr-prod{fill:var(--fr-prod);stroke:color-mix(in srgb,var(--fr-prod) 60%,var(--ink));stroke-width:1}
 .fr-ln{stroke:var(--fr-ln);stroke-width:1.5}
 .fr-dot{fill:var(--fr-ln)}
@@ -159,6 +202,19 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 /* names on the picture: one line from a margin (a laptop) or a numbered pin with a key (a phone), only at rest */
 .frv__nm{position:absolute;left:0;top:0;display:block;padding:4px 9px;border-radius:9px;background:var(--label-bg);color:var(--label);border:1px solid var(--rule2);box-shadow:0 2px 8px rgba(20,26,36,.12);font:800 16px/1.2 var(--sans);opacity:0;transition:opacity .25s ease}
 .frv__nm span{display:block;font:700 13.5px/1.25 var(--sans);color:var(--ink2);margin-top:1px}
+/* a name with a card is a button: a ring at its left (a tick once found), filled while its card is open */
+.frv__nm--card{display:flex;align-items:center;gap:7px;border:1.5px solid var(--accent);cursor:pointer;pointer-events:auto;text-align:left}
+.frv__ring{flex:none;position:relative;width:15px;height:15px;border-radius:50%;border:2.5px solid var(--accent)}
+.is-found>.frv__ring{border-color:var(--good);background:var(--good)}
+.is-found>.frv__ring::after{content:'\2713';position:absolute;inset:-2.5px;display:grid;place-items:center;color:var(--sheet);font:900 10px/1 var(--sans)}
+.frv__nm--card:hover,.frv__tag:hover{border-color:var(--ink)}
+.frv__nm--card.is-on,.frv__tag.is-on{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.is-on>.frv__ring{border-color:var(--sheet)}
+.frv__tags{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.frv__tag{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer;padding:4px 11px 4px 7px;border-radius:999px;border:1.5px solid var(--accent);background:var(--label-bg);color:var(--label);font:800 15px/1.2 var(--sans);white-space:nowrap;box-shadow:0 2px 8px rgba(20,26,36,.12)}
+.frv__pin--card{pointer-events:auto;cursor:pointer;border:0;padding:0;box-shadow:0 0 0 2.5px var(--accent),0 2px 6px rgba(0,0,0,.3)}
+.frv__pin--card.is-found{box-shadow:0 0 0 2.5px var(--good),0 2px 6px rgba(0,0,0,.3)}
+.frv__pin--card.is-on{background:var(--accent);color:var(--sheet)}
 .frv__pin{position:absolute;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--gold);color:var(--gold-ink);font:900 13.5px/1 var(--sans);box-shadow:0 0 0 1.5px var(--gold-ink),0 2px 6px rgba(0,0,0,.3);opacity:0;transition:opacity .25s ease}
 .frv--names .frv__nm,.frv--names .frv__pin{opacity:1}
 .frv--still .frv__nm,.frv--still .frv__pin,.frv--still .fr-lines{transition:none}
@@ -167,6 +223,16 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .frv__k{display:inline-flex;align-items:baseline;gap:5px}
 .frv__k b{flex:none;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--gold);color:var(--gold-ink);font:900 12px/1 var(--sans);align-self:center}
 .frv__k i{font-style:normal;font-weight:700;color:var(--ink2)}
+.frv__k--card{align-items:center;gap:6px;padding:3px 8px 3px 4px;border-radius:999px;border:1.5px solid var(--accent);background:var(--sheet);color:var(--ink);font:inherit;cursor:pointer}
+.frv__k--card .frv__ring{width:13px;height:13px}
+.frv__k--card.is-on{background:var(--accent);color:var(--sheet)}
+/* what is counted, beside the picture */
+.frv__strip{grid-area:strip;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 16px;padding:7px 14px;background:var(--sheet);color:var(--ink);border-top:1px solid var(--rule);font:700 15.5px/1.3 var(--sans)}
+.frv__strip[hidden]{display:none}
+.frv__strip b{font-weight:900}
+.frv__strip i{display:inline-block;min-width:1.5em;text-align:right;font:900 19px/1 var(--sans);font-style:normal;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.frv__strip em{font-style:normal;font-weight:900;color:var(--fr-water)}
+.frv__strip em.is-wait,.frv__strip.is-off>*{visibility:hidden}
 
 /* ---------- the sheet: the step, its words, its choices, what they did; then the tags, what is simplified, sources ---------- */
 .frv__panel{grid-area:panel;overflow-y:auto;min-height:0;background:var(--sheet);color:var(--ink);padding:16px 20px 20px;border-left:1px solid var(--rule)}
@@ -215,6 +281,16 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .frv__r p{margin:0}
 .frv__done{margin-top:12px}
 .frv__done:empty{display:none}
+/* the names found, and the card of the name that is pressed */
+.frv__cards{margin-top:14px;padding-top:10px;border-top:1px solid var(--rule)}
+.frv__cards[hidden]{display:none}
+.frv__found{margin:0;font:700 15px/1.3 var(--sans);color:var(--ink2)}
+.frv__found b{font-weight:900;color:var(--ink)}
+.frv__card{position:relative;margin-top:8px;padding:10px 44px 11px 12px;border-radius:12px;background:var(--sheet);border:1.5px solid var(--accent);border-top-width:4px;scroll-margin:12px 0 76px}
+.frv__card h3{margin:0 0 5px;font:800 18px/1.2 var(--serif)}
+.frv__card p{margin:0 0 .5em}
+.frv__card p:last-of-type{margin-bottom:0}
+.frv__cx{position:absolute;top:7px;right:7px;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rule2);background:var(--sheet);color:var(--ink);font:900 14px/1 var(--sans);cursor:pointer}
 .frv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--sheet) 0%,transparent),var(--sheet) 28%)}
 .frv__do button{border-radius:999px;font:800 16px/1 var(--sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--rule2);background:var(--sheet);color:var(--ink)}
 .frv__do button:disabled{opacity:.42;cursor:default}
@@ -230,11 +306,11 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
 .frv__more li{margin:0 0 .5em;font-size:16px;line-height:1.5}
 .frv__more li>span.src{display:block;color:var(--ink2)}
 .frv__more a{color:var(--accent-ink);overflow-wrap:anywhere}
-.frv__tags p{margin:.35em 0 0;font-size:16px}
+.frv__tagsmean p{margin:.35em 0 0;font-size:16px}
 
 /* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
 @media (max-width:860px),(max-aspect-ratio:4/5){
-  .frv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,46fr) auto minmax(0,54fr);grid-template-areas:'stage' 'key' 'panel'}
+  .frv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,48fr) auto auto minmax(0,52fr);grid-template-areas:'stage' 'strip' 'key' 'panel'}
   .frv__panel{border-left:0;border-top:1px solid var(--rule);padding:12px 16px 16px}
   .frv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
 }
@@ -251,6 +327,13 @@ html.fractionationv-open,html.fractionationv-open body{overflow:hidden}
   .frv__st{clear:both}
   .frv__legend{font-size:12.5px;bottom:4px}
   .frv__key{font-size:13px;padding:5px 10px}
+  .frv__strip{font-size:13.5px;padding:4px 10px;gap:1px 12px}
+  .frv__strip i{font-size:16px;min-width:1.3em}
+  .frv__tag{font-size:12.5px;padding:3px 8px 3px 5px;gap:4px;min-height:26px}
+  .frv__tag .frv__ring{width:12px;height:12px;border-width:2px}
+  .frv__lgb{font-size:12.5px;padding:3px 8px 3px 6px;min-height:26px}
+  .frv__lgb .frv__ring{width:12px;height:12px;border-width:2px;margin-right:4px}
+  .frv__lgrow{gap:3px 9px}
   .frv__ch{min-height:42px;padding:6px 12px;font-size:15px}
   .frv__chs--spin .frv__ch{min-width:0;flex:1 1 40%}
 }

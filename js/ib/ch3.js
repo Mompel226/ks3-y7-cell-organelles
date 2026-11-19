@@ -15,11 +15,12 @@
    (in muscle, the glycerol phosphate shuttle passes them to FAD in the inner membrane: Mráček et al. 2013, BBA 1827:401).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611190715';
-import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611190715';
-import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611190715';
-import { bilayer, MEM } from './membrane.js?v=202611190715';
-import { disposeGroup, glow, smooth } from './stage.js?v=202611190715';
+import { heroMito, heroPoint, along } from '../world/mitoparts.js?v=202611192340';
+import { ballStick, gather, molData, poseAt, faceRing } from './mol.js?v=202611192340';
+import { loadProts, protein, surfacePoints, fadeProt, seeThrough } from './prot.js?v=202611192340';
+import { bilayer, MEM } from './membrane.js?v=202611192340';
+import { disposeGroup, glow, smooth } from './stage.js?v=202611192340';
+import { wander } from './flow.js?v=202611192340';
 
 /* its measured shapes: the view fetches them while the pupil reads the chapter before (view.js ahead) */
 const PROTS = ['vdac', 'mpc_ims', 'mpc_occ', 'mpc_mat'];
@@ -58,7 +59,9 @@ export async function build(stage, { V }) {
   const PP = [V(-14, 9, 1.2), V(VDx, 2, PZ + 0.6), V(VDx, OM, PZ + 0.4), V(VDx, -9, PZ + 0.6), V(MPx - 1.2, -15, 0.8), V(MPx, -21, PZ + 0.8), V(MPx, IM, PZ + 0.6), V(MPx, -31, PZ + 0.6), V(MPx + 4, -34.5, 1.2)];
   const along3 = (pts, f) => { const n = pts.length - 1, i = Math.max(0, Math.min(n - 1, Math.floor(f * n))), k = f * n - i; return pts[i].clone().lerp(pts[i + 1], k * k * (3 - 2 * k)); };
   /* p: 0 in the cytosol … 1 through porin, in the intermembrane space; 2 through the carrier; 3 in the matrix */
-  const pAt = p => p <= 1 ? along3(PP.slice(0, 4), p) : p <= 2 ? along3(PP.slice(3, 8), p - 1) : PP[7].clone().lerp(PP[8], smooth(0, 1, p - 2));
+  /* (19 Nov 2026: its way to the porin, and from the porin to the carrier, wanders: flow.js wander. Before: a straight glide) */
+  const off = (v, w) => v.add(V(w[0], w[1], w[2]));
+  const pAt = p => p <= 1 ? off(along3(PP.slice(0, 4), p), wander(p * 3, 1.5)) : p <= 2 ? off(along3(PP.slice(3, 8), p - 1), wander((p - 1) * 4, 1.2, 1)) : PP[7].clone().lerp(PP[8], smooth(0, 1, p - 2));
   const hIon = glow(1.6, 0xff4f9a, 1); patch.add(hIon);
   const hCore = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 8), new THREE.MeshStandardMaterial({ color: 0xff4f9a, emissive: 0xff4f9a, emissiveIntensity: 0.9 })); patch.add(hCore);
   const NP = [V(-24, 10, 1.2), V(VDx - 0.5, 2, PZ + 0.6), V(VDx, OM, PZ + 0.4), V(VDx - 2, -10, 0.8), V(-3, -19.2, 1.0)];
@@ -87,7 +90,8 @@ export async function build(stage, { V }) {
     /* pyruvate, and its hydrogen ion beside it from the intermembrane space to the matrix */
     const pp = pAt(K.p), insts = [{ key: 'pyruvate', id: 't', P: { p: pp, q: pq }, num: { C1: 4, C2: 5, C3: 6 } }];
     const hp = K.p < 1 ? V(MPx + 1.6, -12, 1) : pp.clone().add(V(1.0, 0.4, 0.6)); hIon.position.copy(hp); hCore.position.copy(hp);
-    hIon.visible = hCore.visible = near > 0.5 && K.p > 0.6 && K.p < 2.9;
+    /* (from step 4, where it is named: until 19 Nov 2026 it stood beside pyruvate, unnamed, at the end of step 3) */
+    hIon.visible = hCore.visible = near > 0.5 && K.p > 1.03 && K.p < 2.9; hIon.material.opacity = smooth(1.03, 1.3, K.p); hCore.scale.setScalar(Math.max(0.01, smooth(1.03, 1.3, K.p)));
     /* NADH: through porin, then turned back by the inner membrane; two electrons go on (a shuttle) */
     if (K.n > 0) {
       const f = Math.min(1, K.n), back = smooth(1, 2, K.n);
@@ -109,10 +113,12 @@ export async function build(stage, { V }) {
     { at: mito.localToWorld(heroPoint(HS, HS.total / 2, 0, 0)), dist: 4200, dir: D(0.06, 0.16, 1), up: UPw },
     { at: pW(-2, -13, -2), dist: 66, dir: D(0.03, 0.08, 1), up: nUp },
     /* framed so that pyruvate is in the picture at each step's end (the review: it had been under the bottom edge) */
-    { at: pW(VDx, -5, -2), dist: 17, dir: D(0.04, 0.1, 1), up: nUp },
-    { at: pW(MPx, -26, -2), dist: 19, dir: D(0.04, 0.08, 1), up: nUp },
-    { at: pW(-4, -13, -2), dist: 40, dir: D(0.03, 0.08, 1), up: nUp },
-    { at: pW(MPx + 2, -30, -2), dist: 19, dir: D(0.04, 0.08, 1), up: nUp }
+    /* (19 Nov 2026, the science read: from further back and higher, so that pyruvate is seen in the cytosol before it enters the porin) */
+    { at: pW(VDx, -3.2, -2), dist: 24, dir: D(0.04, 0.1, 1), up: nUp },
+    /* (a phone: each looks a little lower, so that pyruvate, and the electrons at the inner membrane, stand above the key and the scale bar at the picture's foot: 19 Nov 2026, until then they lay under the key) */
+    { at: pW(MPx, -26, -2), atN: pW(MPx, -28.6, -2), dist: 19, dir: D(0.04, 0.08, 1), up: nUp },
+    { at: pW(-4, -13, -2), atN: pW(-4, -16, -2), dist: 40, dir: D(0.03, 0.08, 1), up: nUp },
+    { at: pW(MPx + 2, -30, -2), atN: pW(MPx + 2, -33.2, -2), dist: 19, dir: D(0.04, 0.08, 1), up: nUp }
   ];
   /* ---- names ---- */
   const hW = (s, a) => mito.localToWorld(heroPoint(HS, s, a, 0));
@@ -136,16 +142,17 @@ export async function build(stage, { V }) {
   };
   const steps = [
     { phases: [{ to: { cam: 0 }, ms: 800 }], labs: { mOM: 1, mIM: 1, mCr: 1, mMx: 2 } },
-    { phases: [{ to: { cam: 1 }, ms: 3800 }], labs: { cyt: 1, om: 1, ims: 1, im: 1, mx: 1 } },
-    { phases: [{ to: { cam: 2 }, ms: 1600 }, { to: { p: 1 }, ms: 3200 }], labs: { vdac: 1, pyr: 1, ims: 2 } },
+    /* (a phone: the three spaces are named by the key of colours under the picture; their names have no room beside it) */
+    { phases: [{ to: { cam: 1 }, ms: 3800 }], labs: { cyt: 1, om: 1, ims: 1, im: 1, mx: 1 }, labsN: { om: 1, ims: 1, im: 1 } },
+    { phases: [{ to: { cam: 2 }, ms: 1600 }, { to: { p: 1 }, ms: 3200 }], labs: { vdac: 1, pyr: 1, ims: 2 }, arrow: 'auto' },      /* (a still: an arrow along pyruvate's way; view.js stillArrow) */
     /* the real order (Daniel, 8 Nov 2026: "make sure that it matches the reality ... in terms of timing"): pyruvate moves into
        the carrier, open to the intermembrane space, and binds (p 1.75: the middle); then the carrier closes round it (its
        measured occluded shape), then opens to the matrix; pyruvate leaves; only once it is out does the empty carrier
        change back (before, it began to change back while pyruvate was still leaving it) */
-    { phases: [{ to: { cam: 3 }, ms: 1800 }, { to: { p: 1.45 }, ms: 1600 }, { to: { p: 1.75 }, ms: 1300 }, { to: { mpc: 1 }, ms: 1300 }, { to: { mpc: 2 }, ms: 1500 }, { to: { p: 1.95 }, ms: 900 }], labs: { mpc: 1, pyr: 1, h: 1 } },
-    { phases: [{ to: { p: 2.4 }, ms: 1100 }, { to: { p: 3, mpc: 0, cam: 5 }, ms: 2200 }], labs: { pyr: 1, mx: 1, mpc: 2 } },
+    { phases: [{ to: { cam: 3 }, ms: 1800 }, { to: { p: 1.45 }, ms: 1600 }, { to: { p: 1.75 }, ms: 1300 }, { to: { mpc: 1 }, ms: 1300 }, { to: { mpc: 2 }, ms: 1500 }, { to: { p: 1.95 }, ms: 900 }], labs: { mpc: 1, pyr: 1, h: 1 }, arrow: 'auto' },
+    { phases: [{ to: { p: 2.4 }, ms: 1100 }, { to: { p: 3, mpc: 0, cam: 5 }, ms: 2200 }], labs: { pyr: 1, mx: 1, mpc: 2 }, arrow: 'auto' },
     { phases: [{ to: { cam: 4, n: 1 }, ms: 3600 }, { to: { e: 1.2 }, ms: 2200 }, { to: { n: 2 }, ms: 1600 }], labs: { nadh: 1, e: 1, im: 2 } },
-    { phases: [{ to: { cam: 1 }, ms: 2000 }], labs: { om: 1, im: 1, mx: 1 } }
+    { phases: [{ to: { cam: 1 }, ms: 2000 }], labs: { om: 1, im: 1, mx: 1 }, labsN: { om: 1, im: 1 } }
   ];
   return { group: g, knobs, views, steps, labels, draw, nums, narrowZoom: 0.85, key: [['cytosol', '#1c2660'], ['intermembrane space', '#4a2449'], ['matrix', '#4a2e1a']], turn: true, dispose() { BS.dispose(); disposeGroup(g); } };
 }

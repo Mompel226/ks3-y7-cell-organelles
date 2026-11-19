@@ -18,15 +18,28 @@
    labels {name: {html, side, pts()}}, draw(K, t, dt), nums(K) (glucose's carbons to number), pick(ray) (a press on the
    picture), dispose() }. Any step can be shown from its start (Back, Replay, a jump): the knobs at the start of step k are
    the first knobs with every earlier phase applied, so nothing ever depends on how the pupil got there.
+   19 Nov 2026 (Daniel's rule for the IB views, memory teach-on-the-picture: about 49 words on show, no guide line
+   folded): a step may have `cards` (text.js): a guide line that says what ONE named part is stands in that name's card.
+   A name with a card is a button with a ring (on the picture, and again under the step's words, so a name with no room
+   on a phone's picture can still be pressed); pressed, its card opens under the words, the name is ticked and counted
+   ("1 of 2 found": found.js). A step may have a count that is drawn again while the picture moves (`live`, chapter 1's
+   oxygen: flow.js). With Reduce motion a step is one still; where something travels, the step says so (`arrow`) and an
+   arrow shows its way, on no name. A phone may have its own names and its own framing of a view (`labsN`, `atN`).
+   Checks: tools/ib-check.mjs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611190715';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611190715';
-import { level, levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611190715';
+import { makeStage, smooth, V, glow } from './stage.js?v=202611192340';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611192340';
+import { level, levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611192340';
+import { marks, codesOf } from './mark.js?v=202611192340';      /* (a visit from the IB map marks its sentence) */
+import { found, learn } from './found.js?v=202611192340';        /* (which names with a card have been opened) */
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"): its
    switch in the header; at SL the HL lines are hidden, a chapter or step of HL lines only is marked HL on its button, and
    Next and Back go past it (the link reaction and the Krebs cycle are HL only); it opens when its button is pressed */
 const slSkips = C => level() === 'sl' && hlOnly(C);
+/* the picture stands above the words, and is low (css/ib.css: a phone, a narrow window, a tablet held upright): a step's own names
+   and a view's own framing for a small picture apply (`labsN`, `atN`), and a board stands under the words */
+const stacked = () => matchMedia('(max-width: 860px), (max-aspect-ratio: 4/5)').matches;
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const store = {
@@ -41,17 +54,18 @@ const FAST = TEST || !!(window.matchMedia && window.matchMedia('(prefers-reduced
 let numsNow = null;     /* the carbon numbers the step on show names (show(), below) */
 
 /* a paragraph's level chip: [sl], [hl], [x], with an IB code after it ([hl C1.2.8]) */
+const para = p => {
+  /* a tag may carry several codes, or a range: [hl C1.2.8, C1.2.12], [hl C1.2.11–16] */
+  const m = /^\[(sl|hl|x)(?:\s+([A-Z][0-9.]+(?:[–-][0-9.]+)?(?:,\s*[A-Z][0-9.]+(?:[–-][0-9.]+)?)*))?\]\s*/.exec(p);
+  if (!m) return `<p>${p}</p>`;
+  const L = LEVELS[m[1]];
+  return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}" title="">${esc(L.name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
+};
 function paras(t) {
   /* [!] a step's plain first line: what happens, where, and why (no chip); [x+] detail beyond the guide that the story does
      not need, folded under "More detail" at the step's end (it may carry a tag of its own: [x+] [hl B1.2.11] …)
      (14 Nov 2026, text.js 'x-insulin') */
-  const one = p => {
-    /* a tag may carry several codes, or a range: [hl C1.2.8, C1.2.12], [hl C1.2.11–16] */
-    const m = /^\[(sl|hl|x)(?:\s+([A-Z][0-9.]+(?:[–-][0-9.]+)?(?:,\s*[A-Z][0-9.]+(?:[–-][0-9.]+)?)*))?\]\s*/.exec(p);
-    if (!m) return `<p>${p}</p>`;
-    const L = LEVELS[m[1]];
-    return `<p class="lvp lvp--${m[1]}"><span class="lv lv--${m[1]}" title="">${esc(L.name)}${m[2] ? ` <i>${esc(m[2])}</i>` : ''}</span> ${p.slice(m[0].length)}</p>`;
-  };
+  const one = para;
   const main = [], more = [];
   fit(t).split('\n').forEach(p => {
     if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`);
@@ -116,7 +130,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611190715', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611192340', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -125,14 +139,16 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611190715' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611192340' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive
    while the pupil reads, so the door then opens at once (the audit, 5 Nov 2026: 0.6 s with nothing to see) */
 export function warm() { styles(); chapterModule(CHAPTERS[0]).catch(() => {}); }
 
-export function openIB({ mount = document.body, inGame = false, start = null, onClose = null } = {}) {
+export function openIB({ mount = document.body, inGame = false, start = null, onClose = null, mark = null, backLabel = '← Back to the game' } = {}) {
+  /* (the way back: its first words give way on a narrow bar, as they always did) */
+  const backTo = /^← Back to the (.+)$/.exec(backLabel || ''), backHtml = backTo ? `← <span>Back to the </span>${esc(backTo[1])}` : esc(backLabel);
   const css = styles();
   const root = document.createElement('div');
   root.className = 'ibv' + (inGame ? ' ibv--game' : '');
@@ -147,7 +163,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       <div class="ibv__tools">
         <button type="button" class="ibv__tool ibv__wbtn" aria-expanded="false">Words</button>
         <button type="button" class="ibv__tool ibv__full" aria-label="Full screen">⛶<span> Full screen</span></button>
-        ${inGame ? '<button type="button" class="ibv__tool ibv__home ibv__close">← <span>Back to the </span>game</button>' : '<a class="ibv__tool ibv__home" href="../">← <span>The cell </span>game</a>'}
+        ${inGame ? `<button type="button" class="ibv__tool ibv__home ibv__close">${backHtml}</button>` : '<a class="ibv__tool ibv__home" href="../">← <span>The cell </span>game</a>'}
       </div>
     </header>
     <div class="ibv__main">
@@ -157,6 +173,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
         <div class="ibv__paper" hidden></div>
         <div class="ibv__veil is-on is-first" aria-hidden="true"></div>
         <p class="ibv__wait" hidden>Loading the measured shapes…</p>
+        <svg class="ibv__arrow" aria-hidden="true"></svg>
       </div>
       <aside class="ibv__panel" aria-label="The steps">
         <div class="ibv__where"><div class="ibv__mmwrap"></div><div><p class="ibv__chn"></p><h2 class="ibv__cht"></h2></div></div>
@@ -164,6 +181,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
         <div class="iblv-cline"><p class="ibv__count" aria-live="polite"></p><div class="ibv__lvl">${levelSwitch()}</div></div>
         <nav class="ibv__steps" aria-label="The steps of this part"></nav>
         <div class="ibv__text" aria-live="polite"></div>
+        <div class="ibv__find" hidden></div>
         <div class="ibv__xs"></div>
         <div class="ibv__do">
           <button type="button" class="ibv__back" aria-label="The step before">← Back</button>
@@ -182,6 +200,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       <div class="ibv__langs" role="group" aria-label="Translations"><button type="button" data-l="all">한국어 + 中文</button><button type="button" data-l="ko" lang="ko">한국어</button><button type="button" data-l="zh" lang="zh-Hans">中文</button><button type="button" data-l="en">English only</button></div>
       <div class="ibv__wblist"></div></aside>`;
   mount.appendChild(root);
+  const unmark = marks(root, mark || (start && start.mark));
   /* shown only once its styles are there (the audit: its first opening in the game had shown it unstyled for 10 frames) */
   if (!css.sheet) {
     root.style.visibility = 'hidden';
@@ -196,8 +215,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   const veilEl = $('.ibv__veil');
 
   /* ---------------- the stage, and the knobs that drive it ---------------- */
-  let scene = null, K = {}, tw = null, drag = { yaw: 0, pitch: 0, on: false };
-  const stage = makeStage(stageEl, { onFrame });
+  let scene = null, K = {}, tw = null, drag = { yaw: 0, pitch: 0, on: false }, liveFn = null, liveHtml = null;
+  const stage = makeStage(stageEl, { onFrame, calm: FAST, onPart: true });
   function onFrame(t, dt) {
     if (!scene || warming) return;
     if (tw) {
@@ -209,7 +228,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       /* a camera move goes straight from the view it starts at to the view it ends at (never through the views between) */
       const VW = scene.views, clampI = x => Math.max(0, Math.min(VW.length - 1, Math.round(x)));
       /* a view that says what it must hold stands as far back as this screen needs (stage.js fitView) */
-      const vw = i => VW[i].fit ? Object.assign({}, VW[i], stage.fitView(VW[i])) : VW[i];
+      /* (a phone's picture is lower and has the key and the scale bar along its foot: a view may look at another point there, `atN`) */
+      const vw = i => { const w = VW[i].fit ? Object.assign({}, VW[i], stage.fitView(VW[i])) : VW[i]; return stacked() && w.atN ? Object.assign({}, w, { at: w.atN }) : w; };
       let v;
       if (tw && tw.to.cam != null && tw.from.cam !== tw.to.cam) { const a = clampI(tw.from.cam), b = clampI(tw.to.cam), f = (K.cam - tw.from.cam) / (tw.to.cam - tw.from.cam); v = stage.between(vw(a), vw(b), Math.max(0, Math.min(1, f))); }
       else { const c = clampI(K.cam), w = vw(c); v = { at: w.at.clone(), dist: w.dist, dir: w.dir.clone(), up: w.up.clone() }; }
@@ -225,6 +245,8 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       stage.setView(v);
     }
     scene.draw(K, t, dt);
+    /* a step's count, drawn again as the picture moves (chapter 1's oxygen) */
+    if (liveFn) { const h = liveFn(K); if (h !== liveHtml) { liveHtml = h; boardEl.innerHTML = h; } }
     /* the atoms no name may cover (a chapter of molecules) */
     stage.setAvoid(scene.avoid ? scene.avoid() : []);
     /* the carbon numbers the step names (a step's nums: 'all' or a list; none without), and any charges; the others are
@@ -302,7 +324,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
        arrow key, had left the view on its wait for good) */
     loading = true; stage.setBusy(true); root.classList.add('is-loading');
     nextB.disabled = backB.disabled = againB.disabled = true; nextB.classList.remove('pulse');
-    tw = null; stage.showLabels({}); stage.setRest(false);
+    tw = null; stage.showLabels({}); stage.setRest(false); liveFn = null; arrowClear();
     if (window.IBV && window.IBV.at) window.IBV.at = Object.assign({}, window.IBV.at, { rest: false });
     $$('.ibv__tab').forEach(b => b.classList.toggle('is-on', b.dataset.ch === String(i)));
     /* the picture dims while the next one is made; then its words, names and picture change together (Daniel, 5 Nov
@@ -376,13 +398,17 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     upB.hidden = !xRet;
     if (xRet) { const P = CHAPTERS[xRet.ci]; upB.textContent = '← Back to ' + (/^\d+$/.test(P.n) ? `chapter ${P.n}: ${P.short}` : P.short); }
     textEl.innerHTML = (st.h ? `<h3 class="ibv__sth">${esc(st.h)}</h3>` : '') + hlNote(st) + paras(st.t); termsIn(textEl);
+    card = ''; drawFind(); arrowClear();
     picEl.textContent = sst.pic || (scene.pic ? scene.pic(s) : '');
     picEl.hidden = !picEl.textContent;
     /* a step with a board: its hint stands at the left from the start, clear of the board (top right on a wide screen) */
-    stageEl.classList.toggle('has-board', !!sst.board);
+    stageEl.classList.toggle('has-board', !!(sst.board || sst.live));
     /* the board changes at rest, with the names: during the step it still shows what was true before it (the expert
        review: it had counted FADH₂ before FAD was reduced) */
     if (!sst.board || boardEl.dataset.ci !== String(ci)) { boardEl.innerHTML = ''; boardEl.hidden = true; }
+    /* a live count is there from the step's start (it begins at nought) */
+    liveFn = sst.live || null; liveHtml = null;
+    if (liveFn) { placeBoard(); boardEl.innerHTML = liveHtml = liveFn(Object.assign({}, K, knobsAfter(s - 1))); boardEl.hidden = false; boardEl.dataset.ci = String(ci); }
     /* a page to read instead of a picture (the tally, the questions, the article) */
     paperEl.hidden = !scene.paper; root.classList.toggle('is-paper', !!scene.paper); stage.setPaused(!!scene.paper);
     if (scene.paper) {
@@ -412,19 +438,22 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
       await tweenTo(ph); if (my !== token) return;
     }
     else Object.assign(K, knobsAfter(s));
-    if (sst.board) {
-      /* on a phone the board stands under the step's words, not on the picture (the expert review: it hid half of it) */
-      const narrow = matchMedia('(max-width: 560px)').matches, home = narrow ? textEl.parentNode : stageEl;
-      if (boardEl.parentNode !== home) { if (narrow) textEl.after(boardEl); else stageEl.appendChild(boardEl); }
-      boardEl.classList.toggle('ibv__board--panel', narrow);
-      boardEl.innerHTML = sst.board; boardEl.hidden = false; boardEl.dataset.ci = String(ci);
-    }
-    stage.showLabels(sst.labs || {}); stage.setRest(true);
+    if (sst.board) { placeBoard(); boardEl.innerHTML = sst.board; boardEl.hidden = false; boardEl.dataset.ci = String(ci); }
+    /* (a phone's picture is small: a step may say which names it shows there, `labsN`; else the same, main names only) */
+    stage.showLabels((stacked() && sst.labsN) || sst.labs || {}); stage.setRest(true);
+    if (FAST) { await frames(2); if (my !== token) return; stillArrow(s); }
     nextB.disabled = false; againB.disabled = false; nextB.classList.add('pulse');
     if (typeof ci === 'string' && !inGame) history.replaceState(null, '', '#' + ci + '-' + (s + 1));
     if (typeof ci === 'number') { const done = store.get('ib', {}); done.at = { ci, si: s }; done.max = done.max || {}; done.max[C.id] = Math.max(done.max[C.id] || 0, s + 1); store.set('ib', done); if (!inGame) history.replaceState(null, '', '#' + C.id + '-' + (s + 1)); }
     window.IBV.at = { ci, si: s, rest: true };
     ahead();
+  }
+  /* on a phone the board stands under the step's words, not on the picture (the expert review: it hid half of it); since 19 Nov
+     2026 wherever the picture stands above the words (a tablet held upright too: its picture is as low as a phone's) */
+  function placeBoard() {
+    const narrow = stacked(), home = narrow ? textEl.parentNode : stageEl;
+    if (boardEl.parentNode !== home) { if (narrow) findEl.after(boardEl); else stageEl.appendChild(boardEl); }
+    boardEl.classList.toggle('ibv__board--panel', narrow);
   }
   function nextChapterLabel() { const n = nextOpen(ci); return n != null ? (/^\d+$/.test(CHAPTERS[n].n) ? `Chapter ${CHAPTERS[n].n}: ${CHAPTERS[n].short} →` : `${CHAPTERS[n].short} →`) : (inGame ? 'Back to the game →' : 'The end'); }
   function nextOpen(i) { if (typeof i !== 'number') return null; for (let j = i + 1; j < CHAPTERS.length; j++) if (!CHAPTERS[j].soon && !slSkips(CHAPTERS[j])) return j; return null; }
@@ -444,6 +473,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   againB.addEventListener('click', () => show(si));
   const relevel = () => {
     if (closed) { document.removeEventListener('iblevel', relevel); return; }
+    if (steps.length && !loading) drawFind();
     if (!steps.length || loading || nextB.disabled) return;
     backB.disabled = skip(steps, si, -1) < 0 && !xRet && ci === 0;
     nextB.textContent = skip(steps, si, 1) >= steps.length ? (xRet ? 'Back to the chapter →' : nextChapterLabel()) : 'Next step →';
@@ -456,7 +486,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   /* a press on the picture: the map's numbers open their chapters */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   let down = null;
-  stageEl.addEventListener('pointerdown', e => { if (loading || e.target.closest('button')) return; down = { x: e.clientX, y: e.clientY, yaw: drag.yaw, pitch: drag.pitch }; drag.on = true; stageEl.setPointerCapture && stageEl.setPointerCapture(e.pointerId); });
+  stageEl.addEventListener('pointerdown', e => { if (loading || e.target.closest('button, [data-card]')) return; down = { x: e.clientX, y: e.clientY, yaw: drag.yaw, pitch: drag.pitch }; drag.on = true; stageEl.setPointerCapture && stageEl.setPointerCapture(e.pointerId); });
   stageEl.addEventListener('pointermove', e => {
     if (!down) { /* light means press: only what a press opens lights */
       if (scene && scene.hover) { const r = stageEl.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, stage.cam); stageEl.style.cursor = scene.hover(ray) ? 'pointer' : ''; }
@@ -474,6 +504,134 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     const to = scene.pick(ray); if (to != null && CHAPTERS[to] && !CHAPTERS[to].soon) openChapter(to, 0);
   });
   stageEl.addEventListener('pointercancel', () => { drag.on = false; down = null; });
+
+  /* ---------------- the names that open a card (19 Nov 2026) ----------------
+     A step's `cards` (text.js): { key: { t: its lines, n: its name where the picture's own is not the one to show } }.
+     key is a name of the picture: one of the chapter's `labels`, or any element of the picture marked data-k="key"
+     (the overview band's enzymes). At SL a card that holds HL lines only is no card: its name stays a plain name. */
+  const VIEW = 'atp', findEl = $('.ibv__find'), arrowEl = $('.ibv__arrow');
+  let card = '';
+  const cardsNow = () => (steps[si] && steps[si].cards) || {};
+  const pressable = id => { const q = cardsNow()[id]; return !!q && !(level() === 'sl' && hlOnly(q.t)); };
+  const pressIds = () => Object.keys(cardsNow()).filter(pressable);
+  const keyOf = id => (typeof ci === 'string' ? ci : C.id) + '-' + (si + 1) + ':' + id;
+  const cardName = id => { const q = cardsNow()[id], L = scene && scene.labels && scene.labels[id]; return q.n || (L ? L.html : esc(id)); };
+  const cardLines = t => String(t).split('\n').filter(p => !(level() === 'sl' && /^\[hl[\s\]]/.test(p))).map(para).join('');
+  function drawFind() {
+    const ids = pressIds(); card = '';
+    findEl.hidden = !ids.length;
+    findEl.innerHTML = ids.length ? '<p class="ibv__findh"><b>Press each name</b><span class="ibv__fn"></span></p>'
+      + `<div class="ibv__chips" role="group" aria-label="The names to press">${ids.map(id => `<button type="button" class="ibv__chip" data-card="${esc(id)}" data-codes="${esc(codesOf(cardsNow()[id].t))}" aria-expanded="false"><i aria-hidden="true"></i><span>${cardName(id)}</span></button>`).join('')}</div>`
+      + '<div class="ibv__card" role="note" aria-live="polite" hidden></div>' : '';
+    markNames();
+  }
+  /* the picture's own names: one with a card is a button. Its ring is there from the start and is only filled when the
+     card has been read, so a name never changes size (a name that grew would be placed again, and jump) */
+  function markNames() {
+    const ids = pressIds(), F = found(VIEW); let changed = false;
+    stageEl.querySelectorAll('[data-k]').forEach(el => {
+      const id = el.dataset.k, on = ids.includes(id), was = el.hasAttribute('data-card');
+      if (on) { el.dataset.card = id; el.dataset.codes = codesOf(cardsNow()[id].t); el.setAttribute('role', 'button'); el.tabIndex = 0; }
+      else if (was) ['data-card', 'data-codes', 'role', 'tabindex'].forEach(a => el.removeAttribute(a));
+      if (on !== was) changed = true;
+      el.classList.toggle('is-card', on); el.classList.toggle('is-found', on && F.has(keyOf(id))); el.classList.toggle('is-open', on && id === card);
+    });
+    if (changed) stage.refitLabels();
+    findEl.querySelectorAll('.ibv__chip').forEach(b => { const id = b.dataset.card; b.classList.toggle('is-found', F.has(keyOf(id))); b.classList.toggle('is-open', id === card); b.setAttribute('aria-expanded', String(id === card)); });
+    const fn = findEl.querySelector('.ibv__fn'); if (fn) fn.textContent = `${ids.filter(id => F.has(keyOf(id))).length} of ${ids.length} found`;
+  }
+  function closeCard() { if (!card) return; card = ''; const box = findEl.querySelector('.ibv__card'); if (box) { box.hidden = true; box.innerHTML = ''; } markNames(); }
+  function openCard(id) {
+    if (!pressable(id)) return;
+    if (card === id) { closeCard(); return; }
+    const box = findEl.querySelector('.ibv__card'); if (!box) return;
+    card = id; learn(VIEW, keyOf(id));
+    box.innerHTML = `<div class="ibv__cardh"><b>${cardName(id)}</b><button type="button" class="ibv__cardx" aria-label="Close">×</button></div>` + cardLines(cardsNow()[id].t);
+    box.hidden = false; termsIn(box); markNames();
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+  }
+  root.addEventListener('click', e => {
+    if (e.target.closest('.ibv__cardx')) { closeCard(); return; }
+    if (e.target.closest('.ibv-term')) return;
+    const b = e.target.closest('[data-card]'); if (b && root.contains(b) && !loading) openCard(b.dataset.card);
+  });
+  root.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.ibv__stage [data-card]')) { e.preventDefault(); openCard(e.target.dataset.card); } });
+
+  /* ---------------- Reduce motion: one still a step, with an arrow where something travels ----------------
+     A step says so itself (a chapter's steps): `arrow: 'auto'`, the way of the step's main names (where each stood at the
+     step's start, at moments between, and at its end: the picture is worked out at each, not drawn; the name that went
+     furthest on the screen gives the way), or `arrow: K => [points of the picture]`. No other step has an arrow: where a
+     molecule only changes on the spot, or the camera goes to the next enzyme, an arrow would say that something travels.
+     The names come first: the arrow is drawn only where it lies on no name (its longest clear stretch), and on a
+     phone's small picture only the last stretch of an 'auto' way. A filled shape with a fixed head, as the membrane
+     view's (js/membrane/view.js arrowDraw). */
+  const arrowClear = () => { arrowEl.innerHTML = ''; };
+  /* (k: its weight, 1 or less: a thinner arrow for the smaller of two movements) */
+  function arrowDraw(pts, k = 1) {
+    if (pts.length < 2) return;
+    arrowEl.setAttribute('viewBox', `0 0 ${stage.W} ${stage.H}`);
+    const nar = stage.W < 560, W2 = (nar ? 3 : 5) * k, HL = (nar ? 17 : 24) * (0.5 + k / 2), HW = (nar ? 9 : 13) * (0.4 + 0.6 * k), L = [], R = [];
+    const n = pts.length, ex = pts[n - 1][0] - pts[n - 2][0], ey = pts[n - 1][1] - pts[n - 2][1], el = Math.hypot(ex, ey) || 1, bx = pts[n - 1][0] - ex / el * HL, by = pts[n - 1][1] - ey / el * HL;
+    const body = pts.slice(0, n - 1).filter(p => (pts[n - 1][0] - p[0]) * ex + (pts[n - 1][1] - p[1]) * ey > HL * el || p === pts[0]).concat([[bx, by]]);
+    for (let i = 0; i < body.length; i++) {
+      const a = body[Math.max(0, i - 1)], b = body[Math.min(body.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+      L.push([body[i][0] + nx * W2, body[i][1] + ny * W2]); R.push([body[i][0] - nx * W2, body[i][1] - ny * W2]);
+    }
+    const nx = -ey / el, ny = ex / el, f = v => v.map(c => c.toFixed(1)).join(',');
+    const shape = L.concat([[bx + nx * HW, by + ny * HW], pts[n - 1], [bx - nx * HW, by - ny * HW]]).concat(R.reverse());
+    arrowEl.insertAdjacentHTML('beforeend', `<polygon points="${shape.map(f).join(' ')}"/>`);
+  }
+  function stillArrow(s) {
+    arrowClear(); if (!scene || scene.paper) return;
+    const sst = scene.steps[s] || {}, auto = typeof sst.arrow === 'string' && sst.arrow.startsWith('auto');
+    let way = typeof sst.arrow === 'function' ? sst.arrow(K) : null;
+    if (auto) {
+      /* ('auto:glucose': the way of that name only) */
+      const only = sst.arrow.slice(5), main = only ? [only].filter(k => scene.labels && scene.labels[k]) : Object.keys(sst.labs || {}).filter(k => sst.labs[k] === 1 && scene.labels && scene.labels[k]);
+      const states = [knobsAfter(s - 1)], S0 = Object.assign({}, states[0]);
+      for (const ph of phasesOf(sst)) {
+        if (ph.hold || !ph.to) continue;
+        for (const f of [0.2, 0.4, 0.6, 0.8, 1]) { const M = Object.assign({}, S0); for (const n in ph.to) { const a = S0[n] != null ? S0[n] : ph.to[n]; M[n] = a + (ph.to[n] - a) * f; } states.push(M); }
+        Object.assign(S0, ph.to);
+      }
+      const tracks = main.map(() => []);
+      for (const M of states) {
+        scene.draw(M, 0, 0);
+        main.forEach((k, i) => { const P = scene.labels[k].pts() || []; if (!P.length) { tracks[i].push(null); return; } const c = new THREE.Vector3(); P.forEach(p => c.add(p)); tracks[i].push(c.divideScalar(P.length)); });
+      }
+      scene.draw(K, 0, 0);
+      let far = 0;
+      for (const T of tracks) {
+        if (!T[T.length - 1]) continue;
+        const pts = T.filter(Boolean); if (pts.length < 2) continue;
+        const a = stage.project(pts[0]), b = stage.project(pts[pts.length - 1]), d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        if (d > far) { far = d; way = pts; }
+      }
+      if (far < 48) way = null;
+    }
+    if (!way || way.length < 2) return;
+    /* a step may give two arrows of different weights (more went one way than the other): [{ pts, k }, …] */
+    const ways = way[0] && way[0].pts ? way : [{ pts: way, k: 1 }];
+    for (const w of ways) oneArrow(w.pts, w.k == null ? 1 : w.k, auto);
+  }
+  function oneArrow(way, k, auto) {
+    /* on the screen: the part inside the picture; its head stops short of the thing itself */
+    let px = way.map(p => stage.project(p)).filter(q => q[2] && q[0] > 6 && q[0] < stage.W - 6 && q[1] > stage.ovH + 6 && q[1] < stage.H - 6).map(q => [q[0], q[1]]);
+    if (px.length < 2) return;
+    /* every 4 pixels along it */
+    const fine = [px[0]]; for (let i = 1; i < px.length; i++) { const a = px[i - 1], b = px[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]), k = Math.max(1, Math.round(d / 4)); for (let j = 1; j <= k; j++) fine.push([a[0] + (b[0] - a[0]) * j / k, a[1] + (b[1] - a[1]) * j / k]); }
+    const nar = stage.W < 560, cut = auto ? 5 : 0;      /* (5 samples: 20 px short of the thing) */
+    let run = fine.slice(0, Math.max(2, fine.length - cut));
+    if (auto && nar) run = run.slice(-13);                                            /* (a phone: the last 48 px) */
+    /* the longest stretch that lies on no name (a name's box, and room for the arrow's head beside it) */
+    const pad = (nar ? 9 : 13) + 3, boxes = stage.labelState().filter(x => x.on && x.box).map(x => ({ l: x.box.l - pad, r: x.box.r + pad, t: x.box.t - pad, b: x.box.b + pad }));
+    const clear = p => !boxes.some(o => p[0] > o.l && p[0] < o.r && p[1] > o.t && p[1] < o.b);
+    let best = [], cur = [];
+    for (const p of run) { if (clear(p)) { cur.push(p); if (cur.length > best.length) best = cur; } else cur = []; }
+    if (best.length < 11) return;                                                     /* (shorter than 40 px: no arrow) */
+    /* fewer points: one every 16 px, and the last */
+    arrowDraw(best.filter((p, i) => i % 4 === 0 || i === best.length - 1), k);
+  }
 
   /* ---------------- words: a tip where the word is, and the list ---------------- */
   let tip = null, tipFor = null;
@@ -497,7 +655,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   const wb = $('.ibv__wb'), wbtn = $('.ibv__wbtn');
   function fillWords() {
     const G = window.KS3_GLOSSARY; if (!G) return;
-    const keys = []; [...CHAPTERS, ...Object.values(EXPLORE)].forEach(c => (c.steps || []).forEach(s => (s.t.match(/data-w="([^"]+)"/g) || []).forEach(m => { const k = m.slice(8, -1); if (!keys.includes(k)) keys.push(k); })));
+    const keys = []; [...CHAPTERS, ...Object.values(EXPLORE)].forEach(c => (c.steps || []).forEach(s => ((s.t + Object.values(s.cards || {}).map(q => q.t).join(' ')).match(/data-w="([^"]+)"/g) || []).forEach(m => { const k = m.slice(8, -1); if (!keys.includes(k)) keys.push(k); })));
     const l = lang();
     $('.ibv__wblist').innerHTML = keys.map(k => G.by[k]).filter(Boolean).map(w => `<details class="ibv__w"><summary><b>${esc(w.en)}</b>${l !== 'en' && l !== 'zh' ? `<span lang="ko">${esc(w.ko)}</span>` : ''}${l !== 'en' && l !== 'ko' ? `<span lang="zh-Hans">${esc(w.zh)}</span>` : ''}</summary><p>${esc(w.d)}</p>${sayHtml(w)}</details>`).join('');
     $$('.ibv__langs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
@@ -531,7 +689,7 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
   };
   document.addEventListener('keydown', onKey);
   let closed = false;
-  function close() {
+  function close() { unmark();
     if (closed) return; closed = true; token++;
     if (scene && scene.dispose) scene.dispose();
     document.removeEventListener('fullscreenchange', onFull); document.removeEventListener('webkitfullscreenchange', onFull);
@@ -547,6 +705,12 @@ export function openIB({ mount = document.body, inGame = false, start = null, on
     goto: (c, s) => openChapter(c, s),
     stepAtRest: () => !!(window.IBV.at && window.IBV.at.rest && !tw),
     labels: () => stage.labelState(),
+    /* for the checks (tools/ib-check.mjs): the words on show, the names to press, a press, the live count, the arrow */
+    shown: () => { const c = textEl.cloneNode(true); c.querySelectorAll('.lv, .ibv__sth, details:not([open]) > :not(summary), summary, .iblv-note' + (level() === 'sl' ? ', .lvp--hl' : '')).forEach(e => e.remove()); return c.textContent.replace(/\s+/g, ' ').trim(); },
+    cards: () => pressIds().map(id => { const el = stageEl.querySelector(`[data-card="${id}"]`), r = el && el.getBoundingClientRect(); return { id, name: cardName(id).replace(/<[^>]+>/g, ''), codes: codesOf(cardsNow()[id].t), found: found(VIEW).has(keyOf(id)), onPicture: !!(r && r.width && getComputedStyle(el).visibility !== 'hidden' && +getComputedStyle(el).opacity > 0.5) }; }),
+    press: id => openCard(id), card: () => { const b = findEl.querySelector('.ibv__card'); return { id: card, text: b && !b.hidden ? b.textContent.replace(/\s+/g, ' ').trim() : '' }; },
+    live: () => (liveFn && !boardEl.hidden ? boardEl.textContent : ''), arrow: () => { const p = arrowEl.querySelector('polygon'); return p ? p.getAttribute('points') : ''; },
+    scene: () => scene, knobs: () => Object.assign({}, K), fast: FAST,
     close
   };
   let first = { ci: 0, si: 0 };

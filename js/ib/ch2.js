@@ -22,9 +22,9 @@
    reacting atom 0.35–0.45 nm from the substrate's.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611190715';
-import { loadProts, protein } from './prot.js?v=202611190715';
-import { disposeGroup, glow } from './stage.js?v=202611190715';
+import { ballStick, gather, Reaction, molData, smooth, poseAt, moved, faceRing } from './mol.js?v=202611192340';
+import { loadProts, protein } from './prot.js?v=202611192340';
+import { disposeGroup, glow } from './stage.js?v=202611192340';
 
 const NAME = { glucose: 'glucose', g6p: '<i>glucose 6-phosphate</i>', f6p: '<i>fructose 6-phosphate</i>', fbp: '<i>fructose 1,6-bisphosphate</i>', dhap: '<i>dihydroxyacetone phosphate</i>',
   g3p: 'triose phosphate', bpg: '<i>1,3-bisphosphoglycerate</i>', pg3: '<i>3-phosphoglycerate</i>', pg2: '<i>2-phosphoglycerate</i>', pep: '<i>phosphoenolpyruvate</i>', pyruvate: 'pyruvate',
@@ -274,7 +274,7 @@ export async function build(stage, { V }) {
   svg.setAttribute('class', 'ibv__ovsvg'); ovEl.appendChild(svg);
   ORDER.forEach(s => {
     const l = document.createElementNS(NS, 'line'); svg.appendChild(l); lnEl[s] = l;
-    const n = document.createElement('span'); n.className = 'ibv__ovn'; n.innerHTML = `<i>${ENZ[enz[s].key]}</i>`; ovEl.appendChild(n); nmEl[s] = n;
+    const n = document.createElement('span'); n.className = 'ibv__ovn'; n.dataset.k = 'enz-' + enz[s].key; n.innerHTML = `<i>${ENZ[enz[s].key]}</i>`; ovEl.appendChild(n); nmEl[s] = n;
   });
   const stEl = STAGES.map(([t, a, b, cls]) => { const e = document.createElement('span'); e.className = 'ibv__ovs' + (cls ? ' ' + cls : ''); e.innerHTML = `<em>${t}</em>`; ovEl.appendChild(e); return { e, a, b }; });
   const ring = document.createElement('i'); ring.className = 'ibv__ovr'; ring.hidden = true; ovEl.appendChild(ring);
@@ -336,7 +336,8 @@ export async function build(stage, { V }) {
     });
   }
   function placeOv(P, B) {
-    const narrow = B.W < 560, key = B.W + 'x' + B.H + (narrow ? cur : '');
+    /* (a name that has become a button, or is one no longer, is wider or narrower: the band is laid out again) */
+    const narrow = B.W < 560, key = B.W + 'x' + B.H + (narrow ? cur : '') + ORDER.filter(s => nmEl[s].classList.contains('is-card')).join('');
     ovEl.classList.toggle('is-narrow', narrow);
     ORDER.forEach(s => { nmEl[s].classList.toggle('is-on', s === cur); lnEl[s].classList.toggle('is-on', s === cur); });
     const ci = cur ? ORDER.indexOf(cur) : -1;

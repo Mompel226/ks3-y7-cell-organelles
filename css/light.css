@@ -68,9 +68,10 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
 .lg-mol b{position:absolute;top:1px;left:7px;width:12px;height:12px;border-radius:50%}
 .lg-mol b.h{left:1px;top:6px;width:8px;height:8px}.lg-mol b.h2{left:17px;top:6px;width:8px;height:8px}
 .lg-mol b.o{left:14px}
-.lightv__replay{margin-left:auto;min-height:36px;padding:6px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.4);background:rgba(10,13,40,.78);color:#fff;font:800 15px/1 var(--lg-sans);cursor:pointer}
-.lightv__replay:hover{border-color:#FFD27A;color:#FFD27A}
-.lightv__replay[hidden]{display:none}
+.lightv__btns{display:inline-flex;gap:8px;margin-left:auto}
+.lightv__replay,.lightv__pause{min-height:36px;padding:6px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.4);background:rgba(10,13,40,.78);color:#fff;font:800 15px/1 var(--lg-sans);cursor:pointer}
+.lightv__replay:hover,.lightv__pause:hover{border-color:#FFD27A;color:#FFD27A}
+.lightv__replay[hidden],.lightv__pause[hidden]{display:none}
 /* on a phone the pins' names stand under the picture */
 .lightv__key{grid-area:key;display:flex;flex-wrap:wrap;gap:5px 12px;padding:7px 12px;background:#0b0f2a;color:#EEF0FF;font:800 14.5px/1.25 var(--lg-sans);border-top:1px solid rgba(255,226,154,.28)}
 .lightv__key[hidden]{display:none}
@@ -101,6 +102,7 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
 .lgx__box{flex:0 1 300px;padding:10px 14px;border-radius:12px;background:#12332a;border:2px solid #5fcf8a}
 .lgx__to{display:flex;flex-wrap:wrap;gap:6px}
 .lgx__to span{padding:6px 12px;border-radius:999px;background:#1b3152;border:1.5px solid #8fb4e8;color:#EAF1FF;font-weight:800}
+.lgx__to span.is-x{font-style:italic;background:#211A3A;border-color:#A98BFA;color:#D9CCFF}      /* (beyond the guide: the one violet) */
 .lgx--inter{display:grid;grid-template-columns:1fr minmax(180px,.9fr) 1fr;gap:14px;align-items:center}
 .lgx__stage{position:relative;padding:14px 16px;border-radius:16px;background:#12332a;border:2px solid #5fcf8a;min-height:150px;transition:background .3s,border-color .3s}
 .lgx__stage[data-part="li"]{background:#3a3010;border-color:#f3cf6e}
@@ -117,6 +119,10 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
 .lgx__say{grid-column:1/-1;margin:6px 0 0;padding:10px 14px;border-radius:12px;background:#0d1a33;border:1px solid #3a4f78;font-weight:700;color:#EEF2FB}
 .lgx--inter[data-state="light"] [data-part],.lgx--inter[data-state="co2"] [data-part]{background:#20252f;border-color:#59606e}
 .lgx--inter[data-state="light"] .lgx__stop,.lgx--inter[data-state="co2"] .lgx__stop{display:block}
+/* (the stage that lacks its input stops first: its edge and its badge are the warning colour; the other stage's badge is grey) */
+.lgx--inter [data-part][data-first]{border-color:#ff8f7a}
+.lgx--inter [data-part]:not([data-first]) .lgx__stop{background:#2c3340;border-color:#8b94a6;color:#E3E8F2}
+.lgx__io s{color:#FFB3A7;text-decoration:line-through;text-decoration-thickness:2px}
 .lgx--inter[data-state="light"] .lgx__link,.lgx--inter[data-state="co2"] .lgx__link{opacity:.62}
 .lgx--inter[data-state="light"] .lgx__link span,.lgx--inter[data-state="co2"] .lgx__link span{text-decoration:line-through}
 .lgx--tally{display:flex;flex-direction:column;gap:12px}
@@ -154,14 +160,7 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
 .lightv .lv--hl{color:var(--lv-hl);background:var(--lv-hl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-hl) 35%,transparent)}
 .lightv .lv--x{color:var(--lg-ext);background:var(--lg-ext-bg);font-style:italic;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lg-ext) 35%,transparent)}
 .lightv .lvp--x{color:var(--lg-ink2)}
-.lightv__ctl{margin:12px 0 0}
-.lightv__ctl:empty{display:none}
-.lightv__states{display:flex;flex-wrap:wrap;gap:8px}
-.lightv__states button{min-height:42px;padding:9px 16px;border-radius:999px;border:1.5px solid var(--lg-accent);background:var(--lg-sheet);color:var(--lg-accent-ink);font:800 16px/1.1 var(--lg-sans);cursor:pointer}
-.lightv__states button[aria-pressed="true"],.lightv__states button:hover{background:var(--lg-accent);color:#fff}
-:root[data-theme="dark"] .lightv__states button[aria-pressed="true"],:root[data-theme="dark"] .lightv__states button:hover{color:#06231a}
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .lightv__states button[aria-pressed="true"],:root:not([data-theme="light"]) .lightv__states button:hover{color:#06231a} }
-.lightv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--lg-sheet) 0%,transparent),var(--lg-sheet) 28%)}
+.lightv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:var(--lg-sheet);border-top:1px solid var(--lg-rule)}
 .lightv__do button{border-radius:999px;font:800 16px/1 var(--lg-sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--lg-rule);background:var(--lg-sheet);color:var(--lg-ink)}
 .lightv__do button:disabled{opacity:.42;cursor:default}
 .lightv__next{margin-left:auto;background:#FFD27A!important;border-color:#F0B43A!important;color:#1b1640!important}
@@ -184,8 +183,18 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
   .lightv__panel{border-left:0;border-top:1px solid var(--lg-rule);padding:12px 16px 16px}
   .lightv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
   .lightv__html{padding:12px;align-items:flex-start}
-  .lgx--inter{grid-template-columns:1fr;gap:8px}
-  .lgx__links{flex-direction:row;flex-wrap:wrap;gap:6px 14px}
+  /* (a phone: the two stages side by side and what they exchange under them, so the whole diagram is in sight: the
+     second box and the last line were below the picture's edge) */
+  .lgx--inter{grid-template-columns:1fr 1fr;gap:6px 8px;align-items:stretch}
+  .lgx--inter [data-part="ld"]{order:1}
+  .lgx--inter [data-part="li"]{order:2}
+  .lgx--inter .lgx__links{order:3;grid-column:1/-1;flex-direction:column;gap:3px}
+  .lgx--inter .lgx__say{order:4;margin:0;padding:5px 10px;font-size:13.5px}
+  .lgx--inter .lgx__stage{min-height:0;padding:7px 9px;font-size:13px;line-height:1.3}
+  .lgx--inter .lgx__stage b{font-size:14.5px}
+  .lgx--inter .lgx__io{margin-top:4px;font-size:13px}
+  .lgx--inter .lgx__link span{font-size:13.5px}
+  .lgx--inter .lgx__stop{font-size:11px;margin-bottom:3px}
   .lgx__stage{min-height:0;padding:10px 12px}
 }
 @media (max-width:860px){
@@ -202,7 +211,9 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
   .lightv__strip{position:relative;padding:4px 48px 4px 10px;font-size:12.5px;gap:2px 10px;min-height:40px}
   .lightv__legend{gap:2px 10px}
   .lightv__legend span{gap:4px}
-  .lightv__replay{position:absolute;right:6px;top:4px;margin:0;min-height:32px;width:34px;padding:0;font-size:16px}
+  .lightv__btns{position:absolute;right:6px;top:4px;gap:4px}
+  .lightv__replay,.lightv__pause{margin:0;min-height:32px;width:34px;padding:0;font-size:16px}
+  .lightv__strip:has(.lightv__pause:not([hidden])){padding-right:86px}
   .lightv__wide{display:none}
   .lightv__key{padding:4px 10px;gap:3px 10px;font-size:12.5px}
   .lightv__k{gap:4px}
@@ -216,3 +227,87 @@ html.lightv-open,html.lightv-open body{overflow:hidden}
   .lgx__row::before{left:-22px}
   .lgx__box{flex-basis:220px}
 }
+
+/* ---------- teaching on the picture (17 Nov 2026; memory teach-on-the-picture) ---------- */
+/* a name with a card is a button: a hand, a brighter edge, its own small ring (ticked once its card has been read) */
+.lightv__nm.is-btn{cursor:pointer}
+.lightv__nm.is-btn .lightv__box{stroke:#FFD27A;stroke-width:2.2}
+.lightv__nm.is-btn:hover .lightv__box,.lightv__nm.is-btn:focus-visible .lightv__box{stroke:#fff;stroke-width:3}
+.lightv__nm.is-btn:focus{outline:none}
+.lightv__pin.is-btn circle{stroke:#fff}
+.lightv__pin.is-btn.is-found circle{stroke:#2E8B5E;stroke-width:3}
+.lightv__pin.is-btn.is-open circle{fill:#fff}
+.lightv__k.is-btn{position:relative;appearance:none;-webkit-appearance:none;margin:0;border:1.5px solid #FFD27A;border-radius:13px;background:rgba(255,255,255,.06);color:inherit;padding:1px 9px 1px 2px;font:inherit;cursor:pointer}
+.lightv__k.is-btn.is-open{background:#FFD27A;color:#1b1640}
+.lightv__k.is-found::after,.lightv__chip.is-found::after,.lightv__sw button.is-found::after,.lgx__btn.is-found::after{content:"\2713";position:absolute;top:-8px;left:-8px;width:17px;height:17px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 11px/17px var(--lg-sans);text-align:center;box-shadow:0 0 0 2px var(--lg-sheet)}
+.lightv__k.is-found::after,.lightv__sw button.is-found::after,.lgx__btn.is-found::after{box-shadow:0 0 0 2px #0b0f2a}
+/* the pressed card's part stays bright; the rest of the picture dims (view.js writes the rule for that card) */
+.lightv__bg > *,.lightv__dyn > *{transition:opacity .2s ease}
+@media (prefers-reduced-motion:reduce){.lightv__bg > *,.lightv__dyn > *{transition:none}}
+/* under the picture: the switch of a step with choices, the count of a live picture, the wavelength a graph is read at */
+.lightv__sw{display:inline-flex;flex-wrap:wrap;align-items:center;gap:5px 6px;flex:1 1 100%}
+.lightv__sw[hidden],.lightv__cross[hidden],.lightv__wl[hidden]{display:none}
+.lightv__swk{font-style:normal;font-weight:800;margin-right:4px;color:#C9CBEF}
+.lightv__sw button{position:relative;appearance:none;-webkit-appearance:none;min-height:38px;padding:7px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.45);background:rgba(10,13,40,.78);color:#fff;font:800 16px/1.1 var(--lg-sans);cursor:pointer}
+.lightv__sw button:hover{border-color:#FFD27A}
+.lightv__sw button[aria-pressed="true"]{background:#FFD27A;border-color:#FFD27A;color:#1b1640}
+.lightv__cross{margin:0;flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;font:700 16px/1.3 var(--lg-sans)}
+.lightv__cross > b{font-weight:900}
+.lightv__cross span{white-space:nowrap}
+.lightv__cross span i{font-style:normal;font-weight:900;color:#FFB3A7}
+.lightv__cross span b{display:inline-block;min-width:1.7em;text-align:center;font:900 18px/1.25 var(--lg-sans);font-variant-numeric:tabular-nums;padding:0 7px;border-radius:8px;background:rgba(255,143,122,.22)}
+.lightv__cs{margin-left:auto;color:#C9CBEF}
+.lightv__wl{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 18px}
+.lightv__wll{display:inline-flex;align-items:center;gap:10px;font:800 16px/1.2 var(--lg-sans)}
+.lightv__wll input{width:min(42vw,340px);accent-color:#FFD27A;cursor:pointer}
+.lightv__wll output{min-width:9.5em;font-variant-numeric:tabular-nums;color:#FFE7A8}
+.lightv__bars{display:inline-flex;align-items:flex-end;gap:14px;font:700 15px/1.2 var(--lg-sans)}
+.lightv__bar{display:inline-flex;align-items:flex-end;gap:6px;white-space:nowrap}
+.lightv__bar i{flex:none;display:inline-block;width:16px;border-radius:3px 3px 0 0;box-shadow:0 0 0 1px rgba(10,16,32,.8)}
+.lg-ring{width:13px;height:13px;border-radius:50%;border:2.5px solid #fff}
+/* the key's mark for a reaction centre: two special chlorophylls, ringed in white as on the picture */
+.lightv__legend .lg-pair{display:inline-flex}
+.lg-pair b{display:block;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-sizing:border-box}
+.lg-pair b + b{margin-left:-3px}
+.lightv__cap .lv{margin-right:6px}
+/* in the sheet: a choice's own line; the names to find, their chips, the open card and its small drawing */
+.lightv__mode{margin:0 0 .8em;padding:9px 12px;border-radius:0 12px 12px 0;border-left:4px solid var(--lg-accent);background:color-mix(in srgb,var(--lg-accent) 8%,transparent)}
+.lightv__text .lightv__modek{margin:0 0 .3em;font-weight:800;color:var(--lg-accent-ink)}
+.lightv__text .lightv__seen{margin:.3em 0 0;color:var(--lg-ink2)}
+.lightv__find{margin:.8em 0 .2em;padding:10px 12px 12px;border-radius:14px;background:var(--lg-box);border:1.5px solid var(--lg-rule)}
+.lightv__findline{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 9px;font:800 16px/1.3 var(--lg-sans)}
+.lightv__fbar{order:3;flex:1 1 100%;height:7px;margin-top:3px;border-radius:99px;background:color-mix(in srgb,var(--lg-accent) 22%,transparent);overflow:hidden}
+.lightv__fbar i{display:block;height:100%;width:0;background:#2E8B5E;transition:width .3s ease}
+.lightv__fn{white-space:nowrap;font-weight:800}
+.lightv__chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.lightv__chip{position:relative;appearance:none;-webkit-appearance:none;border:1.5px solid var(--lg-accent);background:var(--lg-sheet);color:var(--lg-ink);border-radius:14px;padding:6px 11px;font:800 16px/1.15 var(--lg-sans);cursor:pointer;text-align:left}
+.lightv__chip:hover{background:color-mix(in srgb,var(--lg-accent) 14%,var(--lg-sheet))}
+.lightv__chip.is-open{background:var(--lg-accent);color:var(--lg-sheet)}
+.lightv__card{margin-top:11px;padding:10px 12px 11px;border-radius:12px;background:var(--lg-sheet);border:1.5px solid var(--lg-accent);border-top-width:4px;scroll-margin:12px 0 76px}
+.lightv__card[hidden]{display:none}
+.lightv__cardh{display:flex;align-items:baseline;gap:2px;margin:0 0 6px;font:800 18px/1.2 var(--lg-serif)}
+.lightv__cardx{margin:-4px -6px -4px auto;appearance:none;-webkit-appearance:none;border:0;background:none;color:var(--lg-ink2);font:900 22px/1 var(--lg-sans);padding:4px 8px;cursor:pointer;border-radius:8px}
+.lightv__cardx:hover{color:var(--lg-ink)}
+.lightv__text .lightv__card p{margin:0 0 .5em}
+.lightv__text .lightv__card p:last-child{margin-bottom:0}
+.lightv__fig{margin:2px 0 8px;color:var(--lg-ink)}
+.lightv__fig svg{display:block;width:100%;max-width:340px;height:auto}
+/* a box or a part of a table that is a button (the diagrams of boxes) */
+.lgx__btn{position:relative;appearance:none;-webkit-appearance:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+button.lgx__box{border-color:#FFD27A}
+button.lgx__box:hover,.lgx__grp .lgx__btn:hover{outline:2px solid #fff;outline-offset:1px}
+.lgx__btn.is-open{box-shadow:0 0 0 3px #FFD27A}
+.lgx__t .lgx__grp th{padding:10px 6px 5px;border-bottom:0}
+.lgx__grp .lgx__btn{padding:5px 12px;border-radius:999px;border:1.5px solid #FFD27A;background:rgba(255,210,122,.1);color:#FFE7A8;font-weight:900}
+.lightv__html [data-p]{transition:opacity .2s ease}
+/* a phone: the wavelength's row keeps clear of the Play again button at the strip's right edge (its number was cut) */
+@media (max-width:860px){
+  .lightv__wl{gap:4px 12px}
+  .lightv__wll{width:100%;font-size:13.5px;gap:8px}
+  .lightv__wll input{flex:1 1 60px;min-width:60px;width:auto}
+  .lightv__wll output{min-width:0;white-space:nowrap}
+  .lightv__bars{font-size:12.5px;gap:4px 10px;flex-wrap:wrap}
+}
+/* at SL: the rows of an HL group of the tally are pale, as every HL part is (iblevel.js marks [data-hlo]); its heading is no button */
+.lgx__t tr.is-hlrow{opacity:.42}
+.lgx__btn:disabled{cursor:default}

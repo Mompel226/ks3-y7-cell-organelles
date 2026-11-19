@@ -71,7 +71,9 @@ const mulberry = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(
 /* o: another piece of membrane (AQP_PATCH): its size, its numbers of lipids and its proteins; the first piece without it */
 export function makeSim(seed = 7, o = null) {
   const Q = o ? Object.assign({}, P, o) : P, PROTS = o && o.proteins ? o.proteins : PROTEINS;
-  const R = mulberry(seed);
+  /* (the same numbers as mulberry(seed) gives; its place in them is kept here, so that restart() can go back to it) */
+  let rs = seed | 0;
+  const R = () => { rs |= 0; rs = rs + 0x6D2B79F5 | 0; let t = Math.imul(rs ^ rs >>> 15, 1 | rs); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   let spare = null;
   const gauss = () => {
     if (spare != null) { const g = spare; spare = null; return g; }
@@ -195,5 +197,10 @@ export function makeSim(seed = 7, o = null) {
   /* the lipids settle from their lattice before anything is shown (the first picture is already a fluid) */
   for (let k = 0; k < 360; k++) step();
   S.t = 0; S.steps = 0;
+  /* restart(): the model exactly as it was when it was first shown, random numbers and all (17 Nov 2026: step 9's
+     water runs in step with its piece of membrane, so that the run a pupil sees is the run the checks counted:
+     water.js osmoCheck) */
+  const first = { x: Float32Array.from(x), z: Float32Array.from(z), vx: Float32Array.from(vx), vz: Float32Array.from(vz), prot: prot.map(p => Object.assign({}, p)), rs, spare };
+  S.restart = () => { x.set(first.x); z.set(first.z); vx.set(first.vx); vz.set(first.vz); prot.forEach((p, k) => Object.assign(p, first.prot[k])); rs = first.rs; spare = first.spare; S.t = 0; S.steps = 0; };
   return S;
 }

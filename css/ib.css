@@ -245,7 +245,7 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
   .ibv{font-size:16px}
   .ibv__tab{font-size:13px;padding:4px 10px 4px 4px}
   .ibv__lab span{font-size:12.5px;padding:4px 8px}
-  .ibv__pic{font-size:12px;top:calc(var(--ovh,0px) + 8px);padding:5px 11px;border-radius:12px}
+  .ibv__pic{font-size:12px;top:calc(var(--ovh,0px) + 8px);padding:5px 11px;border-radius:12px;left:8px;right:8px;transform:none;margin:0 auto;width:fit-content;max-width:calc(100% - 16px)}   /* (19 Nov 2026: as wide as the picture allows; placed by left 50 % it was never wider than half of it, and stood four lines tall over the picture) */
   .ibv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
   .ibv__board{top:auto;bottom:44px;right:8px;max-width:min(62%,260px);padding:7px 10px;font-size:12px;gap:1px}
   .ibv__board b{font-size:11px}
@@ -328,3 +328,55 @@ html.ibv-open,html.ibv-open body{overflow:hidden}
 .ibv__w .says .say{--grey:var(--ibv-ink2);--ink:var(--ibv-ink);--edge:var(--ibv-rule);--card:var(--ibv-sheet);--accent:var(--ibv-accent-ink);--accent-tint:color-mix(in srgb,var(--ibv-accent) 14%,var(--ibv-sheet))}
 .ibv__w .says .say__g{color:var(--ibv-ink2)}
 .ibv__w .says__w{color:var(--ibv-ink)}
+
+/* ---------- 19 Nov 2026: names that open a card, a count beside the picture, the arrow of a still (view.js) ----------
+   A name with a card is a button. Its ring stands before its words from the start and is only filled (a tick) once the
+   card has been read: the name's size never changes, so a name is never placed again because it was pressed. */
+.ibv__arrow{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.ibv__arrow polygon{fill:rgba(255,255,255,.88);stroke:#1b1640;stroke-width:1.5;stroke-linejoin:round}
+.ibv__lab.is-card{outline:none}
+.ibv__lab.is-card span{position:relative;pointer-events:auto;cursor:pointer;padding-left:29px;border:1.5px solid #FFD27A}
+.ibv__lab.is-card span::before,.ibv__ovn.is-card::before,.ibv__chip>i{content:'';position:absolute;left:8px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;border:2px solid #FFD27A;display:grid;place-items:center;font:900 10px/1 var(--ibv-sans);font-style:normal;color:#1b1640}
+.ibv__lab.is-card.is-found span::before,.ibv__ovn.is-card.is-found::before{content:'✓';background:#FFD27A}
+.ibv__lab.is-card span:hover{background:rgba(48,42,110,.96)}
+.ibv__lab.is-card.is-open span{background:#FFD27A;color:#1b1640}
+.ibv__lab.is-card.is-open span::before{border-color:#1b1640}
+.ibv__lab.is-card.is-open.is-found span::before{background:#1b1640;color:#FFD27A}
+.ibv__lab.is-card:focus-visible span{outline:2.5px solid #FFD27A;outline-offset:2px}
+.ibv__ovn.is-card{pointer-events:auto;cursor:pointer;padding-left:26px;border-color:#FFD27A;max-width:172px}
+.ibv__ovn.is-card::before{left:6px;width:13px;height:13px;margin-top:-6.5px}
+.ibv__ovn.is-card.is-on::before,.ibv__ovn.is-card.is-open::before{border-color:#1b1640}
+.ibv__ovn.is-card.is-on.is-found::before{background:#1b1640;color:#FFD27A}
+.ibv__ovn.is-card.is-open{box-shadow:0 0 0 3px rgba(255,210,122,.55)}
+/* a visit from the IB map (js/ib/mark.js) rings the name whose card holds the statement: the ring goes round its words, not round its line too */
+.ibv[data-ibmark] .ibv__lab.ib-hitname{outline:none;animation:none}
+.ibv[data-ibmark] .ibv__lab.ib-hitname span{outline:3px solid #FFC83D;outline-offset:2px}
+.ibv[data-ibmark] .ibv__lab.ib-hitname--go span{animation:ibmarkname .9s ease-in-out 2}
+@media (prefers-reduced-motion:reduce){.ibv[data-ibmark] .ibv__lab.ib-hitname--go span{animation:none}}
+/* under the step's words: the same names, and the open card */
+.ibv__find{margin:.9em 0 0;padding-top:.8em;border-top:1px solid var(--ibv-rule)}
+.ibv__find[hidden]{display:none}
+.ibv__findh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 .5em;font:800 13px/1.3 var(--ibv-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ibv-ink2)}
+.ibv__findh b{font-weight:900;color:var(--ibv-ink)}
+.ibv__fn{letter-spacing:0;text-transform:none;font-weight:800}
+.ibv__chips{display:flex;flex-wrap:wrap;gap:7px}
+.ibv__chip{position:relative;display:inline-flex;align-items:center;min-height:38px;padding:7px 14px 7px 32px;border-radius:999px;border:1.5px solid var(--ibv-accent);background:color-mix(in srgb,var(--ibv-accent) 8%,var(--ibv-sheet));color:var(--ibv-accent-ink);font:800 14.5px/1.25 var(--ibv-sans);text-align:left;cursor:pointer}
+.ibv__chip>i{left:10px;border-color:var(--ibv-accent);color:var(--ibv-sheet)}
+.ibv__chip.is-found>i{background:var(--ibv-accent)}
+.ibv__chip.is-found>i::before{content:'✓'}
+.ibv__chip:hover{background:color-mix(in srgb,var(--ibv-accent) 18%,var(--ibv-sheet))}
+.ibv__chip.is-open{background:var(--ibv-accent);color:var(--ibv-sheet)}
+.ibv__chip.is-open>i{border-color:var(--ibv-sheet);color:var(--ibv-accent)}
+.ibv__chip.is-open.is-found>i{background:var(--ibv-sheet)}
+.ibv__chip span i{font-style:italic}
+.ibv__card{margin:.7em 0 0;padding:11px 13px 12px;border-radius:12px;border:1.5px solid var(--ibv-accent);background:color-mix(in srgb,var(--ibv-accent) 6%,var(--ibv-sheet))}
+.ibv__card[hidden]{display:none}
+.ibv__cardh{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:0 0 .45em}
+.ibv__cardh b{font:800 17px/1.25 var(--ibv-serif);color:var(--ibv-ink)}
+.ibv__cardx{flex:none;width:30px;height:30px;margin:-4px -5px 0 0;border-radius:50%;border:1.5px solid var(--ibv-rule);background:var(--ibv-sheet);color:var(--ibv-ink);font:800 18px/1 var(--ibv-sans);cursor:pointer}
+.ibv__card p{margin:0 0 .55em}
+.ibv__card p:last-child{margin-bottom:0}
+.ibv.is-loading .ibv__find{opacity:.45;transition:opacity .3s}
+/* a count that changes while the picture moves (chapter 1's oxygen): its numbers */
+.ibv__board span.n{display:flex;justify-content:space-between;gap:16px}
+.ibv__board span.n i{font-style:normal;font-weight:900;color:#FFE7A8;font-variant-numeric:tabular-nums}

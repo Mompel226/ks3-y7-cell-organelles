@@ -111,7 +111,7 @@ html.waterv-open,html.waterv-open body{overflow:hidden}
 /* the names: a pill on a level line (or an upright one) that ends on its part; on a phone a numbered pin, keyed below */
 .watv__nm{position:absolute;left:0;top:0;display:block;max-width:180px;background:var(--wv-sheet);color:var(--wv-ink);font:800 16px/1.25 var(--wv-sans);padding:4px 10px;border-radius:9px;border:1.5px solid var(--wv-ink2);box-shadow:0 2px 8px rgba(20,26,36,.12);opacity:0;transition:opacity .32s ease}
 .watv__nm--L,.watv__nm--R{max-width:150px}
-.watv__nm--T,.watv__nm--B{max-width:240px;white-space:nowrap}
+.watv__nm--T,.watv__nm--B{max-width:290px;white-space:nowrap}
 .watv__ln{position:absolute;left:0;top:0;display:block;background:var(--wv-ink);opacity:0;transition:opacity .32s ease}
 .watv__pin{position:absolute;left:0;top:0;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 13.5px/1 var(--wv-sans);box-shadow:0 0 0 1.5px #1b1640,0 2px 6px rgba(0,0,0,.3);opacity:0;transition:opacity .32s ease}
 .watv__nm.is-on,.watv__ln.is-on,.watv__pin.is-on{opacity:1}
@@ -124,9 +124,10 @@ html.waterv-open,html.waterv-open body{overflow:hidden}
 .watv__key[hidden]{display:none}
 .watv__k{display:inline-flex;align-items:center;gap:6px}
 .watv__k b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#FFD27A;color:#1b1640;font:900 12px/1 var(--wv-sans);box-shadow:0 0 0 1px #1b1640}
-.watv__again{flex:none;margin-left:auto;border-radius:999px;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink);font:800 14.5px/1 var(--wv-sans);padding:8px 13px;cursor:pointer}
-.watv__again:hover{border-color:var(--wv-accent)}
-.watv__again[hidden]{display:none}
+.watv__ctl{flex:none;display:inline-flex;gap:8px;margin-left:auto}
+.watv__again,.watv__pause{flex:none;border-radius:999px;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink);font:800 14.5px/1 var(--wv-sans);padding:8px 13px;cursor:pointer}
+.watv__again:hover,.watv__pause:hover{border-color:var(--wv-accent)}
+.watv__again[hidden],.watv__pause[hidden]{display:none}
 
 /* ---------- the sheet: the step, its words; then what the tags mean, and the sources ---------- */
 .watv__panel{grid-area:panel;overflow-y:auto;min-height:0;background:var(--wv-sheet);color:var(--wv-ink);padding:16px 20px 20px;border-left:1px solid var(--wv-rule)}
@@ -160,7 +161,7 @@ html.waterv-open,html.waterv-open body{overflow:hidden}
 .watv .lv--hl{color:var(--lv-hl);background:var(--lv-hl-bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-hl) 35%,transparent)}
 .watv .lv--x{color:var(--lv-x);background:var(--lv-x-bg);font-style:italic;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--lv-x) 35%,transparent)}
 .watv .lvp--x{color:var(--wv-ink2)}
-.watv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--wv-sheet) 0%,transparent),var(--wv-sheet) 28%)}
+.watv__do{position:sticky;bottom:-20px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin:16px -20px 4px;padding:10px 20px 12px;background:var(--wv-sheet);border-top:1px solid var(--wv-rule)}
 .watv__do button{border-radius:999px;font:800 16px/1 var(--wv-sans);padding:11px 16px;cursor:pointer;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink)}
 .watv__do button:disabled{opacity:.42;cursor:default}
 .watv__next{margin-left:auto;background:#FFD27A!important;border-color:#F0B43A!important;color:#1b1640!important}
@@ -247,13 +248,26 @@ html.waterv-open,html.waterv-open body{overflow:hidden}
 
 /* ---------- a phone, a narrow or tall window: the picture above, the steps below ---------- */
 @media (max-width:860px),(max-aspect-ratio:4/5){
-  .watv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,52fr) auto minmax(0,48fr);grid-template-areas:'stage' 'under' 'panel'}
+  .watv__main{grid-template-columns:1fr;grid-template-rows:minmax(0,50%) auto minmax(0,1fr);grid-template-areas:'stage' 'under' 'panel'}
   .watv__panel{border-left:0;border-top:1px solid var(--wv-rule);padding:12px 16px 16px}
   .watv__do{bottom:-16px;margin:12px -16px 2px;padding:8px 16px 10px}
   .watv__under{padding:5px 10px}
   .watv__note{font-size:13px}
   .watv__key{font-size:13px}
-  .watv__again{font-size:13px;padding:6px 11px}
+  .watv__again,.watv__pause{font-size:13px;padding:6px 11px}
+  /* under a picture of two liquids: the count in two short lines, then what it comes to; the two buttons as signs
+     beside the key; the picture's note gives its line to them (More detail says what the model is) */
+  .watv__strip{font-size:13.5px;gap:2px 12px}
+  .watv__sh{flex:1 1 auto}
+  .watv__sc{order:0;margin-left:0}
+  .watv__sv{order:1}
+  .watv__sv b{font-size:15px;padding:0 6px}
+  .watv__sn{order:2;flex-basis:100%;font-weight:800}
+  .watv.has-strip .watv__note{display:none}
+  .watv.has-strip .watv__key{flex:1 1 0;order:0}
+  .watv.has-strip .watv__ctl button{padding:6px 10px}
+  .watv.has-strip .watv__ctl button span{display:none}
+  .watv__capb{padding:2px 7px;border-radius:9px}
 }
 @media (max-width:860px){
   .watv{font-size:16px}
@@ -263,3 +277,73 @@ html.waterv-open,html.waterv-open body{overflow:hidden}
   .watv__eyebrow{font-size:10.5px}
   .watv__st{font-size:20px}
 }
+
+/* ---------- teaching on the picture (17 Nov 2026; memory teach-on-the-picture) ---------- */
+/* a live picture's molecules: a canvas under the SVG (js/water/scenes.js liquid) */
+.watv__cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.watv__cv[hidden]{display:none}
+.watv .wa-tagbg{fill:var(--wv-sheet);stroke:var(--wv-wx);stroke-width:1.5}
+.watv .wa-start{stroke-dasharray:5 4}
+.watv__ki--hero{width:11px;height:11px;border-radius:50%;background:var(--wv-wx);box-shadow:0 0 0 2px var(--wv-stage),0 0 0 3.5px var(--wv-wx);margin-left:4px}
+.watv__ki--start{width:22px;height:0;border-top:1.5px dashed var(--wv-axis)}
+.watv__sn{font-weight:800}
+.watv__kg--0{margin-left:0}
+/* a pressed card's part of the picture stays bright; the other parts dim */
+.watv__svg [data-p]{transition:opacity .25s ease}
+.watv__svg.is-focus [data-p]{opacity:.24}
+.watv__svg.is-focus [data-p].is-lit{opacity:1}
+.watv--still .watv__svg [data-p]{transition:none}
+@media (prefers-reduced-motion:reduce){.watv__svg [data-p]{transition:none}}
+/* a caption or a name with a card is a button: the sheet's colour, the accent's edge; a tick once it is found */
+.watv__capb{position:relative;appearance:none;-webkit-appearance:none;pointer-events:auto;margin:0;font:inherit;color:var(--wv-ink);text-align:inherit;background:var(--wv-sheet);border:1.5px solid var(--wv-accent);border-radius:11px;padding:3px 10px;cursor:pointer;box-shadow:0 2px 8px rgba(20,26,36,.12)}
+.watv__nm.is-btn{appearance:none;-webkit-appearance:none;margin:0;text-align:left;border-color:var(--wv-accent);cursor:pointer}
+.watv__nm.is-btn.is-on,.watv__pin.is-btn.is-on{pointer-events:auto}
+.watv__pin.is-btn{appearance:none;-webkit-appearance:none;border:0;padding:0;cursor:pointer}
+.watv__capb:hover,.watv__nm.is-btn:hover,.watv__pin.is-btn:hover,.watv__k.is-btn:hover{outline:2px solid #FFD27A;outline-offset:1px}
+.watv__capb.is-open,.watv__nm.is-btn.is-open,.watv__k.is-btn.is-open{background:var(--wv-accent);color:var(--wv-sheet)}
+/* (a button on the picture carries its own small ring, ticked once its card has been read: a tick on its corner stood
+   on the words beside it) */
+.watv__capb::before,.watv__nm.is-btn::before{content:"";display:inline-block;box-sizing:border-box;width:14px;height:14px;margin-right:6px;border-radius:50%;border:2px solid var(--wv-accent);vertical-align:-1.5px;font:900 10px/10px var(--wv-sans);text-align:center}
+.watv__capb.is-found::before,.watv__nm.is-btn.is-found::before{content:"\2713";background:#2E8B5E;border-color:#2E8B5E;color:#fff}
+.watv__capb.is-open::before,.watv__nm.is-btn.is-open::before{border-color:var(--wv-sheet)}
+.watv__capb.is-open.is-found::before,.watv__nm.is-btn.is-open.is-found::before{border-color:#2E8B5E}
+.watv__chip.is-found::after,.watv__k.is-found::after,.watv__sw button.is-found::after{content:"\2713";position:absolute;top:-8px;left:-8px;width:17px;height:17px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 11px/17px var(--wv-sans);text-align:center;box-shadow:0 0 0 2px var(--wv-sheet)}
+.watv__pin.is-found{box-shadow:0 0 0 1.5px #1b1640,0 0 0 4px #2E8B5E,0 2px 6px rgba(0,0,0,.3)}
+.watv__k.is-btn{position:relative;appearance:none;-webkit-appearance:none;margin:0;border:1.5px solid var(--wv-accent);border-radius:13px;background:var(--wv-sheet);color:var(--wv-ink);padding:2px 9px 2px 3px;font:inherit;cursor:pointer}
+/* the switch of a step with choices, on the picture */
+.watv__sw{display:inline-flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 5px;pointer-events:auto;background:var(--wv-sheet);border:1.5px solid var(--wv-rule);border-radius:22px;padding:4px 5px 4px 14px;box-shadow:0 2px 8px rgba(20,26,36,.12)}
+.watv__swk{font:800 16px/1.2 var(--wv-sans);font-style:normal;color:var(--wv-ink2);margin-right:5px}
+.watv__sw button{position:relative;appearance:none;-webkit-appearance:none;border:1.5px solid var(--wv-rule);background:var(--wv-sheet);color:var(--wv-ink);font:800 16px/1 var(--wv-sans);padding:8px 13px;border-radius:999px;cursor:pointer}
+.watv__sw button:hover{border-color:var(--wv-accent)}
+.watv__sw button[aria-pressed="true"]{background:var(--wv-accent);border-color:var(--wv-accent);color:var(--wv-sheet)}
+.watv__stage.is-narrow .watv__swk{display:none}
+.watv__stage.is-narrow .watv__sw{padding:3px 4px}
+.watv__stage.is-narrow .watv__sw button{font-size:13.5px;padding:7px 10px}
+/* the count under a picture of two liquids */
+.watv__strip{margin:0;flex:1 1 100%;order:-2;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;font:700 16px/1.3 var(--wv-sans);color:var(--wv-ink)}
+.watv__strip[hidden]{display:none}
+.watv__sh{font-weight:900}
+.watv__sv{white-space:nowrap}
+.watv__sv i{font-style:normal;font-weight:900;color:var(--wv-arrow)}
+.watv__sv b{display:inline-block;min-width:1.7em;text-align:center;font:900 18px/1.25 var(--wv-sans);font-variant-numeric:tabular-nums;padding:0 7px;border-radius:8px;background:color-mix(in srgb,var(--wv-arrow) 16%,transparent)}
+.watv__sc{margin-left:auto;font-weight:700;color:var(--wv-ink2);white-space:nowrap}
+/* in the sheet: a choice's own line; the names to find, their chips, the open card */
+.watv__mode{margin:0 0 .8em;padding:9px 12px 9px;border-radius:0 12px 12px 0;border-left:4px solid var(--wv-accent);background:color-mix(in srgb,var(--wv-accent) 7%,transparent)}
+.watv__text .watv__modek{margin:0 0 .3em;font-weight:800;color:var(--wv-accent)}
+.watv__text .watv__seen{margin:.3em 0 0;color:var(--wv-ink2)}
+.watv__find{margin:.8em 0 .2em;padding:10px 12px 12px;border-radius:14px;background:color-mix(in srgb,var(--wv-accent) 6%,transparent);border:1.5px solid var(--wv-rule)}
+.watv__findline{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 9px;font:800 16px/1.3 var(--wv-sans)}
+.watv__fbar{order:3;flex:1 1 100%;height:7px;margin-top:3px;border-radius:99px;background:color-mix(in srgb,var(--wv-accent) 20%,transparent);overflow:hidden}
+.watv__fbar i{display:block;height:100%;width:0;background:#2E8B5E;transition:width .3s ease}
+.watv__fn{white-space:nowrap;font-weight:800}
+.watv__chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.watv__chip{position:relative;appearance:none;-webkit-appearance:none;border:1.5px solid var(--wv-accent);background:var(--wv-sheet);color:var(--wv-ink);border-radius:14px;padding:6px 11px;font:800 16px/1.15 var(--wv-sans);cursor:pointer}
+.watv__chip:hover{background:color-mix(in srgb,var(--wv-accent) 14%,var(--wv-sheet))}
+.watv__chip.is-open{background:var(--wv-accent);color:var(--wv-sheet)}
+.watv__card{margin-top:11px;padding:10px 12px 11px;border-radius:12px;background:var(--wv-sheet);border:1.5px solid var(--wv-accent);border-top-width:4px;scroll-margin:12px 0 76px}
+.watv__card[hidden]{display:none}
+.watv__cardh{display:flex;align-items:baseline;gap:2px;margin:0 0 6px;font:800 18px/1.2 var(--wv-serif)}
+.watv__cardx{margin:-4px -6px -4px auto;appearance:none;-webkit-appearance:none;border:0;background:none;color:var(--wv-ink2);font:900 22px/1 var(--wv-sans);padding:4px 8px;cursor:pointer;border-radius:8px}
+.watv__cardx:hover{color:var(--wv-ink)}
+.watv__text .watv__card p{margin:0 0 .5em}
+.watv__text .watv__card p:last-child{margin-bottom:0}

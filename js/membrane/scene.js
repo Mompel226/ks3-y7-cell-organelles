@@ -29,12 +29,12 @@
    Nothing is allocated while it runs: every molecule is an instance whose numbers are written in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { classOf } from './seen.js?v=202611190715';
+import { classOf } from './seen.js?v=202611192340';
 
 export const Y = { head: 2.0, headR: 0.4, tailTop: 1.66, tailL: 1.6, tailOff: 0.23, tailR: 0.21, chol: 1.78, top: 2.4 };
 const COL = {
   head: 0xff9ac8, tail: 0xffd8a8, cholRing: 0xf4b93a, cholOH: 0xe5484d, sugar: 0x6fd08c,
-  gold: 0xffd24a, channel: [0x5d8df2, 0x7fa6ff], carrier: [0x2fb5a8, 0x57cdb6], glyco: 0xf08a4b, peri: 0xb47be8
+  gold: 0xffd24a, solute: 0xff8a3d, channel: [0x5d8df2, 0x7fa6ff], carrier: [0x2fb5a8, 0x57cdb6], glyco: 0xf08a4b, peri: 0xb47be8
 };
 const rng = s => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
@@ -204,7 +204,8 @@ export function makeScene(S, opt = {}) {
   pl.forEach((i, n) => { for (let k = 0; k < 2; k++) { const o = (n * 2 + k) * 3; aTail[o] = S.phase[i] + k * 2.1; aTail[o + 1] = k === 1 && S.kink[i] ? 1 : 0; aTail[o + 2] = 1; } });
   tg.setAttribute('aTail', new THREE.InstancedBufferAttribute(aTail, 3));
   const tails = new THREE.InstancedMesh(tg, tailMat, pl.length * 2);
-  for (let n = 0; n < pl.length * 2; n++) tails.setMatrixAt(n, I4);
+  const WHITE = new THREE.Color(1, 1, 1), tailK = new Float32Array(pl.length * 2).fill(1), tcol = new THREE.Color();
+  for (let n = 0; n < pl.length * 2; n++) { tails.setMatrixAt(n, I4); tails.setColorAt(n, WHITE); }
   /* ---- cholesterol: the –OH end (red, at the top), the stiff rings (a flat plate), a short tail ---- */
   const plate = new THREE.SphereGeometry(1, 12, 9); plate.scale(0.34, 0.5, 0.15); plate.translate(0, -0.66, 0);
   const oh = new THREE.SphereGeometry(0.135, 10, 8);
@@ -215,6 +216,21 @@ export function makeScene(S, opt = {}) {
   const GL_N = 4, glBeads = new THREE.InstancedMesh(new THREE.SphereGeometry(0.27, 12, 9), glSugarMat, Math.max(1, gl.length * GL_N));
   const sugarCol = new THREE.Color(COL.sugar);
   for (let n = 0; n < gl.length * GL_N; n++) { glBeads.setMatrixAt(n, I4); glBeads.setColorAt(n, sugarCol); }
+  /* ---- the part a name's line ends on is drawn once more, in front (17 Nov 2026, the science read: with "unsaturated
+     tail (bent)" pressed its line ended on a dimmed straight tail that stood in front of the bent one, and "cholesterol"
+     went and came back each time a tail covered its molecule). Up to two tails and one cholesterol: each is the same
+     molecule at the same place, drawn again over what stands in front of it, in its own colour of the moment. The
+     name then keeps its molecule, and its line always ends on it. ---- */
+  const onTop = (m, shader) => { const c = new THREE.MeshStandardMaterial({ color: m.color.clone(), emissive: m.emissive.clone(), emissiveIntensity: m.emissiveIntensity, roughness: m.roughness, vertexColors: m.vertexColors, transparent: true, depthTest: false, depthWrite: false }); if (shader) { c.onBeforeCompile = m.onBeforeCompile; c.customProgramCacheKey = m.customProgramCacheKey; } return c; };
+  const tailTop = onTop(tailMat, true), cholTop = onTop(cholMat, false);
+  const mtg = tg.clone(), mAttr = new THREE.InstancedBufferAttribute(new Float32Array(6), 3); mtg.setAttribute('aTail', mAttr);
+  const markTails = new THREE.InstancedMesh(mtg, tailTop, 2), markChol = new THREE.InstancedMesh(chol.geometry, cholTop, 1);
+  for (let n = 0; n < 2; n++) { markTails.setMatrixAt(n, I4); markTails.setColorAt(n, WHITE); } markChol.setMatrixAt(0, I4);
+  [markTails, markChol].forEach(m => { m.count = 0; m.frustumCulled = false; m.renderOrder = 8; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); group.add(m); });
+  const chAt = new Int32Array(S.N).fill(-1); ch.forEach((i, n) => { chAt[i] = n; });
+  const marks = { tail: [-1, -1], chol: -1 };
+  /* kind 'tail' (slot 0 or 1; i: the lipid, k: its first or second tail) or 'chol' (i: the cholesterol); i < 0: none */
+  function setMark(kind, slot, i, k) { if (kind === 'chol') marks.chol = i < 0 ? -1 : chAt[i]; else marks.tail[slot] = i < 0 || plAt[i] < 0 ? -1 : plAt[i] * 2 + k; }
   heads.renderOrder = 3; tails.renderOrder = 1; chol.renderOrder = 2; glBeads.renderOrder = 4;
   [heads, tails, chol, glBeads].forEach(m => { m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; group.add(m); });
 
@@ -222,7 +238,16 @@ export function makeScene(S, opt = {}) {
   const shapes = buildProteins(R), prots = [];
   let aqp = null;
   S.prot.forEach((p, k) => {
-    if (p.id === 'aquaporin') { aqp = makeAquaporin(opt.aqp); group.add(aqp.g); prots.push({ g: aqp.g, mat: aqp.mats[0], sh: aqp.sh, p, lit: 0 }); return; }
+    if (p.id === 'aquaporin') {
+      aqp = makeAquaporin(opt.aqp); group.add(aqp.g); prots.push({ g: aqp.g, mat: aqp.mats[0], sh: aqp.sh, p, lit: 0 });
+      /* its dark back (17 Nov 2026, the science read: the protein is see-through, so that its water shows, and the
+         cholesterol and the particles BEHIND it showed through it as if they were inside it): half a tube inside the far
+         half of the protein, in the colour of the picture's ground. Nothing behind the aquaporin shows through it; its
+         own water, in front of that back, does. */
+      aqp.back = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 3.3, 5.4, 36, 1, true, Math.PI / 2, Math.PI), new THREE.MeshBasicMaterial({ color: 0x10153c, side: THREE.DoubleSide }));
+      aqp.back.name = 'aquaporin-back'; aqp.back.position.set(p.x, 0.35, p.z); group.add(aqp.back);
+      return;
+    }
     const sh = shapes[p.id], g = new THREE.Group(); g.name = p.id;
     const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.55 });
     g.add(beadMesh(sh.beads, mat));
@@ -257,8 +282,12 @@ export function makeScene(S, opt = {}) {
   };
   const trailL = mkTrail(0xffd24a, false), trailP = mkTrail(0x8fe8ff, true);
   /* ---- step 9's water molecules (water.js): one instance each, written in place every frame ---- */
-  const WMAX = 120, waterMesh = opt.water ? new THREE.InstancedMesh(waterGeometry(), new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x0f4a5a, emissiveIntensity: 0.6, roughness: 0.35 }), WMAX) : null;
+  const WMAX = 320, waterMesh = opt.water ? new THREE.InstancedMesh(waterGeometry(), new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0x0f4a5a, emissiveIntensity: 0.6, roughness: 0.35 }), WMAX) : null;
   if (waterMesh) { waterMesh.count = 0; waterMesh.frustumCulled = false; waterMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); waterMesh.name = 'water'; group.add(waterMesh); }
+  /* step 9's solute particles (17 Nov 2026, water.js): one sphere each, 0.6 nm across (twice a water molecule: too wide
+     for a pore), in a colour no other molecule of the view has; its own light, so that a pupil finds them at once */
+  const SMAX = 80, soluteMesh = opt.water ? new THREE.InstancedMesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshStandardMaterial({ color: COL.solute, emissive: COL.solute, emissiveIntensity: 0.42, roughness: 0.4 }), SMAX) : null;
+  if (soluteMesh) { soluteMesh.count = 0; soluteMesh.frustumCulled = false; soluteMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); soluteMesh.name = 'solutes'; group.add(soluteMesh); }
   const wq = new THREE.Quaternion(), wr = new THREE.Quaternion(), wb = new THREE.Vector3(), wp = new THREE.Vector3(), ws = new THREE.Vector3(), wm = new THREE.Matrix4(), UP = new THREE.Vector3(0, 1, 0);
   function setWater(W) {
     if (!waterMesh) return;
@@ -269,18 +298,38 @@ export function makeScene(S, opt = {}) {
       wm.compose(wp.set(x, y, z), wq, ws.set(s, s, s)); waterMesh.setMatrixAt(n++, wm);
     });
     waterMesh.count = n; waterMesh.instanceMatrix.needsUpdate = true;
+    if (!soluteMesh || !W.eachSolute) return;
+    n = 0;
+    W.eachSolute((x, y, z, s) => { if (n >= SMAX) return; const r = soluteR * s; wm.makeScale(r, r, r); wm.setPosition(x, y, z); soluteMesh.setMatrixAt(n++, wm); });
+    soluteMesh.count = n; soluteMesh.instanceMatrix.needsUpdate = true;
   }
+  let soluteR = 0.3;
   /* the top of the aquaporin's subunit k, where a name's line ends (in the piece's frame: the aquaporin's turn and place) */
   function aqpTop(k, out) { const q = prots.find(x => x.p.id === 'aquaporin'); if (!q) return false; out.copy(aqp.tops[k]).applyAxisAngle(UP, q.p.ang); out.x += q.p.x; out.z += q.p.z; return out; }
   let litLipid = -1, litProt = -1;
 
   const bobOf = (i, t) => 0.09 * Math.sin(t * 1.9 + S.phase[i]), toCam = new THREE.Vector3();
+  /* freeze fracture (17 Nov 2026, view.js fracture): the outer layer turns back about the membrane's back edge, like the
+     cover of a book, by `open` (0 shut … 1 turned back by OPEN_MAX): each of its molecules keeps its place in its layer.
+     hy, hz: the edge it turns about (the membrane's middle plane at the back); every instance of the outer layer is
+     turned in place (its four columns), so the tails still bend by their own numbers */
+  const OPEN_MAX = 150 * Math.PI / 180, HZ = -P.D / 2 - 0.6;
+  let open = 0, oc = 1, os = 0;
+  function turn(a, o) {
+    for (let c2 = 0; c2 < 3; c2++) { const y = a[o + c2 * 4 + 1], z = a[o + c2 * 4 + 2]; a[o + c2 * 4 + 1] = oc * y - os * z; a[o + c2 * 4 + 2] = os * y + oc * z; }
+    const y = a[o + 13], z = a[o + 14] - HZ; a[o + 13] = oc * y - os * z; a[o + 14] = HZ + os * y + oc * z;
+  }
+  /* a point of the outer layer where the turn puts it */
+  const turned = v => { if (!open) return v; const y = v.y, z = v.z - HZ; v.y = oc * y - os * z; v.z = HZ + os * y + oc * z; return v; };
   function draw(t, camPos) {
     uT.value = t;
+    oc = Math.cos(open * OPEN_MAX); os = -Math.sin(open * OPEN_MAX);
     const hx = heads.instanceMatrix.array, tx = tails.instanceMatrix.array, cx = chol.instanceMatrix.array, gx = glBeads.instanceMatrix.array;
     for (let n = 0; n < pl.length; n++) {
       const i = pl[n], sg = S.layer[i] ? -1 : 1, bob = bobOf(i, t), X = S.x[i], Z = S.z[i];
       let o = n * 16; hx[o + 12] = X; hx[o + 13] = sg * (Y.head + bob); hx[o + 14] = Z;
+      const up = open > 0 && sg > 0;
+      if (up) { const y = hx[o + 13], z = hx[o + 14] - HZ; hx[o + 13] = oc * y - os * z; hx[o + 14] = HZ + os * y + oc * z; }
       const a = S.turn0[i] + S.spin[i] * t, c = Math.cos(a), s = Math.sin(a), ty = sg * (Y.tailTop + bob);
       o = n * 32;
       tx[o] = c; tx[o + 2] = -s; tx[o + 5] = sg; tx[o + 8] = sg * s; tx[o + 10] = sg * c;
@@ -288,20 +337,39 @@ export function makeScene(S, opt = {}) {
       o += 16;
       tx[o] = c; tx[o + 2] = -s; tx[o + 5] = sg; tx[o + 8] = sg * s; tx[o + 10] = sg * c;
       tx[o + 12] = X + Y.tailOff * c; tx[o + 13] = ty; tx[o + 14] = Z - Y.tailOff * s;
+      /* (every number of a tail's turn is written each frame: a tail that was turned back stands upright again) */
+      tx[o - 16 + 1] = tx[o - 16 + 4] = tx[o - 16 + 6] = tx[o - 16 + 9] = 0; tx[o + 1] = tx[o + 4] = tx[o + 6] = tx[o + 9] = 0;
+      if (up) { turn(tx, o - 16); turn(tx, o); }
     }
     for (let n = 0; n < ch.length; n++) {
       const i = ch[n], sg = S.layer[i] ? -1 : 1, a = S.turn0[i] + S.spin[i] * t * 0.7, c = Math.cos(a), s = Math.sin(a), o = n * 16;
       cx[o] = c; cx[o + 2] = -s; cx[o + 5] = sg; cx[o + 8] = sg * s; cx[o + 10] = sg * c;
       cx[o + 12] = S.x[i]; cx[o + 13] = sg * (Y.chol + 0.6 * bobOf(i, t)); cx[o + 14] = S.z[i];
+      cx[o + 1] = cx[o + 4] = cx[o + 6] = cx[o + 9] = 0;
+      if (open > 0 && sg > 0) turn(cx, o);
     }
     for (let n = 0; n < gl.length; n++) {
       const i = gl[n], bob = bobOf(i, t), sw = Math.sin(t * 0.8 + S.phase[i]), sw2 = Math.cos(t * 0.63 + S.phase[i] * 1.3);
       for (let k = 0; k < GL_N; k++) {
         const o = (n * GL_N + k) * 16, lift = k + 1;
         gx[o + 12] = S.x[i] + 0.05 * lift * lift * sw + (k === 3 ? 0.3 : 0); gx[o + 13] = Y.top + 0.2 + k * 0.5 + bob - (k === 3 ? 0.18 : 0); gx[o + 14] = S.z[i] + 0.04 * lift * lift * sw2;
+        if (open > 0) { const y = gx[o + 13], z = gx[o + 14] - HZ; gx[o + 13] = oc * y - os * z; gx[o + 14] = HZ + os * y + oc * z; }
       }
     }
     heads.instanceMatrix.needsUpdate = tails.instanceMatrix.needsUpdate = chol.instanceMatrix.needsUpdate = glBeads.instanceMatrix.needsUpdate = true;
+    /* the named tails and cholesterol, again and in front (not while the lipids are faded or the outer layer is turned back) */
+    const showMarks = ghost > 0.99 && !open; let nt = 0;
+    if (showMarks) for (const n of marks.tail) {
+      if (n < 0) continue;
+      const ma = markTails.instanceMatrix.array; for (let e = 0; e < 16; e++) ma[nt * 16 + e] = tx[n * 16 + e];
+      mAttr.setXYZ(nt, aTail[n * 3], aTail[n * 3 + 1], aTail[n * 3 + 2]); tails.getColorAt(n, tcol); markTails.setColorAt(nt, tcol); nt++;
+    }
+    markTails.count = nt;
+    if (nt) { markTails.instanceMatrix.needsUpdate = true; mAttr.needsUpdate = true; markTails.instanceColor.needsUpdate = true; tailTop.color.copy(tailMat.color); tailTop.emissiveIntensity = tailMat.emissiveIntensity; }
+    markChol.count = showMarks && marks.chol >= 0 ? 1 : 0;
+    if (markChol.count) { const ma = markChol.instanceMatrix.array; for (let e = 0; e < 16; e++) ma[e] = cx[marks.chol * 16 + e]; markChol.instanceMatrix.needsUpdate = true; cholTop.color.copy(cholMat.color); cholTop.emissiveIntensity = cholMat.emissiveIntensity; }
+    /* the aquaporin's dark back turns with the camera: always on the side away from it */
+    if (aqp && camPos) { const q = prots.find(x => x.p.id === 'aquaporin'); aqp.back.position.set(q.p.x, 0.35, q.p.z); aqp.back.rotation.y = Math.atan2(camPos.x - q.p.x, camPos.z - q.p.z); }
     for (let k = 0; k < prots.length; k++) { const q = prots[k]; q.g.position.set(q.p.x, 0, q.p.z); q.g.rotation.y = q.p.ang; }
     /* the followed head's light stands 0.9 nm nearer the camera than the head: it shines over the heads beside it, and a
        protein that stands in front of the head hides it (the expert review: it had shone through the carrier protein) */
@@ -313,6 +381,51 @@ export function makeScene(S, opt = {}) {
     if (litProt >= 0) { const q = prots[litProt]; haloP.position.set(q.p.x, Math.min(q.sh.top, q.sh.body || 9) - 1.2, q.p.z); trailP.add(q.p.x, q.p.z); }
   }
 
+  /* ---- a pressed name lights its part (17 Nov 2026; memory name-it-on-the-picture: "a press that names a part shows the
+     whole part"): the other kinds of molecule are dimmed, never hidden. Dimming changes how bright a colour is, not which
+     of its red, green and blue is the strongest, so seen.js still knows each kind (the names' lines stay on their parts).
+     groups: head, tail, chol, glsugar (the glycolipids' chains), sugar (the glycoprotein's), prot:<id>, aqp<k>, water,
+     solute; tails: null, 'bent' or 'straight' (only that kind of tail stays bright) */
+  const DIM = 0.34, DIM_T = 0.16;
+  const mats = { head: [headMat], tail: [tailMat], chol: [cholMat], glsugar: [glSugarMat], sugar: [sugarMat] };
+  prots.forEach(q => { if (q.p.id === 'aquaporin') aqp.mats.forEach((m, k) => { mats['aqp' + k] = [m]; }); else mats['prot:' + q.p.id] = [q.mat]; });
+  if (waterMesh) mats.water = [waterMesh.material];
+  if (soluteMesh) mats.solute = [soluteMesh.material];
+  const fk = {}, ft = {};
+  for (const [g, list] of Object.entries(mats)) { fk[g] = 1; ft[g] = 1; list.forEach(m => { m.userData.c0 = m.color.clone(); m.userData.e0 = m.emissiveIntensity; }); }
+  let tailWant = null, tailA = 0, tailTo = 0;
+  /* lit: the groups that stay bright (null or empty: everything); tailKind: 'bent' | 'straight' | null */
+  function setFocus(lit, tailKind = null, now = false) {
+    const all = !lit || !lit.length;
+    for (const g of Object.keys(mats)) ft[g] = all || lit.includes(g) ? 1 : DIM;
+    if (tailKind) { tailWant = tailKind; tailTo = 1; } else tailTo = 0;
+    if (now) { for (const g of Object.keys(mats)) fk[g] = ft[g] + 1e-3; tailA = tailTo ? 0.999 : 0.001; }
+  }
+  function easeFocus(dt) {
+    const k = Math.min(1, dt * 7);
+    for (const g of Object.keys(mats)) {
+      if (fk[g] === ft[g]) continue;
+      fk[g] += (ft[g] - fk[g]) * k; if (Math.abs(fk[g] - ft[g]) < 0.004) fk[g] = ft[g];
+      /* (the proteins' own light, when one is followed, is set by lightProtein: only the colour is dimmed here for them) */
+      mats[g].forEach(m => { m.color.copy(m.userData.c0).multiplyScalar(fk[g]); if (!g.startsWith('prot:')) m.emissiveIntensity = m.userData.e0 * fk[g]; });
+    }
+    if (tailA !== tailTo) {
+      tailA += (tailTo - tailA) * k; if (Math.abs(tailA - tailTo) < 0.004) tailA = tailTo;
+      for (let n = 0; n < pl.length; n++) {
+        const bent = S.kink[pl[n]] === 1;
+        /* a phospholipid's first tail is always straight; its second is bent if it is unsaturated */
+        /* (a tail's own colour is dimmed more than a material's: the lights are strong, and the two kinds stand side by side) */
+        const k0 = tailWant === 'straight' ? 1 : DIM_T, k1 = (tailWant === 'bent') === bent ? 1 : DIM_T;
+        tails.setColorAt(n * 2, tcol.setScalar(1 - (1 - k0) * tailA)); tails.setColorAt(n * 2 + 1, tcol.setScalar(1 - (1 - k1) * tailA));
+      }
+      tails.instanceColor.needsUpdate = true;
+    }
+  }
+  /* freeze fracture: how far the outer layer is turned back (0 … 1) */
+  function setOpen(a) { open = Math.max(0, Math.min(1, a)); }
+  /* a point of the outer layer's inner face (its tails' ends) above a place of the membrane, where the turn puts it:
+     the gap that a protein left */
+  function gapPoint(x, z, out) { return turned(out.set(x, 0.25, z)); }
   /* the lipids' fade (1 = solid, 0.13 = a ghost through which the proteins are seen whole) */
   let ghost = 1;
   function setGhost(a) {
@@ -343,7 +456,8 @@ export function makeScene(S, opt = {}) {
 
   /* ---- points that names end on ---- */
   const tb = { x: 0, z: 0 };
-  function lipidPoint(i, part, t, out) {
+  const lipidPoint = (i, part, t, out) => { const r = lipidPoint0(i, part, t, out); return S.layer[i] === 0 ? turned(r) : r; };
+  function lipidPoint0(i, part, t, out) {
     const sg = S.layer[i] ? -1 : 1, bob = bobOf(i, t);
     if (part === 'head') return out.set(S.x[i], sg * (Y.head + bob), S.z[i]);
     /* the top of a head: of a head in the sea of heads, seen from above, only this part shows (the head in front covers the rest) */
@@ -378,8 +492,9 @@ export function makeScene(S, opt = {}) {
     group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(m => m.dispose()); });
     haloTex.dispose();
   }
-  return { group, draw, setGhost, lightLipid, lightProtein, dimFollow, lipidPoint, nearest, protLow, dispose, pl, ch, gl, prots, heads, tails, chol, trailL, trailP, setWater, aqpTop, waterMesh, aqp,
-    get ghost() { return ghost; }, get litLipid() { return litLipid; }, get litProt() { return litProt; } };
+  return { group, draw, setGhost, lightLipid, lightProtein, dimFollow, lipidPoint, nearest, protLow, dispose, pl, ch, gl, prots, heads, tails, chol, trailL, trailP, setWater, aqpTop, waterMesh, soluteMesh, aqp,
+    setFocus, easeFocus, setOpen, gapPoint, turned, focusOf: g => fk[g], DIM, setMark, marksNow: () => ({ tails: markTails.count, chol: markChol.count }),
+    get open() { return open; }, set soluteR(r) { soluteR = r; }, get ghost() { return ghost; }, get litLipid() { return litLipid; }, get litProt() { return litProt; } };
 }
 
 /* ============================================================

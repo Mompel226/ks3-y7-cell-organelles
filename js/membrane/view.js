@@ -16,15 +16,33 @@
    Step 9 (16 Nov 2026): how water crosses the membrane. Another piece of the same membrane (sim.js AQP_PATCH), with
    aquaporin 1 in its measured shape (aqp1.js) and its water (water.js): the piece shown changes under the veil, as
    every change of picture does with Reduce motion; each piece's model runs only while it is shown.
-   For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step).
+   17 Nov 2026, the view on the picture (Daniel, 16 Nov, of the game's courses: "I am a student, I see this … I'm not
+   going to read it … teach the content as much as possible using the animations and the … images … even with labels and
+   as a discovery way"; 17 Nov: "really invest the time to beautify everything … particularly for animations"; memory
+   teach-on-the-picture). A step keeps about 49 words on show (it had up to 166) and no guide line is folded:
+   - the names are the lesson: a name with a card (text.js `cards`) is a button; pressed, its part stays bright while
+     the other molecules dim (scene.js setFocus), and its card opens in the sheet with each line's own level and code;
+     names found are ticked and counted (js/ib/found.js);
+   - step 5's proteins say on the picture which are integral (a name's small second word); freeze fracture is a film
+     in the picture's own 3D: the molecules stop, the outer layer turns back like the cover of a book (scene.js
+     setOpen), the camera looks down on the two split faces; its caption is the guide line, a piece a shot;
+   - step 6's evidence (Frye and Edidin) is a small film in the sheet (mix.js);
+   - step 9 is osmosis as the guide asks it explained: many water molecules and solute particles on random walks, the
+     water that crosses counted both ways on a strip (water.js; the method of the game's way in, js/game/wayflow.js),
+     and a switch for the side with more solutes.
+   Every film and every count waits for the reader; with Reduce motion each is one still with an arrow.
+   For tools/membrane-check.mjs: window.MEMBRANE (the model, the drawn numbers, the names, the step, the cards, the
+   strip, the film).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P, AQP_PATCH } from './sim.js?v=202611190715';
-import { makeScene, makeStage } from './scene.js?v=202611190715';
-import { makeWater, WATER } from './water.js?v=202611190715';
-import { makeNames } from './names.js?v=202611190715';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES } from './text.js?v=202611190715';
-import { levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611190715';
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611192340';
+import { makeScene, makeStage } from './scene.js?v=202611192340';
+import { makeWater, WATER, SEED } from './water.js?v=202611192340';
+import { makeNames } from './names.js?v=202611192340';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES, OSMO, FILMS } from './text.js?v=202611192340';
+import { levelSwitch, skip, hlOnly, hlNote, fit, level } from '../game/iblevel.js?v=202611192340';
+import { found, learn } from '../ib/found.js?v=202611192340';
+import { marks, codesOf } from '../ib/mark.js?v=202611192340';      /* (a visit from the IB map marks its sentence) */
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
@@ -38,7 +56,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const million = n => { const m = n / 1e6; return (Math.abs(m - Math.round(m)) < 0.05 ? String(Math.round(m)) : m.toFixed(1)) + ' million'; };
 const FILL = { slow: million(P.SLOW), wide: String(P.W), ratio: String(P.RATIO), real: String(Math.round(1e8 / P.SLOW) / 100) };
 const fill = t => t.replace(/\{(\w+)\}/g, (m, k) => FILL[k] != null ? FILL[k] : m);
-function paras(t) {
+function paras(t, mid = '') {
   /* [x+]: a line beyond the guide that the step can be followed without, folded under "More detail" at the step's end
      (text.js; as in the IB view, js/ib/view.js paras); [!] the step's plain first line, what the step is for (no chip:
      the IB view's lead line, 16 Nov 2026) */
@@ -50,7 +68,8 @@ function paras(t) {
   const main = [], more = [];
   /* (a folded guide line keeps its own tag: [x+] [sl …]) */
   fill(t).split('\n').forEach(p => { if (p.startsWith('[!] ')) main.push(`<p class="lvp lvp--lead">${p.slice(4)}</p>`); else if (p.startsWith('[x+] ')) { const r = p.slice(5); more.push(one(/^\[(sl|hl|x)[\s\]]/.test(r) ? r : '[x] ' + r)); } else main.push(one(p)); });
-  return main.join('') + (more.length ? `<details class="memv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
+  /* mid: what stands between the lines on show and the fold (the step's names to press, its films: view.js show) */
+  return main.join('') + mid + (more.length ? `<details class="memv__fold"><summary>More detail</summary>${more.join('')}</details>` : '');
 }
 const tagX = `<span class="lv lv--x">${esc(LEVELS.x.name)}</span> `;
 
@@ -66,7 +85,11 @@ const VIEWS = {
   /* step 9: the other piece (16 × 13 nm), the aquaporin at the middle of its cut face, seen a little from above (its
      four pores then stand apart across the picture); 1.5 nm to the right, so that the right margin has room for the
      name of the water molecule crossing the bilayer at the cut face's right end (a level line that runs over nothing) */
-  aqp: { at: [1.65, 0.4, 2.6], atN: [0.4, 0.3, 2.6], az: 9, el: 13, w: 21.5, h: 11, wN: 17.6, hN: 12 }
+  aqp: { at: [1.65, 0.4, 2.6], atN: [0.4, 0.3, 2.6], az: 9, el: 13, w: 21.5, h: 14.5, wN: 17.6, hN: 14 },
+  /* freeze fracture (17 Nov 2026): the outer layer turned back behind the inner one, both in the picture; then from
+     higher up, to look down on the two split faces */
+  frac: { at: [0, 1.2, -8.5], az: 8, el: 24, w: 41, h: 34, wN: 37, hN: 33 },
+  frac2: { at: [0, 0.6, -9], az: 8, el: 42, w: 43, h: 41, wN: 38, hN: 40 }
 };
 const RAD = Math.PI / 180;
 
@@ -74,14 +97,14 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611190715', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611192340', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */
 export function warm() { styles(); }
 
-export function openMembrane({ mount = document.body, inGame = false, start = 0, onClose = null } = {}) {
+export function openMembrane({ mount = document.body, inGame = false, start = 0, onClose = null, mark = null, backLabel = '← Back to the game' } = {}) {
   const css = styles();
   const root = document.createElement('div');
   root.className = 'memv' + (inGame ? ' memv--game' : '');
@@ -91,17 +114,20 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     <header class="memv__top">
       <div class="memv__id"><p class="memv__eyebrow">IB Biology · B2.1 Membranes and membrane transport</p><h1 id="memv-h">The cell membrane: fluid and mosaic</h1>
         <p class="memv__by">Made by Dr Daniel Mompel Riera</p></div>
-      ${inGame ? '<button type="button" class="memv__close memv__home">← Back to the game</button>' : '<a class="memv__home" href="../">← The cell game</a>'}
+      ${inGame ? `<button type="button" class="memv__close memv__home">${esc(backLabel)}</button>` : '<a class="memv__home" href="../">← The cell game</a>'}
     </header>
     <div class="memv__main">
       <div class="memv__stage">
-        <p class="memv__place memv__place--out">${esc(PLACES.out)}</p>
-        <p class="memv__place memv__place--cyt">${esc(PLACES.cyt)}</p>
+        <p class="memv__place memv__place--out"><span>${esc(PLACES.out)}</span><b class="memv__conc" hidden></b></p>
+        <p class="memv__place memv__place--cyt"><span>${esc(PLACES.cyt)}</span><b class="memv__conc" hidden></b></p>
         <div class="memv__bar"><i></i><span></span></div>
+        <svg class="memv__arrow" aria-hidden="true"></svg>
         <div class="memv__veil is-on is-first" aria-hidden="true"></div>
         <p class="memv__wait" hidden>Drawing the membrane…</p>
       </div>
       <div class="memv__tools">
+        <div class="memv__cap" hidden role="region" aria-label="The film"></div>
+        <div class="memv__osmo" hidden></div>
         <p class="memv__slow">${FAST ? 'A still picture: Reduce motion is on' : esc('Sideways movement slowed about ' + FILL.slow + ' times')}</p>
         <button type="button" class="memv__pause" aria-pressed="false"${FAST ? ' hidden' : ''}><span class="memv__wide">Pause the molecules</span><span class="memv__short">Pause</span></button>
       </div>
@@ -134,6 +160,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       </aside>
     </div>`;
   mount.appendChild(root);
+  const unmark = marks(root, mark);
   if (!css.sheet) {
     root.style.visibility = 'hidden';
     const on = () => { root.style.visibility = ''; };
@@ -143,7 +170,8 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   const $ = s => root.querySelector(s);
   const stageEl = $('.memv__stage'), veilEl = $('.memv__veil'), waitEl = $('.memv__wait'), keyEl = $('.memv__key'), panelEl = $('.memv__panel');
   const countEl = $('.memv__count'), titleEl = $('.memv__st'), textEl = $('.memv__text'), moreEl = $('.memv__text--more'), ctlEl = $('.memv__ctl'), nextB = $('.memv__next'), backB = $('.memv__back'), stepsEl = $('.memv__steps');
-  const barEl = $('.memv__bar'), pauseB = $('.memv__pause');
+  const barEl = $('.memv__bar'), pauseB = $('.memv__pause'), slowEl = $('.memv__slow'), osmoEl = $('.memv__osmo'), capEl = $('.memv__cap'), arrowEl = $('.memv__arrow');
+  const SLOW_T = slowEl.textContent;
 
   /* ---------------- the model, its picture, the camera ---------------- */
   const S = makeSim(7), stage = makeStage(stageEl), scene = makeScene(S);
@@ -152,11 +180,11 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   const names = makeNames(stageEl, stage, keyEl);
   /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
      fetched then), or when step 9 is asked for first */
-  let A = null, aqpMaking = null, patch = 'main';
-  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611190715').then(async m => {
+  let A = null, aqpMaking = null, patch = 'main', osmoMode = 'out';
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611192340').then(async m => {
     if (closed) return null;
-    const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1);
-    sc2.draw(0); sc2.setWater(w2);
+    const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1, osmoMode);
+    sc2.soluteR = WATER.SOL_R; sc2.draw(0); sc2.setWater(w2);
     /* (its colour programs are made now, with the lights of the stage, before it is part of the picture: the first frame
        of step 9 does not stop, and nothing of it is ever drawn over the first piece) */
     try { if (stage.renderer.compileAsync) await stage.renderer.compileAsync(sc2.group, stage.cam, stage.scene); } catch (e) { console.error(e); }
@@ -188,7 +216,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   let keeps = [], keepsStale = true;
   function readKeeps() {
     const s0 = stageEl.getBoundingClientRect();
-    keeps = ['.memv__place--out', '.memv__place--cyt', '.memv__bar', '.memv__slow', '.memv__pause'].map(q => $(q)).filter(e => e && !e.hidden).map(e => { const b = e.getBoundingClientRect(); return { l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }; });
+    keeps = ['.memv__place--out', '.memv__place--cyt', '.memv__bar', '.memv__slow', '.memv__pause', '.memv__osmo', '.memv__cap'].map(q => $(q)).filter(e => e && !e.hidden).map(e => { const b = e.getBoundingClientRect(); return { l: b.left - s0.left, r: b.right - s0.left, t: b.top - s0.top, b: b.bottom - s0.top }; });
     keepsStale = false;
   }
   names.setKeepOut(() => { if (keepsStale) readKeeps(); return keeps; });
@@ -223,17 +251,19 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   const isPL = i => S.kind[i] !== 1, isChol = i => S.kind[i] === 1, isKink = i => S.kind[i] === 0 && S.kink[i] === 1, isGly = i => S.kind[i] === 2;
   /* a lipid of the back row, or at the cut face itself (little can stand in front of it there). The lipid a name has
      kept may be a little further in (loose): a lipid that moves to and fro across the limit does not make its name come and go */
-  let loose = false;
-  const backRow = i => S.kind[i] === 0 && S.z[i] < -P.D / 2 + (loose ? 1.8 : 1.1), frontRow = i => S.z[i] > P.D / 2 - (loose ? 1.2 : 0.8);
+  let loose = false, looseZ = 1.2;
+  const backRow = i => S.kind[i] === 0 && S.z[i] < -P.D / 2 + (loose ? 1.8 : 1.1), frontRow = i => S.z[i] > P.D / 2 - (loose ? looseZ : 0.8);
   const levelOK = side => { const az = (cur.az + dragAz) / RAD; return side === 'L' ? az < 10.5 : az > -10.5; };
   const ups = new Map();      /* where each name with an upright line ends now (px), and from which side it comes */
-  function pick({ layer, want, x, z, part, cls, dir = 0, keep = 2.5, side = null, N = null, id = '', clear = 0, also = null }) {
+  /* stay: how far behind the cut face (nm) the molecule a name has may go before the name takes another one (for a
+     molecule that is drawn again in front, `marked`: it is seen there too, and its name stays with it longer) */
+  function pick({ layer, want, x, z, part, cls, dir = 0, keep = 2.5, side = null, N = null, id = '', clear = 0, also = null, patient = 3, stay = 1.2 }) {
     let c = -1, n = 0, miss = 0, wasNarrow = null;
     const q = new THREE.Vector3(), sq = { x: 0, y: 0, z: 0 }, MAX = 16, cand = new Int32Array(MAX), dist = new Float32Array(MAX);
     const at = i => { scene.lipidPoint(i, part, S.t, q); stage.project(q, sq); };
     const seen = (i, edge) => { at(i); if (sq.z >= 1 || stage.probe(sq.x, sq.y) !== cls) return false; return !edge || stage.probe(sq.x + edge * 0.95 * stage.pxPerNm(), sq.y) === 'none'; };
     /* a second part of the same molecule that must be seen too when a lipid is CHOSEN (the line passes over it) */
-    const alsoSeen = i => { if (!also) return true; scene.lipidPoint(i, also, S.t, q); stage.project(q, sq); return stage.probe(sq.x, sq.y) === cls; };
+    const alsoSeen = i => { if (!also) return true; for (const a of [].concat(also)) { scene.lipidPoint(i, a, S.t, q); stage.project(q, sq); if (stage.probe(sq.x, sq.y) !== cls) return false; } return true; };
     /* in an upright line's way: a protein's part, or the line of another name that comes from the same side (their names
        would stand on each other; the one it has is given 30 px more) */
     const blocked = (i, d, mine) => { if (!d) return false; at(i);
@@ -246,9 +276,9 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       if (edge && !levelOK(side)) return false;
       if (wasNarrow !== nar) { wasNarrow = nar; c = -1; }
       if (c < 0 || (n++ % 12) === 0) {
-        loose = true; const still = c >= 0 && W(c) && Math.hypot(S.x[c] - X, S.z[c] - Z) < keep; loose = false;
+        loose = true; looseZ = stay; const still = c >= 0 && W(c) && Math.hypot(S.x[c] - X, S.z[c] - Z) < keep + (stay > 1.2 ? stay : 0); loose = false; looseZ = 1.2;
         let ok = still && !blocked(c, d, true);
-        if (ok) { if (seen(c, edge)) miss = 0; else if (++miss >= 3) ok = false; }
+        if (ok) { if (seen(c, edge)) miss = 0; else if (++miss >= patient) ok = false; }
         if (!ok) {
           const old = still ? c : -1;
           /* the 16 nearest of the kind within `keep`; of them the nearest that is seen (and, for a level line, is the last
@@ -276,6 +306,8 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     f.index = () => c;
     return f;
   }
+  /* the molecule a name has chosen is drawn again in front, so that the line always ends ON it (scene.js setMark) */
+  const marked = (kind, slot, f, k) => out => { const r = f(out); scene.setMark(kind, slot, r === false ? -1 : f.index(), k); return r; };
   const CORNER = { x: -12.7, z: 8.7 };      /* the cut face's left end */
   const localOf = (k, lx, ly, lz) => out => { const p = S.prot[k], c = Math.cos(p.ang), s = Math.sin(p.ang); return out.set(p.x + lx * c + lz * s, ly, p.z - lx * s + lz * c); };
   const front = (want, x) => ({ layer: 1, want: i => want(i) && frontRow(i), x, z: 8.9 });      /* reached from below: a lipid of the inner layer at the cut face */
@@ -291,14 +323,24 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     bilayer: () => ({ mode: 'B', anchor: pick({ layer: 1, want: i => isPL(i) && frontRow(i), x: 10.5, z: 8.9, part: 'head', cls: 'head', dir: -1, keep: 9, id: 'bilayer', clear: 95 }) }),
     /* the two kinds of tail, from below: each line ends on a tail of a phospholipid of the inner layer at the cut face,
        over that lipid's own head only. (Level lines to the two lipids at the cut face's corner were tried first: each
-       time another lipid took the corner the names faded and came back, about once every two seconds.) */
-    unsat: () => { bent = pick(Object.assign({ part: 'tail1', cls: 'tail', dir: -1, keep: 6 }, front(isKink, -11))); return { mode: 'B', anchor: bent }; },
-    sat: () => ({ mode: 'B', anchor: pick(Object.assign({ part: 'tail0', cls: 'tail', dir: -1, keep: 6 }, front(i => isPL(i) && !(bent && bent.index() >= 0 && Math.abs(S.x[i] - S.x[bent.index()]) < 3), -5))) }),
+       time another lipid took the corner the names faded and came back, about once every two seconds.) The straight
+       tail's lipid stands at least 4.2 nm from the bent one's (it was 3): the two names are buttons now and a little
+       wider, and on a 1280 px laptop they need that to stand side by side (nearer, one of them had no room at times).
+       A phone's picture is only 10 nm wide and its names are pins: there 3 nm, and a place further left, or the straight
+       tail's lipid was at times beyond the picture's right edge. */
+    unsat: () => { bent = pick(Object.assign({ part: 'tail1', cls: 'tail', dir: -1, keep: 6, stay: 3 }, front(isKink, -11))); return { mode: 'B', glide: true, anchor: marked('tail', 0, bent, 1) }; },
+    sat: () => { const far = i => isPL(i) && !(bent && bent.index() >= 0 && Math.abs(S.x[i] - S.x[bent.index()]) < (names.narrow ? 3 : 4.2));
+      return { mode: 'B', glide: true, anchor: marked('tail', 1, pick(Object.assign({ part: 'tail0', cls: 'tail', dir: -1, keep: 6, stay: 3 }, front(far, -5), { N: front(far, -6.4) })), 0) }; },
     /* cholesterol, from below: its line ends on the rings of one of the inner layer at the cut face, over its own red
        hydrophilic end, which is level with the heads (so one is chosen whose red end is seen too: no head stands in the
-       line's way). A level line from a margin had to cross the tails of other lipids whenever no cholesterol was seen
+       line's way). The chosen one is drawn again in front (scene.js setMark), so a tail that comes to stand before it
+       does not take its name away. In the close view it is one near the cut face's left end (x -12.3; it was -9, under
+       the channel protein, whose part below the membrane stood in the line's way again and again: the name went and
+       came back, and the checks of 13 and 17 Nov caught it away). A level line from a margin had to cross the tails of other lipids whenever no cholesterol was seen
        at the very end of the cut face; a line that ended on the small red end itself was often half covered by a head. */
-    chol: () => ({ mode: 'B', anchor: pick({ layer: 1, want: i => isChol(i) && frontRow(i), x: STEPS[si].view === 'close' ? -9 : 11, z: 8.9, part: 'ring', also: 'oh', cls: 'chol', dir: -1, keep: 16, id: 'chol', clear: 95 }) }),
+    chol: () => ({ mode: 'B', glide: true, anchor: marked('chol', 0, pick({ layer: 1, want: i => isChol(i) && frontRow(i), x: STEPS[si].view === 'close' ? -12.3 : 11, z: 8.9, part: 'ring', also: 'oh', cls: 'chol', dir: -1, keep: 16, id: 'chol', clear: 95, stay: 3,
+      /* (a phone: its pin stands under the membrane, where the left end has the scale bar: there the place it had before) */
+      N: STEPS[si].view === 'close' ? { x: -9, z: 8.9 } : null })) }),
     /* a bead of the protein's top edge: the middle of the channel's top is its pore, of the carrier's its cleft (nothing there) */
     channel: () => ({ mode: 'T', own: 'channel', anchor: localOf(0, 2.42, 3.05, 0) }),
     carrier: () => ({ mode: 'T', own: 'carrier', anchor: localOf(1, 2.0, 3.0, 0) }),
@@ -315,6 +357,19 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     subunit: () => ({ mode: 'T', own: 'aquaporin', anchor: out => A.scene.aqpTop(aqpOrder()[3], out) }),
     file: () => ({ mode: 'B', own: 'aquaporin', anchor: out => A.water.porePoint(frontPore(), out) }),
     crossing: () => ({ mode: narrow() ? 'T' : 'R', anchor: out => A.water.crossPoint(0, out) }),      /* (a phone: its pin above it; under the membrane the corner holds "Cytoplasm") */
+    /* step 9 (17 Nov 2026): one solute particle carries its name (it wanders: a small thing the pupil follows) */
+    solute: () => ({ mode: 'tag', mark: '●', pri: 3, anchor: out => A.water.solutePoint(out) }),
+    /* the freeze fracture film: each name just above its part, on a short line (the picture is full: a long line from a
+       margin would run over the other half of the membrane) */
+    fOuter: () => ({ mode: 'tag', pri: 3, anchor: out => scene.turned(out.set(-5.5, 0.3, 5.2)) }),
+    fInner: () => ({ mode: 'tag', pri: 3, anchor: out => out.set(-7.5, -0.1, 6.8) }),
+    fBump: () => ({ mode: 'tag', pri: 3, own: 'carrier', anchor: localOf(1, 2.0, 3.0, 0) }),
+    /* (the gap of the carrier protein, whose bump the other name ends on: the two belong together; if the caption
+       covers that gap, the channel protein's, else the glycoprotein's: the proteins do not move during the film) */
+    fHole: () => ({ mode: 'tag', pri: 3, anchor: out => {
+      if (keepsStale) readKeeps();
+      for (const k of [1, 0, 2]) { scene.gapPoint(S.prot[k].x, S.prot[k].z, out); stage.project(out, s2); if (!keeps.some(q => s2.x > q.l - 30 && s2.x < q.r + 30 && s2.y > q.t - 30 && s2.y < q.b + 70)) return out; }
+      return scene.gapPoint(S.prot[1].x, S.prot[1].z, out); } }),
     lipidTag: () => ({ mode: 'tag', tag: true, pri: 5, anchor: out => scene.litLipid >= 0 ? scene.lipidPoint(scene.litLipid, 'crown', S.t, out) : false }),
     protTag: () => ({ mode: 'tag', tag: true, mark: '◆', pri: 4, own: 'carrier', anchor: (f => out => scene.litProt >= 0 ? f(out) : false)(localOf(1, 2.0, 3.0, 0)) })
   };
@@ -331,9 +386,11 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     aqpSeen = { order, front };
   }
   function defineNames() {
-    const ids = STEPS[si].labels.slice();
+    const st = STEPS[si], inFilm = !!(film && film.id === 'fracture');
+    const ids = inFilm ? FILMS.fracture.shots[film.shot].labels.slice() : st.labels.slice();
     if (patch === 'aqp') aqpChoose();
-    if (follow.lipid) ids.push('lipidTag'); if (follow.protein) ids.push('protTag');
+    scene.setMark('tail', 0, -1); scene.setMark('tail', 1, -1); scene.setMark('chol', 0, -1);
+    if (!inFilm) { if (follow.lipid) ids.push('lipidTag'); if (follow.protein) ids.push('protTag'); }
     bent = null;
     /* (the bent tail is defined before the straight one, which must take another lipid) */
     const order = ids.slice().sort((p, q) => (p === 'sat') - (q === 'sat')), made = {};
@@ -342,9 +399,75 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     ups.clear();
     order.forEach(id => { const L = made[id], a = L.anchor, dir = L.mode === 'T' ? 1 : L.mode === 'B' ? -1 : 0; if (!dir) return;
       L.anchor = out => { const r = a(out); if (r === false) ups.delete(id); else { stage.project(out, s2); ups.set(id, { x: s2.x, dir }); } return r; }; });
-    names.define(ids.map(id => Object.assign({ id, text: NAMES[id], pri: 1 }, made[id])), narrow());      /* pri: who is placed first (the tag of what is followed) */
-    keepsStale = true;
+    /* card: the name is a button (it has a card at this level); sub: its small second word */
+    names.define(ids.map(id => Object.assign({ id, text: NAMES[id], pri: 1, card: !inFilm && pressable(id), sub: !inFilm && st.subs && st.subs[id] ? st.subs[id] : '' }, made[id])), narrow());      /* pri: who is placed first (the tag of what is followed) */
+    root.classList.toggle('is-pins', names.narrow);
+    keepsStale = true; paintFound();
   }
+
+  /* ---------------- the names are the lesson (17 Nov 2026; memory teach-on-the-picture) ----------------
+     A name that has a card (text.js `cards`) is a button, on the picture and in the step's row of names (on a phone: its
+     numbered pin and its line of the key under the picture). Pressed: its part lights, the other molecules dim, and its
+     card opens in the sheet under the names, each line with its own level and code; the name is ticked and counted. At
+     SL a card of HL lines only is not offered (its name is then a plain name). One card at a time. */
+  const VIEW = 'membrane';
+  let card = null;
+  const pressable = id => { const t = (STEPS[si].cards || {})[id]; return !!t && !(level() === 'sl' && hlOnly(t)); };
+  const pressIds = () => STEPS[si].labels.filter(pressable), keyOf = id => (si + 1) + ':' + id;
+  const foundHere = () => { const F = found(VIEW); return new Set(pressIds().filter(id => F.has(keyOf(id)))); };
+  const findBox = () => root.querySelector('.memv__find');
+  function findHTML() {
+    const ids = pressIds(); if (!ids.length) return '';
+    return `<div class="memv__find"><div class="memv__findline"><span class="memv__ft">Press each name on the picture</span><span class="memv__fbar" aria-hidden="true"><i></i></span><b class="memv__fn"></b></div>`
+      + `<div class="memv__chips" role="group" aria-label="The names on the picture">${ids.map(id => `<button type="button" class="memv__chip" data-id="${id}" data-codes="${esc(codesOf((STEPS[si].cards || {})[id]))}" aria-expanded="false">${esc(NAMES[id])}</button>`).join('')}</div>`
+      + `<div class="memv__card" role="note" aria-live="polite" hidden></div></div>`;
+  }
+  function paintFound() {
+    const ids = film ? [] : pressIds(), F = foundHere(), box = findBox();
+    names.mark(F, card);
+    if (box && !film) {
+      box.querySelector('.memv__fn').textContent = `${F.size} of ${ids.length} found`; box.querySelector('.memv__fbar i').style.width = (ids.length ? 100 * F.size / ids.length : 0) + '%';
+      box.querySelectorAll('.memv__chip').forEach(b => { b.classList.toggle('is-found', F.has(b.dataset.id)); b.classList.toggle('is-open', b.dataset.id === card); b.setAttribute('aria-expanded', String(b.dataset.id === card)); });
+    }
+    /* (a phone: the count stands with the key under the picture, where the names to press are) */
+    let kc = keyEl.querySelector('.memv__kcount');
+    if (ids.length && names.narrow) { if (!kc) { kc = document.createElement('span'); kc.className = 'memv__kcount'; keyEl.prepend(kc); } kc.textContent = `Press each name: ${F.size} of ${ids.length} found`; } else if (kc) kc.remove();
+  }
+  /* which molecules stay bright while a name's card is open (scene.js setFocus) */
+  const focusOf = id => {
+    switch (id) {
+      case 'head': return [['head']]; case 'tails': return [['tail']]; case 'bilayer': return [['head', 'tail', 'chol', 'glsugar']];
+      case 'unsat': return [['tail'], 'bent']; case 'sat': return [['tail'], 'straight']; case 'chol': return [['chol']];
+      case 'channel': return [['prot:channel']]; case 'carrier': return [['prot:carrier']]; case 'glyco': return [['prot:glyco', 'sugar']]; case 'peri': return [['prot:peripheral']];
+      case 'glycolipid': return [['glsugar']];
+      case 'aquaporin': return [['aqp0', 'aqp1', 'aqp2', 'aqp3', 'water']]; case 'subunit': return [['aqp' + aqpOrder()[3], 'water']];
+      case 'file': return [['water']]; case 'crossing': return [['water', 'head', 'tail', 'chol', 'glsugar']]; case 'solute': return [['solute']];
+    }
+    return [null];
+  };
+  function openCard(id) {
+    if (loading || film || !pressable(id)) return;
+    if (card === id) { closeCard(); return; }
+    const st = STEPS[si], box = findBox() && findBox().querySelector('.memv__card'); if (!box) return;
+    card = id; learn(VIEW, keyOf(id));
+    box.innerHTML = `<div class="memv__cardh"><b>${esc(NAMES[id])}</b>${st.subs && st.subs[id] ? ` <i class="memv__sub">${esc(st.subs[id])}</i>` : ''}<button type="button" class="memv__cardx" aria-label="Close">×</button></div>` + paras(st.cards[id]);
+    box.hidden = false;
+    const f = focusOf(id); cur3().scene.setFocus(f[0], f[1] || null, FAST);
+    paintFound();
+    box.scrollIntoView({ block: 'nearest', behavior: FAST ? 'auto' : 'smooth' });
+  }
+  function closeCard() {
+    if (!card) return; card = null;
+    const box = findBox() && findBox().querySelector('.memv__card'); if (box) { box.hidden = true; box.innerHTML = ''; }
+    scene.setFocus(null, null, FAST); if (A) A.scene.setFocus(null, null, FAST);
+    paintFound();
+  }
+  names.setPress(id => openCard(id));
+  panelEl.addEventListener('click', e => {
+    const c = e.target.closest('.memv__chip'); if (c) { openCard(c.dataset.id); return; }
+    if (e.target.closest('.memv__cardx')) { closeCard(); return; }
+    const fb = e.target.closest('.memv__filmb'); if (fb) startFilm(fb.dataset.film);
+  });
 
   /* ---------------- following one molecule ---------------- */
   const follow = { lipid: null, protein: null };
@@ -441,7 +564,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   pauseB.addEventListener('click', () => { running = !running; pauseB.setAttribute('aria-pressed', String(!running)); pauseB.firstElementChild.textContent = running ? 'Pause the molecules' : 'Let the molecules move'; pauseB.lastElementChild.textContent = running ? 'Pause' : 'Move'; keepsStale = true; });
 
   /* ---------------- the frame ---------------- */
-  let running = !FAST, last = 0, acc = 0, ghostTw = null, namesOn = false, lastRead = 0;
+  let running = !FAST, last = 0, acc = 0, ghostTw = null, namesOn = false, lastRead = 0, frozen = false, oTw = null, film = null, osmoN = null;
   function tick(now) {
     if (closed) return;
     raf = requestAnimationFrame(tick);
@@ -464,12 +587,21 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       scene.setGhost(ghostTw.from + (ghostTw.to - ghostTw.from) * k);
       if (k >= 1) ghostTw = null;
     }
+    /* freeze fracture: the outer layer turns back, or comes down again */
+    if (oTw) {
+      const k = Math.min(1, (now - oTw.t0) / oTw.ms), e = k * k * (3 - 2 * k);
+      scene.setOpen(oTw.from + (oTw.to - oTw.from) * e);
+      if (k >= 1) { const d = oTw.done; oTw = null; d(); }
+    }
     /* the model: one step for each 60th of a second, never more than 3 in a frame (a slow frame slows the molecules, it
        never makes them jump) */
     const on = cur3();
-    if (running && !loading) { acc += dt; let n = 0; while (acc >= 1000 * P.DT && n < 3) { on.S.step(); if (on.water) on.water.step(P.DT); acc -= 1000 * P.DT; n++; } if (acc > 100) acc = 0; }
+    if (running && !loading && !frozen) { acc += dt; let n = 0; while (acc >= 1000 * P.DT && n < 3) { on.S.step(); if (on.water) on.water.step(P.DT); acc -= 1000 * P.DT; n++; } if (acc > 100) acc = 0; }
     applyCam(); setBar();
+    on.scene.easeFocus(dt / 1000);
     on.scene.draw(on.S.t, stage.cam.position); if (on.water) on.scene.setWater(on.water);
+    /* step 9's strip: the water that has crossed, each way */
+    if (osmoN && on.water) { const c = on.water.c; if (osmoN.up.textContent !== String(c.up)) osmoN.up.textContent = c.up; if (osmoN.down.textContent !== String(c.down)) osmoN.down.textContent = c.down; }
     stage.render();
     names.frame(now, namesOn);
     if (now - lastRead > 250) { lastRead = now; readouts(); }
@@ -490,6 +622,10 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     const st = STEPS[s], g = st.ghost ? 0.13 : 1;
     window.MEMBRANE.at = { step: s, rest: false };
     namesOn = false; nextB.disabled = backB.disabled = true; nextB.classList.remove('pulse');
+    scene.setMark('tail', 0, -1); scene.setMark('tail', 1, -1); scene.setMark('chol', 0, -1);
+    closeCard(); arrowClear();
+    /* a film that is still on ends under the veil (the turned layer never comes back in one frame in plain view) */
+    if (film) { veilEl.classList.add('is-on'); await sleep(340); if (my !== token) return; filmReset(); busy = false; await camTo(st.view, 0); ghostTw = null; scene.setGhost(g); }
     if (follow.lipid || follow.protein) {
       if (!FAST) { await fadeFollow(!!follow.lipid, !!follow.protein); if (my !== token) return; }
       stopFollow();
@@ -501,9 +637,10 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     Array.from(stepsEl.children).forEach((b, k) => { if (k === s) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
     /* a step with buttons: its first paragraph (what to do), the buttons, then the rest, so that the buttons are in
        view beside the picture without scrolling */
-    const T = fit(st.t), cut = st.ctl ? T.indexOf('\n') : -1;
-    textEl.innerHTML = hlNote(st) + paras(cut < 0 ? T : T.slice(0, cut)); moreEl.innerHTML = cut < 0 ? '' : paras(T.slice(cut + 1));
+    drawText(); paintFound();
     drawControls(); panelEl.scrollTop = 0;
+    slowEl.textContent = st.note || SLOW_T; keepsStale = true;
+    if (!st.osmo) { osmoEl.hidden = true; osmoN = null; root.querySelectorAll('.memv__conc').forEach(e => { e.hidden = true; }); }
     /* the other piece of membrane (step 9, and back): it changes under the veil, with or without Reduce motion */
     const want = st.patch || 'main';
     if (want !== patch) {
@@ -519,18 +656,187 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
       if (moves && !veilEl.classList.contains('is-on')) veilEl.classList.add('is-on');
       await sleep(340); if (my !== token) return;
       if (moves) { await camTo(st.view, 0); scene.setGhost(g); await sleep(60); if (my !== token) return; }
+      /* step 9's still: the water after STILL_OSMO seconds of crossings (the strip shows them), and an arrow */
+      if (st.osmo && A && !A.stilled) { osmoStill(); A.scene.setWater(A.water); }
     } else {
       if (scene.ghost !== g) ghostTw = { from: scene.ghost, to: g, t0: performance.now(), ms: 700 };
       if (!sameView(st.view)) await camTo(st.view, 1400); else await sleep(340);
       if (my !== token) return;
     }
+    if (st.osmo) { osmoDraw(); osmoEl.hidden = false; }
     defineNames(); namesOn = true; keepsStale = true;
+    if (FAST && st.osmo) { applyCam(); osmoArrow(); }
     veilEl.classList.remove('is-on', 'is-first');
     backB.disabled = skip(STEPS, s, -1) < 0; nextB.disabled = false; nextB.classList.add('pulse');
     nextB.textContent = skip(STEPS, s, 1) < STEPS.length ? 'Next step →' : (inGame ? 'Back to the game →' : 'Start again →');
     if (!inGame) history.replaceState(null, '', '#s' + (s + 1));
     window.MEMBRANE.at = { step: s, rest: true };
   }
+  const filmsHTML = st => (st.films || []).length ? `<div class="memv__films">${st.films.map(f => `<button type="button" class="memv__filmb" data-film="${f}" aria-pressed="false"><i aria-hidden="true">▶</i><span>${esc(FILMS[f].btn)}</span></button>`).join('')}${st.films.includes('mix') ? '<div class="memv__mix" hidden></div>' : ''}</div>` : '';
+  function drawText() {
+    const st = STEPS[si], T = fit(st.t), cut = st.ctl ? T.indexOf('\n') : -1, mid = findHTML() + filmsHTML(st);
+    /* a step with buttons: its first paragraph (what to do), the buttons, then the rest, so that the buttons are in
+       view beside the picture without scrolling */
+    textEl.innerHTML = hlNote(st) + (cut < 0 ? paras(T, mid) : paras(T.slice(0, cut)));
+    moreEl.innerHTML = cut < 0 ? '' : paras(T.slice(cut + 1), mid);
+  }
+  /* the IB level changed (SL · HL): a name whose card has only HL lines is a button at HL only */
+  const onLevel = () => { if (loading || closed) return; if (card && !pressable(card)) closeCard(); const open = card; if (mix) { mix.stop(); mix = null; } drawText(); paintFound(); if (window.MEMBRANE.at.rest && !film) defineNames(); if (open) { card = null; openCard(open); } };
+  document.addEventListener('iblevel', onLevel);
+
+  /* ---------------- step 9: osmosis counted on the picture (text.js OSMO; water.js) ---------------- */
+  const STILL_OSMO = 12;      /* with Reduce motion: the still shows the water after this many seconds of crossings (a molecule is then between the phospholipids) */
+  const ICON_W = '<svg viewBox="0 0 26 20"><circle cx="13" cy="11.5" r="6.5" fill="#5fe3ff"/><circle cx="6.4" cy="5.6" r="3.6" fill="#fff"/><circle cx="19.6" cy="5.6" r="3.6" fill="#fff"/></svg>', ICON_S = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="#ff8a3d"/></svg>';
+  function osmoDraw() {
+    const out = osmoMode === 'out', way = out ? 'out of the cell' : 'into the cell';
+    osmoEl.setAttribute('role', 'group');
+    osmoEl.setAttribute('aria-label', `${OSMO.name}: ${out ? OSMO.hi : OSMO.lo} ${OSMO.out}, ${out ? OSMO.lo : OSMO.hi} ${OSMO.cyt}; more water molecules cross ${way} than the other way: ${OSMO.net} ${way}, ${OSMO.toward}`);
+    /* (where the solute concentration is higher is said ON the two sides of the picture, with their names: the strip
+       keeps the water's two numbers and what they add up to) */
+    osmoEl.innerHTML = `<p class="memv__ok"><span class="memv__omol" aria-hidden="true">${ICON_W}</span>${esc(OSMO.name)}</p>`
+      + `<p class="memv__on"><span aria-hidden="true">↑</span><b data-n="up">0</b> ${esc(OSMO.up)}</p><p class="memv__on"><span aria-hidden="true">↓</span><b data-n="down">0</b> ${esc(OSMO.down)}</p>`
+      + `<p class="memv__of">${esc(OSMO.net)} ${way}, ${esc(OSMO.toward)}: <b>${esc(OSMO.osmosis)}</b></p>`
+      /* (a phone: its picture has no room for the two sides' words, so the strip says them) */
+      + `<p class="memv__oc"><b${out ? ' class="is-hi"' : ''}>${esc(out ? OSMO.hi : OSMO.lo)}</b> ${esc(OSMO.out)} · <b${out ? '' : ' class="is-hi"'}>${esc(out ? OSMO.lo : OSMO.hi)}</b> ${esc(OSMO.cyt)}</p>`
+      + `<div class="memv__osw" role="group" aria-label="${esc(OSMO.ask)}"><span><span class="memv__omol" aria-hidden="true">${ICON_S}</span>${esc(OSMO.ask)}</span>${['out', 'cyt'].map(k => `<button type="button" data-osmo="${k}" aria-pressed="${k === osmoMode}">${esc(OSMO.choices[k])}</button>`).join('')}</div>`;
+    osmoN = { up: osmoEl.querySelector('[data-n="up"]'), down: osmoEl.querySelector('[data-n="down"]') };
+    if (A) { osmoN.up.textContent = A.water.c.up; osmoN.down.textContent = A.water.c.down; }
+    const co = $('.memv__place--out .memv__conc'), cc = $('.memv__place--cyt .memv__conc');
+    co.textContent = out ? OSMO.hi : OSMO.lo; cc.textContent = out ? OSMO.lo : OSMO.hi; co.hidden = cc.hidden = false;
+    co.classList.toggle('is-hi', out); cc.classList.toggle('is-hi', !out);
+    keepsStale = true;
+  }
+  function osmoStill() { for (let k = 0; k < STILL_OSMO * 60; k++) { A.S.step(); A.water.step(); } A.stilled = true; }
+  /* with Reduce motion: an arrow through the pore nearest the camera, the way more water crosses */
+  function osmoArrow() {
+    if (!A) return;
+    const m = A.water.mouth[frontPore()], up = osmoMode === 'out', v = new THREE.Vector3(), q = { x: 0, y: 0, z: 0 }, pts = [];
+    for (const y of up ? [-3.9, 4.5] : [4.5, -3.9]) { stage.project(v.set(y < 0 ? m.lo.x : m.hi.x, y, y < 0 ? m.lo.z : m.hi.z), q); pts.push([q.x, q.y]); }
+    arrowDraw(pts);
+  }
+  osmoEl.addEventListener('click', async e => {
+    const b = e.target.closest('[data-osmo]'); if (!b || loading || busy || b.dataset.osmo === osmoMode || patch !== 'aqp' || !A) return;
+    busy = true; const my = token;
+    closeCard(); arrowClear(); namesOn = false; veilEl.classList.add('is-on'); await sleep(340);
+    if (my !== token || closed) { busy = false; return; }
+    /* the two solutions change places under the veil (no particle is seen crossing the membrane) */
+    /* (the piece of membrane starts again with its water: the run is then the one the checks counted, water.js) */
+    osmoMode = b.dataset.osmo; A.S.restart(); A.water = makeWater(A.S, A.data, osmoMode); A.stilled = false;
+    if (FAST) osmoStill();
+    A.scene.setWater(A.water); osmoDraw(); defineNames(); namesOn = true; await sleep(80);
+    if (my !== token || closed) { busy = false; return; }
+    if (FAST) osmoArrow();
+    veilEl.classList.remove('is-on'); busy = false;
+  });
+
+  /* ---------------- an arrow on the picture (the stills of Reduce motion): a filled shape with a fixed head ---------------- */
+  function arrowClear() { arrowEl.innerHTML = ''; }
+  function arrowDraw(pts) {
+    arrowClear(); if (pts.length < 2) return;
+    arrowEl.setAttribute('viewBox', `0 0 ${stage.W} ${stage.H}`);
+    const W2 = 6, HL = 26, HW = 15, L = [], R = [];
+    /* the shaft stops where the head begins */
+    const n = pts.length, ex = pts[n - 1][0] - pts[n - 2][0], ey = pts[n - 1][1] - pts[n - 2][1], el = Math.hypot(ex, ey) || 1, bx = pts[n - 1][0] - ex / el * HL, by = pts[n - 1][1] - ey / el * HL;
+    const body = pts.slice(0, n - 1).concat([[bx, by]]);
+    for (let i = 0; i < body.length; i++) {
+      const a = body[Math.max(0, i - 1)], b = body[Math.min(body.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+      L.push([body[i][0] + nx * W2, body[i][1] + ny * W2]); R.push([body[i][0] - nx * W2, body[i][1] - ny * W2]);
+    }
+    const nx = -ey / el, ny = ex / el, f = v => v.map(c => c.toFixed(1)).join(',');
+    const shape = L.concat([[bx + nx * HW, by + ny * HW], pts[n - 1], [bx - nx * HW, by - ny * HW]]).concat(R.reverse());
+    arrowEl.innerHTML = `<polygon points="${shape.map(f).join(' ')}"/>`;
+  }
+
+  /* ---------------- the films (text.js FILMS): a guide line about a technique, shown as the technique ---------------- */
+  let mix = null;
+  const openTo = (to, ms) => new Promise(res => { if (!ms) { scene.setOpen(to); res(); return; } oTw = { from: scene.open, to, ms, t0: performance.now(), done: res }; });
+  function capDraw() {
+    const F = FILMS.fracture, m = /^\[(sl|hl)\s+([^\]]+)\]/.exec(F.tag), last = film.shot === F.shots.length - 1;
+    capEl.innerHTML = `<p class="memv__capl"><span class="lv lv--${m[1]}">${esc(LEVELS[m[1]].name)} <i>${esc(m[2])}</i></span> ${F.shots.map((sh, k) => k > film.shot ? '' : `<span class="${k < film.shot ? 'is-was' : 'is-now'}">${esc(sh.say)}</span>`).join(' ')}</p>`
+      + (last ? `<div class="memv__capg" role="group" aria-label="The picture's colours">${F.grey.map((w, k) => `<button type="button" data-grey="${k}" aria-pressed="${(film.grey ? 1 : 0) === k}">${esc(w)}</button>`).join('')}</div>` : '')
+      + `<div class="memv__capnav">${film.shot ? '<button type="button" data-cap="back">← Back</button>' : ''}${last ? '<button type="button" data-cap="again">↻ Again</button>' : '<button type="button" class="memv__capnext" data-cap="next">Next →</button>'}<button type="button" data-cap="end">Back to the membrane</button></div>`;
+    capEl.hidden = false; keepsStale = true;
+  }
+  /* the film stops at once (another step, the view closed): everything as a step expects it */
+  function filmReset() {
+    oTw = null; scene.setOpen(0); frozen = false; film = null; capEl.hidden = true; capEl.innerHTML = ''; arrowClear();
+    root.classList.remove('is-film'); stage.renderer.domElement.classList.remove('is-grey');
+    root.querySelectorAll('.memv__filmb').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    if (mix) { mix.stop(); mix = null; }
+  }
+  /* the turn, for the still of Reduce motion: from where a corner of the outer layer was (on the inner layer, at the
+     picture's right edge of the membrane) to where it is now, on a bowed way beside the membrane */
+  function turnArrow() {
+    const v = new THREE.Vector3(), a = { x: 0, y: 0, z: 0 }, b = { x: 0, y: 0, z: 0 }, pts = [], bow = Math.min(84, stage.W * 0.1);
+    stage.project(v.set(13.7, 0.5, 5.5), a); stage.project(scene.turned(v.set(13.7, 0.5, 5.5)), b);
+    for (let k = 0; k <= 12; k++) { const u = k / 12; pts.push([a.x + (b.x - a.x) * u + bow * 4 * u * (1 - u), a.y + (b.y - a.y) * u]); }
+    arrowDraw(pts);
+  }
+  async function shotTo(k, ms) {
+    const my = token; busy = true; namesOn = false; arrowClear();
+    if (FAST) { veilEl.classList.add('is-on'); await sleep(340); if (my !== token || !film) { busy = false; return; } await camTo(k ? 'frac2' : 'frac', 0); await sleep(60); }
+    else await camTo(k ? 'frac2' : 'frac', ms);
+    if (my !== token || !film) { busy = false; return; }
+    film.shot = k; if (!k) { film.grey = false; stage.renderer.domElement.classList.remove('is-grey'); }
+    capDraw(); defineNames(); namesOn = true;
+    if (FAST) { applyCam(); if (!k) turnArrow(); veilEl.classList.remove('is-on'); }
+    busy = false;
+  }
+  async function startFilm(id) {
+    if (loading || busy) return;
+    if (id === 'mix') {
+      const host = root.querySelector('.memv__mix'), b = root.querySelector('.memv__filmb[data-film="mix"]'); if (!host) return;
+      if (mix) { mix.stop(); mix = null; host.hidden = true; host.innerHTML = ''; b.setAttribute('aria-pressed', 'false'); return; }
+      const M = await import('./mix.js?v=202611192340'); if (closed || !host.isConnected) return;
+      host.hidden = false; b.setAttribute('aria-pressed', 'true');
+      /* (after each shot the film brings its own buttons into view, above Back and Next) */
+      mix = M.makeMix(host, { FAST, film: FILMS.mix, levelName: LEVELS.sl.name });
+      return;
+    }
+    if (film) { endFilm(); return; }
+    const my = token; busy = true;
+    closeCard(); arrowClear(); namesOn = false;
+    film = { id: 'fracture', shot: 0, grey: false }; frozen = true;
+    root.classList.add('is-film'); root.querySelector('.memv__filmb[data-film="fracture"]').setAttribute('aria-pressed', 'true');
+    if (FAST) {
+      veilEl.classList.add('is-on'); await sleep(340); if (my !== token) return;
+      ghostTw = null; scene.setGhost(1); scene.setOpen(1); await camTo('frac', 0); await sleep(60); if (my !== token) return;
+      capDraw(); defineNames(); namesOn = true; applyCam(); turnArrow(); veilEl.classList.remove('is-on'); busy = false; return;
+    }
+    /* the molecules stop (frozen); the lipids come back; the camera steps back; then the outer layer turns back */
+    ghostTw = { from: scene.ghost, to: 1, t0: performance.now(), ms: 700 };
+    await camTo('frac', 1500); if (my !== token || !film) return;
+    await sleep(350); if (my !== token || !film) return;
+    await openTo(1, 2800); if (my !== token || !film) return;
+    capDraw(); defineNames(); namesOn = true; busy = false;
+  }
+  async function endFilm() {
+    if (!film || busy) return;
+    const my = token, st = STEPS[si], g = st.ghost ? 0.13 : 1; busy = true;
+    namesOn = false; capEl.hidden = true; arrowClear(); stage.renderer.domElement.classList.remove('is-grey');
+    if (FAST) { veilEl.classList.add('is-on'); await sleep(340); if (my !== token) return; filmReset(); scene.setGhost(g); await camTo(st.view, 0); await sleep(60); if (my !== token) return; defineNames(); namesOn = true; veilEl.classList.remove('is-on'); busy = false; return; }
+    await openTo(0, 1500); if (my !== token) return;
+    ghostTw = { from: scene.ghost, to: g, t0: performance.now(), ms: 700 };
+    await camTo(st.view, 1300); if (my !== token) return;
+    filmReset(); defineNames(); namesOn = true; busy = false;
+  }
+  capEl.addEventListener('click', e => {
+    const g = e.target.closest('[data-grey]');
+    if (g && film) { film.grey = g.dataset.grey === '1'; stage.renderer.domElement.classList.toggle('is-grey', film.grey); capEl.querySelectorAll('[data-grey]').forEach(b => b.setAttribute('aria-pressed', String((film.grey ? '1' : '0') === b.dataset.grey))); return; }
+    const b = e.target.closest('[data-cap]'); if (!b || !film || busy) return;
+    if (b.dataset.cap === 'next') shotTo(film.shot + 1, 1300);
+    else if (b.dataset.cap === 'back') shotTo(film.shot - 1, 1100);
+    else if (b.dataset.cap === 'end') endFilm();
+    else if (b.dataset.cap === 'again') (async () => {
+      const my = token; busy = true; namesOn = false; capEl.hidden = true; stage.renderer.domElement.classList.remove('is-grey'); film.shot = 0; film.grey = false;
+      if (FAST) { busy = false; shotTo(0, 0); return; }
+      await openTo(0, 900); if (my !== token || !film) return;
+      await camTo('frac', 1100); if (my !== token || !film) return;
+      await sleep(300); await openTo(1, 2800); if (my !== token || !film) return;
+      capDraw(); defineNames(); namesOn = true; busy = false;
+    })();
+  });
+
   nextB.addEventListener('click', () => { if (nextB.disabled || loading) return; const j = skip(STEPS, si, 1); if (j < STEPS.length) show(j); else if (inGame) close(); else show(Math.max(0, skip(STEPS, -1, 1))); });
   backB.addEventListener('click', () => { if (backB.disabled || loading) return; const j = skip(STEPS, si, -1); if (j >= 0) show(j); });
   stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || loading || +b.dataset.s === si) return; show(+b.dataset.s); });
@@ -553,9 +859,9 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     if (e.key === 'ArrowLeft' && !backB.disabled) backB.click();
   };
   document.addEventListener('keydown', onKey);
-  function close() {
+  function close() { unmark();
     if (closed) return; closed = true; token++;
-    cancelAnimationFrame(raf); document.removeEventListener('keydown', onKey);
+    cancelAnimationFrame(raf); document.removeEventListener('keydown', onKey); document.removeEventListener('iblevel', onLevel); if (mix) { mix.stop(); mix = null; }
     names.remove(); stage.scene.remove(scene.group); scene.dispose(); if (A) { stage.scene.remove(A.scene.group); A.scene.dispose(); } stage.stop(); root.remove();
     document.documentElement.classList.remove('memv-open');
     if (window.MEMBRANE && window.MEMBRANE.root === root) window.MEMBRANE = null;
@@ -586,7 +892,16 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
         parts: A.data.parts.length, drawnWater: A.scene.waterMesh.count, visible: A.scene.group.visible, mainVisible: scene.group.visible, ppn, WATER,
         waterSize: (g => { g.computeBoundingBox(); const b = g.boundingBox; return Math.max(b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z); })(A.scene.waterMesh.geometry) };
     },
-    makeSim
+    makeSim,
+    /* 17 Nov 2026: the names that are buttons in this step, those found, the open card; a press; what is lit; step 9's
+       strip and water; the film */
+    cards: () => ({ step: si, ids: pressIds(), found: [...foundHere()], open: card }),
+    press: id => openCard(id), closeCard,
+    focus: g => cur3().scene.focusOf(g),
+    osmo: () => (A && patch === 'aqp') ? { mode: osmoMode, seed: SEED[osmoMode], still: !!A.stilled, state: A.water.state(), NW: [A.water.NW(1), A.water.NW(-1)], NS: [A.water.NS(1), A.water.NS(-1)], drawnSolutes: A.scene.soluteMesh.count } : null,
+    film: () => film ? { id: film.id, shot: film.shot, grey: film.grey, open: scene.open, frozen, busy } : (mix ? { id: 'mix', shot: mix.shot, state: mix.state() } : null),
+    startFilm: id => startFilm(id), WATER,
+    toScreen: (x, y, z) => { const q = { x: 0, y: 0, z: 0 }; stage.project(new THREE.Vector3(x, y, z), q); return q; }
   };
 
   /* ---------------- start: the colours are made and the first picture drawn under the veil ---------------- */

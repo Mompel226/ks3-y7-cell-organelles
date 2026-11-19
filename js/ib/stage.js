@@ -30,7 +30,7 @@ export function glow(size, color = 0xfff4d0, opacity = 1) {
 
 /* render (11 Nov 2026, the plant-cell branch, js/plant/): a view may draw each frame itself (its own glow, as the game's
    world does); without it, and always with an overview band, the picture is drawn as before */
-export function makeStage(wrap, { onFrame, render } = {}) {
+export function makeStage(wrap, { onFrame, render, calm = false, onPart = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: false });
   /* at most 1.75 pixels per point, as the game draws (world.js); a slow computer drops to 1 (measure, below) */
   renderer.setPixelRatio(Math.min(1.75, devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -155,7 +155,8 @@ export function makeStage(wrap, { onFrame, render } = {}) {
       const D = L[k], el = D.el, on = rest && !!want[k] && !(narrow && want[k] > 1);
       let at = null; const why = { pts: 0, edge: 0, name: 0, num: 0, atom: 0 };
       if (on) {
-        D.w = D.w || el.offsetWidth; D.h = D.h || el.offsetHeight;
+        /* (its words alone: once placed, its line has a length too, and a name measured again came out longer by it) */
+        D.w = D.w || el.firstElementChild.offsetWidth; D.h = D.h || el.offsetHeight;
         const pts = (D.pts() || []).map(project).filter(p => p[2] && p[0] > 8 && p[0] < W - 8 && p[1] > ovH + 14 && p[1] < H - 14);
         const pref = D.side || 'r', sides = [pref, pref === 'l' ? 'r' : 'l'];
         /* among molecules (a chapter that names its atoms, setAvoid), a name's line starts at its molecule's edge on that
@@ -179,7 +180,9 @@ export function makeStage(wrap, { onFrame, render } = {}) {
       /* a phone, and no room beside its part: a MAIN name stands ON its part, just above the point it names, as the game's
          names do on a phone (names.js showOn), so a word met for the first time is still named on the picture (memory
          name-it-on-the-picture); never on another name or a keep-out */
-      if (on && !at && narrow && want[k] === 1) {
+      /* (`onPart`, "From glucose to ATP", 19 Nov 2026: at ANY width, so that a small laptop or a tablet loses no main name either:
+         at 1024 × 768 ten main names had no place) */
+      if (on && !at && (narrow || onPart) && want[k] === 1) {
         const pts2 = (D.pts() || []).map(project).filter(p => p[2] && p[0] > 8 && p[0] < W - 8 && p[1] > ovH + 14 && p[1] < H - 14);
         /* just above the point, else just below it (a part near the top of the picture, under an overview's band) */
         /* (a little further from the point when its carbon's number is in the way) */
@@ -273,7 +276,9 @@ export function makeStage(wrap, { onFrame, render } = {}) {
   }
 
   let alive = true, t0 = performance.now(), last = t0, paused = false, busy = false, slow = [];
-  const still = new URLSearchParams(location.search).has('ibstill');
+  /* the picture's own clock stands still for the checks (?ibstill) and where the view asks (`calm`: "From glucose to ATP" with
+     Reduce motion, 19 Nov 2026: until then its map's dots, its red blood cells and its protons went on moving in a "still") */
+  const still = new URLSearchParams(location.search).has('ibstill') || !!calm;
   function loop() {
     if (!alive) return;
     const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -311,7 +316,7 @@ export function makeStage(wrap, { onFrame, render } = {}) {
   return {
     renderer, scene, cam, wrap, view, setView, between, project, pxPerNm, fitView,
     get W() { return W; }, get H() { return H; },
-    defineLabels, showLabels, setRest(r) { rest = r; }, setKeepOut(list) { keepOut = list || []; }, setAvoid(list) { avoid = list || []; }, setNums,
+    defineLabels, showLabels, refitLabels: refit, setRest(r) { rest = r; }, setKeepOut(list) { keepOut = list || []; }, setAvoid(list) { avoid = list || []; }, setNums,
     setPaused(p) { paused = !!p; }, setBusy(b) { busy = !!b; slow = []; },
     /* a chapter's overview ({ view: {at, dir, up}, width (nm across), frac, fracN (a phone), max, bg, el (its names),
        place(projectOv, band) }), or none. Without a view it is a drawing (the Krebs cycle: a diagram of the order of its
