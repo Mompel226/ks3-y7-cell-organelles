@@ -351,9 +351,9 @@ window.STORY = {
           ["sl", "D1.2.2", "Each RNA nucleotide pairs with the complementary base of the DNA template strand, held by hydrogen bonds: adenine (A) on the DNA pairs with uracil (U) on the RNA."],
           ["x", "", "The film shows the next lines of the guide step by step: the template strand does not change, RNA grows 5′ to 3′, and transcription starts at the promoter."]
         ], film: "copy" },
-        { p: [
+        { film: "copy", filmAt: "D1.2.15", p: [
           ["hl", "D1.2.15", "Post-transcriptional modification in eukaryotic cells: introns (sections that do not code for amino acids) are removed and exons (the coding sections) are spliced together to form mature mRNA, and a 5′ cap and a 3′ polyA tail are added, which stabilize the mRNA. This happens in the nucleus, before the mRNA leaves."],
-          ["x", "", "The game shows the copy leaving as one finished strand: it does not show the modification."],
+          ["x", "", "This step shows the mRNA leaving as one finished strand: this step does not show the modification."],
           ["sl", "B2.2.2", "The nucleus separates transcription from translation: mRNA can be modified before it meets ribosomes in the cytoplasm. In prokaryotes (cells with no nucleus, such as bacteria) this is not possible."],
           ["hl", "D2.2.3", "In the cytoplasm, each mRNA lasts from minutes to days before enzymes (nucleases) digest it. So the cell can control translation by how long each mRNA lasts."]
         ] }

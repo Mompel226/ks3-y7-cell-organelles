@@ -798,6 +798,17 @@ html.is-final{overflow:hidden}
   .fc--card .fc__acts{gap:calc(var(--u)*10);margin-top:calc(var(--u)*4)}
   .fc--card .btn{font-size:calc(var(--u)*16);min-height:calc(var(--u)*44);padding:calc(var(--u)*12) calc(var(--u)*20)}
 }
+/* the film's three HL steps (transcribe.js STEPS_HL, 21 Nov 2026): the buttons on the picture, in the look of the
+   places' buttons (.hot3__b); how many changes are made; the mature mRNA's name; an HL step's button */
+.cf__hot{position:absolute;left:0;top:0;pointer-events:auto;white-space:nowrap;font:900 16px/1.1 var(--sans);color:#2B1A00;background:linear-gradient(180deg,#FFE7A8,#FFC95E);border:2px solid #FFF6D6;border-radius:999px;padding:8px 14px;cursor:pointer;box-shadow:0 0 0 0 rgba(255,214,110,.7),0 6px 18px rgba(0,0,0,.4);animation:hotPulse 1.8s ease-out infinite;will-change:transform}
+.cf__hot:hover,.cf__hot:focus-visible{background:linear-gradient(180deg,#FFF1C8,#FFD27A);outline:3px solid #fff;outline-offset:2px}
+.cf__hot[hidden]{display:none}
+@media (max-width:760px){.cf__hot{font-size:14.5px;padding:7px 11px}}
+@media (prefers-reduced-motion:reduce){.cf__hot{animation:none}}
+.cf__t .cf__count{font-weight:800}
+.cf__lab--big{font-size:15px;border-color:#FFD27A;color:#FFE7A8}
+.cf__steps button[data-hl]{border-style:dashed}
+.cf__steps button[data-hl]::after{content:"HL";margin-left:2px;font-size:.62em;font-weight:900;vertical-align:super}
 /* a button for every step of a film (transcribe.js, ribofilm.js: cf__steps) */
 .cf__steps{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 8px}
 .cf__steps button{min-width:30px;height:30px;padding:0 7px;border-radius:15px;border:1.5px solid var(--qp-rule);background:none;color:var(--qp-ink);font:800 13.5px/1 var(--sans);cursor:pointer}

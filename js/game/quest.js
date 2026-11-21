@@ -7,17 +7,17 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611211959';
-import { state, COST } from './state.js?v=202611211959';
-import { sound } from './sound.js?v=202611211959';
-import { finalLine } from './final.js?v=202611211959';
+import { ICON } from './icons.js?v=202611212238';
+import { state, COST } from './state.js?v=202611212238';
+import { sound } from './sound.js?v=202611212238';
+import { finalLine } from './final.js?v=202611212238';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611211959').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611211959';
-import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611211959';
-import { WORDS, pick } from './coursewords.js?v=202611211959';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611212238').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611212238';
+import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611212238';
+import { WORDS, pick } from './coursewords.js?v=202611212238';
 const HOT_OFF = 26, HOT_UP = 18;     /* px: a button beside its part (r, l), above or below it (t, b): the length of its line */
 
 const R = window.REV, { $, $$, h, esc } = R;
@@ -318,6 +318,9 @@ export class Quest {
     if (!C || !top || !ol || !state.checks(id).length || (!state.checked(id) && !ibPass())) { root.classList.remove('ib-on'); return; }
     const NAME = { igcse: 'IGCSE', ib: 'IB' }, LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
     const FILM = { copy: '🔬 How a cell copies a gene: the film, with your course →', ribo: '🔬 How a ribosome reads the copy: the film →' };
+    /* a film's door for one HL statement that only the film's HL steps show (story.js `filmAt`; 21 Nov 2026, Daniel's
+       "Yes, build it": the mRNA's modification, D1.2.15): shown at HL only; the film opens at that statement's step */
+    const FILMAT = { 'D1.2.15': '🔬 The film “How a cell copies a gene”: its steps 11 to 13 show this modification →' };
     const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
     /* doors to another page of the site (story.js `out`; 20 Nov 2026). Daniel, 18 Nov 2026: "any animation is
        professionally done that shows as much detail, at least in one place or another", and a simple picture in a
@@ -380,7 +383,7 @@ export class Quest {
             html: `<span class="ibl ibl--${lv}">${c === 'igcse' && code ? `<i>${code}</i> ` : ''}${LVN[lv]}${c === 'ib' && code ? ` <i>${code}</i>` : ''}</span> ${t}` }));
           li.appendChild(h('details', Object.assign({ class: 'step__ib step__lv' + (hlBox ? ' iblv-hlbox' : ''), 'data-lv': c }, open ? { open: '' } : {}), `<summary class="step__lvk">${NAME[c]}</summary>`
             + boxLines(lines, { scope: l => l.lv === 'n' || l.lv === 'x' })
-            + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm" data-film="${b.film}">${FILM[b.film]}</button>` : '')
+            + (b.film ? `<button type="button" class="step__ibdoor step__lvfilm${b.filmAt ? ' iblv-hlonly' : ''}" data-film="${b.film}"${b.filmAt ? ` data-code="${b.filmAt}"` : ''}>${b.filmAt ? FILMAT[b.filmAt] : FILM[b.film]}</button>` : '')
             + (b.mem ? '<button type="button" class="step__ibdoor step__lvmem">🧬 The cell membrane: fluid and mosaic →</button>' : '')
             + (b.bench ? '<button type="button" class="step__ibdoor step__lvbench">🧪 IB investigation: heat and time →</button>' : '')
             + (b.frac ? '<button type="button" class="step__ibdoor step__lvfrac">🧪 Cell fractionation lab: how organelles were separated →</button>' : '')
@@ -410,7 +413,7 @@ export class Quest {
       const pl = e.target.closest('.step__lvplant');
       if (pl) { document.dispatchEvent(new CustomEvent('plant', { detail: { from: id, at: { step: PLANT[pl.dataset.scene][0], scene: pl.dataset.scene } } })); return; }
       if (e.target.closest('.step__lvfrac')) { document.dispatchEvent(new CustomEvent('ibview2', { detail: { view: 'fractionation' } })); return; }
-      if (f) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: f.dataset.film, id } }));
+      if (f) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: f.dataset.film, id, code: f.dataset.code || '' } }));
       else if (d) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +d.dataset.ch } }));
       else if (m) document.dispatchEvent(new CustomEvent('memview'));
     });
@@ -427,7 +430,7 @@ export class Quest {
     document.addEventListener('iblevel', relevel);
     draw();
     /* (the plant cell's list of what a door may open: the boxes are drawn again with their doors when it has come) */
-    if ([...C.igcse, ...C.ib].some(b => b && b.plant)) import('../plant/doors.js?v=202611211959').then(m => { plantAt = m.OPEN_AT || {}; if (bar.isConnected) draw(); }, () => {});
+    if ([...C.igcse, ...C.ib].some(b => b && b.plant)) import('../plant/doors.js?v=202611212238').then(m => { plantAt = m.OPEN_AT || {}; if (bar.isConnected) draw(); }, () => {});
   }
   /* ---------------- the course's own word on every button (19 Nov 2026; js/game/coursewords.js has Daniel's words)
      wordNow: a button's word for the course that is on at this place, IB's at the student's level. wordsPaint: every

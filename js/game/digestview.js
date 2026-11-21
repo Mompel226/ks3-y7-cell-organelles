@@ -21,7 +21,7 @@
    time for one bond (the class measures that: bench.js).
    closeViews(svg, { igcse, ib, hl }) → { at(k), off(), state() }   k: 0 … 1 of the five minutes
    ============================================================ */
-import { run, UNIT, ENZ, BOX, TICKS } from './digest.js?v=202611211959';
+import { run, UNIT, ENZ, BOX, TICKS } from './digest.js?v=202611212238';
 const NS = 'http://www.w3.org/2000/svg';
 const el = (tag, attrs = {}, text) => { const e = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); if (text != null) e.textContent = text; return e; };
 const SZ = 208, K = SZ / BOX, TOP = 372, INK = '#E8EDF4';

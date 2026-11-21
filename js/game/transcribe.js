@@ -42,10 +42,12 @@
    thread runs on at both sides of that piece until the fibre loosens. The film has ten steps (it had nine).
    Everything is worked out from a few numbers (how far the view has zoomed, z; how loose the chromatin is, L; how
    untwisted the DNA is, u; how far the enzyme has gone, p), so any moment can be drawn, and nothing ever jumps.
+   21 Nov 2026: with IB on at HL the film has three more steps, the mRNA's modification before it leaves the nucleus
+   (D1.2.15: STEPS_HL, and "the whole mRNA as a ribbon" in film()). Year 7, IGCSE and IB SL keep the ten steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { courseLines } from './ribofilm.js?v=202611211959';
-import { levelSwitch } from './iblevel.js?v=202611211959';   /* how a course's lines are drawn, the same in both films */
+import { courseLines } from './ribofilm.js?v=202611212238';
+import { levelSwitch, level } from './iblevel.js?v=202611212238';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
@@ -260,7 +262,7 @@ function film(wrap, thread) {
     { el: tag('cf__lab', 'one nucleotide'), show: (z, u, p, hl) => hl },
     { el: tag('cf__lab cf__lab--line', '<span>hydrogen bonds</span><i></i>'), line: true, show: (z, u, p, hl, hb) => hb * (1 - smooth(-4.5, -3, p)) },
     { el: tag('cf__lab', 'RNA polymerase'), show: (z, u, p) => smooth(-1.5, -0.3, p) * (1 - smooth(2.0, 3.0, p)) },
-    { el: tag('cf__lab', 'the copy: mRNA'), show: (z, u, p) => smooth(7, 8.5, p) },
+    { el: tag('cf__lab', 'the copy: mRNA'), show: (z, u, p) => smooth(7, 8.5, p) * (1 - smooth(0, 0.3, S.m)) },   /* (S: below; read when the film runs) */
     { el: tag('cf__bar', '<i></i><b>1 µm</b>'), nm: 1000, show: z => 1 - smooth(-0.85, -0.55, z) },
     { el: tag('cf__lab', 'chromosome 1: one long thread'), show: z => 1 - smooth(-0.85, -0.55, z) },
     { el: tag('cf__lab cf__lab--below', ''), show: () => 0 }   /* (the gene is shown by its light and the step's words: a name there lay over the thread) */
@@ -303,6 +305,124 @@ function film(wrap, thread) {
     });
   }
 
+  /* ---------- the whole mRNA as a ribbon, and its modification (IB at HL: D1.2.15; 21 Nov 2026) ----------
+     Daniel, 18 Nov 2026: "any animation is professionally done that shows as much detail, at least in one place or
+     another". The audit of the places found that no page of the site showed this modification; his "Yes, build it"
+     (21 Nov) to the plan: three more steps of this film, for IB at HL only (STEPS_HL below). Every word is of the game's
+     own line (js/story.js, the nucleus's last step): introns are removed, exons are spliced together to form mature
+     mRNA, and a 5′ cap and a 3′ polyA tail are added, which stabilize the mRNA. Left out, as the line leaves them out:
+     what removes the introns, what the cap is made of, and an order of the three changes (the pupil presses them in
+     any order).
+     A drawing, not a real gene's own: three exons (thick, in the copy's colour) and two introns (thin lines, as a
+     textbook draws a gene). The 14 nucleotides of the film lie inside the middle exon and go into it as the view moves
+     back. Five more numbers draw any moment: m (0 the ladder, 1 the ribbon), ri (the introns removed, the first and
+     then the second), cp (the cap), tl (the tail), cmp (the strand of before drawn again above, to compare). */
+  const mr = new THREE.Group(); all.add(mr);
+  const YM = 3.65, RH = 2.8, RD = 0.8, CAPR = 1.8, TWO_PI = 2 * Math.PI;
+  const SEC = [['e', 9], ['i', 11], ['e', 8], ['i', 9], ['e', 9]], TOTAL = SEC.reduce((a, s) => a + s[1], 0);
+  const CXM = X(N) - (N + 5 - 3.2 - (N - 1) / 2) * RISE;          /* the middle of the finished copy (ladder(), p = N + 5) */
+  const XL = CXM - (SEC[0][1] + SEC[1][1] + SEC[2][1] / 2);       /* the 5′ end: the middle exon lies round the copy */
+  const NT = 5, TS = 2.5, YG = YM + 10.5;                          /* the tail's A nucleotides and their spacing; the strand of before */
+  const slab = len => {
+    const r = 0.5, h = RH / 2, s = new THREE.Shape();
+    s.moveTo(r, -h); s.lineTo(len - r, -h); s.quadraticCurveTo(len, -h, len, -h + r); s.lineTo(len, h - r); s.quadraticCurveTo(len, h, len - r, h);
+    s.lineTo(r, h); s.quadraticCurveTo(0, h, 0, h - r); s.lineTo(0, -h + r); s.quadraticCurveTo(0, -h, r, -h);
+    const g = new THREE.ExtrudeGeometry(s, { depth: RD, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 2, curveSegments: 6 }); g.translate(0, 0, -RD / 2); return g;
+  };
+  const exMat = shiny(0xffa64d, 0.25), inMat = [shiny(0x9fb0dc, 0.18), shiny(0x9fb0dc, 0.18)], capMat = shiny(0x3fd6c2, 0.32), barMat = shiny(0xffa64d, 0.25), gExMat = shiny(0xffa64d, 0.2), gInMat = shiny(0x9fb0dc, 0.15);
+  const exons = [0, 2, 4].map(j => { const o = new THREE.Mesh(slab(SEC[j][1]), exMat); mr.add(o); return o; });
+  const introns = [0, 1].map(k => { const o = new THREE.Mesh(new THREE.BufferGeometry(), inMat[k]); mr.add(o); return o; });
+  /* a short light where two exons meet: they are spliced together */
+  const flashes = [0, 1].map(() => { const o = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending })); o.scale.setScalar(7); o.renderOrder = 9; mr.add(o); return o; });
+  const capM = new THREE.Mesh(new THREE.SphereGeometry(CAPR, 28, 20), capMat); capM.scale.set(0.72, 1, 0.62); mr.add(capM);
+  const tailBar = new THREE.Mesh(new THREE.BoxGeometry(1, 0.7, 0.3), barMat); mr.add(tailBar);
+  const tailA = Array.from({ length: NT }, () => { const o = new THREE.Sprite(letterMat('A')); o.scale.setScalar(2.35); o.renderOrder = 8; mr.add(o); return o; });
+  const ghost = new THREE.Group(); mr.add(ghost);
+  { let x = XL; SEC.forEach(([kind, len]) => { const o = kind === 'e' ? new THREE.Mesh(slab(len), gExMat) : new THREE.Mesh(new THREE.BoxGeometry(len, 0.8, 0.5), gInMat); o.position.set(kind === 'e' ? x : x + len / 2, YG, 0); ghost.add(o); x += len; }); }
+  const seg = (x, a, b) => Math.max(0, Math.min(1, (x - a) / (b - a)));
+  const M = { cx: CXM, half: TOTAL / 2 + 3, x: [XL, XL, XL, XL, XL, XL], a: [0, 0], c: [0, 0], f: [0, 0], x3: XL + TOTAL, in: 0 };
+  let lastRi = -1;
+  function mrna() {
+    const mIn = smooth(0.3, 0.8, S.m); M.in = mIn;
+    mr.visible = mIn > 0.001;
+    /* where each section starts: an intron's gap closes as that intron is removed (the first, then the second) */
+    M.a = [seg(S.ri, 0, 0.56), seg(S.ri, 0.44, 1)]; M.c = M.a.map(a => smooth(0, 0.68, a)); M.f = M.a.map(a => smooth(0.68, 1, a));
+    M.x = [XL]; SEC.forEach(([kind, len], j) => { M.x.push(M.x[j] + (kind === 'i' ? len * (1 - M.c[(j - 1) / 2]) : len)); });
+    M.x3 = M.x[5];
+    const tailLen = 0.35 + S.tl * NT * TS;
+    /* what the view must hold: the strand with its cap and its tail, and the strand of before when it is drawn */
+    const left = XL - 1.9, right = Math.max(M.x3 + (S.tl > 0 ? tailLen : 0), XL + TOTAL * S.cmp) + 0.9;
+    M.cx = (left + right) / 2; M.half = (right - left) / 2 + 2.4;
+    if (!mr.visible) return;
+    [exMat, barMat].forEach(m => { m.opacity = mIn; m.depthWrite = mIn > 0.5; });
+    exons.forEach((o, j) => o.position.set(M.x[2 * j], YM, 0));
+    introns.forEach((o, k) => {
+      const xa = M.x[2 * k + 1], g = M.x[2 * k + 2] - xa;
+      inMat[k].opacity = mIn * (1 - M.f[k]); inMat[k].depthWrite = inMat[k].opacity > 0.5; o.visible = M.f[k] < 0.999;
+      flashes[k].position.set(xa + g / 2, YM, RD); flashes[k].material.opacity = mIn * Math.sin(Math.PI * smooth(0.55, 0.9, M.a[k]));
+    });
+    /* an intron is a thin line between two exons; as it is removed its two ends come together, so it stands out as a
+       loop, which then leaves the strand */
+    if (Math.abs(S.ri - lastRi) > 1e-5) {
+      lastRi = S.ri;
+      introns.forEach((o, k) => {
+        const xa = M.x[2 * k + 1], g = M.x[2 * k + 2] - xa, rad = SEC[2 * k + 1][1] / TWO_PI * M.c[k], up = 2.6 * M.f[k], pts = [];
+        for (let s = 0; s <= 36; s++) { const t = s / 36; pts.push(new THREE.Vector3(xa + g * t - rad * Math.sin(TWO_PI * t), YM + up + rad * (1 - Math.cos(TWO_PI * t)), 0)); }
+        o.geometry.dispose(); o.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 72, 0.4, 8, false);
+      });
+    }
+    const ce = smooth(0, 1, S.cp);
+    capM.visible = S.cp > 0.001; capM.position.set(XL - 0.45 - 6.5 * (1 - ce), YM + 6.5 * (1 - ce), 0); capMat.opacity = mIn * smooth(0, 0.3, S.cp); capMat.depthWrite = capMat.opacity > 0.5;
+    tailBar.visible = S.tl > 0.001; tailBar.scale.set(Math.max(0.01, tailLen), 1, 1); tailBar.position.set(M.x3 + tailLen / 2 - 0.2, YM, 0);
+    tailA.forEach((o, j) => {
+      const a = seg(S.tl, j / NT, (j + 1) / NT), e = a * a * (3 - 2 * a);
+      o.visible = a > 0.001; o.material.opacity = mIn * smooth(0, 0.4, a); o.position.set(M.x3 + 0.35 + (j + 0.5) * TS + 5 * (1 - e), YM + 4.5 * (1 - e), 0.5);
+    });
+    ghost.visible = S.cmp > 0.001; gExMat.opacity = gInMat.opacity = 0.85 * S.cmp * mIn; gExMat.depthWrite = gInMat.depthWrite = false;
+  }
+  /* its names (HTML over the view, each at its part: exons below the strand, the rest above it) and the three buttons of
+     the step where the pupil makes the changes */
+  const lab = (html, cls = '') => tag('cf__lab' + cls, html);
+  const mL = { ex: [0, 1, 2].map(() => lab('exon')), in: [0, 1].map(() => lab('intron')), e5: lab('5′ end'), e3: lab('3′ end'), cap: lab('5′ cap'), tail: lab('3′ polyA tail'),
+    mat: lab('mature mRNA', ' cf__lab--big'), was: lab('mRNA before the changes'), exs: lab('exons') };   /* (exs: one name for the three exons where their own names would meet) */
+  const HOT = [['cp', 'Add the 5′ cap'], ['tl', 'Add the 3′ polyA tail'], ['ri', 'Remove the introns']], hot = {};
+  let hotOn = false, hotCb = null;
+  HOT.forEach(([k, t]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cf__hot'; b.dataset.k = k; b.textContent = t; b.hidden = true; b.addEventListener('click', () => { if (hotCb) hotCb(k); }); wrap.appendChild(b); hot[k] = b; });
+  const pv = new THREE.Vector3();
+  const putLab = (el, x, y, o, below, dy = 0) => {
+    el.style.opacity = o.toFixed(3); el.style.visibility = o > 0.01 ? 'visible' : 'hidden'; if (o <= 0.01) return;
+    const a = proj(pv.set(x, y, 0)), hw = (el._w = el._w || el.offsetWidth) / 2, px = Math.max(hw + 6, Math.min(W - hw - 6, a[0]));
+    el._x = px;
+    el.style.transform = `translate(${px.toFixed(1)}px, ${(a[1] + (below ? 5 + dy : -5 - dy)).toFixed(1)}px) translate(-50%, ${below ? '0' : '-100%'})`;
+  };
+  /* a name of an end, the cap or the tail: in the introns' row, or a row higher where it would meet an intron's name */
+  const endLab = (el, x, y, o) => { putLab(el, x, y, o, false); if (o > 0.01 && mL.in.some(n => +n.style.opacity > 0.01 && Math.abs(n._x - el._x) < (n._w + el._w) / 2 + 4)) putLab(el, x, y, o, false, 28); };
+  function overlayM() {
+    const o = M.in;
+    /* each exon has its name; where the names would meet (a narrow window, once the exons are spliced together), one name, "exons", stands under the middle one */
+    const pxU = Math.abs(proj(pv.set(XL + 1, YM, 0))[0] - proj(pv.set(XL, YM, 0))[0]), ew = mL.ex[0]._w || mL.ex[0].offsetWidth || 46;
+    const crowd = (M.x[2] + SEC[2][1] / 2 - M.x[0] - SEC[0][1] / 2) * pxU < ew + 6;
+    mL.ex.forEach((el, j) => putLab(el, M.x[2 * j] + SEC[2 * j][1] / 2, YM - RH / 2, crowd ? 0 : o, true));
+    putLab(mL.exs, M.x[2] + SEC[2][1] / 2, YM - RH / 2, crowd ? o : 0, true);
+    mL.in.forEach((el, k) => putLab(el, (M.x[2 * k + 1] + M.x[2 * k + 2]) / 2, YM + RH / 2, o * (1 - smooth(0.02, 0.2, M.a[k])), false));
+    endLab(mL.e5, XL + 0.8, YM + RH / 2, o * (1 - smooth(0, 0.25, S.cp)));
+    endLab(mL.e3, M.x3 - 0.8, YM + RH / 2, o * (1 - smooth(0, 0.2, S.tl)));
+    endLab(mL.cap, XL - 0.45, YM + RH / 2, o * smooth(0.85, 1, S.cp));
+    endLab(mL.tail, M.x3 + 0.35 + NT * TS / 2, YM + RH / 2, o * smooth(0.85, 1, S.tl));
+    putLab(mL.mat, (XL + M.x3) / 2, YM - RH / 2, o * smooth(0.98, 1, Math.min(S.ri, S.cp, S.tl)), true, 30);
+    putLab(mL.was, XL + TOTAL / 2, YG + RH / 2, o * S.cmp, false);
+    /* the buttons: the cap's above the 5′ end and the tail's above the 3′ end, in a row above the names (the cap's a row
+       higher where the two would meet, in a narrow window); the introns' under the strand, below the exons' names */
+    const on = k => hotOn && S[k] < 0.001 && o > 0.98, top = proj(pv.set(XL, YM + RH / 2, 0)), end = proj(pv.set(M.x3, YM + RH / 2, 0)), bot = proj(pv.set((XL + M.x3) / 2, YM - RH / 2, 0));
+    const R3 = {};
+    HOT.forEach(([k]) => { const b = hot[k]; b.hidden = !on(k); if (!b.hidden) { b._w = b._w || b.offsetWidth; b._h = b._h || b.offsetHeight; } });
+    if (!hot.cp.hidden) R3.cp = [Math.max(6, Math.min(W - hot.cp._w - 6, top[0] - hot.cp._w * 0.3)), top[1] - 38 - hot.cp._h];
+    if (!hot.tl.hidden) R3.tl = [Math.max(6, Math.min(W - hot.tl._w - 6, end[0] - hot.tl._w * 0.7)), end[1] - 38 - hot.tl._h];
+    if (R3.cp && R3.tl && R3.cp[0] + hot.cp._w + 8 > R3.tl[0]) R3.cp[1] -= hot.cp._h + 8;
+    if (!hot.ri.hidden) R3.ri = [Math.max(6, Math.min(W - hot.ri._w - 6, bot[0] - hot.ri._w / 2)), bot[1] + 38];
+    Object.keys(R3).forEach(k => { hot[k].style.transform = `translate(${R3[k][0].toFixed(1)}px, ${R3[k][1].toFixed(1)}px)`; });
+  }
+
   let alive = true, W = 1, H = 1, fade = 1;
   const size = () => {
     W = wrap.clientWidth; H = Math.max(200, wrap.clientHeight || Math.min(360, W * 0.62));
@@ -315,9 +435,14 @@ function film(wrap, thread) {
     cam.userData.d0 = Math.max(44 / (tv * cam.aspect), 20 / tv); cam.userData.d1 = Math.max(30 / (tv * cam.aspect), 14 / tv);
     /* furthest (z = -1): the whole thread in view, with room for its name above it and the scale bar below it */
     cam.userData.dF = Math.max(FB.hx * 1.12 / (tv * cam.aspect), (FB.hy + 330) / tv);
+    /* (HL) the names' and the buttons' widths are measured again; in a narrow window (a phone) the names of the two ends
+       and of the tail are shorter, so that no two names meet */
+    mL.e5.textContent = narrow ? '5′' : '5′ end'; mL.e3.textContent = narrow ? '3′' : '3′ end'; mL.tail.textContent = narrow ? 'polyA tail' : '3′ polyA tail';
+    Object.values(hot).forEach(b => { b._w = b._h = 0; }); [].concat(...Object.values(mL)).forEach(el => { el._w = 0; });
   };
   size(); addEventListener('resize', size);
-  const S = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
+  const KEYS = ['z', 'L', 'u', 'p', 'hl', 'hb', 'm', 'ri', 'cp', 'tl', 'cmp'];
+  const S = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0, m: 0, ri: 0, cp: 0, tl: 0, cmp: 0, from: null, to: null, t0: 0, ms: 0, done: null, lin: false, cx: null };
   const t0 = performance.now();
   /* the helix's slow turn, added up frame by frame, slower as it untwists, and kept within half a turn while it is a helix
      (where a whole turn cannot be seen): untwisting then undoes at most half a turn (9 Nov 2026, Daniel: the untwisting
@@ -326,7 +451,7 @@ function film(wrap, thread) {
   const loop = () => {
     if (!alive) return;
     const now = performance.now(), k = S.ms ? Math.min(1, (now - S.t0) / S.ms) : 1, e = k * k * (3 - 2 * k);
-    if (S.from) ['z', 'L', 'u', 'p', 'hl', 'hb'].forEach(n => { S[n] = S.from[n] + (S.to[n] - S.from[n]) * (n === 'p' && S.lin ? k : e); });
+    if (S.from) KEYS.forEach(n => { S[n] = S.from[n] + (S.to[n] - S.from[n]) * (n === 'p' && S.lin ? k : e); });
     const t = R.FAST ? 0 : (now - t0) / 1000;
     spin += Math.max(0, t - lastT) * 0.35 * (1 - S.u); lastT = t;
     if (S.u < 0.001) spin = ((spin + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
@@ -341,43 +466,55 @@ function film(wrap, thread) {
     chrom.visible = near < 0.999 && fin > 0.001; histMat.opacity = dnaMat.opacity = (1 - near) * fin; histMat.depthWrite = dnaMat.depthWrite = near < 0.5 && fin > 0.5;
     far.visible = side > 0.001; sideMat.opacity = side; sideMat.depthWrite = side > 0.5; midTube.visible = midO > 0.001; midMat.opacity = midO * side; midMat.depthWrite = midO > 0.95;
     geneGlow.material.opacity = (1 - smooth(-0.75, -0.4, S.z)) * (R.FAST ? 1 : 0.75 + 0.25 * Math.sin(t * 3));
-    fade = near; root.visible = near > 0.001; ladderMats.forEach(m => { m.opacity = near; m.depthWrite = near > 0.5; }); hbMat.opacity = near;
+    /* (HL) as the view moves back to the whole mRNA, the ladder and the copy's letters go, and the ribbon comes */
+    const lad = near * (1 - smooth(0.05, 0.5, S.m));
+    fade = lad; root.visible = lad > 0.001; ladderMats.forEach(m => { m.opacity = lad; m.depthWrite = lad > 0.5; }); hbMat.opacity = lad; Object.values(lettersR).forEach(m => { m.opacity = lad; });
     ladder(S.u, S.p, spin, S.hl, S.hb);
+    mrna();
     all.rotation.z = -0.32 * (1 - smooth(0.9, 1.9, S.z));
     /* on a phone, as the copy grows above the DNA, the view rises and steps back a little, so that the copy's name fits */
     const tall = cam.userData.narrow ? smooth(6, 9, S.p) : 0;
     const d0 = cam.userData.d0, d1 = cam.userData.d1, d2 = Math.max(cam.userData.distW, (3.1 + 0.45 * tall) / cam.userData.tv);
-    const dist = S.z < 0 ? d0 * Math.pow(cam.userData.dF / d0, -S.z) : S.z <= 1 ? d0 * Math.pow(d1 / d0, S.z) : d1 * Math.pow(d2 / d1, S.z - 1);
+    let dist = S.z < 0 ? d0 * Math.pow(cam.userData.dF / d0, -S.z) : S.z <= 1 ? d0 * Math.pow(d1 / d0, S.z) : d1 * Math.pow(d2 / d1, S.z - 1);
+    /* (HL) the whole mRNA: the view moves back until the strand, its cap and its tail fit, and up to the strand */
+    const mE = smooth(0, 1, S.m);
+    if (mE > 0) dist *= Math.pow(Math.max(M.half / (cam.userData.tv * cam.aspect), (8.4 + 5.6 * S.cmp) / cam.userData.tv) / dist, mE);
     /* from far away the view's middle is the middle of the whole thread; it moves to the gene as the camera comes in */
     const fk = smooth(-0.25, -1, S.z), fx = FB.cx * fk, fy = FB.cy * fk;
-    const sway = R.FAST ? 0 : Math.sin(t * 0.35) * 0.12 * S.u;
+    const sway = R.FAST ? 0 : Math.sin(t * 0.35) * 0.12 * S.u * (1 - 0.9 * mE);   /* (almost still at the ribbon: its buttons are pressed) */
     /* while the helix turns, the view moves a little to the right of it, so the 2 nm bar has room on its left */
     /* (on a phone, to the helix's left end, where its 2 nm bar is) */
     /* (and while the hydrogen bonds are named, to the DNA's left end, where the name is) */
     const want = (cam.userData.narrow && S.p > -3 ? Math.max(X(2), Math.min(X(N - 3), X(S.p - 1.5))) : 0) - (cam.userData.narrow ? 3.2 : 1.1) * (1 - S.u) * smooth(1.6, 2, S.z)
       - (cam.userData.narrow ? 3.9 : 1.6) * S.hb * (1 - smooth(-4.5, -3, S.p));
-    S.cx = S.cx == null || R.FAST ? want : S.cx + (want - S.cx) * 0.06;
-    const lookY = S.z <= 1 ? 0 : 1.05 * smooth(1, 2, S.z) + 0.4 * tall;
+    const wantM = want + (M.cx - want) * mE;
+    S.cx = S.cx == null || R.FAST ? wantM : S.cx + (wantM - S.cx) * 0.06;
+    const lookY0 = S.z <= 1 ? 0 : 1.05 * smooth(1, 2, S.z) + 0.4 * tall, lookY = lookY0 + (YM + 5.25 * S.cmp - lookY0) * mE;
     cam.position.set(S.cx + fx + Math.sin(sway) * dist, lookY + fy + (0.15 + 0.4 * (1 - S.u)) * Math.min(1, dist / 12), Math.cos(sway) * dist); cam.lookAt(S.cx + fx, lookY + fy, 0);
     cam.far = Math.max(600, dist * 3); cam.updateProjectionMatrix();
     renderer.render(scene, cam);
-    overlay(S.z, S.u, S.p, S.hl, S.hb);
+    overlay(S.z, S.u, S.p, S.hl, S.hb); overlayM();
     if (k >= 1 && S.done) { const d = S.done; S.done = null; d(); }
     requestAnimationFrame(loop);
   };
   loop();
   return {
-    /* to a moment: zoom z, loosened L, untwisted u, enzyme at p, nucleotide named hl, hydrogen bonds hb; `lin` keeps an even pace (the
-       building blocks arrive one by one) */
+    /* to a moment: zoom z, loosened L, untwisted u, enzyme at p, nucleotide named hl, hydrogen bonds hb (and m, ri, cp, tl, cmp: the
+       whole mRNA, above); `lin` keeps an even pace (the building blocks arrive one by one); `same: 'skip'`: a move that
+       would change nothing takes no time (the changes the pupil has already made) */
     go(to) {
+      if (to.same === 'skip' && KEYS.every(n => to[n] == null || Math.abs(S[n] - to[n]) < 1e-6)) return Promise.resolve();
       return new Promise(res => {
-        S.from = { z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb }; S.to = Object.assign({}, S.from, to);
+        S.from = {}; KEYS.forEach(n => { S.from[n] = S[n]; }); S.to = Object.assign({}, S.from, to);
         S.lin = !!to.lin; S.t0 = performance.now(); S.ms = R.FAST ? 0 : (to.ms || 1200); S.done = res;
       });
     },
     stop() { alive = false; removeEventListener('resize', size); renderer.dispose(); renderer.domElement.remove(); },
     /* where the film stands (read by tools/copyfilm-check.mjs): its numbers and the helix's turn */
-    peek: () => ({ z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb, spin, far: far.visible ? sideMat.opacity : 0, piece: midTube.visible ? midMat.opacity : 0, fibre: chrom.visible ? histMat.opacity : 0, dist: cam.position.distanceTo(new THREE.Vector3(S.cx || 0, 0, 0)) })
+    /* the buttons of the step where the pupil makes the changes: shown while `on`, each until its change is made */
+    hot(on, cb) { hotOn = !!on; hotCb = on ? cb || null : null; if (!on) HOT.forEach(([k]) => { hot[k].hidden = true; }); },
+    focusHot() { const b = HOT.map(h => hot[h[0]]).find(x => !x.hidden); if (b) b.focus({ preventScroll: true }); return !!b; },
+    peek: () => ({ z: S.z, L: S.L, u: S.u, p: S.p, hl: S.hl, hb: S.hb, m: S.m, ri: S.ri, cp: S.cp, tl: S.tl, cmp: S.cmp, spin, far: far.visible ? sideMat.opacity : 0, piece: midTube.visible ? midMat.opacity : 0, fibre: chrom.visible ? histMat.opacity : 0, dist: cam.position.distanceTo(new THREE.Vector3(S.cx || 0, 0, 0)) })
   };
 }
 
@@ -432,6 +569,28 @@ const LINES = [
       ['hl', 'D1.2.15', 'Before the mRNA leaves the nucleus: introns are removed, exons are spliced together, and a 5′ cap and a 3′ polyA tail are added.']] }
 ];
 
+/* the three steps for IB at HL (21 Nov 2026; Daniel's "Yes, build it"): the mRNA's modification before it leaves the
+   nucleus. Their words are the course's own, of the game's D1.2.15 line (js/story.js, the nucleus's last step); a
+   term is explained before it is named. `hot`: the step where the pupil makes the three changes, in any order (the
+   line gives none); the step after it makes any change still missing, then draws the strand of before again.
+   After the independent science read (21 Nov): the tail's five A discs are said to stand for more ("the picture shows
+   only five"); the thick exons and thin introns are said to be a drawing of one chain; "stabilize" is explained first
+   ("make the mRNA last longer": the word of the D2.2.3 line in the same box of the nucleus); a term comes after its
+   meaning; "post-transcriptional modification" and "eukaryotic" stand in the IB line under the words. */
+const STEPS_HL = [
+  { t: 'In a cell with a nucleus, the mRNA is modified (changed) before the mRNA leaves the nucleus.\nBefore that, the mRNA has two kinds of section. The coding sections are the <b>exons</b>. The sections that do not code for amino acids are the <b>introns</b>.\nThe drawing: a real mRNA is one chain of nucleotides, much longer than the 14 of this film. Exons are drawn thick and introns thin.', go: { m: 1, ms: 4200 } },
+  { t: 'Three changes make the mRNA mature (complete). Press the three buttons on the picture, in any order: your course gives no order.\n<b>Remove the introns:</b> the exons are then joined end to end. The exons are spliced together.\n<b>Add the 5′ cap</b> to the 5′ end. <b>Add the 3′ polyA tail</b> to the 3′ end: a chain of nucleotides that all have the base A (the picture shows only five).', hot: 1 },
+  { t: 'This is <b>mature mRNA</b>. Above the mature mRNA, the mRNA before the changes is drawn again: compare the two.\nThe introns are removed, and the exons are spliced together. The 5′ cap and the 3′ polyA tail make the mRNA last longer: the cap and the tail stabilize the mRNA.\nAll of this happens in the nucleus. The mature mRNA can now leave through a nuclear pore.', go: [{ ri: 1, cp: 1, tl: 1, ms: 2800, same: 'skip' }, { cmp: 1, ms: 1800 }] }
+];
+const LINES_HL = [
+  { igcse: [['n', '', 'The IGCSE syllabus does not name this modification of mRNA.']],
+    ib: [['hl', 'D1.2.15', 'Post-transcriptional modification in eukaryotic cells happens in the nucleus, before the mRNA leaves. Introns are sections that do not code for amino acids; exons are the coding sections.']] },
+  { igcse: [['n', '', 'The IGCSE syllabus does not name this modification of mRNA.']],
+    ib: [['hl', 'D1.2.15', 'Introns are removed and exons are spliced together to form mature mRNA, and a 5′ cap and a 3′ polyA tail are added.']] },
+  { igcse: [['n', '', 'The IGCSE syllabus does not name this modification of mRNA.']],
+    ib: [['hl', 'D1.2.15', 'The 5′ cap and the 3′ polyA tail stabilize the mRNA.']] }
+];
+
 /* chromosome 1's thread as the game's nucleus draws it (cellbuild.js W.chromosomes[0].curve, µm), for the film's first
    picture: in nm, the middle of the amylase gene (half-way along it: play.js gene) at 0, 0, 0, the thread running along
    x there; the piece HALF = 29 nm either side of the gene is left out and two points mark its ends, since that piece is
@@ -459,7 +618,7 @@ function worldThread() {
 }
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */
-export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
+export function openCopyFilm({ last = 'Back to the nucleus', code = '' } = {}) {
   return new Promise(done => {
     let box = $('#copyfilm');
     if (!box) { box = document.createElement('div'); box.className = 'lens'; box.id = 'copyfilm'; $('#stage').appendChild(box); }
@@ -473,7 +632,7 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
       <div class="cf__lvs"></div>
     </div></div></div>`;
     box.hidden = false;
-    const F = film($('.cf__3d', box), worldThread()); box.peek = F.peek;
+    const F = film($('.cf__3d', box), worldThread()); box.peek = F.peek; box.go = F.go;   /* (go: for the checks' pictures of a moment in between, as peek) */
     const nEl = $('.cf__n', box), tEl = $('.cf__t', box), btn = $('.cf__do .btn.next', box), kEl = $('.cf__key', box), back = $('.cf__do .btn.back', box);
     /* the courses that are on (a pupil whose Year 7 checks of a place are right may switch them on: quest.js courseSwitch) */
     const LV = Object.assign({ igcse: false, ib: false }, R.store.get('courseLv', {})), lEl = $('.cf__lvs', box);
@@ -483,35 +642,64 @@ export function openCopyFilm({ last = 'Back to the nucleus' } = {}) {
     const KEY = ['', '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other.',
       '<span style="--c:#ff6b6b">A</span><span style="--c:#4fa3ff">T</span> fit each other, <span style="--c:#ffc94a">C</span><span style="--c:#4fd18b">G</span> fit each other; in RNA, <span style="--c:#c38bff">U</span> replaces T.'];
     let i = 0, busy = false; const sEl = $('.cf__steps', box);
-    const close = () => { F.stop(); box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); done(); };
+    /* the steps now: with IB on at HL, three more (21 Nov 2026); the level can change while the film is open (its
+       switch is under the course boxes): then the steps follow it, and a pupil in an HL step goes to the last step of SL */
+    const hlOn = () => !!LV.ib && level() === 'hl';
+    let ST = hlOn() ? STEPS.concat(STEPS_HL) : STEPS, LN = hlOn() ? LINES.concat(LINES_HL) : LINES;
+    const onLevel = () => {
+      if (busy) { setTimeout(onLevel, 120); return; }
+      const was = ST.length; ST = hlOn() ? STEPS.concat(STEPS_HL) : STEPS; LN = hlOn() ? LINES.concat(LINES_HL) : LINES;
+      if (ST.length === was || box.hidden) return;
+      i = Math.min(i, ST.length - 1); show(0);
+    };
+    document.addEventListener('iblevel', onLevel);
+    const close = () => { F.stop(); box.hidden = true; box.innerHTML = ''; document.removeEventListener('keydown', esc1); document.removeEventListener('iblevel', onLevel); done(); };
     const esc1 = e => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', esc1);
     $('.close-x', box).addEventListener('click', close);
     /* where the film stands at the end of step k: every move of the steps up to it, in turn (a step's go is one move or a
        list of moves) */
-    const moves = k => [].concat(STEPS[k].go || []);
-    const stateAt = k => { const st = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0 }; for (let j = 0; j <= k; j++) moves(j).forEach(g => Object.keys(st).forEach(n => { if (g[n] != null) st[n] = g[n]; })); return st; };
+    const moves = k => [].concat(ST[k].go || []);
+    const stateAt = k => { const st = { z: -1, L: 0, u: 0, p: -6, hl: 0, hb: 0, m: 0, ri: 0, cp: 0, tl: 0, cmp: 0 }; for (let j = 0; j <= k; j++) moves(j).forEach(g => Object.keys(st).forEach(n => { if (g[n] != null) st[n] = g[n]; })); return st; };
     /* back (9 Nov 2026, Daniel: "you can only go forward and not backward"): the film plays in reverse to the end of the
        step before, as long as that step took (1.2 to 4.5 s): everything is worked out from a few numbers, so any moment can
        be drawn and nothing jumps. Both buttons wait while a step plays */
+    /* the step where the pupil makes the three changes: how many are made, under the step's words; Next asks to be
+       pressed only when all three are (it still works before: the next step then makes what is missing) */
+    const cEl = document.createElement('p'); cEl.className = 'cf__count'; cEl.setAttribute('aria-live', 'polite');
+    const made = () => { const q = F.peek(); return ['ri', 'cp', 'tl'].filter(k => q[k] > 0.999).length; };
+    const count = () => { const n = made(); cEl.textContent = `Changes made: ${n} of 3.` + (n === 3 ? ' The mRNA is now mature mRNA.' : ''); btn.classList.toggle('pulse', n === 3); };
+    const press = async k => {
+      if (busy || !ST[i].hot) return;
+      busy = true; btn.disabled = true; back.disabled = true; F.hot(false);
+      await F.go({ [k]: 1, ms: k === 'ri' ? 5200 : 2400 });
+      busy = false; btn.disabled = false; back.disabled = false; count(); F.hot(true, press);
+      if (made() === 3) btn.focus({ preventScroll: true }); else setTimeout(() => F.focusHot(), 80);
+    };
     const show = async (dir = 1) => {
-      const s = STEPS[i]; busy = true; btn.disabled = true; back.disabled = true;
-      nEl.textContent = `${i + 1} of ${STEPS.length}`;
+      const s = ST[i]; busy = true; btn.disabled = true; back.disabled = true; F.hot(false); btn.classList.add('pulse');
+      nEl.textContent = `${i + 1} of ${ST.length}`;
       /* a button for every step (14 Nov 2026, Daniel: "there is no way to kind of easily navigate between all of the
          stages … 1, 2, 3, as a clickable button"): the film goes straight to that step's end, in one move */
-      if (sEl.children.length !== STEPS.length) sEl.innerHTML = STEPS.map((_, k) => `<button type="button" data-s="${k}" aria-label="Step ${k + 1}">${k + 1}</button>`).join('');
+      if (sEl.children.length !== ST.length) sEl.innerHTML = ST.map((_, k) => `<button type="button" data-s="${k}"${k >= STEPS.length ? ' data-hl' : ''} aria-label="Step ${k + 1}${k >= STEPS.length ? ', HL' : ''}">${k + 1}</button>`).join('');
       Array.from(sEl.children).forEach((b, k) => { if (k === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); }); tEl.innerHTML = paras(s.t); if (R.terms) R.terms(tEl);
-      lEl.innerHTML = courseLines(LINES[i] || {}, LV); if (R.terms) R.terms(lEl);
+      if (s.hot) { cEl.textContent = ''; tEl.appendChild(cEl); }
+      lEl.innerHTML = courseLines(LN[i] || {}, LV); if (R.terms) R.terms(lEl);
       kEl.hidden = !s.key; kEl.innerHTML = KEY[s.key || 0];
       if (dir > 0) { for (const g of moves(i)) await F.go(g); }
       else if (dir === 0) await F.go(Object.assign(stateAt(i), { ms: 1500 }));
       else { const ms = moves(i + 1).reduce((a, g) => a + (g.ms || 1200), 0); await F.go(Object.assign(stateAt(i), { ms: Math.max(1200, Math.min(4500, ms)) })); }
       busy = false; btn.disabled = false; back.disabled = i === 0;
-      btn.textContent = i === STEPS.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });
+      btn.textContent = i === ST.length - 1 ? last + ' →' : 'Next step →'; btn.focus({ preventScroll: true });
+      if (ST[i].hot) { count(); F.hot(true, press); }
     };
-    btn.addEventListener('click', () => { if (busy) return; if (i === STEPS.length - 1) { close(); return; } i++; show(); });
+    btn.addEventListener('click', () => { if (busy) return; if (i === ST.length - 1) { close(); return; } i++; show(); });
     back.addEventListener('click', () => { if (busy || i === 0) return; i--; show(-1); });
     sEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || busy) return; const k = +b.dataset.s; if (k === i) return; if (k === i + 1) { i++; show(); } else { i = k; show(0); } });
-    show();
+    /* opened for a statement that only an HL step shows (the door of the nucleus's last step: D1.2.15): the film stands
+       at the end of the step before, and plays that step */
+    const k0 = code && hlOn() ? LINES_HL.findIndex(l => (l.ib || []).some(x => x[1] === code)) : -1;
+    if (k0 >= 0) { i = STEPS.length + k0; F.go(Object.assign(stateAt(i - 1), { ms: 1 })).then(() => show()); }
+    else show();
   });
 }

@@ -29,12 +29,12 @@
    out: the end of each run, with an arrow for the net movement of water and the path of each protease.
    For tools/fractionation-check.mjs: window.FRACTIONATION.
    ============================================================ */
-import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611211959';
-import { found, learn } from '../ib/found.js?v=202611211959';
-import { marks } from '../ib/mark.js?v=202611211959';      /* (a visit from the IB map marks its sentence) */
-import { LIQ } from '../water/liquid.js?v=202611211959';
-import { OSM, STEPS as OSM_STEPS, makeOsmosis, osmosisTo, counts, drawLiquid } from './osmosis.js?v=202611211959';
-import { PROT, PROTEINS, makeProteases, ASSAY, makeAssay, enzymeAt, LEAK } from './walk.js?v=202611211959';
+import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611212238';
+import { found, learn } from '../ib/found.js?v=202611212238';
+import { marks } from '../ib/mark.js?v=202611212238';      /* (a visit from the IB map marks its sentence) */
+import { LIQ } from '../water/liquid.js?v=202611212238';
+import { OSM, STEPS as OSM_STEPS, makeOsmosis, osmosisTo, counts, drawLiquid } from './osmosis.js?v=202611212238';
+import { PROT, PROTEINS, makeProteases, ASSAY, makeAssay, enzymeAt, LEAK } from './walk.js?v=202611212238';
 const VIEW = 'fractionation';      /* (the key of this view's found names: js/ib/found.js) */
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -79,7 +79,7 @@ const broken = b => (b > 0.001 ? ` pathLength="100" stroke-dasharray="${r1(20 - 
    tools/servier/pieces.py. Each is drawn as an <image>, so the browser draws its shapes once for a size and not again
    for every frame of a motion. PIC: each drawing's own width and height. Only what moves by the lab's own rules is
    still drawn here (a membrane in pieces, liquids, the counted models, arrows). */
-const ART_V = '?v=202611211959', ART_URL = new URL('../../fractionation/art/', import.meta.url).href;
+const ART_V = '?v=202611212238', ART_URL = new URL('../../fractionation/art/', import.meta.url).href;
 const PIC = { cell: [461, 414], lyso: [36, 36], mito: [203, 103], nucleus: [178, 197], rer: [212, 104], protease: [105, 155], enzyme: [57, 57], tube: [42, 273], beaker: [112, 151], thermo: [6, 392], pestle: [44, 153], ctube: [50, 313], centrifuge: [206, 272], bath: [209, 204] };
 /* Each drawing is turned ONCE into a bitmap (a PNG three or four times its own size; the cell 1,400 px wide), and the
    picture is drawn from the bitmaps: an SVG <image> that is made again for every frame of a motion is drawn from its
@@ -569,7 +569,7 @@ const paras = t => split(t).main;
 
 function styles() {
   let l = document.querySelector('link[data-frcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611211959', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611212238', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */

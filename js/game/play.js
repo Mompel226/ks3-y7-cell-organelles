@@ -5,28 +5,28 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611211959';
-import { state, COST, RESPIRE } from './state.js?v=202611211959';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611211959';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611211959';
-import { sound } from './sound.js?v=202611211959';
-import { magicStandard } from '../world/magic.js?v=202611211959';
-import { buildCrowd } from '../world/crowd.js?v=202611211959';
-import { Names } from './names.js?v=202611211959';
-import { makePit } from './clathrin.js?v=202611211959';
-import { makeFlow, flowCheck } from './wayflow.js?v=202611211959';
-import { level } from './iblevel.js?v=202611211959';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611212238';
+import { state, COST, RESPIRE } from './state.js?v=202611212238';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611212238';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611212238';
+import { sound } from './sound.js?v=202611212238';
+import { magicStandard } from '../world/magic.js?v=202611212238';
+import { buildCrowd } from '../world/crowd.js?v=202611212238';
+import { Names } from './names.js?v=202611212238';
+import { makePit } from './clathrin.js?v=202611212238';
+import { makeFlow, flowCheck } from './wayflow.js?v=202611212238';
+import { level } from './iblevel.js?v=202611212238';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611211959').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611212238').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611211959').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611212238').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
-  try { await (e.detail.film === 'ribo' ? openRiboFilm() : openCopyFilm()); } finally { filmOpen = false; }
+  try { await (e.detail.film === 'ribo' ? openRiboFilm() : openCopyFilm({ code: e.detail.code || '' })); } finally { filmOpen = false; }   /* (code: the door of one HL statement, quest.js FILMAT) */
 });
 const R = window.REV;
 /* IB mode (quest.js courseSwitch: "Your course", IB on, in the way in and the mitochondria, once every check is right):
@@ -1586,7 +1586,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611211959').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611212238').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
