@@ -310,7 +310,9 @@ details.step__lv:not([open])>summary{margin:0!important}
 details.step__lv:not([open])>summary::after{content:" \25B8";opacity:.7}
 details.step__lv>p,details.step__lv .cbox-more>p{margin:0 0 8px}
 details.step__lv>.cbox-more:last-child{margin-bottom:0}
-.step__lv .step__lvfilm,.step__lv .step__lvdoor,.step__lv .step__lvmem{margin-top:8px}
+.step__lv .step__lvfilm,.step__lv .step__lvdoor,.step__lv .step__lvmem,.step__lv .step__lvout,.step__lv .step__lvplant{margin-top:8px}
+/* a door to another page of the site (quest.js OUT; 20 Nov 2026): a link with the look of the other doors */
+a.step__ibdoor{box-sizing:border-box;text-decoration:none}
 /* a course's own questions (quest.js courseQuestions), under the place's Year 7 checks: the extension violet, as the boxes */
 .qp__cq{margin:18px 0 0;padding:2px 12px 12px;border-radius:14px;background:rgba(114,67,192,.07);border-left:4px solid #7243C0}
 .qp__cq .qp__k{color:#7243C0;margin-top:14px}

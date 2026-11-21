@@ -23,11 +23,11 @@
    step shown again, or as one still, is the same run.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611192340';
-import { loadProts, protein, surfacePoints } from './prot.js?v=202611192340';
-import { bilayer, MEM } from './membrane.js?v=202611192340';
-import { disposeGroup, glow, halo as haloTex } from './stage.js?v=202611192340';
-import { c1Run, C1, SPACE, rng, wander } from './flow.js?v=202611192340';
+import { ballStick, gather, Reaction, molData, smooth, faceRing } from './mol.js?v=202611211959';
+import { loadProts, protein, surfacePoints } from './prot.js?v=202611211959';
+import { bilayer, MEM } from './membrane.js?v=202611211959';
+import { disposeGroup, glow, halo as haloTex } from './stage.js?v=202611211959';
+import { c1Run, C1, SPACE, rng, wander } from './flow.js?v=202611211959';
 
 const lerp3 = (pts, f) => { const n = pts.length - 1, i = Math.max(0, Math.min(n - 1, Math.floor(f * n))), k = f * n - i, e = k * k * (3 - 2 * k); return pts[i].clone().lerp(pts[i + 1], e); };
 const qAxis = (a, t) => new THREE.Quaternion().setFromAxisAngle(a, t);

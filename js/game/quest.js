@@ -7,17 +7,17 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611192340';
-import { state, COST } from './state.js?v=202611192340';
-import { sound } from './sound.js?v=202611192340';
-import { finalLine } from './final.js?v=202611192340';
+import { ICON } from './icons.js?v=202611211959';
+import { state, COST } from './state.js?v=202611211959';
+import { sound } from './sound.js?v=202611211959';
+import { finalLine } from './final.js?v=202611211959';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611192340').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611192340';
-import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611192340';
-import { WORDS, pick } from './coursewords.js?v=202611192340';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611211959').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611211959';
+import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611211959';
+import { WORDS, pick } from './coursewords.js?v=202611211959';
 const HOT_OFF = 26, HOT_UP = 18;     /* px: a button beside its part (r, l), above or below it (t, b): the length of its line */
 
 const R = window.REV, { $, $$, h, esc } = R;
@@ -305,7 +305,8 @@ export class Quest {
      (as long as the distinction is clear) is useful for the students to see how they need to improve/change the way
      they write as they progress"). A box may hold a door: to the film that shows the step in detail (`film`; play.js
      opens it: 'coursefilm'), to a chapter of "From glucose to ATP" (`ch`; js/ib/view.js; main.js opens it:
-     'ibview') or to "The cell membrane: fluid and mosaic" (`mem`; js/membrane/view.js; main.js: 'memview'). In a place with `names` (the way in, the mitochondria), IB on also puts the page in IB mode (the class
+     'ibview') or to "The cell membrane: fluid and mosaic" (`mem`; js/membrane/view.js; main.js: 'memview'), or to another
+     page of the site that shows a process of the step in detail (`out`; OUT below). In a place with `names` (the way in, the mitochondria), IB on also puts the page in IB mode (the class
      ib-on): the names on the picture add the IB terms, and what the place says adds its IB sentence under the Year 7
      one (play.js `ib`, which hears 'ib-switch'). The choice is kept (store 'courseLv') and is the same in every
      place. Until 13 Nov 2026 those two places had a switch of their own, "IB Biology" (store 'ibon'), which changed
@@ -318,6 +319,34 @@ export class Quest {
     const NAME = { igcse: 'IGCSE', ib: 'IB' }, LVN = { c: 'Core', s: 'Supplement', n: 'Not named', sl: 'SL and HL', hl: 'HL only', x: 'Beyond the guide' };
     const FILM = { copy: '🔬 How a cell copies a gene: the film, with your course →', ribo: '🔬 How a ribosome reads the copy: the film →' };
     const CH = ['the map', 'into the cell', 'glycolysis', 'into the mitochondrion', 'the link reaction', 'the Krebs cycle', 'the electron transport chain', 'the tally'];
+    /* doors to another page of the site (story.js `out`; 20 Nov 2026). Daniel, 18 Nov 2026: "any animation is
+       professionally done that shows as much detail, at least in one place or another", and a simple picture in a
+       step is "fair enough" only "if this is shown somewhere else a bit more in detail"; his "Yes, add doors" (20 Nov)
+       to the audit of the places: these processes are drawn simply here and in detail on a page that had no door from
+       the step. Each door is a link that opens in a new tab, so the game waits as it is. The words say what the page
+       shows, in the course's words; the words in quotes are that page's own names, which the pupil finds there.
+       [the address, the door's words, more words with IB, true: for HL only]. The lab's two addresses are its
+       stations (labs/inheritance-lab, js/data/stations.js: genes, mitosis); the sim's `build` is read by its page
+       (sims/protein-enzyme-sim/index.html). tools/ib-level.mjs O proves each address against those files. */
+    const LAB = 'https://nlcsbiology.com/inheritance-lab/', SIM = 'https://nlcsbiology.com/protein-enzyme-sim/';
+    const OUT = {
+      replication: [LAB + '#genes', '🧬 Inheritance Lab, “From a cell to a gene”: steps 6 and 7 show replication'],   /* (the science read, 20 Nov: "replication, step by step" promised more than the page gives: 2 of its 13 steps) */
+      mitosis: [LAB + '#mitosis', '🧬 Inheritance Lab, “Mitosis, step by step”', ': there, press “IB Mitosis in detail”'],
+      peptide: [SIM + '?build=polypeptide', '🧪 Protein & Enzyme Sim: link amino acids, and choose the atoms that leave as water'],
+      phospholipid: [SIM + '?build=phospholipid', '🧪 Protein & Enzyme Sim: form a phospholipid, and choose the atoms that leave as water'],
+      fold: [SIM + '?build=fold', '🧪 Protein & Enzyme Sim: fold a chain, and see the bonds of its tertiary structure', '', true]   /* (the science read: the sim draws each bond between two amino acids, a bead each; it draws no R-group) */
+    };
+    /* a door to a scene of the plant cell's membrane step (story.js `plant`; 20 Nov 2026, as OUT above): the way in's
+       IGCSE box names osmosis and active transport in a line only, and that step shows each as a scene with many
+       particles (js/plant/memflow.js). The plant cell says which steps and scenes a door may open (js/plant/doors.js
+       OPEN_AT, a few lines, asked for when a place with such a door first draws its boxes): where that file or that
+       scene is not there, no door is drawn. main.js opens the plant cell at that step alone ('plant', detail.at): the
+       scene starts, the way back stands in place of Next, and nothing of the side quest is saved or changed.
+       The words name the process and where; never the plant cell's own button, which follows the course there. */
+    const PLANT = { osmosis: ['membrane', '🌱 A plant cell: osmosis through its cell membrane →'], active: ['membrane', '🌱 A plant cell: active transport of nitrate ions through its cell membrane →'] };   /* (the science read, 20 Nov: "A plant cell", which the reader of an animal cell's step has not met; "through", 0610's word; the scene's own example, nitrate ions, named, because the step beside the door is about amino acids) */
+    let plantAt = null;
+    const outDoor = (k, c) => { const [href, t, ib, hl] = OUT[k], say = t + (c === 'ib' && ib ? ib : '');
+      return `<a class="step__ibdoor step__lvout${hl ? ' iblv-hlonly' : ''}" data-out="${k}" href="${href}" target="_blank" rel="noopener" aria-label="${say.replace(/^\S+ /, '')} (opens in a new tab)">${say} ↗</a>`; };
     const saved = R.store.get('courseLv', null), LV = Object.assign({ igcse: false, ib: !saved && R.store.get('ibon', false) === true }, saved || {});
     if (!saved && LV.ib) R.store.set('courseLv', LV);
     /* the IB pass: the first time, the course is IB; a pupil who then switches it off keeps that choice */
@@ -355,6 +384,8 @@ export class Quest {
             + (b.mem ? '<button type="button" class="step__ibdoor step__lvmem">🧬 The cell membrane: fluid and mosaic →</button>' : '')
             + (b.bench ? '<button type="button" class="step__ibdoor step__lvbench">🧪 IB investigation: heat and time →</button>' : '')
             + (b.frac ? '<button type="button" class="step__ibdoor step__lvfrac">🧪 Cell fractionation lab: how organelles were separated →</button>' : '')
+            + (b.out || []).map(k => outDoor(k, c)).join('')
+            + (b.plant && plantAt && (plantAt[PLANT[b.plant][0]] || []).includes(b.plant) ? `<button type="button" class="step__ibdoor step__lvplant" data-scene="${b.plant}">${PLANT[b.plant][1]}</button>` : '')
             + (b.ch == null ? '' : `<button type="button" class="step__ibdoor step__lvdoor" data-ch="${b.ch}">🧬 From glucose to ATP: ${CH[b.ch]} →</button>`)));
         });
       });
@@ -376,6 +407,8 @@ export class Quest {
     ol.addEventListener('click', e => {
       const f = e.target.closest('.step__lvfilm'), d = e.target.closest('.step__lvdoor'), m = e.target.closest('.step__lvmem'), bn = e.target.closest('.step__lvbench');
       if (bn) { document.dispatchEvent(new CustomEvent('ibbench')); return; }
+      const pl = e.target.closest('.step__lvplant');
+      if (pl) { document.dispatchEvent(new CustomEvent('plant', { detail: { from: id, at: { step: PLANT[pl.dataset.scene][0], scene: pl.dataset.scene } } })); return; }
       if (e.target.closest('.step__lvfrac')) { document.dispatchEvent(new CustomEvent('ibview2', { detail: { view: 'fractionation' } })); return; }
       if (f) document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: f.dataset.film, id } }));
       else if (d) document.dispatchEvent(new CustomEvent('ibview', { detail: { ch: +d.dataset.ch } }));
@@ -393,6 +426,8 @@ export class Quest {
     const relevel = () => { if (!bar.isConnected) { document.removeEventListener('iblevel', relevel); return; } draw(); };
     document.addEventListener('iblevel', relevel);
     draw();
+    /* (the plant cell's list of what a door may open: the boxes are drawn again with their doors when it has come) */
+    if ([...C.igcse, ...C.ib].some(b => b && b.plant)) import('../plant/doors.js?v=202611211959').then(m => { plantAt = m.OPEN_AT || {}; if (bar.isConnected) draw(); }, () => {});
   }
   /* ---------------- the course's own word on every button (19 Nov 2026; js/game/coursewords.js has Daniel's words)
      wordNow: a button's word for the course that is on at this place, IB's at the student's level. wordsPaint: every

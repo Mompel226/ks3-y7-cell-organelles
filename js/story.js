@@ -102,7 +102,9 @@ window.STORY = {
        KS3 level sentence next to an IB level one (as long as the distinction is clear) is useful for the students to
        see how they need to improve/change the way they write as they progress"). `names`: with IB on, the names on
        the picture add the IB terms, and what the place says adds its IB sentence under the Year 7 one (play.js `ib`).
-       `ch`: a door to that chapter of "From glucose to ATP". `mem`: a door to "The cell membrane: fluid and mosaic"
+       `ch`: a door to that chapter of "From glucose to ATP". `plant`: a door to the scene of the plant cell's membrane
+       step that shows, in detail, a process this box names in a line only (IGCSE's osmosis and active transport;
+       quest.js PLANT; 20 Nov 2026, Daniel's "Yes, add doors"). `mem`: a door to "The cell membrane: fluid and mosaic"
        (js/membrane/view.js; Daniel, 13 Nov 2026: "show that the phospholipids move within their own layer, and so that
        actually proteins can migrate … how the cell membrane probably looks like and moves like in reality"). IGCSE and the carrier protein for glucose: the examiners'
        report of November 2016 says "Facilitated diffusion is beyond the scope of IGCSE", and the syllabus names
@@ -112,7 +114,7 @@ window.STORY = {
     course: {
       names: true,
       igcse: [
-        { p: [
+        { plant: 'osmosis', p: [
           ["c", "2.1.1, 2.1.4", "The cell membrane is in the list of cell structures that you describe and compare. Its function: it controls what enters and leaves the cell."],
           ["c", "3.2.2, 3.2.3", "The IGCSE term for a membrane like this is partially permeable: some substances pass through it, and others do not. Water passes through it by osmosis."],
           ["n", "", "The syllabus does not name the lipids of the membrane. Of its proteins, it names one kind: the protein carriers of active transport."]
@@ -126,7 +128,7 @@ window.STORY = {
           ["s", "9.3.5", "The wall of a capillary is one cell thick, so the distance for diffusion through it is short."],
           ["n", "", "Here the glucose moves through its carrier protein from a higher concentration to a lower concentration (down a concentration gradient), and no energy from respiration is used: this agrees with the description of diffusion. The syllabus does not name a protein carrier for diffusion."]
         ] },
-        { p: [
+        { plant: 'active', p: [
           ["c", "3.3.1", "Active transport is the movement of particles through a cell membrane from a region of lower concentration to a region of higher concentration (i.e. against a concentration gradient), using energy from respiration. The picture does not show whether the carrier protein for amino acids uses energy."],
           ["s", "3.3.3", "The syllabus names protein carriers in one process, active transport: they move molecules or ions across a membrane."]
         ] },
@@ -291,7 +293,11 @@ window.STORY = {
        note on what the syllabus does not name. IB: the DP Biology guide, first assessment 2025: 'sl' under "SL and HL",
        'hl' under "Additional higher level", 'x' beyond the guide. Every statement number was read in its source
        (tools/course-check.mjs checks each one again); the words follow the source's own. `film`: a door to the film
-       that shows the step in detail. No line says what an examination will or will not ask. */
+       that shows the step in detail. `out`: doors to another page of the site that shows a process of the step in
+       detail, where the game shows it simply (quest.js OUT; 20 Nov 2026; Daniel, 18 Nov: "any animation is
+       professionally done that shows as much detail, at least in one place or another"; his "Yes, add doors" to the
+       audit of the places): here, replication and mitosis, which this place shows as a second thread and an X.
+       No line says what an examination will or will not ask. */
     course: {
       igcse: [
         { p: [
@@ -303,7 +309,7 @@ window.STORY = {
           ["c", "17.1.2", "A gene is a length of DNA that codes for a protein."],
           ["s", "17.1.11, 17.1.12", "A diploid nucleus contains two sets of chromosomes. In a human diploid cell there are 23 pairs: the 46 threads of this nucleus."]
         ] },
-        { p: [
+        { out: ['replication', 'mitosis'], p: [
           ["s", "17.2.3", "The exact replication of chromosomes occurs before mitosis: the second thread of this step."],
           ["s", "17.2.4", "During mitosis, the copies of chromosomes separate, maintaining the chromosome number in each daughter cell."],
           ["s", "17.2.1", "Mitosis is nuclear division giving rise to genetically identical cells. The syllabus says: \"details of the stages of mitosis are not required\"."]
@@ -331,7 +337,7 @@ window.STORY = {
           ["hl", "A1.2.13", "A nucleosome is a DNA molecule wrapped around a core of eight histone proteins, held together by an additional histone protein attached to linker DNA. The film of the copy step shows the nucleosomes of this thread."],
           ["hl", "D2.1.13, D2.1.14", "Between divisions, a cell is in interphase: G1, S (the DNA is copied) and G2. Interphase is a metabolically active period: this cell makes proteins such as amylase."]
         ] },
-        { p: [
+        { out: ['replication', 'mitosis'], p: [
           ["sl", "D2.1.5", "DNA replication is a prerequisite for mitosis and for meiosis. After replication, each chromosome consists of two elongated DNA molecules (chromatids), held together until anaphase (the stage of mitosis when the chromatids separate): the two threads of this step, joined in the middle."],
           ["sl", "D2.1.6", "Chromosomes condense in mitosis and in meiosis: histones condense the DNA by supercoiling. Microtubules and microtubule motors then move the chromosomes."]
         ] },
@@ -476,14 +482,14 @@ window.STORY = {
           ["hl", "B2.2.7", "Ribosomes bound to the rough endoplasmic reticulum synthesize proteins for transport within the cell and for secretion."],
           ["x", "", "The particle is the signal recognition particle. It stops the ribosome for a short time, until the ribosome is on the channel."]
         ] },
-        { p: [
+        { out: ['peptide'], p: [
           ["sl", "B1.2.2", "Amino acids are linked by condensation reactions: each new peptide bond releases one molecule of water."],
           ["sl", "B1.2.4", "20 amino acids are coded for in the genetic code. A peptide chain can have any number of them, in any order. The chain of amylase has 496 amino acids once its signal is removed."]
         ] },
         { p: [
           ["hl", "D1.2.18", "Many polypeptides must be modified before they can function. Removing a signal sequence is one modification. The example of the guide is the two-stage modification of pre-proinsulin to insulin: its first stage, in the rough ER, also removes a signal sequence."]
         ] },
-        { p: [
+        { out: ['fold'], p: [
           ["hl", "B1.2.7", "Primary structure: the sequence of amino acids, and the position of each one, determines the three-dimensional shape of a protein. So the same chain folds into the same precise shape every time."],
           ["hl", "B1.2.8", "Secondary structure: parts of the chain coil into alpha helices, and parts form beta-pleated sheets, stabilized by hydrogen bonding in regular positions. Amylase has both."],
           ["hl", "B1.2.9", "Tertiary structure depends on hydrogen bonds, ionic bonds, disulfide covalent bonds (between pairs of cysteines) and hydrophobic interactions, all between R-groups (the side chains that make each amino acid different)."],
@@ -519,7 +525,7 @@ window.STORY = {
         null
       ],
       ib: [
-        { p: [
+        { out: ['phospholipid'], p: [
           ["sl", "B1.1.9", "A phospholipid forms by condensation reactions (each one joins two molecules and releases water): one glycerol links two fatty acids and one phosphate group. A triglyceride (a fat) has three fatty acids instead."]
         ] },
         { p: [
@@ -588,7 +594,7 @@ window.STORY = {
           ["sl", "A2.2.6, B2.2.1", "Microtubules and microfilaments form the cytoskeleton. The IB guide does not count the cytoskeleton as an organelle."],
           ["sl", "C1.2.2", "Each step of dynein uses one ATP: ATP supplies the energy to move parts of the cell."]
         ] },
-        { p: [
+        { out: ['mitosis'], p: [
           ["sl", "D2.1.6", "In mitosis and meiosis, microtubules and their motor proteins move the chromosomes."]
         ] }
       ]
