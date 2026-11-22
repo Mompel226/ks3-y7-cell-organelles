@@ -10,11 +10,16 @@
    ============================================================ */
 window.QS = {
   /* ---------- 1. The cell you know ---------- */
-  'p1-sort-organelle': { part: 1, kind: 'sort', title: 'Organelle or not?', short: 'sort',
-    stem: 'An organelle is a membrane-bound structure with a specific function. Put each structure in the right box.',
-    bins: [{ t: 'Organelle', s: 'it has a membrane' }, { t: 'Not an organelle', s: 'it has no membrane' }],
-    items: [['nucleus', 0], ['mitochondrion', 0], ['rough ER', 0], ['Golgi apparatus', 0], ['ribosome', 1], ['nucleolus', 1], ['microtubule', 1]],
-    why: 'The nucleus, mitochondria, the rough ER and the Golgi apparatus are surrounded by membrane, so they are organelles. Ribosomes, the nucleolus and microtubules have no membrane, so they are not organelles.' },
+  /* (21 Nov 2026) Daniel's rule for the word "organelle" (js/story.js, the places' `kind`): a separate part of a cell
+     with a specific function; a membrane is not part of the definition. So three boxes, the ribosome an organelle with
+     no membrane, a vesicle an organelle, and the cytoplasm and a microtubule not organelles; the nucleolus and the cell
+     membrane are left out (his rulings). A NEW id (it was 'p1-sort-organelle', two boxes, the rule of his Year 7
+     slides): records are kept by id, so a pupil who answered the old question meets this one once. */
+  'p1-sort-organelle2': { part: 1, kind: 'sort', title: 'Organelle or not?', short: 'sort', cols: 1,   /* (cols: the three boxes one under the other: side by side in the panel they cut "mitochondrion" off) */
+    stem: 'An organelle is a separate part of a cell with a specific function. Put each structure in the right box.',
+    bins: [{ t: 'Organelle with a membrane' }, { t: 'Organelle with no membrane', one: 'the ribosome is the only structure that the game calls an organelle with no membrane' }, { t: 'Not an organelle' }],   /* (one: why this box holds one item only; tools/questions-check.mjs asks two a box otherwise) */
+    items: [['nucleus', 0], ['mitochondrion', 0], ['rough ER', 0], ['Golgi apparatus', 0], ['vesicle', 0], ['ribosome', 1], ['cytoplasm', 2], ['microtubule', 2]],
+    why: 'The nucleus, a mitochondrion, the rough ER, the Golgi apparatus and a vesicle each have a membrane. A ribosome has no membrane, but a ribosome is an organelle. A microtubule is part of the cytoskeleton, a network of protein fibres through the whole cell. The cytoskeleton is not one separate part, so a microtubule is not an organelle. The cytoplasm holds the organelles: the cytoplasm is not an organelle.' },
   'p1-gaps-cytoplasm': { part: 1, kind: 'gaps', title: 'What the cytoplasm is', short: 'gaps',
     text: 'The cytoplasm is everything inside the cell membrane except the [[nucleus]]. It is made of the [[cytosol]], a jelly-like fluid, and the [[organelles|organelle]] in it.',
     why: 'The cytoplasm = the cytosol (the jelly-like fluid) + the organelles in it. The nucleus is not part of the cytoplasm.' },
@@ -89,14 +94,16 @@ window.QS = {
         'The membrane of the nucleus, from lipids and sugar',
         'The energy for the nucleus, from glucose and oxygen'],
     why: 'The nucleolus makes the small and the large parts of ribosomes. The copy of a gene is made on the DNA, and energy is released in the mitochondria.' },
-  'p5-gaps-nucleolus': { part: 5, kind: 'gaps', title: 'Not an organelle', short: 'gaps',
-    text: 'The nucleolus is a dense region inside the [[nucleus]]. It has no [[membrane]], so it is not an [[organelle]]. The ribosome parts it makes leave through [[nuclear pores|nuclear pore|pores|pore]].',
-    why: 'The nucleolus is inside the nucleus and has no membrane, so it is not an organelle. The ribosome parts leave the nucleus through the nuclear pores.' },
+  /* (21 Nov 2026: no claim about the word "organelle" for the nucleolus, Daniel's ruling; the gap "organelle" is gone,
+     the three other gaps are the same, so the question keeps its id and its record) */
+  'p5-gaps-nucleolus': { part: 5, kind: 'gaps', title: 'The nucleolus', short: 'gaps',
+    text: 'The nucleolus is a dense region inside the [[nucleus]]. The nucleolus has no [[membrane]]. The ribosome parts it makes leave through [[nuclear pores|nuclear pore|pores|pore]].',
+    why: 'The nucleolus is inside the nucleus and has no membrane. The ribosome parts leave the nucleus through the nuclear pores.' },
 
   /* ---------- 6. Ribosomes ---------- */
   'p6-gaps-ribosome': { part: 6, kind: 'gaps', title: 'Making a protein', short: 'gaps',
-    text: 'A ribosome reads the copy of the gene and joins [[amino acids|amino acid]] in the right order. A protein is a long [[chain]] of them. Ribosomes have no [[membrane]], so they are not organelles.',
-    why: 'Ribosomes join amino acids in the order the copy of the gene gives, making a chain: a protein. They have no membrane.' },
+    text: 'A ribosome reads the copy of the gene and joins [[amino acids|amino acid]] in the right order. A protein is a long [[chain]] of them. Ribosomes have no [[membrane]], but ribosomes are organelles.',   /* (21 Nov 2026, the word "organelle"; the same gaps: the same id and record. Not "membraneless": it would give the gap's word) */
+    why: 'Ribosomes join amino acids in the order the copy of the gene gives, making a chain: a protein. Ribosomes have no membrane, but ribosomes are organelles.' },
   'p6-q-signal': { part: 6, kind: 'mcq', title: 'The signal', short: 'q1',
     stem: 'The first part of the amylase chain is a signal. What does it do?',
     a: ['It takes the ribosome to the rough ER, where proteins that leave the cell are made.',

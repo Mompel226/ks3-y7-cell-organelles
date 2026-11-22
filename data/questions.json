@@ -78,7 +78,7 @@
    "kind": "task"
   },
   {
-   "id": "p1-sort-organelle",
+   "id": "p1-sort-organelle2",
    "part": 1,
    "title": "Organelle or not?",
    "short": "sort",
@@ -262,13 +262,12 @@
   {
    "id": "p5-gaps-nucleolus",
    "part": 5,
-   "title": "Not an organelle",
+   "title": "The nucleolus",
    "short": "gaps",
    "kind": "gaps",
    "gaps": [
     "nucleus",
     "membrane",
-    "organelle",
     "nuclear pores"
    ]
   },
@@ -590,16 +589,16 @@
    ]
   },
   {
-   "id": "fc-04",
+   "id": "fc-04b",
    "part": 13,
-   "title": "Final check 4: Why the nucleolus is not an organelle",
+   "title": "Final check 4: Why a ribosome is an organelle",
    "short": "F4",
    "kind": "mcq",
    "opts": [
-    "It is too small to be an organelle.",
-    "A light microscope cannot show it.",
-    "It has no membrane of its own.",
-    "It has no specific job."
+    "It is a separate part with its own function.",
+    "It is always found inside the nucleus.",
+    "A light microscope can show it clearly.",
+    "It is the smallest structure in the cell."
    ]
   },
   {
@@ -707,17 +706,17 @@
    ]
   },
   {
-   "id": "fc-m1",
+   "id": "fc-m1b",
    "part": 13,
    "title": "Final check 13: Not organelles",
    "short": "F13",
    "kind": "all",
    "gaps": [
-    "a microtubule",
     "the Golgi apparatus",
     "a mitochondrion",
-    "the centrosome",
-    "a ribosome"
+    "a microtubule",
+    "a vesicle",
+    "the cytoplasm"
    ]
   },
   {

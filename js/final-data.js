@@ -1,7 +1,7 @@
 /* final-data.js — the final check as the page gets it, written by tools/make-final.mjs (never by hand). The right
    answers are not here: only their scrambled fingerprints. */
 window.FINAL = {
- "salt": "c50b119968845c35c749e629",
+ "salt": "cf24bca22aa89f1836b617ad",
  "marks": 35,
  "qs": [
   {
@@ -15,7 +15,7 @@ window.FINAL = {
     "It sends the amylase back to the nucleus.",
     "It joins the amino acids of amylase."
    ],
-   "h": "4391ab8c4ec2cb6b1783f1eaeb874fc39bde818d29031a7659090e7d455590bb"
+   "h": "430a33b7fd18cebefef32236723d5bbe0a0051f84449c6490d68d70e186ff3f2"
   },
   {
    "id": "fc-02",
@@ -28,7 +28,7 @@ window.FINAL = {
     "It releases the energy that the cell uses for work.",
     "It makes the lipids that new membranes need."
    ],
-   "h": "4efd0e0da3d5b228a950ac49bac1977aa4e65b0ce12d80395734250e5a45c20e"
+   "h": "c4d96467d65b1026836d508454dd54bef4077cd2c5ee2f03636d69255832f469"
   },
   {
    "id": "fc-03",
@@ -41,20 +41,20 @@ window.FINAL = {
     "Through a nuclear pore, then to a ribosome",
     "Through a nuclear pore, then to a mitochondrion"
    ],
-   "h": "ff851e45f5086cf64820e8e47164f91d481e13343c775e066cf919c750978ade"
+   "h": "9e894a9c46d306633000a0aad578659d044a844ac96814375214d370d9a6e1de"
   },
   {
-   "id": "fc-04",
+   "id": "fc-04b",
    "kind": "one",
-   "title": "Why the nucleolus is not an organelle",
-   "stem": "Why is the nucleolus not an organelle?",
+   "title": "Why a ribosome is an organelle",
+   "stem": "A ribosome has no membrane. Why is a ribosome an organelle?",
    "opts": [
-    "It is too small to be an organelle.",
-    "A light microscope cannot show it.",
-    "It has no membrane of its own.",
-    "It has no specific job."
+    "It is a separate part with its own function.",
+    "It is always found inside the nucleus.",
+    "A light microscope can show it clearly.",
+    "It is the smallest structure in the cell."
    ],
-   "h": "78e08d1c337837e67f544aec8e4306e7c7133eef45320a831a8dbcccfbfe57b4"
+   "h": "aff5904139158bcae89f1838046f558506e06c2a2d4fbb102cd9061f110b5c1f"
   },
   {
    "id": "fc-05",
@@ -67,7 +67,7 @@ window.FINAL = {
     "The DNA of a gene is copied.",
     "Amino acids are joined in a chain."
    ],
-   "h": "88be04ebfc4c566a665a233ba894bda744f4b0fb89d0233fc700eaf9daa22a00"
+   "h": "06a00d405cafa04dc1285ec5f1da9ada3781069ed4716d7b700e66c076061aa4"
   },
   {
    "id": "fc-06",
@@ -80,7 +80,7 @@ window.FINAL = {
     "in the saliva in your mouth",
     "inside the nucleus"
    ],
-   "h": "a1db7994c98a584e2262a74781231d2fbe102e54135eabe7aed3e6f2e74f7eb7"
+   "h": "1dae5ae43248027478963414f213c4a69bf2eedaca5d4ba5c10e8ce936d2fbcd"
   },
   {
    "id": "fc-07",
@@ -93,7 +93,7 @@ window.FINAL = {
     "Using light, they make glucose from carbon dioxide and water.",
     "They join amino acids together, so they make amylase."
    ],
-   "h": "cb4110e07c3bf9446e0e39a970ea3b4ba4bfd68f39c4aacb9b2818298ac53e70"
+   "h": "4e0ac6dd36ea38930aea7311b141dc446856be131824a5b9f11314147158c9d7"
   },
   {
    "id": "fc-08",
@@ -106,7 +106,7 @@ window.FINAL = {
     "It passes straight through the cell membrane.",
     "It arrives inside a vesicle from the duct."
    ],
-   "h": "48f4c3de9f95a42bb3c4f28f9375c1df360d1193e1455850c52255db9518c701"
+   "h": "847a703ddcf4f0e428468dd568f31900dc9fb92f84eda290c5a49d27e333f63b"
   },
   {
    "id": "fc-09",
@@ -119,7 +119,7 @@ window.FINAL = {
     "mRNA",
     "DNA"
    ],
-   "h": "144f5e0e2bbcd69c9e7f85153cd3b92693c64e9a86dc61c51021cb13afcc3315"
+   "h": "be8807bb7178a65866fa9af4c445dc1a00aba8f68c04e1d83824617be9d8e68d"
   },
   {
    "id": "fc-10",
@@ -132,7 +132,7 @@ window.FINAL = {
     "They make the copies of genes that the ribosomes read.",
     "They fold the amylase chain into its shape."
    ],
-   "h": "9589d73d6d3f79de29f448b3b7851cfe93a8c6d4aa802cbc0d841da4a69e2489"
+   "h": "af068deaccf437154c60001d8553c531b7d4f73b3ebc66d45ff75a15e3b34e05"
   },
   {
    "id": "fc-11",
@@ -145,7 +145,7 @@ window.FINAL = {
     "Amylase passes through carrier proteins in the membrane.",
     "The cell membrane bursts, so the amylase leaves."
    ],
-   "h": "7b022191d1998b16e52f170e9a695b380dde636478430cfdfda1cd9307d11dda"
+   "h": "83c52866d58c4eae525a523bdc1a0275ba467f4b4eb6a79304524a084192577f"
   },
   {
    "id": "fc-12",
@@ -158,21 +158,21 @@ window.FINAL = {
     "Both wells stay orange-brown.",
     "Both wells turn blue-black."
    ],
-   "h": "cc64def7135e305a3131202dad43c504a61e3f35b3d4b312fdbc4556fcaa6494"
+   "h": "986381172982869665779b9c534c3f82a237a0168988d66fb12a55d3f1df6580"
   },
   {
-   "id": "fc-m1",
+   "id": "fc-m1b",
    "kind": "all",
    "title": "Not organelles",
    "stem": "Which of these are <b>not</b> organelles? Choose every right answer.",
    "opts": [
-    "a microtubule",
     "the Golgi apparatus",
     "a mitochondrion",
-    "the centrosome",
-    "a ribosome"
+    "a microtubule",
+    "a vesicle",
+    "the cytoplasm"
    ],
-   "h": "47992d8b7e67cd883a2460697a8bf0c8c1c13a24b726f92d57c9a34e3fd43d85"
+   "h": "a9b7732e2c6fd732669550a716ebaf97b3ad8b5004378025a58fb0b55a21f825"
   },
   {
    "id": "fc-m2",
@@ -186,7 +186,7 @@ window.FINAL = {
     "red blood cells",
     "glucose"
    ],
-   "h": "8ee43c5de53ded9483cde9473a32074c3086ff3738be1caae14c3143de958474"
+   "h": "08dc686130e7bf25b0b8ec1ab33f158ee87e70e535f1dc9f30906783a1bec302"
   },
   {
    "id": "fc-m3",
@@ -200,7 +200,7 @@ window.FINAL = {
     "the nucleus",
     "the nucleolus"
    ],
-   "h": "db0c2a9127f990c859a0a810c045843f1fbb4da12b790df14575dd4a1dae0895"
+   "h": "40008b01e6905fdb82c89e7b88a1aab87e901b4e82b85c32298bf2b2139a8951"
   },
   {
    "id": "fc-m4",
@@ -214,7 +214,7 @@ window.FINAL = {
     "Lipids are made.",
     "Amino acids are joined."
    ],
-   "h": "5fa8b18a55138d8850632fee217112f5bd53145b8eb5a5bc228f973aac4dc609"
+   "h": "1a1108afd0de131c3c57ae214fab5498010e39da67a8bb8ff4833cecb4ce2a1e"
   },
   {
    "id": "fc-l1",
@@ -231,12 +231,12 @@ window.FINAL = {
     "nucleolus"
    ],
    "h": [
-    "31c732bbc1ae4c68f9ca05bffe19dd3291e1705e0ff15a28c736f268668de24f",
-    "dbf2b8ae97d6583e96fd9c1d4148ae81d5d95d4e1bcbb713e0867bb967d5e931",
-    "3c9794990a14e06524274ff0544144253107fe14fc0fdaba7fa975f626742b13",
-    "65e257dee153852c4db95c6c95216159fda4e2d41b19db3a5dfbcf3e923d0a59",
-    "4c9922eb7a424fc7a457aeb4019b6eb16a98e3505418e73bead34faf69a188a5",
-    "4239f6e4ba3b47b7e64c782f24ebdbf489dcff8591be9b1e98b0428404fba479"
+    "f733fa5d44b43ddca2ce80094dccbe9e15f89c6e4d340a15252b1f68706346f2",
+    "f5c0b077c4d7583d8d3cdf700ad302e76e297c508ce3e8678cacefb4aaef45e0",
+    "6b3780c6a1b107592d3b54f77a8a40538dbcf3ad76215689675185380af78036",
+    "ed0555be583815fe2fcab95f2e0317fdec0a9efe43e4a3ff546abd5f48d810ad",
+    "cd4db391f113da310ba309ab6691f5a9a46da016476218bf97883888db050c5d",
+    "38ba2bf25d7cfaaced937f81bcb1b2ea587d2c7556ccaa134adb563c7bf89b32"
    ]
   },
   {
@@ -254,12 +254,12 @@ window.FINAL = {
     "smooth ER"
    ],
    "h": [
-    "178feccfc1ee8e145085dd30fc22f94b6e96b9104d3e98aeabcc3f1e67abe4af",
-    "c9abbc6f62a9b22af919fcc750deec7bfe82b63c42a645e3528d56bd606ca8df",
-    "faa87eeb73fbaf7d6a70f83344144700b5ee2970183b7ebe07f09d88a8a7c5b1",
-    "5cc214ec7ec0233be138bb401522d951b7594bfdb1f6e0591276c7a6df08c1d6",
-    "c00d01295e73b42512fbe76297d78d244c9e0207927366518b7751b38f9472a5",
-    "99d1b56927e30b12f9166123c624a09f216c084413d7fe5fe54f074efbb2112f"
+    "36ba0e581298c042d5b6d39e81e6165b930164f1724d41981d4270ce91d49d6c",
+    "06cbfedb1d0253b541ed6fdd3c114072789e52e5d82f6cea873c90465f992fcf",
+    "cbe8f57f6ab1c62d12059ab58020490c203303224c8b516d72ae73b7e0045013",
+    "55512fdf2b047eada04ba32ad7aa8ae4995277bc8416c74478d712173a3434a9",
+    "2cfe721ec42d5eddb6b623f7fb48e2e34920be88406bbba69b120a59a616cdf1",
+    "7cf958af98e661e1094acd33d1459f549cb5b76b662abc43e6bc09c4ffc29e8a"
    ]
   },
   {
@@ -275,7 +275,7 @@ window.FINAL = {
     "Its membrane joins the membrane of the cell.",
     "A nerve message reaches the cell."
    ],
-   "h": "2fa1e966d63b3aa671f254a2afedccce6852896e5499a2c59bf2e214a5569745"
+   "h": "bc5e427f64c7fd016daa269a488cd3250b625478de50dfb0ffca6c7ed2f4069d"
   },
   {
    "id": "fc-sort",
@@ -294,7 +294,7 @@ window.FINAL = {
     "a ribosome",
     "the amylase gene"
    ],
-   "h": "3494e2255e706d56122183679d50264fd096fcb7738cc5a200cc771efdd6aded"
+   "h": "351e1a94c435785b063feded99f617e99562686f55734b42b14351c7ea741dde"
   },
   {
    "id": "fc-p1",
@@ -310,7 +310,7 @@ window.FINAL = {
     "It has a cell wall.",
     "It has mitochondria."
    ],
-   "h": "bc303eb941f80b1056fd631a49870823b978cb89d69b60d1cba9b69522d2a603"
+   "h": "90770ddd0fcd04cce05d58818a7eac257427afa5261bd69fc29e183f243e004d"
   },
   {
    "id": "fc-p2",
@@ -324,7 +324,7 @@ window.FINAL = {
     "the cell wall",
     "the cell membrane"
    ],
-   "h": "9bd96c6f876e62954f07759b043b8d988ebb7573de1115280d42b7c416d784e9"
+   "h": "d595db62561860c057a92141dbd649edc513f06ac8ea39d65ccaca8879f13f3d"
   },
   {
    "id": "fc-p3",
@@ -338,7 +338,7 @@ window.FINAL = {
     "in its nucleus",
     "in its mitochondria"
    ],
-   "h": "0e977b052886f2c793d6266cbd63f991b151f4d2584874fa79ac985bda74655a"
+   "h": "afdd1b184d6b848f216cca34a3b2db485b16b0a5a55a10b523e2da79c5c0c125"
   },
   {
    "id": "fc-p4",
@@ -352,7 +352,7 @@ window.FINAL = {
     "It is stored as amylase.",
     "It is stored as starch."
    ],
-   "h": "d643f25c26a584882c2e5daa680ecb523673eebf2ef602c895ad97d349d2eb22"
+   "h": "694902ba124c60538028ef133857d21d560b1860186911c9dac42c0799f1ba49"
   },
   {
    "id": "fc-x1",
@@ -366,7 +366,7 @@ window.FINAL = {
     "Transcription makes the mRNA, and translation joins the amino acids.",
     "Translation makes the mRNA, and transcription folds the chain."
    ],
-   "h": "520570de9fcc0d366a3e5582e6084f9d40533e1a9e21f6e740d590fd17cbd60d"
+   "h": "35b7015f1a366f51ded5c7f1f0c2f66feeee91661f006c5e05f426c22df56282"
   }
  ]
 };

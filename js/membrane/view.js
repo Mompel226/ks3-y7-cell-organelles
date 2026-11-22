@@ -35,14 +35,14 @@
    strip, the film).
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeSim, P, AQP_PATCH } from './sim.js?v=202611212238';
-import { makeScene, makeStage } from './scene.js?v=202611212238';
-import { makeWater, WATER, SEED } from './water.js?v=202611212238';
-import { makeNames } from './names.js?v=202611212238';
-import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES, OSMO, FILMS } from './text.js?v=202611212238';
-import { levelSwitch, skip, hlOnly, hlNote, fit, level } from '../game/iblevel.js?v=202611212238';
-import { found, learn } from '../ib/found.js?v=202611212238';
-import { marks, codesOf } from '../ib/mark.js?v=202611212238';      /* (a visit from the IB map marks its sentence) */
+import { makeSim, P, AQP_PATCH } from './sim.js?v=202611221008';
+import { makeScene, makeStage } from './scene.js?v=202611221008';
+import { makeWater, WATER, SEED } from './water.js?v=202611221008';
+import { makeNames } from './names.js?v=202611221008';
+import { STEPS, NAMES, PLACES, LEVELS, SIMPLE, SOURCES, OSMO, FILMS } from './text.js?v=202611221008';
+import { levelSwitch, skip, hlOnly, hlNote, fit, level } from '../game/iblevel.js?v=202611221008';
+import { found, learn } from '../ib/found.js?v=202611221008';
+import { marks, codesOf } from '../ib/mark.js?v=202611221008';      /* (a visit from the IB map marks its sentence) */
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
@@ -97,7 +97,7 @@ function styles() {
   let l = document.querySelector('link[data-memcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.memcss = '1';
-    l.href = new URL('../../css/membrane.css?v=202611212238', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/membrane.css?v=202611221008', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -181,7 +181,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
   /* step 9's piece, its aquaporin and its water: made in the background once the first step shows (the measured shape is
      fetched then), or when step 9 is asked for first */
   let A = null, aqpMaking = null, patch = 'main', osmoMode = 'out';
-  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611212238').then(async m => {
+  const aqpMake = () => aqpMaking || (aqpMaking = import('./aqp1.js?v=202611221008').then(async m => {
     if (closed) return null;
     const S2 = makeSim(5, AQP_PATCH), sc2 = makeScene(S2, { aqp: m.AQP1, water: true }), w2 = makeWater(S2, m.AQP1, osmoMode);
     sc2.soluteR = WATER.SOL_R; sc2.draw(0); sc2.setWater(w2);
@@ -787,7 +787,7 @@ export function openMembrane({ mount = document.body, inGame = false, start = 0,
     if (id === 'mix') {
       const host = root.querySelector('.memv__mix'), b = root.querySelector('.memv__filmb[data-film="mix"]'); if (!host) return;
       if (mix) { mix.stop(); mix = null; host.hidden = true; host.innerHTML = ''; b.setAttribute('aria-pressed', 'false'); return; }
-      const M = await import('./mix.js?v=202611212238'); if (closed || !host.isConnected) return;
+      const M = await import('./mix.js?v=202611221008'); if (closed || !host.isConnected) return;
       host.hidden = false; b.setAttribute('aria-pressed', 'true');
       /* (after each shot the film brings its own buttons into view, above Back and Next) */
       mix = M.makeMix(host, { FAST, film: FILMS.mix, levelName: LEVELS.sl.name });

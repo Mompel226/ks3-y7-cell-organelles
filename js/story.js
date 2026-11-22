@@ -70,8 +70,14 @@ window.ITEMS = {
 };
 
 /* ---------------- the places ----------------
-   needs: items the place needs before it wakes; gives: what it gives; kind: what the structure is (Daniel's definition:
-   an organelle is a membrane-bound structure with a specific function); y7: in the Year 7 list (the five parts);
+   needs: items the place needs before it wakes; gives: what it gives; kind: what the structure is. The word "organelle"
+   (Daniel's rule of 21 Nov 2026, for every course, Year 7 included: "I don't want to teach something incorrect to the key
+   stage 3 … right now ribosomes are considered membraneless organelles … I don't want to teach something to the year 7s
+   that then they're going to have to forget and relearn"): an organelle is a separate part of a cell with a specific
+   function (the IB guide, B2.2.1: a discrete subunit); a membrane is NOT part of the definition. Ribosomes are organelles
+   with no membrane; vesicles are organelles; the cytoplasm and the cytoskeleton (so the microtubules) are not, and the
+   reason is never "no membrane"; the nucleolus and the centrosome get no claim about the word (his rulings). Until then
+   the rule was his Year 7 slides': a membrane-bound structure. y7: in the Year 7 list (the five parts);
    figure: a picture at the top of the panel ('simple': the cell as Year 7 pupils draw it, js/game/simplecard.js);
    plural: the title names many (Mitochondria are awake, never "is"). */
 window.STORY = {
@@ -80,7 +86,7 @@ window.STORY = {
     steps: [
       { play: 'simple', watch: false, text: 'In Year 7 you learn five parts of an animal <dfn data-w="cell">cell</dfn>: the <dfn data-w="cell-membrane">cell membrane</dfn>, the <dfn data-w="cytoplasm">cytoplasm</dfn>, the <dfn data-w="nucleus">nucleus</dfn>, the <dfn data-w="mitochondria">mitochondria</dfn> and the <dfn data-w="ribosome">ribosomes</dfn>.\nIn the cell around you, only these five are lit now.' },
       { play: 'full', text: 'An <dfn data-w="electron-microscope">electron microscope</dfn> shows much more: it uses a beam of electrons instead of light, so it shows much smaller details.\n<mark class="do">Press Show everything.</mark>\nEach new structure appears with its name.' },
-      { play: 'organelles', watch: false, text: 'An <dfn data-w="organelle">organelle</dfn> is a membrane-bound structure (surrounded by a <dfn data-w="membrane">membrane</dfn>) with a specific function, such as the nucleus.\nSome structures have no membrane, so they are <b>not</b> organelles: the ribosomes, the nucleolus, the microtubules and the <dfn data-w="centrosome">centrosome</dfn>.\n<dfn data-w="vesicle">Vesicles</dfn>, small bubbles of membrane, last only a short time: each one forms, then joins another membrane. So they are not organelles either.\nThe <dfn data-w="cytoplasm">cytoplasm</dfn> is the <dfn data-w="cytosol">cytosol</dfn> (a jelly-like fluid) and the organelles in it, but not the nucleus.' },
+      { play: 'organelles', watch: false, text: 'An <dfn data-w="organelle">organelle</dfn> is a separate part of a cell with a specific function, such as the nucleus.\nMost kinds of organelle have a <dfn data-w="membrane">membrane</dfn> round them. A <dfn data-w="vesicle">vesicle</dfn>, a small bubble of membrane, is one of these organelles.\nRibosomes have no membrane: they are membraneless organelles. (Some books still say that ribosomes are not organelles, because ribosomes have no membrane. Many scientists now use the word organelle for parts with a membrane and for parts with no membrane.)\nThe microtubules are part of the <dfn data-w="cytoskeleton">cytoskeleton</dfn>, a network of protein fibres through the whole cell. The cytoskeleton is not one separate part, so microtubules are <b>not</b> organelles.\nThe <dfn data-w="cytoplasm">cytoplasm</dfn> is <b>not</b> an organelle: the cytoplasm is the <dfn data-w="cytosol">cytosol</dfn> (a jelly-like fluid) and the organelles in the cytosol, but not the nucleus.' },
       { play: 'mission', watch: false, text: 'This cell is in your <dfn data-w="salivary-gland">salivary gland</dfn>. It makes <dfn data-w="amylase">amylase</dfn>, the <dfn data-w="enzyme">enzyme</dfn> in your saliva that digests <dfn data-w="starch">starch</dfn>.\n<b>Your mission: make amylase and release it from the cell.</b>\nIn this game, each place in the cell does one job. A place that is asleep wakes when you bring what it needs.' }
     ],
     done: 'You know the map. Two places are awake: <b>the nucleus</b> and <b>the way in</b>, at the base of the cell. Choose one.',
@@ -143,6 +149,7 @@ window.STORY = {
         ] },
         { ch: null, p: [
           ["sl", "B2.1.3", "Oxygen molecules are small and non-polar, so they pass between the phospholipids by simple diffusion, down their <dfn data-w=\"concentration-gradient\">concentration gradient</dfn>."],
+          ["sl", "B2.2.1", "The IB guide counts the plasma membrane as an organelle."],
           ["sl", "A2.2.9", "A <dfn data-w=\"red-blood-cell\">red blood cell</dfn> has no nucleus: an atypical cell structure. So the cell has more space for <dfn data-w=\"haemoglobin\">haemoglobin</dfn>."],
           ["hl", "B2.3.7", "A red blood cell is a flattened disc, so its surface area-to-volume ratio is large: oxygen diffuses in and out quickly."],
           ["hl", "B1.2.11", "Haemoglobin has quaternary structure: four polypeptides (chains of amino acids). Haemoglobin is a conjugated protein: each chain holds a haem group, which contains iron."]
@@ -391,9 +398,9 @@ window.STORY = {
         ] }
       ]
     },
-    part: 5, task: 'game-nucleolus', title: 'Nucleolus', kind: 'Not an organelle: no membrane', def: 'nucleolus',
+    part: 5, task: 'game-nucleolus', title: 'Nucleolus', kind: 'Part of the nucleus: no membrane', def: 'nucleolus',
     needs: [], gives: ['parts'], inside: 'nucleus',
-    intro: 'The <dfn data-w="nucleolus">nucleolus</dfn> is a dense region inside the nucleus. It makes the two parts of <dfn data-w="ribosome">ribosomes</dfn>, a small part and a large part.\nEach part is made of <dfn data-w="rna">RNA</dfn> (a molecule like DNA), which the nucleolus makes, and <dfn data-w="protein">proteins</dfn>, which enter the nucleus from the cytoplasm.\nIt has no membrane, so it is not an organelle.',
+    intro: 'The <dfn data-w="nucleolus">nucleolus</dfn> is a dense region inside the nucleus. It makes the two parts of <dfn data-w="ribosome">ribosomes</dfn>, a small part and a large part.\nEach part is made of <dfn data-w="rna">RNA</dfn> (a molecule like DNA), which the nucleolus makes, and <dfn data-w="protein">proteins</dfn>, which enter the nucleus from the cytoplasm.\nThe nucleolus has no membrane.',
     steps: [
       { play: 'small', text: '<mark class="do">Press Build to make the <span data-cw="smallpart">small part</span>.</mark>' },
       { play: 'large', text: '<mark class="do">Press Build to make the <span data-cw="largepart">large part</span>.</mark>' },
@@ -403,9 +410,9 @@ window.STORY = {
     fact: { text: 'A growing human cell can make thousands of ribosome parts every minute.', src: 'Lewis and Tollervey 2000, Science 288:1385' }
   },
   ribosome: {
-    part: 6, task: 'game-ribosome', title: 'Ribosomes', onPic: 'Ribosome', plural: true, kind: 'Not an organelle: no membrane', y7: true, def: 'ribosome',
+    part: 6, task: 'game-ribosome', title: 'Ribosomes', onPic: 'Ribosome', plural: true, kind: 'Organelle: no membrane', y7: true, def: 'ribosome',
     needs: ['mrna', 'parts', 'amino', 'energy'], gives: ['chain'],
-    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome has two parts, a small part and a large part, made in the nucleolus. A ribosome reads the copy of a gene (mRNA, made in the nucleus) and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nFrom very near, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane, so they are not organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
+    intro: '<dfn data-w="ribosome">Ribosomes</dfn> are very small structures where proteins are made. A ribosome has two parts, a small part and a large part, made in the nucleolus. A ribosome reads the copy of a gene (mRNA, made in the nucleus) and joins amino acids in the order the copy gives.\nA <dfn data-w="protein">protein</dfn> is a long chain of amino acids.\nThis place is in the <dfn data-w="cytosol">cytosol</dfn>, just beside the rough ER: many ribosomes work on its membrane.\nFrom very near, everything here is drawn at its true size: a ribosome is about 30 nm across (30 millionths of a millimetre). On the map, ribosomes are drawn about four times larger, so that you can see them.\nRibosomes have no membrane: they are membraneless organelles.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'assemble', text: '<mark class="do">Press <b data-cw="ribjoin" data-b>Join</b>:</mark> <span data-cw="ribline">the small part attaches to the copy, then the large part joins it</span>. Now it is a whole ribosome.' },
       { play: 'translate', text: 'The copy is a code: each part of the code means one amino acid. Each amino acid arrives on a small carrier molecule.\n<mark class="do">Press <span data-cw="carrier">the carrier that matches the code</span> under the ribosome.</mark>\nEvery amino acid you join uses some energy.\n<span class="step__x"><b>Explorer · beyond the Year 7 list.</b> The ribosome reads the code of the copy and joins amino acids in that order. This has a name: <dfn data-w="translation">translation</dfn>.</span>' },
@@ -429,7 +436,7 @@ window.STORY = {
       ib: [
         { p: [
           ["sl", "D1.2.6", "mRNA binds to the small subunit (the small part) of the ribosome. Two tRNAs (transfer RNA: the carriers that bring the amino acids, step 2) can bind at the same time to the large subunit."],
-          ["sl", "B2.2.1", "In the IB guide, ribosomes and vesicles are organelles. The Year 7 list calls a structure an organelle only if it has a membrane of its own."]
+          ["sl", "B2.2.1", "The IB guide counts nuclei, vesicles, ribosomes and the plasma membrane as organelles."]
         ], frac: true },
         { p: [
           ["sl", "D1.2.5", "Translation is the synthesis of polypeptides (chains of amino acids) from mRNA: the base sequence of the mRNA is translated into the amino acid sequence of a polypeptide."],
@@ -456,7 +463,7 @@ window.STORY = {
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel and into the rough ER.\n<mark class="do">Press <b data-cw="go" data-b>Go</b>.</mark>' },
       { play: 'cut', text: 'The signal is not part of amylase. While the chain is still growing, a cutting enzyme in the membrane of the rough ER removes the signal.\n<mark class="do">Press Go closer</mark> to see the signal. <mark class="do">Then press <b data-cw="cut" data-b>Cut</b>.</mark>' },
       { play: 'fold', text: 'The chain cannot work yet: first the chain must fold into its shape.\n<mark class="do">Press Fold.</mark> The camera goes closer: each bead is one amino acid.\nIn the folded chain, look for a groove: the <dfn data-w="active-site">active site</dfn>, where part of a starch chain fits. This shape is what lets amylase work.' },
-      { play: 'bud', text: 'Amylase leaves the rough ER in a vesicle, a small bubble of membrane: a piece of the membrane of the rough ER bends round amylase and closes.\nSo every vesicle removes some membrane, and the rough ER needs new <dfn data-w="lipid">lipids</dfn>.\n<mark class="do">Press <b data-cw="budline" data-b>Bud to make a vesicle</b>.</mark>' }
+      { play: 'bud', text: 'Amylase leaves the rough ER in a vesicle, a small organelle that is a bubble of membrane: a piece of the membrane of the rough ER bends round amylase and closes.\nSo every vesicle removes some membrane, and the rough ER needs new <dfn data-w="lipid">lipids</dfn>.\n<mark class="do">Press <b data-cw="budline" data-b>Bud to make a vesicle</b>.</mark>' }
     ],
     course: {
       igcse: [
@@ -599,9 +606,9 @@ window.STORY = {
         ] }
       ]
     },
-    part: 10, task: 'game-tracks', title: 'Microtubules', onPic: 'Microtubule', plural: true, kind: 'Not an organelle: no membrane', def: 'microtubule',
+    part: 10, task: 'game-tracks', title: 'Microtubules', onPic: 'Microtubule', plural: true, kind: 'Cytoskeleton: not an organelle', def: 'microtubule',
     needs: ['packed', 'energy'], gives: ['top'],
-    intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules have no membrane, so they are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
+    intro: '<dfn data-w="microtubule">Microtubules</dfn> are thin hollow tubes made of <dfn data-w="protein">protein</dfn>. They are like tracks: <dfn data-w="motor-protein">motor proteins</dfn> walk along them, one step at a time, and carry vesicles.\nMicrotubules are part of the <dfn data-w="cytoskeleton">cytoskeleton</dfn>, a network of protein fibres through the whole cell. The cytoskeleton is not one separate part, so microtubules are not organelles.\nIn this cell most microtubules start at the top of the cell and grow towards the base. The motor protein on your vesicle walks towards their top end.',
     steps: [
       { play: 'grab', text: 'Nothing here is drawn bigger than it is. So the camera comes very close to the microtubule next to your vesicle: it is only 25 <dfn data-w="nanometre">nanometres</dfn> (nm) wide.\nScientists found dynein, a <dfn data-w="motor-protein">motor protein</dfn>, on vesicles like yours in the pancreas, another gland. So the motor protein here is probably dynein.\nEach of its two heads is a ring, 14 nm across.\nYour vesicle is 900 nm across. The dots in it are amylase molecules, each 8 nm long: a real vesicle is full of them.\n<mark class="do">Press Attach:</mark> dynein\'s two heads hold the microtubule.' },
       { play: 'maze', text: 'From far away the motor protein is too small to see: the glow shows where it is. The game draws the microtubules three times thicker, so that you can see them.\nEach step uses energy. Where two microtubules cross, the vesicle can step onto the other one.\n<mark class="do">At each crossing, choose the microtubule that leads to the top of the cell.</mark>' }

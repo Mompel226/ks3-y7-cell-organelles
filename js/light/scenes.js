@@ -19,7 +19,7 @@
    hand (sums of bell curves placed in the right colours), said on the picture and in text.js SIMPLE. Concentrations are
    compared in two EQUAL squares (step 10), never by a crowded space against an empty one.
    ============================================================ */
-import { PR, makeProtons } from './protons.js?v=202611212238';
+import { PR, makeProtons } from './protons.js?v=202611221008';
 
 export const W = 1000, H = 820;
 
