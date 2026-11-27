@@ -22,7 +22,9 @@
    reworded (a ribosome is a membraneless organelle; a vesicle is an organelle); nucleolus and centrosome say no more than
    "no membrane" and "part of the cytoskeleton" (his rulings: no claim about the word); microtubule: part of the
    cytoskeleton, which is not an organelle (never "no membrane" as the reason); one new word, cytoskeleton (세포 골격,
-   细胞骨架). The note of 4 Nov below gives the rule of before, from his Year 7 slides.
+   细胞骨架). The note of 4 Nov below gives the rule of before, from his Year 7 slides. 22 Nov: the rough ER and the
+   smooth ER are no longer "a network of …" (his yes): "network" is the cytoskeleton's word, and the cytoskeleton is
+   not an organelle; they are "… of membrane, joined together".
    NEVER edit a page's copy (js/glossary.js): edit this file, then run node tools/practicals-sync.mjs (it copies it into
    every KS3 practical) and node tools/ks3-glossary.mjs (it checks the list and writes KS3-GLOSSARY.md, the readable copy).
    ko: the word used in Korean school science; zh: Simplified Chinese as in mainland school chemistry.
@@ -241,8 +243,8 @@
       { k: 'carbon-dioxide',  en: 'carbon dioxide',  ko: '이산화 탄소',       zh: '二氧化碳',    d: 'A gas produced by respiration. Cells release it as a waste product, and the blood carries it to the lungs.' },
       { k: 'mitochondria',    en: 'mitochondria',    ko: '미토콘드리아',      zh: '线粒体',      src: 'Y7 Cells', also: ['mitochondrion'], d: 'Organelles that contain the enzymes for aerobic respiration, which releases energy for the cell. One of them is a mitochondrion.' },
       { k: 'aerobic-respiration', en: 'aerobic respiration', ko: '산소 호흡 (유산소 호흡)', zh: '有氧呼吸', src: 'Y7 Cells', d: 'The chemical reactions that release energy from glucose, using oxygen. They start in the cytosol; most of the energy is released in the mitochondria. Carbon dioxide and water are produced.' },
-      { k: 'rough-er',        en: 'rough ER',        ko: '거친면 소포체',     zh: '粗面内质网',  d: 'Rough endoplasmic reticulum: a network of flattened sacs covered in ribosomes. Proteins made by these ribosomes go inside it and fold into their shape.' },
-      { k: 'smooth-er',       en: 'smooth ER',       ko: '매끈면 소포체',     zh: '光面内质网',  d: 'Smooth endoplasmic reticulum: a network of tubes with no ribosomes. It makes lipids, which build new membrane.' },
+      { k: 'rough-er',        en: 'rough ER',        ko: '거친면 소포체',     zh: '粗面内质网',  d: 'Rough endoplasmic reticulum: flattened sacs of membrane, joined together and covered in ribosomes. Proteins made by these ribosomes go inside it and fold into their shape.' },
+      { k: 'smooth-er',       en: 'smooth ER',       ko: '매끈면 소포체',     zh: '光面内质网',  d: 'Smooth endoplasmic reticulum: tubes of membrane, joined together, with no ribosomes. It makes lipids, which build new membrane.' },
       { k: 'lipid',           en: 'lipid',           ko: '지질',              zh: '脂质',        src: 'Y7 Cells', d: 'A molecule made of the elements carbon, hydrogen and oxygen, arranged in a particular way. Fats and oils are lipids. The lipids of a membrane also contain phosphorus: a membrane is two layers of them, with proteins in it.' },
       { k: 'golgi',           en: 'Golgi apparatus', ko: '골지체',            zh: '高尔基体',    d: 'A stack of flattened, curved sacs. It modifies proteins, sorts them and packages them into vesicles.' },
       { k: 'vesicle',         en: 'vesicle',         ko: '소낭',              zh: '囊泡',        src: 'Y7 Cells', d: 'A small organelle: a bubble of membrane that carries substances in a cell.' },

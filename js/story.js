@@ -457,7 +457,7 @@ window.STORY = {
   rer: {
     part: 7, task: 'game-rer', title: 'Rough ER', kind: 'Organelle: flattened sacs of membrane', def: 'rough-er',
     needs: ['chain'], gives: ['amylase'], alsoNeeds: ['lipids'],
-    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is a network of flattened sacs, joined to the nucleus. The ribosomes on its surface make it look rough.\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
+    intro: 'The <dfn data-w="rough-er">rough ER</dfn> (rough endoplasmic reticulum) is made of flattened sacs of membrane, joined together and joined to the nucleus. The ribosomes on its surface make it look rough.\nThe <dfn data-w="protein">proteins</dfn> they make go inside the rough ER, where they fold into their shape.\nWhen the picture is still, press <b>As it really is</b> at the bottom of the picture: it shows how packed the cell really is.',
     steps: [
       { play: 'dock', text: 'Amylase must leave the cell. Proteins that leave the cell are made on the rough ER.\nA ribosome does not choose where it works: the chain decides. The first 15 amino acids of amylase are a <b>signal</b> (red, under the ribosome). The signal means: this protein must leave the cell.\nA small particle in the cytosol (not drawn) binds to the signal, then to the membrane of the rough ER. So the ribosome is held on a channel: a tunnel through the membrane.\n<mark class="do">Press <b data-cw="dock" data-b>Dock</b>.</mark>' },
       { play: 'grow', text: 'The ribosome joins more amino acids. The chain goes through the channel and into the rough ER.\n<mark class="do">Press <b data-cw="go" data-b>Go</b>.</mark>' },
@@ -540,9 +540,9 @@ window.STORY = {
         ] }
       ]
     },
-    part: 8, task: 'game-ser', title: 'Smooth ER', kind: 'Organelle: a network of tubes', def: 'smooth-er',
+    part: 8, task: 'game-ser', title: 'Smooth ER', kind: 'Organelle: tubes of membrane, joined together', def: 'smooth-er',   /* (22 Nov 2026, Daniel's yes: not "a network of tubes": "network" is the word for the cytoskeleton, which is not an organelle; the rough ER's words the same) */
     needs: ['energy'], gives: ['lipids'],
-    intro: 'The <dfn data-w="smooth-er">smooth ER</dfn> is a network of tubes with no ribosomes. It makes <dfn data-w="lipid">lipids</dfn> (fats, oils and similar molecules).\nA membrane is two layers of lipids, with <dfn data-w="protein">proteins</dfn> in it. Every new <dfn data-w="vesicle">vesicle</dfn> removes a piece of the ER membrane, so the ER needs new lipids.\nThe rough ER (the ER with ribosomes) and the smooth ER are one joined membrane, so new lipids spread from one to the other. This cell has only a little smooth ER.',
+    intro: 'The <dfn data-w="smooth-er">smooth ER</dfn> is made of tubes of membrane, joined together, with no ribosomes. It makes <dfn data-w="lipid">lipids</dfn> (fats, oils and similar molecules).\nA membrane is two layers of lipids, with <dfn data-w="protein">proteins</dfn> in it. Every new <dfn data-w="vesicle">vesicle</dfn> removes a piece of the ER membrane, so the ER needs new lipids.\nThe rough ER (the ER with ribosomes) and the smooth ER are one joined membrane, so new lipids spread from one to the other. This cell has only a little smooth ER.',
     steps: [
       { play: 'lipid', text: 'You look into one tube of the smooth ER, cut across. The ring is its membrane: two layers of lipids. Behind it, the tube runs on.\nA membrane lipid has a head and two tails.\n<mark class="do">Press <b data-cw="serjoin" data-b>Join</b> three times</mark> to make <span data-cw="serthree">three lipids</span>. Each one uses some energy.' },
       { play: 'layer', text: 'The new lipids join the membrane of the ER: two layers, with their tails inside. The ER is one joined membrane, so they spread through it to the rough ER.\n<mark class="do">Press Add to the membrane.</mark>' }
