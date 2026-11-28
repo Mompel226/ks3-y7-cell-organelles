@@ -19,9 +19,9 @@
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
 import { mergeVertices, mergeGeometries } from '../vendor/three/examples/jsm/utils/BufferGeometryUtils.js?v=0.185.1';
-import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611272058';
-import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611272058';
-import { MITO_SHAPES } from './mito-shapes.js?v=202611272058';
+import { PAL, magicStandard, membraneMat, sparkles, railMat, CUT } from './magic.js?v=202611281626';
+import { heroMito, heroPoint, along, realMitos } from './mitoparts.js?v=202611281626';
+import { MITO_SHAPES } from './mito-shapes.js?v=202611281626';
 
 /* ---------- small tools ---------- */
 export function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -957,7 +957,7 @@ export function places(W) {
   const nucSpots = []; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; nucSpots.push(N0.clone().add(new THREE.Vector3(Math.cos(a) * 2.9, Math.sin(a) * 2.6 * 0.95, 0.9))); }
   const rerSpots = W.rer.sheets.length ? surfacePoints(W.rer.sheets[5], 40, rng(7)).map(o => o.p).filter(p => p.z > -0.5) : [];
   const serSpots = W.ser.curves.flatMap(c => c.getPoints(6));
-  const golgiSpots = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; golgiSpots.push(G0.clone().add(new THREE.Vector3(Math.cos(a) * 1.8, 0.4 + (i % 3) * 0.3, Math.sin(a) * 1.3))); }
+  const golgiSpots = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; golgiSpots.push(G0.clone().add(new THREE.Vector3(Math.cos(a) * 1.6, 0.4 + (i % 3) * 0.3, Math.sin(a) * 1.15))); }   /* (28 Nov 2026: a ring 1.6 by 1.15 µm, was 1.8 by 1.3: one point of the wider ring stood beside the stack, off its rim: the picture inspection) */
   const trackSpots = W.tracks.slice(0, 12).flatMap(t => [t.curve.getPointAt(0.3), t.curve.getPointAt(0.5), t.curve.getPointAt(0.7)]);
   const exitSpots = W.granules.filter(g => g.p.y > 13).map(g => g.p.clone());
   const wayInSpots = []; for (let i = 0; i < 16; i++) wayInSpots.push(new THREE.Vector3(-3.8 + (i % 8) * 0.7, 0.15, -1.6 + Math.floor(i / 8) * 0.9));

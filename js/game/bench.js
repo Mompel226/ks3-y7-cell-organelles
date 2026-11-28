@@ -45,11 +45,11 @@ function tile(step, done) {
   return `<svg viewBox="0 0 480 140" role="img" aria-label="A row of eight drops of iodine solution on a tile, one tested every 30 seconds, from 0 to 210 seconds. The colours are not shown: your class finds them.">
     <rect x="10" y="38" width="460" height="64" rx="14" fill="#F7F8FA" stroke="#C8CFD9" stroke-width="2"/>${drops}</svg>`;
 }
-export function openBench({ onClose = null } = {}) {
+export function openBench({ onClose = null, step = null } = {}) {   /* (step, from 0: the IB map's line for a statement, 28 Nov 2026) */
   const root = document.documentElement;
   let box = $('#bench');
   if (!box) { box = h('div', { class: 'bench', id: 'bench', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'benchT' }); $('#stage').appendChild(box); }
-  let at = 0, done = false;
+  let at = step != null ? Math.max(0, Math.min(STEPS.length - 1, step)) : 0, done = false;
   const draw = () => {
     const S = STEPS[at];
     box.innerHTML = `<div class="bench__card">

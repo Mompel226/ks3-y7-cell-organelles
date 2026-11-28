@@ -35,7 +35,7 @@
    reverse, and nothing ever jumps. With Reduce motion each step is one still, which holds every name of the step.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { levelSwitch, boxLines } from './iblevel.js?v=202611272058';
+import { levelSwitch, boxLines } from './iblevel.js?v=202611281626';
 
 const R = window.REV, { $ } = R;
 const CODONS = ['AUG', 'AAG', 'CUC', 'UUU', 'UGG', 'UUG', 'CUU', 'UUC', 'ACC'];   /* NM_004038.4, codons 1 to 9 */
@@ -302,7 +302,7 @@ export function courseLines(step, LV) {
 }
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */
-export function openRiboFilm({ last = 'Back to the ribosomes' } = {}) {
+export function openRiboFilm({ last = 'Back to the ribosomes', step = null } = {}) {
   return new Promise(done => {
     let box = $('#ribofilm');
     if (!box) { box = document.createElement('div'); box.className = 'lens'; box.id = 'ribofilm'; $('#stage').appendChild(box); }
@@ -338,6 +338,10 @@ export function openRiboFilm({ last = 'Back to the ribosomes' } = {}) {
     btn.addEventListener('click', () => { if (busy) return; if (i === STEPS.length - 1) { close(); return; } i++; show(); });
     back.addEventListener('click', () => { if (busy || i === 0) return; i--; show(-1); });
     sEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || busy) return; const k = +b.dataset.s; if (k === i) return; if (k === i + 1) { i++; show(); } else { i = k; show(0); } });
-    show();
+    /* opened at a step, from the IB map's line for a statement (28 Nov 2026; `step`, from 0): the film stands at the end
+       of the step before, and plays that step */
+    const at = step != null ? Math.max(0, Math.min(STEPS.length - 1, step)) : 0;
+    if (at > 0) { i = at; F.go(STEPS[i - 1].p, 1, false).then(() => show()); }
+    else show();
   });
 }

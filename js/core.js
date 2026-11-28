@@ -206,6 +206,11 @@
       if (!wordOf(d.dataset.w)) { console.warn('word bank has no ' + d.dataset.w); d.replaceWith(document.createTextNode(d.textContent)); return; }
       const b = h('button', { type: 'button', class: 'term', 'data-w': d.dataset.w, 'aria-label': d.textContent + ': show its meaning' });
       b.innerHTML = d.innerHTML; d.replaceWith(b);
+      /* a button is one box, so a line could end between the word and the full stop after it, and the full stop stood
+         alone at the start of the next line (the picture inspection, 28 Nov 2026: "simple diffusion" / "." in the way
+         in's IB sentence). The marks that close a sentence or a bracket stay on the word's line */
+      const nx = b.nextSibling, m = nx && nx.nodeType === 3 ? /^[.,;:!?)\]\u2019\u201D]+/.exec(nx.nodeValue) : null;
+      if (m) { const w = h('span', { class: 'term-nb' }); b.replaceWith(w); w.appendChild(b); w.appendChild(document.createTextNode(m[0])); nx.nodeValue = nx.nodeValue.slice(m[0].length); }
     });
   }
   function initTerms() {

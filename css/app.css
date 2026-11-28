@@ -82,6 +82,7 @@ h1{font:900 clamp(28px,2.7vw,36px)/1.05 var(--sans);margin:2px 0 2px;letter-spac
 /* key words: a faint dotted rule; the meaning opens where you are */
 .term{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:help;text-decoration:underline dotted 1.5px;text-decoration-color:color-mix(in srgb,var(--accent) 70%,transparent);text-underline-offset:3px;font-weight:800}
 .term:hover{color:var(--accent-ink)}
+.term-nb{white-space:nowrap}   /* a word of the word bank with the full stop or comma after it: never apart (core.js terms) */
 .tip{position:absolute;z-index:60;max-width:330px;background:var(--sheet);color:var(--ink);border:1px solid var(--rule2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:10px 12px;font-size:16px;line-height:1.45}
 .tip b{font-weight:900}
 .tip .tr{display:flex;gap:12px;margin-top:6px;padding-top:6px;border-top:1px solid var(--rule);font-size:15px}

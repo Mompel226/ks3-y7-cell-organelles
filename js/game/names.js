@@ -151,7 +151,12 @@ export class Names {
     world.on('resize', () => { this.measure([...this.m.values()]); this.dirty = true; this.still = 0; this.frame(); });
   }
   /* list: [{ key, text, html, cls, spots: [Vector3], own: [Object3D] (what counts as the part itself), press,
-     free (a spot in the open, a region such as the cytoplasm: no ray test), small (shorter words for a phone, where each
+     free (a spot in the open, a region such as the cytoplasm: no ray test), clear ([Object3D]: for a region in the open
+     that is seen in FRONT of other parts, such as the tissue fluid in front of the capillary: a spot is used only where
+     none of these is drawn on the screen at that point, in front of it or behind it; else the line of "the tissue
+     fluid" ended on a red blood cell, 28 Nov 2026), lineClear ([Object3D]: parts that the name's level line, from its
+     column to its point, must not pass over: the line of "ribosomes" crossed a long mitochondrion and ended beside
+     it, so it read as the mitochondrion's name), small (shorter words for a phone, where each
      name stands on its part), alt (on a phone, other parts of the same kind to stand on when its own have no room), aside
      (on a phone, beside its part first: a protein the name would hide), prefer (-1: on a phone, beside it on the left
      first), side ('L' or 'R': beside the cell, the only side it may stand on, when its line from the other side would
@@ -264,6 +269,22 @@ export class Names {
     if (!h || h.d > len - 0.35) return true;
     return !!(own && own.some(o => { for (let x = h.o; x; x = x.parent) if (x === o) return true; return false; }));
   }
+  /* is none of these parts drawn on the screen where this point is? (the camera's ray through the point, and on past it) */
+  open(p, objs) {
+    const cam = this.w.camera;
+    return !firstHit(objs, new THREE.Ray(cam.position.clone(), p.clone().sub(cam.position).normalize()), 400);
+  }
+  /* does a level line on the screen, from a column's edge to a point, pass over none of these parts? (a ray every 8 px:
+     every 22 px missed a mitochondrion under a line 70 px long) */
+  lineOpen(sc, xCol, objs) {
+    const cam = this.w.camera, s = this.w.size, a = Math.min(sc.x, xCol), b = Math.max(sc.x, xCol), d = new THREE.Vector3();
+    for (let x = a + 3; x < b - 3; x += 8) {
+      if (Math.abs(x - sc.x) < 9) continue;
+      d.set(x / s.w * 2 - 1, -(sc.y / s.h) * 2 + 1, 0.5).unproject(cam).sub(cam.position).normalize();
+      if (firstHit(objs, new THREE.Ray(cam.position.clone(), d.clone()), 400)) return false;
+    }
+    return true;
+  }
   /* where a point is on the screen (px), with the camera as it is now */
   proj(p) {
     const v = this.v.copy(p).project(this.w.camera), s = this.w.size;
@@ -363,7 +384,7 @@ export class Names {
     const boxAt = (r, side, y) => side === 'L' ? { l: colL - r.wc, r: colL, t: y - r.hc / 2, b: y + r.hc / 2 } : { l: colR, r: colR + r.wc, t: y - r.hc / 2, b: y + r.hc / 2 };
     const cand = this.items.map(it => {
       const pts = it.spots.map(p => ({ p, sc: this.proj(p) })).filter(o => o.sc.front && o.sc.x > 6 && o.sc.x < right - 6 && o.sc.y > 20 && o.sc.y < bottom - 10);
-      return { r: this.m.get(it.key), it, pts: pts.filter(o => it.free || this.visible(o.p, it.own)) };
+      return { r: this.m.get(it.key), it, pts: pts.filter(o => (it.free || this.visible(o.p, it.own)) && (!it.clear || this.open(o.p, it.clear))) };
     });
     /* one way of placing them: sticky, the names that stand already first, each on its side at its point, while that point
        is still seen, its row is free and its line does not cross most of the cell (the camera turned far); then the
@@ -378,12 +399,16 @@ export class Names {
         w.row++; return false;
       };
       const take = (cd, side, o) => { rows[side].push({ y: Math.round(o.sc.y), h: cd.r.hc }); got.set(cd, { side, o }); };
+      /* (a name with `lineClear`: its line from that side passes over none of those parts; asked once a point and side) */
+      const lineOK = (cd, side, o) => { if (!cd.it.lineClear) return true; const m = cd.lo || (cd.lo = new Map()), k = side + cd.pts.indexOf(o);
+        if (!m.has(k)) m.set(k, this.lineOpen(o.sc, side === 'L' ? colL : colR, cd.it.lineClear)); return m.get(k); };
       if (sticky) this.order.forEach(k => {
         const cd = cand.find(x => x.it.key === k), a = cd && cd.r.at; if (!a || a.mode !== 'col' || !only.has(cd)) return;
         const o = cd.pts.find(x => x.p.distanceToSquared(a.spot) < 1e-12); if (!o) return;
         if (cd.it.side && cd.it.side !== a.side) return;
         if (a.side === 'L' ? o.sc.x < colL + 20 : o.sc.x > colR - 20) return;
         if (!cd.it.side && Math.abs(o.sc.x - (a.side === 'L' ? colL : colR)) > 0.6 * (colR - colL)) return;
+        if (!lineOK(cd, a.side, o)) return;
         if (ok(cd, a.side, Math.round(o.sc.y))) take(cd, a.side, o);
       });
       cand.filter(cd => !got.has(cd) && cd.pts.length && (!only || only.has(cd))).sort((a, b) => a.pts.length - b.pts.length).forEach(cd => {
@@ -396,7 +421,8 @@ export class Names {
             if (side === 'R' && o.sc.x > colR - 20) continue;
             if (!ok(cd, side, y)) continue;
             const cost = Math.abs(o.sc.x - (side === 'L' ? colL : colR)) * 0.2;
-            if (!best || cost < best.cost) best = { side, o, cost };
+            /* (the line's own test last, and only for a point that would be the best so far: it is the dearest) */
+            if ((!best || cost < best.cost) && lineOK(cd, side, o)) best = { side, o, cost };
           }
           if (best) break;
         }
@@ -420,7 +446,7 @@ export class Names {
     /* alt: other parts of the same kind its name may stand on when its own spots have no room, each only if nothing
        hides it (the mitochondrion on a phone's map: it lies small among other names) */
     const cand = this.items.map(it => ({ r: this.m.get(it.key), it,
-      pts: it.spots.map((p, i) => ({ p, i, sc: this.proj(p) })).filter(o => seen(o.sc)).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, i: -1, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
+      pts: it.spots.map((p, i) => ({ p, i, sc: this.proj(p) })).filter(o => seen(o.sc) && (!it.clear || this.open(o.p, it.clear))).concat((it.alt || []).filter(p => this.visible(p, it.own)).map(p => ({ p, i: -1, sc: this.proj(p) })).filter(o => seen(o.sc))) }));
     /* beside its part, with a level line that ends on it (a short one, then a longer one); only where neither has room,
        on the part itself (since 16 Nov 2026: until then a name stood on its part first, with no line, and the pupil could
        not tell what it named; Daniel: "you don't have a line, so you don't know actually what this is pointing at"). A
@@ -504,6 +530,8 @@ export class Names {
     if (moving) {
       const look = recs.filter(r => r.place && r.at.mode === 'col' && !r.it.free);
       if (look.length) { const r = look[this.rr++ % look.length]; r.hid = !this.visible(r.at.spot, r.it.own); }
+      /* (and a name that must stand clear of other parts steps back while its point is over one of them) */
+      for (const r of recs) if (r.place && r.it && r.it.clear) r.hid = !this.open(r.at.spot, r.it.clear);
     }
     const shown = [], rest = !moving && this.still >= SETTLE;
     /* names on their way out where they stand (taken off the list, left out, or going to another place), still seen: a

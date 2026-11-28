@@ -5,28 +5,30 @@
    step again with everything in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611272058';
-import { state, COST, RESPIRE } from './state.js?v=202611272058';
-import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611272058';
-import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611272058';
-import { sound } from './sound.js?v=202611272058';
-import { magicStandard } from '../world/magic.js?v=202611272058';
-import { buildCrowd } from '../world/crowd.js?v=202611272058';
-import { Names } from './names.js?v=202611272058';
-import { makePit } from './clathrin.js?v=202611272058';
-import { makeFlow, flowCheck } from './wayflow.js?v=202611272058';
-import { level } from './iblevel.js?v=202611272058';
+import { token, ribbon, chain, tween as tween0, wait as wait0, burst, wave, AMINO_COLORS, amylase, strand, AMY_S } from './actors.js?v=202611281626';
+import { state, COST, RESPIRE } from './state.js?v=202611281626';
+import { nanoPatch, heroPoint, along, loadATP, H_COL, glowPoints, ionStream, atpMaker, haloSprite, nucleotide, nucleotideMats } from '../world/mitoparts.js?v=202611281626';
+import { TRUE, STEPS, trueTrack, trueMotor, glowSprite, amylaseCore } from '../world/tracks.js?v=202611281626';
+import { sound } from './sound.js?v=202611281626';
+import { magicStandard } from '../world/magic.js?v=202611281626';
+import { buildCrowd } from '../world/crowd.js?v=202611281626';
+import { Names } from './names.js?v=202611281626';
+import { makePit } from './clathrin.js?v=202611281626';
+import { makeFlow, flowCheck } from './wayflow.js?v=202611281626';
+import { level } from './iblevel.js?v=202611281626';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 /* the Explorer film, fetched when it is opened, not with the page (5 Nov 2026, speed) */
-const openCopyFilm = o => import('./transcribe.js?v=202611272058').then(m => m.openCopyFilm(o));
+const openCopyFilm = o => import('./transcribe.js?v=202611281626').then(m => m.openCopyFilm(o));
 /* the course film of the ribosomes (js/game/ribofilm.js), fetched when its door is pressed; and the doors of the course
    boxes (quest.js courseSwitch: 'coursefilm'): the film opens over the place, and the place is as it was when it closes */
-const openRiboFilm = o => import('./ribofilm.js?v=202611272058').then(m => m.openRiboFilm(o));
+const openRiboFilm = o => import('./ribofilm.js?v=202611281626').then(m => m.openRiboFilm(o));
 let filmOpen = false;
 document.addEventListener('coursefilm', async e => {
   if (filmOpen) return; filmOpen = true;
-  try { await (e.detail.film === 'ribo' ? openRiboFilm() : openCopyFilm({ code: e.detail.code || '' })); } finally { filmOpen = false; }   /* (code: the door of one HL statement, quest.js FILMAT) */
+  /* (code: the door of one HL statement, quest.js FILMAT; step: the IB map's line for a statement, from 0) */
+  const step = e.detail.step != null ? e.detail.step : null;
+  try { await (e.detail.film === 'ribo' ? openRiboFilm(step != null ? { step } : undefined) : openCopyFilm({ code: e.detail.code || '', step })); } finally { filmOpen = false; }
 });
 const R = window.REV;
 /* IB mode (quest.js courseSwitch: "Your course", IB on, in the way in and the mitochondria, once every check is right):
@@ -414,13 +416,20 @@ export function makePlay(world, quest) {
      carbon dioxide cross): appended, so the whole view's names stand where they did */
   const WAY_NEAR = [-2.9, -0.75, 0.45, 2.3], WAY_NEAR_OUT = [-2.9, -0.75, 1.6, 2.3];   /* (outside: clear of carbon dioxide's way down, x 0.25 to 0.6, even on a phone, where the name is about 1.4 µm wide) */
   const onCarrier = (C, ys) => ys.flatMap(([y, z]) => C.halves.map((h, k) => { h.updateWorldMatrix(true, false); return h.localToWorld(V(k ? 0.2 : -0.2, y, z)); }));
+  /* the tissue fluid is the narrow space between the membrane and the capillary. Seen from the front, most of it is
+     drawn in FRONT of the capillary: a name whose line ended there read as a name of the blood (the picture
+     inspection, 28 Nov 2026: "Outside: the tissue fluid" stood on a red blood cell in every close view). So its name
+     stands only where neither the capillary, a red blood cell nor the membrane is drawn at that point (names.js
+     `clear`): spots across that space, from its front to its back, after the ones it had */
+  const OUT_CLEAR = world.W.groups.blood.children.filter(o => o.isMesh).concat(BL.group.children.filter(o => !o.isPoints));
+  const OUT_DEEP = [-3.7, -2.9, -0.75, 0.45, 1.6, 2.3, 3.4].flatMap(x => [[-0.75, -0.6], [-0.85, -1.4], [-0.95, -2.1], [-1.05, -2.5]].map(([y, z]) => V(x, y, z)));
   /* solid: the molecule waiting close up, which no name may stand on (on a phone the names stand on their parts) */
   const wayNames = (again, solid) => !again && (quest.names.items[0] || {}).key === 'w-in' ? null : quest.names.set([
     { key: 'w-in', free: true, small: '<span class="nm__t">Inside: the cytoplasm</span>', html: '<span class="nm__t">Inside the cell:<br>the cytoplasm</span>', spots: [V(-3.7, 1.55, 0.12), V(-3.3, 1.7, 0.12), V(-3.7, 1.3, 0.12), V(1.9, 1.3, 0.12), ...WAY_NEAR.map(x => V(x, 0.78, 0.12))] },
     ibOn() ? { key: 'w-mem', free: true, side: 'L', cls: 'nm--ib', small: '<span class="nm__t">phospholipid bilayer</span>', html: '<span class="nm__t">Cell membrane:<br>phospholipid bilayer</span>',
         spots: (world.size.w < 640 ? [-4, -3.4, -2.8, -0.9, -0.2, 0.4, 2.2, 2.9, 3.6] : [-4, -3.7, -3.4, -2.9, 0.45]).map(x => V(x, -0.38, 0.2)) }
       : { key: 'w-mem', free: true, small: '<span class="nm__t">Cell membrane</span>', html: '<span class="nm__t">Cell membrane:<br>two layers of lipids</span>', spots: [V(-3.7, 0, 0.2), V(-3.4, 0, 0.2), V(-4.0, 0, 0.2), V(1.9, 0, 0.2), ...WAY_NEAR.map(x => V(x, 0, 0.2))] },
-    { key: 'w-out', free: true, small: '<span class="nm__t">Outside: the tissue fluid</span>', html: '<span class="nm__t">Outside the cell:<br>the tissue fluid</span>', spots: [V(-3.7, -1.3, 0.1), V(-3.4, -1.2, 0.1), V(1.9, -1.25, 0.1), ...WAY_NEAR_OUT.map(x => V(x, -1.05, 0.1))] },
+    { key: 'w-out', free: true, small: '<span class="nm__t">Outside: the tissue fluid</span>', html: '<span class="nm__t">Outside the cell:<br>the tissue fluid</span>', clear: OUT_CLEAR, spots: [V(-3.7, -1.3, 0.1), V(-3.4, -1.2, 0.1), V(1.9, -1.25, 0.1), ...WAY_NEAR_OUT.map(x => V(x, -1.05, 0.1)), ...OUT_DEEP] },
     { key: 'w-cap', free: true, small: '<span class="nm__t">Capillary (blood)</span>', html: '<span class="nm__t">Capillary,<br>with blood</span>', spots: [V(-3.5, -3.0, -0.7), V(-3.8, -3.3, -0.9), V(1.7, -3.0, -0.7)] }
   ].concat(ibOn() ? [
     { key: 'w-glut', free: true, side: 'L', aside: true, cls: 'nm--ib', small: '<span class="nm__t">glucose transporter</span>', html: '<span class="nm__t">glucose transporter</span>', spots: onCarrier(BL.carriers.glucose, [[0.555, 0.05]]) },
@@ -1530,6 +1539,10 @@ export function makePlay(world, quest) {
      where its two membranes show (cleared when the step ends: the next step's buttons stand on the threads) */
   function insideNames() {
     nucAgain = insideNames;
+    /* (chromosome 1 is gold in the world: until the pupil has found it, in the next step, it looks like the other
+       threads here too. Before 28 Nov 2026 it stood in gold, the name "chromosomes" on it, just before "find
+       chromosome 1": the picture inspection's independent read. A finished nucleus keeps its gold thread) */
+    if (!state.done('nucleus')) chr1Mat();
     /* (with a course on, a nuclear pore is named here too, one of those seen through the opening: both courses' first
        lines speak of the pores) */
     /* (only a pore seen clear of the nucleolus and of every thread: the names' ray test lets a see-through part such as the
@@ -1586,7 +1599,7 @@ export function makePlay(world, quest) {
   function porePrep() {
     if (PD) return PD.ready;
     PD = { ready: null };
-    PD.ready = import('../world/pore.js?v=202611272058').then(async m => {
+    PD.ready = import('../world/pore.js?v=202611281626').then(async m => {
       const P = await m.buildPore({ p0: DOOR.p, n0: DOOR.n, e1: DOOR.e1, e2: DOOR.e2, R: N.r, sy: N.sy, cut: PORE_TURN });
       P.group.matrixAutoUpdate = false;
       P.group.matrix.makeBasis(DOOR.e1, DOOR.n, DOOR.e2).scale(V(0.001, 0.001, 0.001)).setPosition(DOOR.p);
@@ -3223,6 +3236,9 @@ export function makePlay(world, quest) {
     /* the signal named, until the ribosome docks (step 1 says what it is and how the ribosome comes here) */
     rerNames([memName(), ...sides(), chName(), ['e-rib', 'ribosome', ...edge(r.position, 0.0135)], ['e-sig', 'signal', [sigAt(9)]]]);
     await press(() => r.position.clone().addScaledVector(f.n, 0.024), 'Dock', { w: 'dock' });
+    /* (while the ribosome moves, its name and the signal's are off the picture: they stood where it had been, their
+       lines ending on empty cytosol, until it sat on the channel: the picture inspection's independent read, 28 Nov 2026) */
+    rerNames([memName(), ...sides(), chName()]);
     await Promise.all([tween(r, { to: seat(), ms: 1300 }), tween(sig, { to: seat().sub(r.position), ms: 1300 }), tween(cp, { to: cp.position.clone().add(seat().sub(r.position)), ms: 1300 })]);
     sig.position.set(0, 0, 0); hairSet(null, sig, 0);
     /* (IB at HL, B2.2.7: on the channel it is a bound ribosome; its card is the line) */
@@ -5001,7 +5017,8 @@ export function makePlay(world, quest) {
     return nanoIn({ at: xp(0, at), dir, up: F.n.clone(), dist }, NEAR_HIDE().concat(groupsOf(['membrane', 'apex', 'granules', 'centrosome', 'beam', 'acinus']))); };
   const xBase = () => [
     ['x-mem', 'cell membrane', [xp(-640, 0), xp(640, 0), xp(-560, 0), xp(560, 0)], { up: -1, len: 30 }],
-    ['x-out', 'outside the cell', [xp(-420, 230), xp(420, 230), xp(-560, 160), xp(560, 160), xp(-760, 200), xp(760, 200)], { aside: false, small: '<span class="nm__t">outside<br>the cell</span>' }],
+    /* (28 Nov 2026: the outside here is the duct, and the step's words say that the amylase "enters the duct") */
+    ['x-out', 'the duct:<br>outside the cell', [xp(-420, 230), xp(420, 230), xp(-560, 160), xp(560, 160), xp(-760, 200), xp(760, 200)], { aside: false, small: '<span class="nm__t">the duct:<br>outside the cell</span>' }],
     ['x-in', 'inside the cell', [xp(-640, -260), xp(640, -260), xp(-640, -560), xp(640, -560), xp(-780, -500), xp(780, -500)], { aside: false, small: '<span class="nm__t">inside<br>the cell</span>' }]
   ];
   /* ---- the courses on the way out's picture (18 Nov 2026; the places planner's plan-exit) ----
@@ -5242,7 +5259,7 @@ export function makePlay(world, quest) {
     const vesAt = C.localToWorld(E.ves.position.clone()), cv = C.localToWorld(E.A.centre().add(E.A.g.position));
     const list = [
       ['x-mem', 'cell membrane', [xp(160, 0), xp(548, 0), xp(780, 0), xp(260, 0)], { up: -1, len: 30 }],
-      ['x-out', 'outside the cell', [xp(560, 120), xp(300, 130), xp(720, 110), xp(420, 90), xp(790, 70)], { aside: false, small: '<span class="nm__t">outside<br>the cell</span>' }],
+      ['x-out', 'the duct:<br>outside the cell', [xp(560, 120), xp(300, 130), xp(720, 110), xp(420, 90), xp(790, 70)], { aside: false, small: '<span class="nm__t">the duct:<br>outside the cell</span>' }],
       ['x-in', 'inside the cell', [xp(760, -440), xp(700, -520), xp(520, -420), xp(480, -400), xp(640, -470), xp(330, -440)], { aside: false, small: '<span class="nm__t">inside<br>the cell</span>' }],
       [end ? 'x-ves3' : 'x-ves2', end ? 'vesicle with amylase:<br>exocytosis next, adds membrane' : 'a vesicle with amylase', [0, -30, 30, -55, 45, 60].map(d => vesAt.clone().addScaledVector(F.right, Math.cos(d * deg) * GR).addScaledVector(F.n, Math.sin(d * deg) * GR)), Object.assign({ sides: [1, 1, 1, 1, 1, 1], small: end ? '<span class="nm__t">vesicle with amylase:<br>exocytosis next,<br>adds membrane</span>' : '<span class="nm__t">vesicle with<br>amylase</span>' },
         /* (IB at SL: "exocytosis" is a word of B2.1.13, an HL line: this name says so, as the riding word does in step 2; "endocytosis" needs no mark: C3.2.5, SL) */
@@ -5295,7 +5312,13 @@ export function makePlay(world, quest) {
     g.traverse(o => {
       if (pts.length >= n || !o.isMesh) return;
       if (o.isInstancedMesh) { const k = Math.max(1, Math.floor(o.count / n)); for (let i = 0; i < o.count && pts.length < n; i += k) { o.getMatrixAt(i, m); pts.push(new THREE.Vector3().setFromMatrixPosition(m).applyMatrix4(o.matrixWorld)); } }
-      else pts.push(o.getWorldPosition(new THREE.Vector3()));
+      /* a mesh that is one drawing of many parts (every other mitochondrion is in ONE mesh, drawn where it stands: the
+         mesh's own position is the world's middle, where no mitochondrion is; until 28 Nov 2026 the line of
+         "mitochondria" could end there, on empty cytoplasm at the base of the cell: the picture inspection): points
+         of its own surface, spread through it, a few a mesh */
+      else { const A = o.geometry && o.geometry.attributes && o.geometry.attributes.position, take = Math.min(n - pts.length, Math.max(2, Math.ceil(n / 3)));
+        if (A && A.count) { const k = Math.max(1, Math.floor(A.count / take)); for (let i = Math.floor(k / 2), c = 0; i < A.count && c < take; i += k, c++) pts.push(new THREE.Vector3().fromBufferAttribute(A, i).applyMatrix4(o.matrixWorld)); }
+        else pts.push(o.getWorldPosition(new THREE.Vector3())); }
     });
     return pts;
   };
@@ -5313,12 +5336,25 @@ export function makePlay(world, quest) {
      game"). At the start every mitochondrion and every ribosome is lit and the name is the kind's, so it is plural;
      a name whose line ends on the one part a step is about stays singular (the map, main.js: 5 Nov 2026, "if you're
      pointing to one mitochondrion, label it mitochondrion") */
+  /* the cell membrane's name ends ON the membrane: points of the shell's own rim at the cut face, at these heights
+     (until 28 Nov 2026 six points set by hand; four of them stood a few pixels outside the cell's outline: the picture
+     inspection, tools/ib-level.mjs R) */
+  const rimAt = (y, side) => { const A = W.membraneMesh.geometry.attributes.position, v = new THREE.Vector3(); let best = null, bx = -Infinity;
+    for (let i = 0; i < A.count; i++) { v.fromBufferAttribute(A, i); if (Math.abs(v.y - y) > 0.2 || Math.abs(v.z - 0.3) > 0.45) continue; if (v.x * side > bx) { bx = v.x * side; best = v.clone(); } }
+    return best ? W.membraneMesh.localToWorld(best) : null; };
   const y7Names = () => { const G = W.groups, P = world.P; return [
-      nameOf('membrane', 'cell membrane', [V(-6.2, 9.5, 0.2), V(6.1, 9.2, 0.2), V(-6.7, 5.2, 0.6), V(6.6, 5.0, 0.6), V(-5.4, 12.6, 0.3), V(5.3, 12.4, 0.3)], [G.membrane], 'is-y7'),
-      nameOf('cytoplasm', 'cytoplasm', [V(-3.0, 12.6, 1.0), V(3.0, 12.2, 1.2), V(-3.8, 9.0, 1.8), V(3.8, 8.6, 1.8), V(-2.2, 14.0, 0.8)], [G.cytosol], 'is-y7'),
+      nameOf('membrane', 'cell membrane', [rimAt(9.5, -1), rimAt(9.2, 1), rimAt(5.2, -1), rimAt(5.0, 1), rimAt(12.6, -1), rimAt(12.4, 1)], [G.membrane], 'is-y7'),
+      /* (28 Nov 2026, the picture inspection's independent read: "cytoplasm" ended on a piece of mitochondrion, "ribosomes"
+         crossed a long mitochondrion and ended beside it, "microtubules" ended where a mitochondrion is drawn behind the
+         thin tube. So: the cytoplasm's name ends where no organelle is drawn (names.js `clear`), from many points of the
+         cell's front; a ribosome named has no mitochondrion at its point nor under its line (`lineClear`)) */
+      Object.assign(nameOf('cytoplasm', 'cytoplasm', [V(-3.0, 12.6, 1.0), V(3.0, 12.2, 1.2), V(-3.8, 9.0, 1.8), V(3.8, 8.6, 1.8), V(-2.2, 14.0, 0.8)].concat(
+        [4, 5.5, 7, 8.5, 10, 11.5, 13].flatMap(y => [-1, 1].flatMap(sd => { const r = rimAt(y, sd); return r ? [0.4, 0.6, 0.8].map(f => V(r.x * f, y, 1.0)) : []; }))), [G.cytosol], 'is-y7'),
+        { clear: [G.mitochondria, G.rer, G.ser, G.golgi, G.lysosomes, G.vesicles, N.group].filter(Boolean) }),
       nameOf('nucleus', 'nucleus', P.nucleus.spots, [N.group], 'is-y7'),
       nameOf('mito', 'mitochondria', P.mito.spots.concat(spotsOf(G.mitochondria, 8)), [G.mitochondria], 'is-y7'),
-      nameOf('ribo', 'ribosomes', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 40).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7')
+      Object.assign(nameOf('ribo', 'ribosomes', P.ribosome.spots.concat(W.freeRibosomes.slice(0, 120).filter((r, i) => i % 5 === 0).map(r => r.p.clone())), [G['free-ribosomes'], G.rer], 'is-y7'),
+        { clear: [G.mitochondria], lineClear: [G.mitochondria] })
     ]; };
   /* each structure an electron microscope shows appears in turn, and its name joins the others */
   /* every structure of the first place with its name: they stay on the picture from Show everything on, through the
@@ -5336,7 +5372,7 @@ export function makePlay(world, quest) {
       ['ser', P.ser.center, [nameOf('ser', 'smooth ER', P.ser.spots, [G.ser])]],
       ['golgi', P.golgi.center, [nameOf('golgi', 'Golgi apparatus', P.golgi.spots, [G.golgi])]],
       ['granules', P.exit.center, [nameOf('vesicles', 'vesicles', W.granules.slice(0, 40).filter((g, i) => i % 4 === 0).map(g => g.p.clone()), [G.granules])]],
-      ['microtubules', P.tracks.center, [nameOf('tracks', 'microtubules', P.tracks.spots, [G.microtubules])]],
+      ['microtubules', P.tracks.center, [Object.assign(nameOf('tracks', 'microtubules', P.tracks.spots, [G.microtubules]), { clear: [G.mitochondria, G.golgi, G.lysosomes, G.rer, N.group].filter(Boolean) })]],   /* (a microtubule is a hair's width here: its name ends where nothing else is drawn behind it) */
       ['lysosomes', V(-2.9, 10.6, -0.6), [nameOf('lysosomes', 'lysosomes', [V(-2.9, 10.6, -0.6)].concat(spotsOf(G.lysosomes, 8)), [G.lysosomes])]],
       ['centrosome', V(0.1, 14.55, -1.1), [nameOf('centrosome', 'centrosome', [V(0.1, 14.55, -1.1)].concat(spotsOf(G.centrosome, 4)), [G.centrosome])]],
       ['apex', V(0, 16.6, 0), [nameOf('duct', 'the duct', [V(0, 16.6, 0), V(-0.9, 16.3, 0.4), V(0.9, 16.3, 0.4)].concat(spotsOf(G.apex, 6)), [G.apex])]]

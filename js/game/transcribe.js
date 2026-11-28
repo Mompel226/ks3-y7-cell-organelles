@@ -46,8 +46,8 @@
    (D1.2.15: STEPS_HL, and "the whole mRNA as a ribbon" in film()). Year 7, IGCSE and IB SL keep the ten steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { courseLines } from './ribofilm.js?v=202611272058';
-import { levelSwitch, level } from './iblevel.js?v=202611272058';   /* how a course's lines are drawn, the same in both films */
+import { courseLines } from './ribofilm.js?v=202611281626';
+import { levelSwitch, level } from './iblevel.js?v=202611281626';   /* how a course's lines are drawn, the same in both films */
 
 const R = window.REV, { $ } = R;
 const N = 14, RISE = 0.6, YT = 1.0, YB = -1.0, LIFT = 1.35, YR = 1.0, YC = 3.05;   /* pairs; spacing; strands; copy */
@@ -618,7 +618,7 @@ function worldThread() {
 }
 
 /* the film, in its own window over the world; resolves when it is closed (watched to the end, or not) */
-export function openCopyFilm({ last = 'Back to the nucleus', code = '' } = {}) {
+export function openCopyFilm({ last = 'Back to the nucleus', code = '', step = null } = {}) {
   return new Promise(done => {
     let box = $('#copyfilm');
     if (!box) { box = document.createElement('div'); box.className = 'lens'; box.id = 'copyfilm'; $('#stage').appendChild(box); }
@@ -698,8 +698,10 @@ export function openCopyFilm({ last = 'Back to the nucleus', code = '' } = {}) {
     sEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || busy) return; const k = +b.dataset.s; if (k === i) return; if (k === i + 1) { i++; show(); } else { i = k; show(0); } });
     /* opened for a statement that only an HL step shows (the door of the nucleus's last step: D1.2.15): the film stands
        at the end of the step before, and plays that step */
+    /* (28 Nov 2026: or opened at a step, from the IB map's line for a statement, "what you will see": `step`, from 0) */
     const k0 = code && hlOn() ? LINES_HL.findIndex(l => (l.ib || []).some(x => x[1] === code)) : -1;
-    if (k0 >= 0) { i = STEPS.length + k0; F.go(Object.assign(stateAt(i - 1), { ms: 1 })).then(() => show()); }
+    const at = step != null ? Math.max(0, Math.min(ST.length - 1, step)) : k0 >= 0 ? STEPS.length + k0 : 0;
+    if (at > 0) { i = at; F.go(Object.assign(stateAt(i - 1), { ms: 1 })).then(() => show()); }
     else show();
   });
 }

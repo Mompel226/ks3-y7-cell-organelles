@@ -5,19 +5,19 @@
    flies there and opens its steps.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { World, MAP_VIEW } from '../world/world.js?v=202611272058';
-import { Names } from './names.js?v=202611272058';
-import { Quest, MAPPED, isAre } from './quest.js?v=202611272058';
-import { makePlay } from './play.js?v=202611272058';
-import { setStill, wait } from './actors.js?v=202611272058';
-import { state, RESPIRE } from './state.js?v=202611272058';
-import { ICON } from './icons.js?v=202611272058';
-import { intro } from './intro.js?v=202611272058';
-import { sound } from './sound.js?v=202611272058';
-import { openFinal, finalCode, finalOpen } from './final.js?v=202611272058';
-import { fromRecord } from './restore.js?v=202611272058';
-import { setCourse, level } from './iblevel.js?v=202611272058';
-import { closeViews } from './digestview.js?v=202611272058';
+import { World, MAP_VIEW } from '../world/world.js?v=202611281626';
+import { Names } from './names.js?v=202611281626';
+import { Quest, MAPPED, isAre } from './quest.js?v=202611281626';
+import { makePlay } from './play.js?v=202611281626';
+import { setStill, wait } from './actors.js?v=202611281626';
+import { state, RESPIRE } from './state.js?v=202611281626';
+import { ICON } from './icons.js?v=202611281626';
+import { intro } from './intro.js?v=202611281626';
+import { sound } from './sound.js?v=202611281626';
+import { openFinal, finalCode, finalOpen } from './final.js?v=202611281626';
+import { fromRecord } from './restore.js?v=202611281626';
+import { setCourse, level } from './iblevel.js?v=202611281626';
+import { closeViews } from './digestview.js?v=202611281626';
 
 const R = window.REV, { $, $$, h, esc } = R;
 const STORY = window.STORY;
@@ -359,7 +359,7 @@ async function test() {
 
 /* ---------- See the real thing ---------- */
 /* fetched the first time it is opened, not with the page (5 Nov 2026, speed: the lens brings the model loader, 113 KB) */
-document.addEventListener('lens', e => import('./lens.js?v=202611272058').then(m => (typeof e.detail === 'string' ? m.openLens(e.detail) : m.openPicture(e.detail.title, e.detail.pic, e.detail.n))));   /* (an object: one real picture by itself, the Golgi's door) */
+document.addEventListener('lens', e => import('./lens.js?v=202611281626').then(m => (typeof e.detail === 'string' ? m.openLens(e.detail) : m.openPicture(e.detail.title, e.detail.pic, e.detail.n))));   /* (an object: one real picture by itself, the Golgi's door) */
 /* from a place's end: the nucleus's Explorer film (how a cell copies a gene); the way in's and the mitochondria's IB
    extension, "From glucose to ATP" (js/ib/view.js, over the whole page; it replaced the mitochondria's Explorer film,
    5 Nov 2026), which a door in a step's IB words also opens, at its chapter. The game's 3D rests while it is open. */
@@ -370,7 +370,7 @@ let opening = false;
 const openIB = (start, after) => {
   if (opening || memOpening || document.documentElement.classList.contains('ibv-open') || document.documentElement.classList.contains('memv-open')) return;
   opening = true;
-  import('../ib/view.js?v=202611272058').then(m => {
+  import('../ib/view.js?v=202611281626').then(m => {
     world.hold = true;
     m.openIB({ inGame: true, start, mark: start && start.mark, backLabel: after ? '← Back to the IB map' : undefined, onClose: () => { opening = false; world.hold = false; world.kick(); if (after) after(); else winNext(); } });
   }).catch(e => { opening = false; world.hold = false; world.kick(); console.error(e); });
@@ -380,11 +380,11 @@ const openIB = (start, after) => {
 let warmed = false;
 document.addEventListener('ib-door', () => {
   if (warmed) return; warmed = true;
-  import('../ib/view.js?v=202611272058').then(m => m.warm()).catch(() => { warmed = false; });
-  import('../membrane/view.js?v=202611272058').then(m => m.warm()).catch(() => {});
+  import('../ib/view.js?v=202611281626').then(m => m.warm()).catch(() => { warmed = false; });
+  import('../membrane/view.js?v=202611281626').then(m => m.warm()).catch(() => {});
 });
 document.addEventListener('explore', e => {
-  if (e.detail === 'nucleus') import('./transcribe.js?v=202611272058').then(m => m.openCopyFilm({ last: 'Close' }));
+  if (e.detail === 'nucleus') import('./transcribe.js?v=202611281626').then(m => m.openCopyFilm({ last: 'Close' }));
   else if (e.detail === 'mito' || e.detail === 'wayin') openIB({ ci: e.detail === 'wayin' ? 1 : 0, si: 0 });
 });
 document.addEventListener('ibview', e => openIB({ ci: e.detail.ch, si: 0 }));
@@ -396,7 +396,7 @@ const openMem = (o = {}) => {
   const root = document.documentElement;
   if (memOpening || opening || root.classList.contains('memv-open') || root.classList.contains('ibv-open') || root.classList.contains('plv-open')) return;
   memOpening = true;
-  import('../membrane/view.js?v=202611272058').then(m => {
+  import('../membrane/view.js?v=202611281626').then(m => {
     world.hold = true;
     m.openMembrane(Object.assign({ inGame: true, onClose: () => { memOpening = false; world.hold = false; world.kick(); if (o.after) o.after(); else winNext(); } },
       o.start != null ? { start: o.start, mark: o.mark } : {}, o.after ? { backLabel: '← Back to the IB map' } : {}));
@@ -478,7 +478,7 @@ document.addEventListener('plant', e => {
   const root = document.documentElement;
   if (plantOpening || opening || memOpening || root.classList.contains('plv-open') || root.classList.contains('ibv-open') || root.classList.contains('memv-open')) return;
   plantOpening = true; nextOff();
-  import('../plant/view.js?v=202611272058').then(m => {
+  import('../plant/view.js?v=202611281626').then(m => {
     world.hold = true;
     /* (20 Nov 2026) `at`: a visit by a door of a course box (quest.js PLANT): the plant cell opens at that step alone, and
        saves nothing, so the game offers no next step when it closes */
@@ -504,7 +504,7 @@ let v2Opening = false;
 function openView2(name, o = {}) {
   const V = VIEWS2[name]; if (!V || v2Opening || viewOpen()) return;
   v2Opening = true; nextOff();
-  import(V[0] + '?v=202611272058').then(m => { world.hold = true; m[V[1]](Object.assign({ inGame: true, backLabel: o.after ? '← Back to the IB map' : '← Back to the game', onClose: () => { v2Opening = false; world.hold = false; world.kick(); if (o.after) o.after(); else winNext(); } }, o.start != null ? { start: o.start, mark: o.mark } : {})); })
+  import(V[0] + '?v=202611281626').then(m => { world.hold = true; m[V[1]](Object.assign({ inGame: true, backLabel: o.after ? '← Back to the IB map' : '← Back to the game', onClose: () => { v2Opening = false; world.hold = false; world.kick(); if (o.after) o.after(); else winNext(); } }, o.start != null ? { start: o.start, mark: o.mark } : {})); })
     .catch(e => { v2Opening = false; world.hold = false; world.kick(); console.error(e); });
 }
 document.addEventListener('ibview2', e => openView2(e.detail && e.detail.view));
@@ -514,13 +514,13 @@ async function openIBMap(topic) {
   if (!ibPass() || !gameOn || mapOpening || viewOpen() || ($('#ibmap') && !$('#ibmap').hidden)) return;
   mapOpening = true; nextOff();
   document.dispatchEvent(new CustomEvent('ib-door'));            /* the views' code comes while the map is read */
-  try { const m = await import('./ibmap.js?v=202611272058'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher', topic }); }
+  try { const m = await import('./ibmap.js?v=202611281626'); await m.openIBMap({ open: ibOpen, teacher: window.IBPASS.why() === 'teacher', topic }); }
   catch (e) { console.error(e); }
   mapOpening = false;
 }
 document.addEventListener('ibmap', () => openIBMap());
 /* the starch test's IB investigation, heat and time (js/game/bench.js; 16 Nov 2026), from its IB box or the IB map */
-document.addEventListener('ibbench', () => { if (viewOpen()) return; import('./bench.js?v=202611272058').then(m => { world.hold = true; m.openBench({ onClose: () => { world.hold = false; world.kick(); } }); }).catch(e => console.error(e)); });
+document.addEventListener('ibbench', e => { if (viewOpen()) return; const step = e.detail && e.detail.step != null ? e.detail.step : null; import('./bench.js?v=202611281626').then(m => { world.hold = true; m.openBench({ step, onClose: () => { world.hold = false; world.kick(); } }); }).catch(e => console.error(e)); });
 /* ---------------- a door of the IB map lands on its statement (18 Nov 2026) ----------------
    Daniel, after using the map: a door opened a place at its first step and a view at its chapter's start, with nothing
    marked, and there was no way back to the map (quest.js "landed from the IB map" has his words). Now the map gives each
@@ -530,7 +530,8 @@ document.addEventListener('ibbench', () => { if (viewOpen()) return; import('./b
    is given the statement to mark (`mark`) and the label of its way back ("← Back to the IB map"), and when it closes
    the map opens again at the topic. The map has a button in the picture's corner too (#hudIB, beside Full screen), so
    that it is there in full screen, where the page's own top bar is covered. */
-const ibStep = (d, T) => { if (!T || !d.at) return 0; const list = T.code ? [T.code] : (T.codes || []); const all = list.flatMap(c => d.at[c] || []); return all.length ? Math.min(...all) : 0; };
+const ibStep = (d, T) => { if (!T || !d.at) return 0; if (T.step != null) return T.step;   /* (22 Nov 2026: a line of the map's window names its own step, when the statement is taught at more than one) */
+  const list = T.code ? [T.code] : (T.codes || []); const all = list.flatMap(c => d.at[c] || []); return all.length ? Math.min(...all) : 0; };
 const ibBack = T => (T && T.topic ? () => openIBMap(T.topic) : null);
 let ibNext = null, ibCarry = 0;
 function ibLandPlace(id, T) {
@@ -597,8 +598,8 @@ function ibOpen(d, T) {
       if (T && T.topic) ibLandSoon(d.id, T);
     };
     enter();
-  } else if (d.kind === 'film') document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: d.film } }));
-  else if (d.kind === 'bench') document.dispatchEvent(new CustomEvent('ibbench'));
+  } else if (d.kind === 'film') document.dispatchEvent(new CustomEvent('coursefilm', { detail: { film: d.film, step: T ? ibStep(d, T) : null } }));   /* (step: where the film shows the statement of the map's line, 28 Nov 2026) */
+  else if (d.kind === 'bench') document.dispatchEvent(new CustomEvent('ibbench', { detail: { step: T ? ibStep(d, T) : null } }));
   else if (d.kind === 'view2') openView2(d.view, { start: ibStep(d, T), mark: T && (T.code || T.codes), after: ibBack(T) });
   else if (d.id === 'membrane') openMem({ start: ibStep(d, T), mark: T && (T.code || T.codes), after: ibBack(T) });
   else if (d.id === 'plant') document.dispatchEvent(new CustomEvent('plant', { detail: { from: 'ibmap' } }));
@@ -631,7 +632,7 @@ async function hashDoor() {
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   if (want === 'map') { openIBMap(); return; }
   if (/^[a-d]\d\.\d$/.test(want)) { openIBMap(want.toUpperCase()); return; }
-  try { const m = await import('./ibmap.js?v=202611272058'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
+  try { const m = await import('./ibmap.js?v=202611281626'); const d = (await m.doors()).find(x => x.id === want); if (d) ibOpen(d); else openIBMap(); }
   catch (e) { console.error(e); }
 }
 addEventListener('hashchange', () => { hashWant = readHash(); hashDoor(); });

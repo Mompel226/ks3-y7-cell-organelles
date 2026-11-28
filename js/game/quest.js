@@ -7,17 +7,17 @@
    What to press stands ON the 3D part it acts on (hot buttons, memory year7-text-and-instructions), and is also
    written, highlighted, in the step. On a phone the panel is a sheet at the bottom; the world is above it.
    ============================================================ */
-import { ICON } from './icons.js?v=202611272058';
-import { state, COST } from './state.js?v=202611272058';
-import { sound } from './sound.js?v=202611272058';
-import { finalLine } from './final.js?v=202611272058';
+import { ICON } from './icons.js?v=202611281626';
+import { state, COST } from './state.js?v=202611281626';
+import { sound } from './sound.js?v=202611281626';
+import { finalLine } from './final.js?v=202611281626';
 /* See the real thing (lens.js) is fetched a few seconds after the page, not with it (5 Nov 2026, speed: it brings the
    3D model loader); a place's end card adds its button as soon as it is here */
 let HAS_LENS = null;
-const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611272058').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
-import { simpleCard } from './simplecard.js?v=202611272058';
-import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611272058';
-import { WORDS, pick } from './coursewords.js?v=202611272058';
+const lensReady = new Promise(res => setTimeout(() => import('./lens.js?v=202611281626').then(m => { HAS_LENS = m.HAS_LENS; res(m); }, () => res(null)), 3000));
+import { simpleCard } from './simplecard.js?v=202611281626';
+import { course, setCourse, levelSwitch, boxLines, level } from './iblevel.js?v=202611281626';
+import { WORDS, pick } from './coursewords.js?v=202611281626';
 const HOT_OFF = 26, HOT_UP = 18;     /* px: a button beside its part (r, l), above or below it (t, b): the length of its line */
 
 const R = window.REV, { $, $$, h, esc } = R;
@@ -274,7 +274,7 @@ export class Quest {
       this.step = { li, do: $('.step__do', li), say: $('.step__say', li), i };
       const ok = await run(P.steps[i].play, i, () => my === this.session);
       if (my !== this.session || ok === false) return;
-      li.classList.remove('is-now'); li.classList.add('is-done'); this.step.do.innerHTML = ''; this.clearHots();
+      li.classList.remove('is-now'); li.classList.toggle('is-choosing', false); li.classList.add('is-done'); this.step.do.innerHTML = ''; this.clearHots();
       state.setStep(id, i + 1);
       this.againBtn(id, i, li);
     }
@@ -430,7 +430,7 @@ export class Quest {
     document.addEventListener('iblevel', relevel);
     draw();
     /* (the plant cell's list of what a door may open: the boxes are drawn again with their doors when it has come) */
-    if ([...C.igcse, ...C.ib].some(b => b && b.plant)) import('../plant/doors.js?v=202611272058').then(m => { plantAt = m.OPEN_AT || {}; if (bar.isConnected) draw(); }, () => {});
+    if ([...C.igcse, ...C.ib].some(b => b && b.plant)) import('../plant/doors.js?v=202611281626').then(m => { plantAt = m.OPEN_AT || {}; if (bar.isConnected) draw(); }, () => {});
   }
   /* ---------------- the course's own word on every button (19 Nov 2026; js/game/coursewords.js has Daniel's words)
      wordNow: a button's word for the course that is on at this place, IB's at the student's level. wordsPaint: every
@@ -477,7 +477,9 @@ export class Quest {
     const mine = P.course.ib.map((b, i) => (has(b, want) ? i : -1)).filter(i => i >= 0);
     if (!hits.length || !mine.length) return null;
     const i = T.step != null && hits.includes(T.step) ? T.step : mine[0];
-    this.ibFrom = { id, topic: T.topic, name: T.name || '', codes: all, want: T.step != null ? all : want, hits, i, own: false, fresh: true };
+    /* (22 Nov 2026) a line of the map's window names its statement AND its step (the statement is taught at more than one):
+       that statement alone is marked, at that step; a step button of the bar (a step, no statement) marks the topic's */
+    this.ibFrom = { id, topic: T.topic, name: T.name || '', codes: all, want: T.step != null && !T.code ? all : want, hits, i, own: false, fresh: true };
     this.ibPaint();
     return { i, hits, li: ol.children[i] || null };
   }
@@ -717,6 +719,11 @@ export class Quest {
   choose(opts, right, onWrong) {
     if (this.watching) { const w = this.watching; return new Promise(r => setTimeout(() => { if (this.watching === w && this.session === w.session) r(right); }, R.TEST ? 0 : 700)); }
     const box = h('div', { class: 'choices' });
+    /* while the choice is not yet answered, the step's course boxes are not on show (game.css .step.is-choosing): with
+       IB on, the box stood open right under the buttons and gave the answer (the way in's step 3: "Glucose is polar,
+       so it cannot pass between the phospholipids. The carrier protein for glucose is a glucose transporter": the
+       picture inspection's independent read, 28 Nov 2026). They come back with the right answer */
+    const cli = this.step.li; cli.classList.add('is-choosing');
     /* a new order each time they are drawn, so the right one is not always A (memory feedback-questions); data-i keeps
        each choice's own number */
     const order = opts.map((_, i) => i);
@@ -726,7 +733,7 @@ export class Quest {
     return new Promise(res => {
       $$('.choice', box).forEach(b => b.addEventListener('click', async () => {
         const i = +b.dataset.i; if (b.disabled) return;
-        if (i === right) { b.classList.add('yes'); $$('.choice', box).forEach(x => { x.disabled = true; }); res(i); return; }
+        if (i === right) { b.classList.add('yes'); $$('.choice', box).forEach(x => { x.disabled = true; }); cli.classList.toggle('is-choosing', false); res(i); return; }
         b.classList.add('no'); sound.no(); $$('.choice', box).forEach(x => { x.disabled = true; });
         await onWrong(i);
         $$('.choice', box).forEach(x => { if (!x.classList.contains('no')) x.disabled = false; });
