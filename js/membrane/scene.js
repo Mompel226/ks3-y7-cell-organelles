@@ -29,7 +29,7 @@
    Nothing is allocated while it runs: every molecule is an instance whose numbers are written in place.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { classOf } from './seen.js?v=202611281626';
+import { classOf } from './seen.js?v=202611281627';
 
 export const Y = { head: 2.0, headR: 0.4, tailTop: 1.66, tailL: 1.6, tailOff: 0.23, tailR: 0.21, chol: 1.78, top: 2.4 };
 const COL = {
@@ -398,7 +398,10 @@ export function makeScene(S, opt = {}) {
   function setFocus(lit, tailKind = null, now = false) {
     const all = !lit || !lit.length;
     for (const g of Object.keys(mats)) ft[g] = all || lit.includes(g) ? 1 : DIM;
-    if (tailKind) { tailWant = tailKind; tailTo = 1; } else tailTo = 0;
+    /* (28 Nov 2026, the picture standard: with "unsaturated tail (bent)" open, a press on "saturated tail (straight)" left the
+       bent tails bright and the straight ones dim, because the tails' colours are set only while tailA moves, and it
+       stood at 1 already. So a change of kind starts the light again from nothing: the other kind dims, this one comes up.) */
+    if (tailKind) { if (tailWant !== tailKind && tailA > 0.001) tailA = 0.001; tailWant = tailKind; tailTo = 1; } else tailTo = 0;
     if (now) { for (const g of Object.keys(mats)) fk[g] = ft[g] + 1e-3; tailA = tailTo ? 0.999 : 0.001; }
   }
   function easeFocus(dt) {
@@ -494,6 +497,8 @@ export function makeScene(S, opt = {}) {
   }
   return { group, draw, setGhost, lightLipid, lightProtein, dimFollow, lipidPoint, nearest, protLow, dispose, pl, ch, gl, prots, heads, tails, chol, trailL, trailP, setWater, aqpTop, waterMesh, soluteMesh, aqp,
     setFocus, easeFocus, setOpen, gapPoint, turned, focusOf: g => fk[g], DIM, setMark, marksNow: () => ({ tails: markTails.count, chol: markChol.count }),
+    /* for the checks: which kind of tail is lit, and how bright the straight tails and the bent tails are drawn now (1 = full; the mean of their own colour) */
+    tailsNow: () => { const c = tails.instanceColor ? tails.instanceColor.array : null; let s = 0, ns = 0, bn = 0, nb = 0; if (c) for (let n = 0; n < pl.length; n++) { const bent = S.kink[pl[n]] === 1; s += c[n * 6]; ns++; if (bent) { bn += c[n * 6 + 3]; nb++; } else { s += c[n * 6 + 3]; ns++; } } return { want: tailTo ? tailWant : null, straight: ns ? s / ns : 1, bent: nb ? bn / nb : 1 }; },
     get open() { return open; }, set soluteR(r) { soluteR = r; }, get ghost() { return ghost; }, get litLipid() { return litLipid; }, get litProt() { return litProt; } };
 }
 

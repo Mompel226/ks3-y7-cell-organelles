@@ -46,7 +46,7 @@ export const STEPS = [
       glu: { name: 'glucose', t: `[sl D2.3.1] Glucose forms hydrogen bonds (weak δ+ to δ− attractions) with water.` }
     } },
   { id: 'osmosis', scene: 'osmosis', title: 'Osmosis: water moves towards more solute',
-    t: `[!] Water molecules cross a partially permeable membrane in both directions. Which way do more of them cross?
+    t: `[!] Water molecules cross a selectively permeable membrane in both directions. Which way do more of them cross?
 [sl D2.3.2] Concentration is how many solute particles there are in a set volume.
 [sl D2.3.2] More water crosses towards the more concentrated solution. This net (overall) movement of water is osmosis.
 [x+] Water crosses a cell membrane between the phospholipids and through channel proteins (aquaporins). The gaps in this membrane represent these ways across.
@@ -54,7 +54,7 @@ export const STEPS = [
 [x+] The solutions of the model are far more concentrated than real ones, so that one minute shows the difference. In normal saline (step 7) about 1 particle in 180 is an ion: 1 dm³ holds 0.308 mol of ions and about 55.5 mol of water.
 [x+] The surface of each solution can move. The solution that gains water molecules has a larger volume, so its level rises.`,
     cards: {
-      mem: { name: 'partially permeable membrane', t: `[sl D2.3.2] Water passes through the partially permeable membrane. The solute particles in the picture cannot.` },
+      mem: { name: 'selectively permeable membrane', t: `[sl D2.3.2] Water passes through the selectively permeable membrane. The solute particles in the picture cannot.` },   /* (28 Nov 2026: the guide's word, B2.1.6 and B2.1.8, as in the membrane view; "partially permeable" is the 0610 syllabus's) */
       tonic: { name: 'hypotonic, hypertonic', t: `[sl D2.3.2] Compared with the other solution: less concentrated is hypotonic, more concentrated is hypertonic, equal is isotonic.` }
     } },
   { id: 'cells', scene: 'tonicity', title: 'Water into or out of a cell',
@@ -156,7 +156,7 @@ export const PIC = {
   osmosis: {
     left: 'Fewer solute particles: less concentrated (hypotonic)', right: 'More solute particles: more concentrated (hypertonic)',
     leftN: 'Less concentrated (hypotonic)', rightN: 'More concentrated (hypertonic)',
-    mem: 'partially permeable membrane', start: 'level at the start', hero: 'a water molecule', heroK: 'two water molecules, followed', heroN: 'two, followed',
+    mem: 'selectively permeable membrane', start: 'level at the start', hero: 'a water molecule', heroK: 'two water molecules, followed', heroN: 'two, followed',
     same: 'At the start the two solutions have the same volume.',
     kw: 'water molecule', ks: 'solute particle', kwN: 'water', ksN: 'solute',
     crossed: 'Water molecules that crossed', to: ['to the less concentrated solution', 'to the more concentrated solution'], toN: ['to the left', 'to the right'],

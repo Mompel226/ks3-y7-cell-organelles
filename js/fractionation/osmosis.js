@@ -17,7 +17,7 @@
    change); what changes is how many ENTER (18 from pure water, 10 from the isotonic solution, 6 from the concentrated
    one). Each chosen run is within 2 of both averages.
    ============================================================ */
-import { LIQ, makeLiquid } from '../water/liquid.js?v=202611281626';
+import { LIQ, makeLiquid } from '../water/liquid.js?v=202611281627';
 
 export const OSM = {
   END: 15, SPEED: 4,                                   /* a run, in seconds of the page; seconds of the liquid in one of them */

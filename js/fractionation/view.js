@@ -29,12 +29,13 @@
    out: the end of each run, with an arrow for the net movement of water and the path of each protease.
    For tools/fractionation-check.mjs: window.FRACTIONATION.
    ============================================================ */
-import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611281626';
-import { found, learn } from '../ib/found.js?v=202611281626';
-import { marks } from '../ib/mark.js?v=202611281626';      /* (a visit from the IB map marks its sentence) */
-import { LIQ } from '../water/liquid.js?v=202611281626';
-import { OSM, STEPS as OSM_STEPS, makeOsmosis, osmosisTo, counts, drawLiquid } from './osmosis.js?v=202611281626';
-import { PROT, PROTEINS, makeProteases, ASSAY, makeAssay, enzymeAt, LEAK } from './walk.js?v=202611281626';
+import { STEPS, RESULT, NAMES, UI, LEVELS, SIMPLE, SOURCES, SPINS, FRACTIONS, PART_NAMES, TITLE, EYEBROW } from './text.js?v=202611281627';
+import { found, learn } from '../ib/found.js?v=202611281627';
+import { marks } from '../ib/mark.js?v=202611281627';      /* (a visit from the IB map marks its sentence) */
+import { LIQ } from '../water/liquid.js?v=202611281627';
+import { OSM, STEPS as OSM_STEPS, makeOsmosis, osmosisTo, counts, drawLiquid } from './osmosis.js?v=202611281627';
+import { PROT, PROTEINS, makeProteases, ASSAY, makeAssay, enzymeAt, LEAK } from './walk.js?v=202611281627';
+import { CELL, RIBO_R, PM_R } from './cellparts.js?v=202611281627';      /* (which shapes of the cell's drawing are each named part) */
 const VIEW = 'fractionation';      /* (the key of this view's found names: js/ib/found.js) */
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -79,7 +80,7 @@ const broken = b => (b > 0.001 ? ` pathLength="100" stroke-dasharray="${r1(20 - 
    tools/servier/pieces.py. Each is drawn as an <image>, so the browser draws its shapes once for a size and not again
    for every frame of a motion. PIC: each drawing's own width and height. Only what moves by the lab's own rules is
    still drawn here (a membrane in pieces, liquids, the counted models, arrows). */
-const ART_V = '?v=202611281626', ART_URL = new URL('../../fractionation/art/', import.meta.url).href;
+const ART_V = '?v=202611281627', ART_URL = new URL('../../fractionation/art/', import.meta.url).href;
 const PIC = { cell: [461, 414], lyso: [36, 36], mito: [203, 103], nucleus: [178, 197], rer: [212, 104], protease: [105, 155], enzyme: [57, 57], tube: [42, 273], beaker: [112, 151], thermo: [6, 392], pestle: [44, 153], ctube: [50, 313], centrifuge: [206, 272], bath: [209, 204] };
 /* Each drawing is turned ONCE into a bitmap (a PNG three or four times its own size; the cell 1,400 px wide), and the
    picture is drawn from the bitmaps: an SVG <image> that is made again for every frame of a motion is drawn from its
@@ -152,14 +153,27 @@ const ART = {};
 
 /* 1. an animal cell and its parts: the kit's "Animal cell" (a liver cell is drawn like it; its Golgi apparatus, smooth
    ER, vacuoles, centrosome and fibres are not named here). The picture is one drawing, so a pressed name does not dim
-   the other parts one by one: a veil falls over the cell with a soft opening round the part (design bar: "open the
-   veil round it … so it shows as the artist drew it"). */
+   the other parts one by one: a veil falls over the cell, open over the part, which shows as the artist drew it.
+   (28 Nov 2026, the picture standard, 2A: "the part's own outline, all of it, and nothing beside it. Never a round
+   spot".) The veil opens over the part's OWN shapes, found in the drawing itself (cellparts.js, written by
+   tools/cell-parts.py): every mitochondrion and every lysosome; the nucleus with its envelope; the rough ER's membranes
+   with the ribosomes on them (the tubules beside the nucleus carry none: smooth ER, not named here); every ribosome,
+   free or on the rough ER (each dot with a thin clear ring, or a dot of 1 px could not be seen); every bead of the
+   membrane's line, and the cell's outer surface behind it; for the cytoplasm, everything inside the membrane but the
+   nucleus (the cytosol and the organelles in it). Before, it opened in round spots: "cytoplasm" lit three patches,
+   "plasma membrane" twelve, and "ribosomes" lit the rough ER and a piece of the nucleus too. */
 const CW = 420, CX0 = 270 - CW / 2, CY0 = 205 - CW * 414 / 461 / 2, CK = CW / 461, cellAt = (x, y) => [CX0 + x * CK, CY0 + y * CK];
-/* where each named part is in the drawing (its own units): [x, y, radius] of each place to light */
-const SPOT = {
-  nucleus: [[160, 185, 54]], mito: [[55, 175, 44], [338, 193, 46], [330, 363, 44]], lyso: [[268, 104, 22], [72, 236, 16], [329, 266, 16], [236, 323, 19]],
-  rer: [[150, 268, 46], [205, 246, 46]], ribo: [[225, 264, 28], [182, 302, 28], [150, 268, 40], [205, 246, 40]], cyto: [[392, 240, 34], [292, 332, 30], [120, 292, 24]],
-  pm: [[26, 200, 26], [60, 90, 26], [150, 52, 26], [250, 44, 26], [340, 82, 26], [410, 150, 26], [436, 240, 26], [420, 320, 26], [330, 400, 26], [220, 384, 26], [110, 350, 26], [40, 290, 26]]
+/* the veil's opening for a name: shapes in the drawing's own units; black opens the veil, white keeps it */
+const shape = (d, on, edge = 1.6) => `<path d="${d}" fill="${on ? '#000' : '#fff'}" stroke="${on ? '#000' : '#fff'}" stroke-width="${edge}" stroke-linejoin="round" data-lit="${on ? 1 : 0}"/>`;
+const dots = (pts, r, on) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${on ? '#000' : '#fff'}" data-lit="${on ? 1 : 0}"/>`).join('');
+const OPEN = {
+  nucleus: () => CELL.nucleus.map(d => shape(d, 1)).join(''),
+  mito: () => CELL.mito.map(d => shape(d, 1)).join(''),
+  lyso: () => CELL.lyso.map(d => shape(d, 1)).join(''),
+  rer: () => CELL.rer.map(d => shape(d, 1, 1)).join('') + dots(CELL.rerRibo, RIBO_R + 1.3, 1),
+  ribo: () => dots(CELL.ribo, RIBO_R + 1.3, 1),
+  pm: () => shape(CELL.cap, 1, 0) + shape(CELL.body, 0, 0) + dots(CELL.pm, PM_R + 0.5, 1),
+  cyto: () => shape(CELL.body, 1, 0) + CELL.nucleus.map(d => shape(d, 0)).join('') + dots(CELL.pm, PM_R + 0.5, 0)
 };
 ART.why = {
   dw: 540, dh: 400,
@@ -167,12 +181,15 @@ ART.why = {
   legend: 'Servier Medical Art, CC BY 4.0, adapted. Not to scale. Not drawn: the cytoskeleton\'s finest fibres. An animal cell has no cell wall.',
   draw(st, g) {
     let s = IM('cell', 270, 205, CW);
-    const spots = SPOT[g.focus];
-    if (spots) s += `<defs><radialGradient id="frvHole"><stop offset="0.62" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><mask id="frvSpot"><rect x="0" y="0" width="540" height="400" fill="#fff"/>${spots.map(([x, y, r]) => { const [ax, ay] = cellAt(x, y); return `<circle cx="${r1(ax)}" cy="${r1(ay)}" r="${r1(r * CK * 1.25)}" fill="url(#frvHole)"/>`; }).join('')}</mask></defs><rect x="0" y="0" width="540" height="400" class="fr-veil" mask="url(#frvSpot)"/>`;
+    const open = OPEN[g.focus];
+    if (open) s += `<defs><mask id="frvOpen" maskUnits="userSpaceOnUse" x="0" y="0" width="540" height="400"><rect x="0" y="0" width="540" height="400" fill="#fff"/><g transform="translate(${r1(CX0)} ${r1(CY0)}) scale(${Math.round(CK * 1e5) / 1e5})">${open()}</g></mask></defs><rect x="0" y="0" width="540" height="400" class="fr-veil" mask="url(#frvOpen)"/>`;
     const at = (x, y) => cellAt(x, y);
+    /* (28 Nov 2026: each line ends ON its own part, at a point the veil opens under that name: inside the left mitochondrion,
+       on one ribosome's own centre, on the rough ER's stack. The rough ER's line runs level at 243: under the centrioles and over the
+       lysosome beside it; so the cytoplasm's name stands higher, at 150, where its line crosses nothing; tools/fractionation-check.mjs K) */
     return { svg: `<g data-p="mito lyso nucleus rer ribo pm cyto">${s}</g>`, labels: [
-      { id: 'mito', side: 'L', at: at(30, 172), pin: [-8, -24] }, { id: 'nucleus', side: 'L', at: at(128, 216), pin: [22, 4] }, { id: 'lyso', side: 'L', at: at(63, 237), pin: [-20, 12] }, { id: 'ribo', side: 'L', at: at(160, 304), pin: [-6, 24] },
-      { id: 'cyto', side: 'R', at: at(392, 236), pin: [0, -22] }, { id: 'rer', side: 'R', at: at(232, 252), pin: [24, 6] }, { id: 'pm', side: 'R', at: at(432, 300), pin: [18, 18] }
+      { id: 'mito', side: 'L', at: at(46, 172), pin: [-8, -24] }, { id: 'nucleus', side: 'L', at: at(128, 216), pin: [22, 4] }, { id: 'lyso', side: 'L', at: at(63, 237), pin: [-20, 12] }, { id: 'ribo', side: 'L', at: at(161.2, 309.4), pin: [-6, 24] },
+      { id: 'cyto', side: 'R', at: at(400, 150), pin: [0, -22] }, { id: 'rer', side: 'R', at: at(220, 243), pin: [24, 6] }, { id: 'pm', side: 'R', at: at(432, 300), pin: [18, 18] }
     ] };
   }
 };
@@ -569,7 +586,7 @@ const paras = t => split(t).main;
 
 function styles() {
   let l = document.querySelector('link[data-frcss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611281626', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.frcss = '1'; l.href = new URL('../../css/fractionation.css?v=202611281627', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */

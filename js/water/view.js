@@ -21,14 +21,14 @@
    For tools/water-check.mjs: window.WATER (the step, at rest or not, the names' and captions' boxes, the cards, the
    switch, the liquid's counts).
    ============================================================ */
-import { STEPS, LEVELS, SOURCES } from './text.js?v=202611281626';
-import { levelSwitch, skip, hlOnly, hlNote, fit, level } from '../game/iblevel.js?v=202611281626';
-import { found, learn } from '../ib/found.js?v=202611281626';
-import { marks, codesOf } from '../ib/mark.js?v=202611281626';      /* (a visit from the IB map marks its sentence) */
+import { STEPS, LEVELS, SOURCES } from './text.js?v=202611281627';
+import { levelSwitch, skip, hlOnly, hlNote, fit, level } from '../game/iblevel.js?v=202611281627';
+import { found, learn } from '../ib/found.js?v=202611281627';
+import { marks, codesOf } from '../ib/mark.js?v=202611281627';      /* (a visit from the IB map marks its sentence) */
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"):
    its switch on the step count's line, beside the step buttons it marks (in the header it squeezed the title on a phone); at SL the HL lines are hidden, a step of HL lines only is marked HL on its button, and Next
    and Back go past it (it opens when its button is pressed, with a line that says it is HL only) */
-import { SCENES } from './scenes.js?v=202611281626';
+import { SCENES } from './scenes.js?v=202611281627';
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const FAST = new URLSearchParams(location.search).has('still') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -58,7 +58,7 @@ function paras(t, mid = '') {
 
 function styles() {
   let l = document.querySelector('link[data-watercss]');
-  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.watercss = '1'; l.href = new URL('../../css/water.css?v=202611281626', import.meta.url).href; document.head.appendChild(l); }
+  if (!l) { l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.watercss = '1'; l.href = new URL('../../css/water.css?v=202611281627', import.meta.url).href; document.head.appendChild(l); }
   return l;
 }
 /* the game calls this when the door first shows: the styles come while the pupil reads (the code is already here) */
