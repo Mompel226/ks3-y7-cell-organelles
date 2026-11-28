@@ -15,10 +15,10 @@
    so the words say only "less than 1 millimetre". The tiny folds of the cells' own membrane (microvilli) are not drawn.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { magicStandard, PAL } from '../world/magic.js?v=202611281627';
-import { token, riboPart, AMY_S } from '../game/actors.js?v=202611281627';
-import { bilayer } from '../ib/membrane.js?v=202611281627';
-import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611281627';
+import { magicStandard, PAL } from '../world/magic.js?v=202611282133';
+import { token, riboPart, AMY_S } from '../game/actors.js?v=202611282133';
+import { bilayer } from '../ib/membrane.js?v=202611282133';
+import { glow, smooth, disposeGroup } from '../ib/stage.js?v=202611282133';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 export const S = { glucose: 0.9, amylase: 8.3, maltase: 9, link: 0.5, villus: 600000, villusW: 130000, capillary: 8500, cellH: 25000, cellW: 8000,
@@ -187,6 +187,12 @@ export async function build(stage) {
     /* its foot turns in to the venule */
     const foot = side(th, BASE + 26000); pts.push(foot.clone().lerp(VFOOT, 0.45).add(V(0, -9000, 0)), VFOOT.clone().add(V(0, 3000 + i * 1400, 0)));
     return shade(tube(pts, capR, capMat, 150, 8), 0xe2313f, 0x7a3f9c); });
+  /* the ONE capillary beside the five cells drawn in full: the last of the nine, at the cut face. From near (the step
+     of the five cells) it stays as it is and the eight behind it go faint, their red blood cells too (28 Nov 2026, the
+     picture inspection: all nine were see-through alike, so the red cells of those behind showed through this one,
+     three and four abreast in a wide pale band, under the words "A blood capillary lies just under the cells. Red
+     blood cells pass through it, one after another"). From the whole villus all nine are as they were */
+  const HEROCAP = limbs.length - 1; limbs[HEROCAP].material = capSee;
   /* links between neighbours in every gap, every 36 µm or so, each from the middle line of one capillary to the middle
      line of the next: a net, not separate tubes */
   const links = [];
@@ -212,18 +218,23 @@ export async function build(stage) {
     for (let i = 10; i >= 0; i--) pr.push(new THREE.Vector2(pr[i].x, -pr[i].y));
     const geo = new THREE.LatheGeometry(pr, 14), mat = magicStandard({ color: 0xffffff, roughness: 0.45, emissive: 0x4a0810, emissiveIntensity: 0.5 }, { rim: 0xff8a94, rimK: 0.6 });
     /* each vessel as a table of points along it, and its length */
-    const ways = [[arteriole, 0, 18000], ...limbs.map(l => [l, 1, 17000]), [venule, 2, 15000]].map(([m, kind, gap]) => { const pts = m.userData.curve.getSpacedPoints(260); let len = 0; for (let i = 1; i < pts.length; i++) len += pts[i].distanceTo(pts[i - 1]); return { pts, len, kind, n: Math.floor(len / gap) }; });
-    const total = ways.reduce((a, w) => a + w.n, 0), mesh = new THREE.InstancedMesh(geo, mat, total), o = new THREE.Object3D(), Yv = V(0, 1, 0), dir = V(), col = new THREE.Color();
+    const ways = [[arteriole, 0, 18000], ...limbs.map(l => [l, 1, 17000]), [venule, 2, 15000]].map(([m, kind, gap]) => { const pts = m.userData.curve.getSpacedPoints(260); let len = 0; for (let i = 1; i < pts.length; i++) len += pts[i].distanceTo(pts[i - 1]); return { pts, len, kind, n: Math.floor(len / gap), back: kind === 1 && m !== limbs[HEROCAP] }; });
+    /* (two sets: the red cells of the eight capillaries behind can go faint from near; the others never do) */
+    const matB = magicStandard({ color: 0xffffff, roughness: 0.45, emissive: 0x4a0810, emissiveIntensity: 0.5 }, { rim: 0xff8a94, rimK: 0.6 });
+    const sets = [[ways.filter(w => !w.back), mat], [ways.filter(w => w.back), matB]].map(([ws, m]) => ({ ws, mesh: new THREE.InstancedMesh(geo, m, ws.reduce((a, w) => a + w.n, 0)) }));
+    const total = ways.reduce((a, w) => a + w.n, 0), mesh = sets[0].mesh, others = sets[1].mesh, o = new THREE.Object3D(), Yv = V(0, 1, 0), dir = V(), col = new THREE.Color();
     const BRIGHT = new THREE.Color(0xd3202f), DARK = new THREE.Color(0x8c1f3a);
     let flow = 0, last = null;
-    const place = () => { let k = 0; ways.forEach((w, wi) => { for (let i = 0; i < w.n; i++, k++) { const u = (((i + 0.37 * (wi % 3)) / w.n + flow / w.len) % 1 + 1) % 1, f = u * (w.pts.length - 1), a = Math.floor(f), b = Math.min(w.pts.length - 1, a + 1);
+    const place = () => sets.forEach(({ ws, mesh }) => { let k = 0; ws.forEach(w => { const wi = ways.indexOf(w); for (let i = 0; i < w.n; i++, k++) { const u = (((i + 0.37 * (wi % 3)) / w.n + flow / w.len) % 1 + 1) % 1, f = u * (w.pts.length - 1), a = Math.floor(f), b = Math.min(w.pts.length - 1, a + 1);
           o.position.copy(w.pts[a]).lerp(w.pts[b], f - a); dir.copy(w.pts[b]).sub(w.pts[a]); if (dir.lengthSq() < 1) dir.set(0, 1, 0); dir.normalize();
           o.quaternion.setFromUnitVectors(Yv, dir).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.55 * Math.sin(i * 2.1 + wi), 0, 0.55 * Math.cos(i * 1.3 + wi)))); o.updateMatrix(); mesh.setMatrixAt(k, o.matrix);
           /* bright red where the blood arrives; darker as it gives up its oxygen on the way down */
-          mesh.setColorAt(k, col.copy(BRIGHT).lerp(DARK, w.kind === 0 ? 0 : w.kind === 2 ? 1 : u)); } }); mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; };
-    place(); mesh.frustumCulled = false; mesh.renderOrder = 2; vil.add(mesh);
+          mesh.setColorAt(k, col.copy(BRIGHT).lerp(DARK, w.kind === 0 ? 0 : w.kind === 2 ? 1 : u)); } }); mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; });
+    place(); sets.forEach(({ mesh }) => { mesh.frustumCulled = false; mesh.renderOrder = 2; vil.add(mesh); });
     const calm = !!(window.REV && window.REV.CALM);
-    return { mesh, count: total, flow: () => flow, step(t, d) { const dt = last == null ? 0 : Math.min(0.1, Math.max(0, t - last)); last = t; if (calm || !dt) return; flow += dt * Math.max(7000, Math.min(90000, d * 0.08)); place(); } }; })();
+    /* k: 0 from far (as before: not see-through) … 1 from near (faint) */
+    const fade = k => { const on = k > 0.004; if (matB.transparent !== on) { matB.transparent = on; matB.depthWrite = !on; matB.needsUpdate = true; } matB.opacity = 1 - 0.9 * k; };
+    return { mesh, others, fade, back: () => matB.opacity, count: total, flow: () => flow, step(t, d) { const dt = last == null ? 0 : Math.min(0.1, Math.max(0, t - last)); last = t; if (calm || !dt) return; flow += dt * Math.max(7000, Math.min(90000, d * 0.08)); place(); } }; })();
 
   /* ---- the folds of the wall, and the tube of the small intestine (Daniel, 11 Nov 2026: "show that the villi are in
      circular folds … if the animation takes you inside the intestine, make sure that that is also clear"; his slides TC
@@ -354,7 +365,9 @@ export async function build(stage) {
     /* the cells drawn in full, and their microvilli, only while the camera is near enough to see them */
     mvs.visible = d < 400000;
     /* the folds and the tube, with their villi, only from far enough to see them; the red blood cells, while they can be seen */
-    far.visible = d > 2.0e6; rbc.mesh.visible = d < 2.6e6; if (vil.visible && rbc.mesh.visible) rbc.step(t, d);
+    far.visible = d > 2.0e6; rbc.mesh.visible = rbc.others.visible = d < 2.6e6; if (vil.visible && rbc.mesh.visible) rbc.step(t, d);
+    /* (from near, the five cells: the capillaries behind the one beside them go faint, and their red blood cells) */
+    { const nearC = smooth(800000, 260000, d); capMat.opacity = 0.4 * (1 - 0.75 * nearC); rbc.fade(nearC); }
     /* from very near, the villi beyond would fill the background: they come into the picture as the camera moves back */
     caps.visible = d > 230000; bodies.forEach(m => { m.visible = d > 230000; });
     mark.material.opacity = 0.95 * smooth(3000, 30000, d) * smooth(0.4, 0.6, K.seen) * (1 - smooth(2.5e6, 5e6, d)); mark.quaternion.copy(stage.cam.quaternion); mark.scale.setScalar(Math.max(0.02, Math.min(1, d / 600000)) * (1 + 0.08 * Math.sin(t * 3)));
@@ -382,7 +395,8 @@ export async function build(stage) {
   const D = (x, y, z) => V(x, y, z).normalize(), UP = V(0, 1, 0);
   const views = [
     /* 0 the mouth: starch and amylase */      { zoom: 4, at: V(0.4, 6.2, 0), dist: 62, dir: D(0.03, 0.05, 1), up: UP, fit: { pts: [[10.5, 6.2, 3]], min: 44 } },
-    /* 1 the small intestine: maltase */       { zoom: 4, at: V(0.5, -4.4, 0), dist: 82, dir: D(0.03, 0.06, 1), up: UP, fit: { pts: [[13, 13.4, 4]], min: 60 } },
+    /* (21 Nov 2026: a phone looks 3 nm lower, so that under the membrane there is room for the name of the cell's inside, clear of the bilayer: it stood on the membrane's inner half) */
+    /* 1 the small intestine: maltase */       { zoom: 4, at: V(0.5, stage.W < 560 ? -7.5 : -4.4, 0), dist: 82, dir: D(0.03, 0.06, 1), up: UP, fit: { pts: [[13, 13.4, 4]], min: 60 } },
     /* 2 five cells of the villus's wall */    { zoom: 10, at: V(XS - 12500, -1200, 0), dist: 110000, dir: D(0.1, 0.07, 1), up: UP, fit: { pts: [[21500, 19500, 4000]], min: 80000 } },
     /* 3 the whole villus, cut in half */      { zoom: 10, at: V(AX, TOP - H * 0.52, 0), dist: 1250000, dir: D(0.06, 0.1, 1), up: UP, fit: { pts: [[S.villusW * 1.75, H * 0.66, 60000]], min: 900000 } },
     /* 4 the small intestine, cut in half */   { zoom: 12, at: V(AXT + 1.5e6, YS0 + 1.0e6, 0), dist: 6.2e7, dir: D(0.16, 0.24, 1), up: UP, fit: { pts: [[RT + WT + 1.0e6, 13.5e6, 2e6]], min: 4.6e7 } }
@@ -395,10 +409,12 @@ export async function build(stage) {
     amylase: { html: 'amylase: about <b>8 nm</b> long', htmlN: 'amylase: <b>8 nm</b>', side: 'r', pts: () => amyTips.map(p => p.clone().applyEuler(amylase.rotation).add(amyAt)) },
     maltose: { html: 'maltose', side: 'r', pts: () => ring.filter((_, i) => i % 2 === 1).map(r => W(r.position).add(V(0.75, 0, 0))).sort((a, b) => b.x - a.x).slice(0, 3) },
     maltose2: { html: 'maltose', side: 'l', pts: () => ring.filter((_, i) => i % 2 === 0).map(r => W(r.position)).sort((a, b) => a.x - b.x).slice(0, 2) },
-    maltase: { html: 'maltase: an enzyme attached to the membrane', htmlN: 'maltase', side: 'r', pts: () => [maltase.position.clone().add(V(4.2, -0.9, 2)), maltase.position.clone().add(V(4.0, -1.5, 2))] },
-    mem: { html: 'cell membrane', side: 'l', pts: () => [-14, -17, -11].map(x => V(x, MEM_Y + 2.1, 0.3)) },
+    maltase: { html: 'maltase: an enzyme attached to the membrane', htmlN: 'maltase', nm: 'embedded', side: 'r', pts: () => [maltase.position.clone().add(V(4.2, -0.9, 2)), maltase.position.clone().add(V(4.0, -1.5, 2))] },
+    /* (nm: with a course on, the name is the course's own: text.js NAMES; view.js namesPaint) */
+    mem: { html: 'cell membrane', nm: 'membrane', side: 'l', pts: () => [-14, -17, -11].map(x => V(x, MEM_Y + 2.1, 0.3)) },
     lumen: { html: 'inside the small intestine', side: 'r', pts: () => [V(14, 4.6, 0), V(16, 3.2, 0), V(12, 5.8, 0)] },
-    incell: { html: 'inside a cell of its wall', htmlN: 'inside a cell', side: 'r', pts: () => [V(15, MEM_Y - 4.4, 0), V(17, MEM_Y - 5, 0), V(13, MEM_Y - 4, 0)] },
+    /* (21 Nov 2026: on a phone the name stands on the left of its point, just under the membrane and above the zoom buttons: view 1 looks lower there to make that room) */
+    incell: { html: 'inside a cell of its wall', htmlN: 'inside a cell', nm: 'incell', side: stage.W < 560 ? 'l' : 'r', pts: () => stage.W < 560 ? [15, 17, 13].map(x => V(x, MEM_Y - 5, 0)) : [V(15, MEM_Y - 4.4, 0), V(17, MEM_Y - 5, 0), V(13, MEM_Y - 4, 0)] },
     glucose: { html: 'glucose', side: 'l', pts: () => ring.map(r => W(r.position)).sort((a, b) => a.x - b.x).slice(0, 3) },
     /* inside the small intestine */
     muscleL: { html: 'muscle, in two layers', htmlN: 'muscle', side: 'r', pts: () => [10.5e6, 12e6, 9e6].map(dy => V(AXT + RT + 1.75e6, YS0 + dy, 0)) },
@@ -408,8 +424,8 @@ export async function build(stage) {
     lumenT: { html: 'inside the small intestine: food passes here', htmlN: 'food passes here', side: 'l', pts: () => [V(AXT - 2.5e6, YS0 + 3.6e6, 0), V(AXT - 1.5e6, YS0 + 4.4e6, 0)] },
     onev: { html: 'one villus: the next picture', htmlN: 'one villus', side: 'r', pts: () => [V(AX, FLOOR + H * 0.5, 0)] },
     /* five cells of the wall */
-    cell: { html: 'one cell of the wall of the villus', htmlN: 'one cell', side: 'l', pts: () => [V(XS - 9500, -1300, 0), V(XS - 11500, 1600, 0), V(XS - 8000, 2200, 0)] },
-    mv: { html: 'microvilli: tiny fingers of the cell membrane', htmlN: 'microvilli', side: 'r', pts: () => [-7800, -9300, -6400].map(y => V(XS + S.microvillus * 0.8, y, 0)) },
+    cell: { html: 'one cell of the wall of the villus', htmlN: 'one cell', nm: 'epicell', side: 'l', pts: () => [V(XS - 9500, -1300, 0), V(XS - 11500, 1600, 0), V(XS - 8000, 2200, 0)] },
+    mv: { html: 'microvilli: tiny fingers of the cell membrane', htmlN: 'microvilli', nm: 'membrane', side: 'r', pts: () => [-7800, -9300, -6400].map(y => V(XS + S.microvillus * 0.8, y, 0)) },
     nuc: { html: 'nucleus', side: 'l', pts: () => [V(XS - CH * 0.68 - 2500, -CW, 0), V(XS - CH * 0.68 - 2500, -CW + 900, 0)] },
     mito2: { html: 'mitochondria', side: 'l', pts: () => heroMito.filter(q => Math.abs(q[1] + 2 * CW) < CW / 2).slice(0, 3).map(q => V(q[0], q[1], 0)) },
     goblet: { html: 'a goblet cell: it makes mucus', htmlN: 'goblet cell', side: 'l', pts: () => [V(XS - CH * 0.34 - 3000, GOB * CW + 900, 0), V(XS - CH * 0.34 - 3000, GOB * CW - 600, 0)] },
@@ -417,9 +433,9 @@ export async function build(stage) {
     lumen2: { html: 'inside the small intestine', side: 'r', pts: () => [V(XS + 5200, 9000, 0), V(XS + 5800, 11000, 0), V(XS + 4600, 7000, 0)] },
     /* the whole villus */
     villus: { html: 'a villus', side: 'l', pts: () => [0.2, 0.26, 0.14].map(k => V(AX - RW, TOP - H * k, 0)) },
-    wallv: { html: 'the wall of the villus: one layer of cells', htmlN: 'one layer of cells', side: 'r', pts: () => [0.5, 0.56, 0.44].map(k => V(AX + RW - CH / 2, TOP - H * k, 0)) },
+    wallv: { html: 'the wall of the villus: one layer of cells', htmlN: 'one layer of cells', nm: 'epi', side: 'r', pts: () => [0.5, 0.56, 0.44].map(k => V(AX + RW - CH / 2, TOP - H * k, 0)) },
     cap: { html: 'blood capillaries', side: 'l', pts: () => [0.4, 0.46, 0.34].map(k => side(TH[0], TOP - H * k).add(V(-capR, 0, 0))) },
-    lact: { html: 'lacteal: digested fats enter here <i class="plv-x">IGCSE</i>', htmlN: 'lacteal <i class="plv-x">IGCSE</i>', side: 'l', pts: () => [0.62, 0.68, 0.56].map(k => V(AX - lacR * 0.5, TOP - H * k, -900)) },
+    lact: { html: 'lacteal: digested fats enter here <i class="plv-x">IGCSE</i>', htmlN: 'lacteal <i class="plv-x">IGCSE</i>', nm: 'lacteal', side: 'l', pts: () => [0.62, 0.68, 0.56].map(k => V(AX - lacR * 0.5, TOP - H * k, -900)) },
     art: { html: 'blood arrives', side: 'l', pts: () => [0.4, 0.5, 0.6].map(u => arteriole.userData.curve.getPoint(u * 0.3).add(V(-S.arteriole / 2, 0, 0))) },
     ven: { html: 'blood leaves, with the glucose', htmlN: 'blood leaves', side: 'r', pts: () => [0.72, 0.8, 0.64].map(u => venule.userData.curve.getPoint(u).add(V(S.venule / 2, 0, 0))) },
     food: { html: 'inside the small intestine: digested food', htmlN: 'digested food', side: 'r', pts: () => [V(AX + RW * 1.5, TOP + 40000, 0), V(AX + RW * 1.8, TOP + 60000, 0), V(AX + RW * 1.3, TOP + 80000, 0)] },
@@ -449,7 +465,7 @@ export async function build(stage) {
     /* every vessel is joined to the next: the largest gap between a vessel's end and the vessel it should meet (nm) */
     const C = m => m.userData.curve, nearTo = (p, c) => Math.min(...c.getPoints(400).map(q => q.distanceTo(p)));
     const gaps = limbs.flatMap(l => [C(l).getPoint(0).distanceTo(HUB), nearTo(C(l).getPoint(1), C(venule))]).concat([C(arteriole).getPoint(1).distanceTo(HUB), nearTo(C(venule).getPoint(1), C(vein)), nearTo(C(arteriole).getPoint(0), C(artery)), nearTo(C(lacteal).getPoint(1), C(lymph))]);
-    return { glucose: tok(ring[0]), amylase: tok(amylase), link: home[1].x - home[0].x, villus: H, villusW: 2 * RW, capillary: 2 * capR, capillaryUnderCells: RW - CH - cr - capR, limbs: limbs.length, links: links.length, linkGap: Math.max(...links.map(([m, k]) => Math.max(nearTo(C(m).getPoint(0), C(limbs[k])), nearTo(C(m).getPoint(1), C(limbs[k + 1])))) ), redBloodCells: rbc.count, brushCells: brushAt.length, maltaseAbove: maltase.position.y - S.maltase / 2 - (MEM_Y + 2.5),
+    return { glucose: tok(ring[0]), amylase: tok(amylase), link: home[1].x - home[0].x, villus: H, villusW: 2 * RW, capillary: 2 * capR, capillaryUnderCells: RW - CH - cr - capR, limbs: limbs.length, capBack: capMat.opacity, capHero: capSee.opacity, rbcBack: rbc.back(), rbcHero: rbc.mesh.count, rbcOthers: rbc.others.count, camDist: stage.view.dist, links: links.length, linkGap: Math.max(...links.map(([m, k]) => Math.max(nearTo(C(m).getPoint(0), C(limbs[k])), nearTo(C(m).getPoint(1), C(limbs[k + 1])))) ), redBloodCells: rbc.count, brushCells: brushAt.length, maltaseAbove: maltase.position.y - S.maltase / 2 - (MEM_Y + 2.5),
       villusBox: [2 * (RW + FL), H], cells: cellsAt.length + HERO.length, farCells: capsAt.length, cellH: CH, cellW: CW, microvilli: mvAt.length, microvillus: S.microvillus, microvillusW: S.microvillusW, mvOnSite: mvAt.some(p => Math.abs(p.y - MV_Y) < 1 && Math.abs(p.z) < 1),
       siteOnTop: MEM_Y + 2.5 - (MV_Y + S.microvillusW / 2), lactealShare: (LTOP - BASE) / (TOP - BASE), lactealClosed: true, vesselGap: Math.max(...gaps), wallVesselsRunOn: 1.4e6,
       tube: 2 * RT, folds: FOLDS.length, foldHigh: Math.max(...FOLDS.map(F => F[3])), foldThick: FT, carpetVilli: carpet, villusOnFold: Math.abs((FLOOR - 1600) - (YS0 + FT / 2)) < 1 && AX - AXT < RT && AX - AXT > RT - FOLDS[0][3], heroMitochondria: heroMito.length, sectionLayers: section.layers, sectionMarks: section.marks, sectionVessels: section.vessels, foldCores: section.foldCores, redBloodCellsMove: !(window.REV && window.REV.CALM), flow: rbc.flow() };

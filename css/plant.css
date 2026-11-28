@@ -35,6 +35,7 @@ html.plv-open .tip{z-index:1100}
 .lm{display:block;width:100%;height:auto}
 .lm__a{fill:none;stroke:color-mix(in srgb,var(--qp-ink2) 45%,transparent);stroke-width:2}
 .lm__a.on{stroke:#2E9F64}
+.lm__a--back{stroke-dasharray:5 5}
 .lm__h{fill:color-mix(in srgb,var(--qp-ink2) 70%,transparent)}
 .lm__n{fill:var(--qp-bg);stroke:var(--qp-ink2);stroke-width:2}
 .lm__n.was{fill:#2E9F64;stroke:#2E9F64}
@@ -46,15 +47,24 @@ html.plv-open .tip{z-index:1100}
 .plv .ibv__labs,.plv .ibv__nums{position:absolute;inset:0;pointer-events:none;z-index:2}
 .plv .ibv__ov{display:none}
 .plv .ibv__lab{position:absolute;left:0;top:0;display:flex;align-items:center;will-change:transform;transition:opacity .25s}
-.plv .ibv__lab span{display:block;font:800 16px/1.2 var(--sans,'Nunito',sans-serif);font-style:normal;color:#FFF8E6;background:rgba(14,16,46,.82);border:1.5px solid rgba(255,226,154,.45);border-radius:16px;padding:6px 12px;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.plv .ibv__lab span{display:block;font:800 15px/1.2 var(--sans,'Nunito',sans-serif);font-style:normal;color:#FFF8E6;background:rgba(14,16,46,.82);border:1.5px solid rgba(255,226,154,.45);border-radius:14px;padding:4px 10px;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.35)}
 .plv .ibv__lab span b{color:#FFD27A;font-weight:900}
-.plv .ibv__lab>i{flex:none;display:block;height:1.6px;background:rgba(255,226,154,.9);box-shadow:none}
+/* (16 Nov 2026; Daniel: "you don't have a line, so you don't know actually what this is pointing at"): each line is
+   2 px of light with a dark edge, so that it shows on the pale cells as on the dark ground, and never shorter than 40 px
+   on a laptop (view.js gaps): the name stands beside its part, not on it */
+.plv .ibv__lab>i{flex:none;display:block;height:2px;background:#FFE7A8;box-shadow:0 0 0 1px rgba(10,12,40,.7)}
 .plv .ibv__lab--r{flex-direction:row-reverse}
 .plv .ibv__bar{position:absolute;left:0;top:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;color:#fff;font:900 15.5px/1 var(--sans,'Nunito',sans-serif);text-shadow:0 1px 3px rgba(0,0,0,.85)}
 .plv .ibv__bar i{display:block;height:9px;border:solid #fff;border-width:0 2.5px 2.5px;border-radius:0 0 2px 2px;box-shadow:0 2px 3px rgba(0,0,0,.4)}
 
 /* ---------- buttons on the parts, the dim between two pictures, the page to read ---------- */
 .plv__hots{position:absolute;inset:0;z-index:4;pointer-events:none}
+/* (a film of a step that has a button on its picture, the vacuole's: the button waits out of sight while the film plays) */
+.plv--film .plv__hots{display:none}
+/* a button with a course's longer word, on two lines where one line would be pushed back over its own part (view.js, the buttons' placing) */
+/* an order of the step the pupil is on whose button is no longer on the picture (view.js marksPaint) */
+.plv .steps mark.do.is-past{background:none;padding:0}
+.plv__hot .hot3__b.is-two{text-align:center;line-height:1.16;border-radius:24px;padding:8px 16px}
 /* zooming (view.js): − and + at the bottom right of the picture, with one line that says how; "Whole view" while zoomed */
 .plv__zoom{position:absolute;right:12px;bottom:12px;z-index:5;display:flex;align-items:center;gap:7px}
 .plv__zoom[hidden]{display:none}
@@ -98,6 +108,54 @@ details.plv__lvbox:not([open])>summary::after{content:" \25B8"}
 .plv-xlab.is-found>span::after{content:"\2713";position:absolute;top:-8px;left:-8px;width:17px;height:17px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 11px/17px var(--sans,'Nunito',sans-serif);text-align:center;box-shadow:0 0 0 2px #fff}
 .plv__card{position:absolute;z-index:5;background:#fff;color:#141A24;border-radius:12px;border-top:4px solid #2E8B5E;padding:10px 34px 11px 12px;box-shadow:0 10px 30px rgba(0,0,0,.45);font:500 15px/1.4 var(--sans,'Nunito',sans-serif)}
 .plv__card[hidden]{display:none}
+/* the equation's strip (view.js paintEq): on the picture on a laptop; on a phone pinned at the top of the steps' sheet.
+   A term is grey until the picture shows it used or produced, then it takes its molecule's colour */
+.plv__eq{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3;box-sizing:border-box;width:max-content;max-width:min(640px,calc(100% - 24px));background:rgba(14,16,46,.88);border:1.5px solid rgba(179,136,255,.75);border-radius:14px;padding:7px 14px 8px;color:#9499BE;font:700 15px/1.45 var(--sans,'Nunito',sans-serif);text-align:center;pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.plv__eq[hidden]{display:none}
+.plv__eq p{margin:0}
+.plv__eqk{font:900 12px/1.35 var(--sans,'Nunito',sans-serif);letter-spacing:.06em;text-transform:uppercase;color:#D9C8FF}
+.plv__eqk span{font-weight:700;letter-spacing:0;text-transform:none;color:#B9BDDA;margin-left:6px}
+.plv__eqc{display:block;font-size:.93em}
+.plv__eqt{border-radius:5px;padding:0 1px;transition:color .5s}
+.plv__eqt.is-on{font-weight:900}
+.plv__eqt[data-t="co2"].is-on{color:#FFFFFF}
+.plv__eqt[data-t="h2o"].is-on{color:#8CCBFF}
+.plv__eqt[data-t="glu"].is-on{color:#FFD56A}
+.plv__eqt[data-t="o2"].is-on{color:#FF9E9E}
+.plv__eqt[data-t="light"].is-on{color:#FFF1A8}
+.plv__eqt[data-t="chl"].is-on{color:#7CF08A}
+.plv__eq--sheet{position:sticky;top:0;left:auto;transform:none;width:auto;max-width:none;z-index:6;margin:0 0 8px;border-radius:12px;font-size:13.5px;line-height:1.4;padding:6px 8px 7px;background:#12143A;box-shadow:0 6px 16px rgba(10,12,40,.35)}
+@media (prefers-reduced-motion:reduce){ .plv__eqt{transition:none} }
+/* (a violet note in a look: words of the course on a part, not a name to press: the fluid inside the cut thylakoid) */
+.plv .ibv__lab.plv-xnote>span{pointer-events:none;cursor:default}
+/* (the near look's small map: the whole part, and a frame on what the picture now shows; view.js paintWhere) */
+.plv__where{position:absolute;left:10px;top:10px;z-index:3;pointer-events:none;background:rgba(14,16,46,.84);border:1.5px solid rgba(255,226,154,.45);border-radius:12px;padding:5px 8px 6px;color:#FFF8E6;font:800 12.5px/1.2 var(--sans,'Nunito',sans-serif);text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.plv__where[hidden]{display:none}
+.plv__where svg{display:block;margin:0 auto 2px;overflow:visible}
+.plv__whp{fill:rgba(79,178,74,.35);stroke:#D8FFC4;stroke-width:1.5}
+.plv__whp--pale{fill:rgba(244,238,220,.8);stroke:#fff}
+.plv__whp--wall{fill:rgba(220,207,150,.5);stroke:#FFF6D0}
+.plv__akey{list-style:none;margin:0;padding:2px 2px 0;display:grid;gap:5px;font:700 12.5px/1.2 var(--body,inherit);color:#F1EFFF}
+.plv__akey{max-width:276px}
+.plv__akey li{display:flex;align-items:center;gap:7px;text-align:left}
+.plv__akey i{width:13px;height:13px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);flex:none}
+.plv__akey .plv__asm i{width:9px;height:9px;margin:0 2px}
+.plv__anote{margin:6px 2px 0;font:700 12px/1.25 var(--body,inherit);color:#D9D6F5;max-width:262px}
+/* (a phone: the key in one row, so that the names of the two carbon atoms have the room under it) */
+.plv--pins .plv__akey{display:flex;gap:9px;font-size:12px;padding:0 1px}
+.plv__cardn{margin:0 0 6px;font-size:12.5px;line-height:1.3;opacity:.8}
+.plv--pins .plv__akey li{gap:4px}
+.plv--pins .plv__akey i{width:11px;height:11px}
+.plv__whf{fill:rgba(255,210,122,.25);stroke:#FFD27A;stroke-width:2}
+@media (max-width:560px){ .plv__where{left:8px;top:8px;padding:4px 6px 4px;font-size:11.5px} }
+/* (a name that shows its part, on a phone: its card under the picture, on the steps' sheet; view.js showCard) */
+.plv__card--under{z-index:40;box-shadow:0 10px 34px rgba(0,0,0,.55);outline:1px solid rgba(20,26,36,.18)}
+/* (22 Nov 2026) a small laptop's picture (view.js midPic): the card of a name that shows its part stands at the top of the steps'
+   panel, in the panel's own flow, and stays there while the steps scroll under it; the name pressed wears the card's green */
+.plv__card--side{position:sticky;top:6px;z-index:6;margin:0 0 10px;box-shadow:0 8px 22px rgba(0,0,0,.28);outline:1px solid rgba(20,26,36,.18)}
+.plv .ibv__lab.is-open>span{box-shadow:0 0 0 3px #2E8B5E,0 4px 18px rgba(0,0,0,.35)}
+/* (the browser would keep the steps where they are when the card comes in above them, and the card would lie on them: here the steps move down) */
+.plv--mid .plv__panel,.plv--docked .plv__panel{overflow-anchor:none}
 .plv__card p{margin:0}
 .plv__cardk{font:900 11.5px/1.2 var(--sans,'Nunito',sans-serif);letter-spacing:.06em;text-transform:uppercase;color:#2E6B4E;margin:0 0 4px!important}
 .plv__cardx{position:absolute;top:4px;right:6px;border:0;background:none;font:900 20px/1 var(--sans,'Nunito',sans-serif);color:#5C6679;cursor:pointer;padding:4px 6px}
@@ -106,26 +164,125 @@ details.plv__lvbox:not([open])>summary::after{content:" \25B8"}
 .plv__found b{white-space:nowrap;font-size:.92em}
 .plv__fbar{flex:1;min-width:60px;height:8px;border-radius:99px;background:rgba(114,67,192,.18);overflow:hidden}
 .plv__fbar i{display:block;height:100%;background:#2E8B5E}
-.plv--igcse .plv__lvbox[data-lv="ib"] .plv__found,.plv--igcse .plv__lvbox[data-lv="ib"] .plv__watch{display:none}
+.plv--igcse .plv__lvbox[data-lv="ib"] .plv__found,.plv--igcse .plv__lvbox[data-lv="ib"] .plv__watch,.plv--igcse .plv__lvbox[data-lv="ib"] .plv__key{display:none}
+/* (a key of IB names, the membrane's, stays in the IB box when IGCSE is on too: it is not in the IGCSE box) */
+.plv--igcse .plv__lvbox[data-lv="ib"] .plv__key.plv__key--ib{display:block}
+.plv--igcse .plv__lvbox[data-lv="ib"] .plv__key--ib .plv__found{display:flex}
+/* (its four names all stand on the picture on a laptop, so its chips show only where the names are numbered pins: a phone) */
+.plv__key--ib .plv__chips{display:none}
+.plv--pins .plv__key--ib .plv__chips{display:flex}
+/* (a set of few names with chips on a phone only, and no pin numbers: the starch step's IGCSE name; view.js keyHTML) */
+.plv__key--few .plv__chips{display:none}
+.plv--ib .plv__key--few .plv__chips{display:flex}   /* (only where its name is not on the picture: both courses on) */
+.plv .nb{white-space:nowrap}
+.plv__key--few .plv__chip .plv__xn{display:none}
 .plv__watch{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
 .plv__wb{font:800 14px/1.2 var(--sans,'Nunito',sans-serif);color:#1B0E3A;background:#FFD27A;border:0;border-radius:999px;padding:8px 12px;cursor:pointer}
 .plv__wb.is-on{box-shadow:0 0 0 3px #7243C0}
 .plv__wb:focus-visible{outline:3px solid #7243C0;outline-offset:2px}
-.plv__wsvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
-.plv__wn{font:800 13px var(--sans,'Nunito',sans-serif);fill:#fff;stroke:rgba(10,12,40,.85);stroke-width:3px;paint-order:stroke}
-.plv__wcap{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;width:max-content;max-width:min(620px,calc(100% - 24px));background:rgba(12,14,44,.9);color:#fff;border-radius:12px;padding:8px 12px;font:600 15px/1.4 var(--sans,'Nunito',sans-serif);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+/* a film (view.js "the films"; films.js): its caption, one small box in the picture's top left corner (no name stands
+   under it: view.js keeps names out of it); the shot's piece of the line lit, the pieces of the same sentence before it
+   dimmed; Next under them; a quiet line that the molecules are drawn bigger. The moving molecule's own name rides on it
+   (.plv__mtag: a short level line from the molecule, the name beside it). A still (Reduce motion) has one arrow along the
+   hero's way (.plv__warrow). */
+.plv__wcap{position:absolute;top:10px;left:10px;z-index:4;width:min(360px,calc(100% - 20px));background:rgba(12,14,44,.86);color:#F4F2FF;border:1px solid rgba(201,178,255,.45);border-radius:12px;padding:7px 11px 8px;font:600 14.5px/1.4 var(--sans,'Nunito',sans-serif);box-shadow:0 6px 18px rgba(0,0,0,.35);transition:opacity .18s}
+.plv__wcap.is-out{opacity:0}
 .plv__wcap[hidden]{display:none}
 .plv__wcap p{margin:0}
-.plv__wcap p+p{margin-top:6px}
-.plv__wk{display:inline-block;font:900 11px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.06em;background:#7EE2AC;color:#0F3F2B;border-radius:5px;padding:3px 6px;margin-right:4px;vertical-align:1px}
+.plv__wtop{display:flex;align-items:center;gap:8px;margin:0 0 4px}
+.plv__wk{display:inline-block;font:900 11px/1 var(--sans,'Nunito',sans-serif);letter-spacing:.08em;background:#B388FF;color:#1B0E3A;border-radius:5px;padding:3px 6px}
+.plv__wdots{display:inline-flex;gap:4px;flex:1}
+.plv__wdots i{width:7px;height:7px;border-radius:50%;border:1.5px solid #C9B2FF}
+.plv__wdots i.was{background:#7E64B8;border-color:#7E64B8}
+.plv__wdots i.on{background:#FFD27A;border-color:#FFD27A}
+.plv__wx{border:0;background:none;color:#D9D5FA;font:900 15px/1 var(--sans,'Nunito',sans-serif);padding:3px 4px;cursor:pointer;border-radius:6px}
+.plv__wx:hover,.plv__wx:focus-visible{color:#fff;outline:2px solid #C9B2FF}
+.plv__wsay b{color:#FFE7A8}
+.plv__wwas{color:#A9A4D4}
+.plv__wnow{color:#FFFFFF}
+.plv__wnav{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 2px}
+.plv__wnav[hidden]{display:none}
+.plv__wnext{font:800 14px/1 var(--sans,'Nunito',sans-serif);color:#1B0E3A;background:#FFD27A;border:0;border-radius:999px;padding:8px 13px;cursor:pointer}
+.plv__wnext.plv__wagain{background:transparent;color:#FFE7A8;box-shadow:inset 0 0 0 1.5px #FFD27A}
+.plv__wnext:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.plv__wsize{margin-top:5px!important;font:600 12.5px/1.3 var(--sans,'Nunito',sans-serif);color:#A9A4D4}
+.plv__mtag{position:absolute;left:0;top:0;z-index:3;display:flex;align-items:center;pointer-events:none;will-change:transform}
+.plv__mtag[hidden]{display:none}
+.plv__mtag>i{flex:none;display:block;height:2px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(10,12,40,.75)}
+.plv__mtag>span{display:block;white-space:nowrap;font:800 13.5px/1.2 var(--sans,'Nunito',sans-serif);color:#FFFFFF;background:rgba(10,12,40,.86);border:1.5px solid #FFFFFF;border-radius:999px;padding:3px 9px}
+.plv__mtag.is-l{flex-direction:row-reverse}
+.plv__mtag.is-u,.plv__mtag.is-d{flex-direction:column;align-items:center}
+.plv__mtag.is-u>i{order:2}
+.plv__mtag.is-u>span{order:1}
+.plv__warrow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+.plv__warrow path{fill:rgba(255,231,168,.42);stroke:rgba(10,12,40,.6);stroke-width:1}
+/* the membrane's three scenes (view.js "the membrane: three scenes"; memflow.js; 17 Nov 2026): their buttons in the
+   course box (a tick once a scene has been watched to its end); on the picture, the followed particle's way so far
+   (.plv__trail); under the membrane, the two sides' words, each with one upright line into its region (.plv__bside),
+   the counter of crossings between them (.plv__bmid) and a key for a particle that is drawn and not counted
+   (.plv__bkey). Dark boxes on the picture in both themes (the picture is always dark), as a film's caption. */
+/* (a scene's caption stands over the membrane itself, in the middle, so that it covers the same of both sides: the two
+   regions stay the same size to the eye) */
+.plv--mem .plv__wcap{left:50%;margin-left:calc(min(560px,100% - 20px) / -2);width:min(560px,calc(100% - 20px))}
+/* (the line that says how to zoom gives its room to the counter while a scene plays; the two buttons stay) */
+.plv--mem .plv__zhint{display:none}
+.plv__sb.is-seen::after{content:" \2713";font-weight:900;color:#1E6B45}
+.plv__trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
+.plv__trail polyline{fill:none;stroke:#FFFFFF;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.plv__board{position:absolute;inset:0;z-index:3;pointer-events:none}
+.plv__board[hidden]{display:none}
+.plv__bside,.plv__bmid,.plv__bkey{position:absolute;margin:0;background:rgba(12,14,44,.88);color:#F4F2FF;border:1px solid rgba(255,226,154,.45);border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.35);font:600 13.5px/1.3 var(--sans,'Nunito',sans-serif)}
+.plv__bside{padding:6px 11px 7px;text-align:center;max-width:250px}
+.plv__bside p,.plv__bmid p{margin:0}
+.plv__bside b{display:block;font-weight:900;color:#FFF8E6;font-size:14px}
+.plv__bside span{display:block;font-weight:800;color:#BFF0D4}
+.plv__bside>i{position:absolute;left:50%;bottom:100%;width:2px;height:34px;margin-left:-1px;background:#FFE7A8;box-shadow:0 0 0 1px rgba(10,12,40,.7)}
+.plv__bmid{padding:7px 12px 8px;min-width:236px;max-width:300px}
+.plv__bmid[hidden]{display:none}
+.plv__bk{font-weight:900!important;font-size:14px;margin-bottom:3px!important}
+.plv__bmol{display:inline-flex;vertical-align:-2px;margin-right:6px}
+.plv__bmol svg{height:13px;width:auto}
+.plv__bn{color:#E9ECFF;white-space:nowrap}
+.plv__bn b{display:inline-block;min-width:1.6em;text-align:right;margin-right:.35em;font-weight:900;font-variant-numeric:tabular-nums;color:#FFD27A}
+.plv__bn b.is-tick{animation:plvTick .5s ease-out}
+@keyframes plvTick{0%{transform:scale(1.45)}100%{transform:scale(1)}}
+.plv__ba{display:inline-flex;width:24px;vertical-align:-1px;margin-right:1px}
+.plv__ba svg{width:22px;height:10px;fill:#FFD27A}
+.plv__ba--out svg{transform:scaleX(-1)}
+.plv__bf{margin-top:3px!important;font-weight:800!important;color:#FFD27A}
+.plv__bkey{padding:4px 10px;font-size:13px;max-width:210px;line-height:1.25}
+/* a still's arrow in a scene (view.js drawWay): the particle's true way as one band with round joins, and its head */
+.plv__warrow .plv__wayb{fill:none;stroke:rgba(10,12,40,.6);stroke-width:10.5;stroke-linecap:round;stroke-linejoin:round}
+.plv__warrow .plv__way{fill:none;stroke:rgba(255,231,168,.72);stroke-width:7.5;stroke-linecap:round;stroke-linejoin:round}
+.plv__warrow .plv__wayh{fill:#FFE7A8;stroke:rgba(10,12,40,.7);stroke-width:1.2;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){.plv__bn b.is-tick{animation:none}}
+/* during a film the panel's Watch button is its Stop */
+.plv__wb.is-on{background:#2A2142;color:#FFE7A8;box-shadow:inset 0 0 0 2px #FFD27A}
 .plv--igcse .plv__lvbox[data-lv="igcse"],.plv--ib .plv__lvbox[data-lv="ib"]{display:block}
 .plv__lvbox>p,.plv__lvnote>p{margin:7px 0 0}
+/* (16 Nov 2026; Daniel: "I see huge text on the right"): a course box reads smaller than the Year 7 words above it, and
+   calmer (the Year 7 words keep their 17 px: memory year7-text-and-instructions) */
+.plv__lvbox{font-size:15px;line-height:1.45}
+.plv__lvbox .cbox-more p{margin:0 0 6px}
+.plv__lvbox .cbox-more p+p{padding-top:6px;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+/* the leaf's key: its twelve names as chips in the look of the names on the picture (view.js keyHTML) */
+.plv__key{margin:8px 0 4px}
+.plv__key .plv__found{margin:0 0 6px}
+.plv__chips{display:flex;flex-wrap:wrap;gap:5px}
+.plv__chip{position:relative;display:inline-flex;align-items:center;gap:5px;font:800 14.5px/1.15 var(--sans,'Nunito',sans-serif);color:#F4EEFF;background:rgba(34,22,62,.92);border:1.5px solid #B388FF;border-radius:14px;padding:4px 10px;cursor:pointer}
+.plv__chip:hover,.plv__chip:focus-visible{outline:2px solid #FFD27A;outline-offset:1px}
+.plv__chip .plv__xn{min-width:20px;padding:2px 0;font-size:12.5px;background:#B388FF;color:#1B0E3A}
+.plv__chip.is-found::after{content:"\2713";position:absolute;top:-7px;left:-7px;width:16px;height:16px;border-radius:50%;background:#2E8B5E;color:#fff;font:900 10.5px/16px var(--sans,'Nunito',sans-serif);text-align:center;box-shadow:0 0 0 2px #fff}
+/* a name on the leaf whose chip was pressed: it lights for a moment */
+.plv .ibv__lab.is-lit span{box-shadow:0 0 0 3px #FFD27A,0 0 22px rgba(255,210,122,.9);animation:plvLit 1.6s ease-out}
+@keyframes plvLit{0%,30%{transform:scale(1.12)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.plv .ibv__lab.is-lit span{animation:none}}
 .plv__lvbox sub{font-size:.72em}
 .plv__sl{display:inline-block;font:900 11.5px/1.4 var(--sans,'Nunito',sans-serif);letter-spacing:.04em;padding:1px 7px;border-radius:999px;margin-right:3px;vertical-align:1px}
 .plv__sl--sl{color:#2E3A8C;background:#E7E9F7;box-shadow:inset 0 0 0 1px rgba(46,58,140,.35)}
 .plv__sl--hl{color:#9B1C4A;background:#FCE6EE;box-shadow:inset 0 0 0 1px rgba(155,28,74,.35)}
 .plv .ibv__lab.plv-xlab span{border-color:#B388FF;background:rgba(34,22,62,.9);color:#F4EEFF}
-.plv .ibv__lab.plv-xlab>i{background:#C9B2FF}
+.plv .ibv__lab.plv-xlab>i{background:#E2D4FF}
 .plv .ibv__lab.plv-xlab.is-pin span{min-width:26px;padding:4px 6px;border-radius:999px;background:#B388FF;color:#1B0E3A;border-color:#1B0E3A;font-weight:900;font-size:15px;text-align:center;max-width:none}
 .plv__xkey>p{margin:7px 0 4px}
 .plv__xlist{list-style:none;margin:0;padding:0;display:grid;gap:5px}
@@ -151,6 +308,7 @@ details.plv__lvbox:not([open])>summary::after{content:" \25B8"}
 .plv__ring .lm__n,.plv__ring .lm__n.was,.plv__ring .lm__n.on{fill:#F0B43A;stroke:#FFF6D6;stroke-width:2}
 .plv__ring .lm__t,.plv__ring .lm__t.on{font:900 16px/1 var(--sans,'Nunito',sans-serif);fill:#FFF8E6}
 .plv__ring .lm__s{font:700 13.5px/1 var(--sans,'Nunito',sans-serif);fill:#D9D5FA}
+.plv__ring .lm__t.lm__t--back{font:800 14px/1 var(--sans,'Nunito',sans-serif);fill:#D9D5FA}
 
 /* ---------- what belongs to Year 8: one violet box, its level said in words ---------- */
 .y8{margin:8px 0;padding:8px 12px 9px;border-radius:12px;border:1.5px solid #7243C0;border-left:6px solid #7243C0;background:#EDE8FA;color:#22123F;font-weight:500}
@@ -185,6 +343,27 @@ details.plv__lvbox:not([open])>summary::after{content:" \25B8"}
   .plv__zoom{right:8px;bottom:8px;gap:6px} .plv__zhint{display:none} .plv--game .plv__zhint,.plv__zhint{font-size:12.5px} .plv__zb{min-width:44px;height:44px}
   /* the small map of the loop is left out on a phone (the picture needs the room): its last page shows the loop whole */
   .plv__loop{display:none}
+  /* a film on a phone: the panel gives the picture more room while it plays, and the caption is smaller */
+  .plv--film .plv__panel.quest{max-height:30svh}
+  .plv__wcap{top:6px;left:6px;width:calc(100% - 12px);padding:5px 9px 6px;font-size:13.5px;line-height:1.35}
+  .plv__wsize{font-size:11.5px}
+  .plv__mtag>span{font-size:12.5px;padding:2px 7px}
+  /* a scene at the membrane on a phone: the steps' sheet is away while it plays (the scene has the whole picture; ✕ or
+     Back to the membrane brings it back); what the picture simplifies is said once, in the first beat; smaller words;
+     the sides' words above the scale bar and the zoom buttons */
+  .plv--mem .plv__panel.quest{display:none}
+  /* (the three scenes' buttons in two rows, not three) */
+  .plv__scenes{gap:5px}
+  .plv__scenes .plv__wb{font-size:13px;padding:7px 9px}
+  .plv--mem .plv__mtag>span{white-space:normal;max-width:9.5em;text-align:center;border-radius:13px;line-height:1.15}
+  .plv--mem .plv__wcap.is-later .plv__wsize{display:none}
+  .plv__bside{font-size:11.5px;line-height:1.25;padding:4px 7px 5px;max-width:118px;border-radius:10px}
+  .plv__bside b{font-size:12px}
+  .plv__bside>i{height:24px}
+  .plv__bmid{min-width:0;padding:5px 9px 6px;font-size:12px;line-height:1.3;border-radius:10px}
+  .plv__bk{font-size:12px}
+  .plv__ba{width:19px} .plv__ba svg{width:17px;height:8px}
+  .plv__bkey{font-size:11.5px;padding:3px 7px;max-width:112px;line-height:1.2}
 }
 @media (max-width:420px){ .plv__by{display:block} .plv__close{padding:9px 12px;font-size:15px} }
 

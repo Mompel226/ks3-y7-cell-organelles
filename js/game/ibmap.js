@@ -27,7 +27,7 @@
    js/plant/mapsee.js). The doors themselves (`doors()`), their addresses and the landing are as before.
    ============================================================ */
 const R = window.REV, { $, $$, h, esc } = R;
-import { level, levelSwitch } from './iblevel.js?v=202611281627';
+import { level, levelSwitch } from './iblevel.js?v=202611282133';
 const STORY = window.STORY;
 /* the IB guide's topic names (Biology guide, first assessment 2025) */
 const TOPIC = {
@@ -77,7 +77,7 @@ export async function doors() {
     C.ib.forEach((b, i) => b && b.p.forEach(([lv, code]) => String(code || '').split(/\s*,\s*/).filter(Boolean).forEach(c => { if (lv === 'sl' || lv === 'hl') { codes[c] = codes[c] === 'sl' ? 'sl' : lv; if (!(at[c] = at[c] || []).includes(i)) at[c].push(i); } })));
     out.push({ id, kind: 'place', title: STORY[id].title, codes, at });
   });
-  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611281627'), import('../ib/text.js?v=202611281627')]);
+  const [M, T] = await Promise.all([import('../membrane/text.js?v=202611282133'), import('../ib/text.js?v=202611282133')]);
   out.push({ id: 'membrane', kind: 'view', title: 'The cell membrane: fluid and mosaic', codes: tagged(M.STEPS), at: stepsAt(M.STEPS) });
   T.CHAPTERS.forEach((c, i) => { const codes = tagged(c); if (Object.keys(codes).length) out.push({ id: 'atp-' + c.id, ci: i, kind: 'view', title: 'From glucose to ATP: ' + c.title.charAt(0).toLowerCase() + c.title.slice(1), codes, at: stepsAt(c.steps) }); });
   /* the insulin path, an Explore of the view (text.js EXPLORE 'x-insulin'): opened at its start */
@@ -86,7 +86,7 @@ export async function doors() {
   Object.entries(FILMS).forEach(([k, f]) => out.push({ id: 'film-' + k, film: k, kind: 'film', title: f.title, codes: Object.assign({}, f.codes), at: f.at }));
   /* the three views of 16 Nov 2026, each read from its own words (js/<view>/text.js STEPS, tagged as the others) */
   for (const [v, title] of [['water', 'Water potential'], ['light', 'From light to glucose'], ['fractionation', 'Cell fractionation lab']]) {
-    try { const m = await import('../' + v + '/text.js?v=202611281627');   /* (18 Nov 2026: a quote after the stamp, as tools/stamp.mjs wants it: inside backticks the stamp had stayed at 16 Nov, so a browser could have kept that day's text and the map's steps with it) */
+    try { const m = await import('../' + v + '/text.js?v=202611282133');   /* (18 Nov 2026: a quote after the stamp, as tools/stamp.mjs wants it: inside backticks the stamp had stayed at 16 Nov, so a browser could have kept that day's text and the map's steps with it) */
       const codes = tagged(m.STEPS || m); if (Object.keys(codes).length) out.push({ id: v, kind: 'view2', view: v, title, codes, at: stepsAt(m.STEPS) }); }
     catch (e) { /* (a view not on this copy of the site) */ }
   }
@@ -120,7 +120,7 @@ export async function openIBMap({ open, teacher, topic = null }) {
      plant cell's (their own files, the same shape). A file that is not on this copy of the site: its doors keep the
      rows they had */
   const SEE = { names: {}, lines: {} };
-  for (const f of ['./mapsee.js?v=202611281627', '../ib/mapsee.js?v=202611281627', '../plant/mapsee.js?v=202611281627']) {
+  for (const f of ['./mapsee.js?v=202611282133', '../ib/mapsee.js?v=202611282133', '../plant/mapsee.js?v=202611282133']) {
     try { const m = await import(f); if (m.NAMES && f[1] === '/') Object.assign(SEE.names, m.NAMES); Object.entries(m.LINES || {}).forEach(([k, v]) => { SEE.lines[k] = Object.assign(SEE.lines[k] || {}, v); }); } catch (e) { /* (not on this copy) */ }
   }
   D.forEach(d => Object.keys(d.codes).forEach(c => { const t = topicOf(c); if (!TOPIC[t]) return; ((all[t] = all[t] || new Map()).get(d) || all[t].set(d, []).get(d)).push(c); }));

@@ -28,11 +28,11 @@
    Checks: tools/ib-check.mjs.
    ============================================================ */
 import * as THREE from '../vendor/three/build/three.module.min.js?v=0.185.1';
-import { makeStage, smooth, V, glow } from './stage.js?v=202611281627';
-import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611281627';
-import { level, levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611281627';
-import { marks, codesOf } from './mark.js?v=202611281627';      /* (a visit from the IB map marks its sentence) */
-import { found, learn } from './found.js?v=202611281627';        /* (which names with a card have been opened) */
+import { makeStage, smooth, V, glow } from './stage.js?v=202611282133';
+import { CHAPTERS, EXPLORE, LEVELS } from './text.js?v=202611282133';
+import { level, levelSwitch, skip, hlOnly, hlNote, fit } from '../game/iblevel.js?v=202611282133';
+import { marks, codesOf } from './mark.js?v=202611282133';      /* (a visit from the IB map marks its sentence) */
+import { found, learn } from './found.js?v=202611282133';        /* (which names with a card have been opened) */
 /* the IB level (js/game/iblevel.js; Daniel, 16 Nov 2026: "there is no SL HL toggle … my SL students … are struggling"): its
    switch in the header; at SL the HL lines are hidden, a chapter or step of HL lines only is marked HL on its button, and
    Next and Back go past it (the link reaction and the Krebs cycle are HL only); it opens when its button is pressed */
@@ -130,7 +130,7 @@ function styles() {
   let l = document.querySelector('link[data-ibcss]');
   if (!l) {
     l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.ibcss = '1';
-    l.href = new URL('../../css/ib.css?v=202611281627', import.meta.url).href; document.head.appendChild(l);
+    l.href = new URL('../../css/ib.css?v=202611282133', import.meta.url).href; document.head.appendChild(l);
   }
   return l;
 }
@@ -139,7 +139,7 @@ function styles() {
 const mods = {}, modFails = {};
 function chapterModule(def) {
   const k = def.mod;
-  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611281627' + (modFails[k] ? '&r=' + modFails[k] : ''))
+  return mods[k] || (mods[k] = import('./' + k + '.js?v=202611282133' + (modFails[k] ? '&r=' + modFails[k] : ''))
     .catch(e => { delete mods[k]; modFails[k] = (modFails[k] || 0) + 1; throw e; }));
 }
 /* the game calls this when a place's IB door first shows, never before: the view's code, its styles and its map arrive

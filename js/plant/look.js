@@ -11,7 +11,7 @@ import { EffectComposer } from '../vendor/three/examples/jsm/postprocessing/Effe
 import { RenderPass } from '../vendor/three/examples/jsm/postprocessing/RenderPass.js?v=0.185.1';
 import { UnrealBloomPass } from '../vendor/three/examples/jsm/postprocessing/UnrealBloomPass.js?v=0.185.1';
 import { ShaderPass } from '../vendor/three/examples/jsm/postprocessing/ShaderPass.js?v=0.185.1';
-import { CUT } from '../world/magic.js?v=202611281627';
+import { CUT } from '../world/magic.js?v=202611282133';
 
 export function gameLook(stage) {
   const R = stage.renderer, scene = stage.scene, cam = stage.cam;
@@ -61,13 +61,16 @@ export function gameLook(stage) {
         gl_FragColor = c;
       }`
   }));
-  let w0 = 0, h0 = 0, p0 = 0, t0 = performance.now(), day = 1;
+  let w0 = 0, h0 = 0, p0 = 0, t0 = performance.now(), day = 1, dusk = 0;
   const size = new THREE.Vector2();
   return {
     sun,
     /* the light on the leaf: 1 on, 0 off (a dim blue night light stays, so that the picture can still be read) */
-    setDay(k) { day = k; sun.intensity = 1.5 * k; sky.material.uniforms.uDay.value = k; R.toneMappingExposure = 0.78 + 0.2 * k; },
+    setDay(k) { day = k; sun.intensity = 1.5 * k; sky.material.uniforms.uDay.value = k; R.toneMappingExposure = (0.78 + 0.2 * k) * (1 - 0.36 * dusk); },
     get day() { return day; },
+    /* a whole night, seen from far (18 Nov 2026, the grain's step): darker than the light off of one moment; 0 … 1 */
+    setDusk(d) { dusk = d; R.toneMappingExposure = (0.78 + 0.2 * day) * (1 - 0.36 * dusk); },
+    get dusk() { return dusk; },
     render(renderer, sc, camera, dt) {
       renderer.getSize(size); const pr = renderer.getPixelRatio();
       if (size.x !== w0 || size.y !== h0 || pr !== p0) {
